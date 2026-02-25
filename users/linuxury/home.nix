@@ -4,8 +4,7 @@
 # Machines: ThinkPad (laptop), Ryzen5900x (desktop)
 # Role: Admin, developer, power user
 #
-# This file is a function that accepts wallpaperDir from the flake.
-# wallpaperDir is passed per-host in flake.nix:
+# wallpaperDir is injected via extraSpecialArgs in flake.nix, per-host:
 #   ThinkPad   → "4k"
 #   Ryzen5900x → "3440x1440"
 #
@@ -16,11 +15,8 @@
 #   modules/services/wallpaper-slideshow.nix
 # ===========================================================================
 
-# Outer function — receives host-specific arguments from flake.nix
-{ wallpaperDir, ... }:
-
-# Inner function — receives Home Manager's standard arguments
-{ config, pkgs, inputs, lib, ... }:
+# Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
+{ config, pkgs, inputs, lib, wallpaperDir, ... }:
 
 {
   imports = [
