@@ -21,11 +21,8 @@
 #   - PikaOS wallpapers generate kid-friendly color schemes via matugen
 # ===========================================================================
 
-# Outer function — receives host-specific arguments from flake.nix
-{ wallpaperDir, ... }:
-
-# Inner function — receives Home Manager's standard arguments
-{ config, pkgs, inputs, lib, ... }:
+# Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
+{ config, pkgs, inputs, lib, wallpaperDir, ... }:
 
 {
   imports = [
