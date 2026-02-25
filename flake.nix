@@ -145,7 +145,7 @@
 
             # Home Manager as a NixOS module — this means Home Manager
             # runs as part of nixos-rebuild, keeping everything in sync
-            home-manager.nixosModules.homeManager
+            home-manager.nixosModules.home-manager
 
             # Home Manager settings that apply to all hosts
             {
