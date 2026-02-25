@@ -123,12 +123,15 @@
       post_hook   = "dunstctl reload || true"
     '';
 
-    # Symlink matugen templates from dotfiles/
-    # Templates are sourced from matugen-themes repo
-    # Clone them into dotfiles/matugen/templates/
-    # See docs/manual-steps.md
-    ".config/matugen/templates".source =
-      ../../dotfiles/matugen/templates;
+    # NOTE: matugen templates are NOT managed by Nix.
+    # Clone the matugen-themes repo manually into:
+    #   ~/.config/matugen/templates/
+    # See docs/manual-steps.md for the exact command.
+    #
+    # We can't symlink from the Nix store because the templates
+    # directory is cloned separately on each machine, not committed
+    # to this repo. The matugen config.toml above references them
+    # via runtime paths (~/.config/matugen/templates/*).
   };
 
   # =========================================================================
