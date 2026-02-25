@@ -1,0 +1,142 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "padding": {
+      "top": 3,
+      "left": 1
+    },
+    "color": {
+      "1": "#F5F5F5",
+      "2": "#40C4FF"
+    }
+  },
+  "display": {
+    "color": {
+      "title": "#4f9ad0"
+    },
+    "hideCursor": false,
+    "separator": "  "
+  },
+  "modules": [
+    "title",
+    "separator",
+    {
+      "type": "host",
+      "keyColor": "#ffe1a3",
+      "key": " PC"
+    },
+    {
+      "type": "board",
+      "keyColor": "#ffe1a3",
+      "key": " ├ 󰌢 "
+    },
+    {
+      "type": "CPU",
+      "keyColor": "#ffe1a3",
+      "key": " ├ 󰻠 "
+    },
+    {
+      "type": "gpu",
+      "keyColor": "#ffe1a3",
+      "detectionMethod": "vulkan",
+      "key": " ├ 󰻑 "
+    },
+    {
+      "type": "display",
+      "keyColor": "#ffe1a3",
+      "key": " ├ 󰍹 "
+    },
+    {
+      "type": "disk",
+      "keyColor": "#ffe1a3",
+      "key": " ├ 󰋊 "
+    },
+    {
+      "type": "memory",
+      "keyColor": "#ffe1a3",
+      "key": " ├  "
+    },
+    {
+      "type": "swap",
+      "keyColor": "#ffe1a3",
+      "key": " ├ 󰓡 "
+    },
+    {
+      "type": "uptime",
+      "keyColor": "#ffe1a3",
+      "key": " ╰ 󰅐 "
+    },
+    "break",
+    {
+      "type": "os",
+      "keyColor": "#4f9ad0",
+      "key": " OS"
+    },
+    {
+      "type": "kernel",
+      "keyColor": "#4f9ad0",
+      "key": " ├  "
+    },
+    {
+      "type": "lm",
+      "keyColor": "#4f9ad0",
+      "key": " ├ 󰍂 "
+    },
+    {
+      "type": "shell",
+      "keyColor": "#4f9ad0",
+      "key": " ├  "
+    },
+    {
+      "type": "terminal",
+      "keyColor": "#4f9ad0",
+      "key": " ├  "
+    },
+    {
+      "type": "TerminalFont",
+      "keyColor": "#4f9ad0",
+      "key": " ├  "
+    },
+    {
+      "type": "Packages",
+      "keyColor": "#4f9ad0",
+      "key": " ╰ 󰏖 "
+    },
+    "break",
+    {
+      "type": "DE",
+      "keyColor": "#FF6B6B",
+      "key": " DE"
+    },
+    {
+      "type": "WM",
+      "keyColor": "#FF6B6B",
+      "key": " ├  "
+    },
+    {
+      "type": "Theme",
+      "keyColor": "#FF6B6B",
+      "key": " ├ 󰉼 "
+    },
+    {
+      "type": "Icons",
+      "keyColor": "#FF6B6B",
+      "key": " ├ 󰀻 "
+    },
+    {
+      "type": "Font",
+      "keyColor": "#FF6B6B",
+      "key": " ├  "
+    },
+    {
+      "type": "Cursor",
+      "keyColor": "#FF6B6B",
+      "key": " ╰ 󰇀 "
+    },
+    {
+      "type": "colors",
+      "paddingLeft": 3,
+      "symbol": "diamond"
+    }
+  ]
+}
