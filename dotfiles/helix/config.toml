@@ -1,0 +1,20 @@
+theme = "base16_transparent"
+
+[editor]
+line-number = "relative"
+cursorline = true
+color-modes = true
+rulers = [80]
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.indent-guides]
+render = true
+
+[editor.statusline]
+left   = ["mode", "spinner", "file-name", "file-modification-indicator"]
+center = []
+right  = ["diagnostics", "position", "file-encoding", "file-type"]

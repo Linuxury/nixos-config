@@ -1,0 +1,38 @@
+# Font
+font-family = JetBrainsMono Nerd Font Propo
+font-size = 10
+
+# Window
+background-opacity = 0.95
+background-blur-radius = 20
+window-width = 130
+window-height = 40
+window-padding-x = 15
+window-padding-y = 15
+window-decoration = auto
+
+# Cursor
+cursor-style = block
+cursor-style-blink = true
+
+# Cursor trail shaders (requires ~/.config/ghostty/shader/)
+custom-shader-animation = true
+custom-shader = shader/cursor_blaze_tapered.glsl
+custom-shader = shader/cursor_smear_fade.glsl
+
+# Shell integration
+shell-integration = fish
+shell-integration-features = no-cursor
+
+# Behavior
+confirm-close-surface = false
+
+# Splits
+keybind = ctrl+d=new_split:right
+keybind = ctrl+shift+d=new_split:down
+keybind = ctrl+shift+up=goto_split:up
+keybind = ctrl+shift+down=goto_split:down
+keybind = ctrl+shift+left=goto_split:left
+keybind = ctrl+shift+right=goto_split:right
+keybind = ctrl+shift+r=reload_config
+keybind = ctrl+z=close_surface

@@ -1,0 +1,96 @@
+# ===========================================================================
+# secrets/secrets.nix — Declares which SSH public keys can decrypt each secret
+#
+# HOW AGENIX WORKS:
+#   Each .age file in this directory is encrypted for a set of recipients.
+#   A recipient is an SSH public key. The corresponding private key (either
+#   your personal key or a host's SSH host key) decrypts the secret.
+#
+# TWO TYPES OF RECIPIENTS:
+#   1. linuxury-personal   — your personal SSH key (so you can re-encrypt
+#                            secrets when rotating keys or adding new hosts)
+#   2. <hostname>          — each machine's SSH host key (generated at first boot)
+#                            so the machine can decrypt its own secrets
+#
+# SETUP STEPS:
+#   1. Paste your personal public key below (cat ~/.ssh/id_ed25519.pub)
+#   2. After installing each host for the first time, collect its host key:
+#        ssh-keyscan -t ed25519 <hostname-or-ip>
+#      Paste the key string (without "hostname" prefix) for that host below.
+#   3. Re-encrypt all secrets for the new host:
+#        nix run nixpkgs#agenix -- -r
+#
+# CREATING A SECRET:
+#   nix run nixpkgs#agenix -- -e secrets/mysecret.age
+#   (Opens $EDITOR. Type the secret, save, close.)
+#
+# The encrypted .age files are safe to commit — only holders of the
+# corresponding private keys can decrypt them.
+# ===========================================================================
+
+let
+
+  # --------------------------------------------------------------------------
+  # YOUR PERSONAL SSH KEY
+  #
+  # Replace with: cat ~/.ssh/id_ed25519.pub
+  # This lets you re-encrypt/rekeying secrets from your admin machine.
+  # --------------------------------------------------------------------------
+  linuxury-personal = "ssh-ed25519 AAAA_REPLACE_WITH_YOUR_PERSONAL_KEY linuxurypr@gmail.com";
+
+  # --------------------------------------------------------------------------
+  # HOST SSH HOST KEYS
+  #
+  # Collect after first boot of each host:
+  #   ssh-keyscan -t ed25519 <hostname-or-ip> | awk '{print $3}'
+  #
+  # Format: "ssh-ed25519 <key-data>"
+  # --------------------------------------------------------------------------
+  ThinkPad     = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  Ryzen5900x   = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  Ryzen5800x   = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  Asus-A15     = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  Alex-Desktop = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  Alex-Laptop  = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  MinisForum   = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  Radxa-X4     = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  Media-Server = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+
+  # --------------------------------------------------------------------------
+  # Convenience groups
+  # --------------------------------------------------------------------------
+  linuxury-machines = [ ThinkPad Ryzen5900x MinisForum Radxa-X4 Media-Server ];
+  babylinux-machines = [ Ryzen5800x Asus-A15 ];
+
+in {
+
+  # --------------------------------------------------------------------------
+  # linuxury's SSH authorized key
+  #
+  # The .age file contains linuxury's SSH PUBLIC key (authorized_keys format).
+  # agenix decrypts it onto each host so linuxury can SSH in after install.
+  # Deployed to: all hosts where linuxury has a user account.
+  # --------------------------------------------------------------------------
+  "linuxury-authorized-key.age".publicKeys =
+    [ linuxury-personal ] ++ linuxury-machines;
+
+  # --------------------------------------------------------------------------
+  # WireGuard config for qBittorrent VPN killswitch
+  #
+  # Contains the PRIVATE key + peer config (wg-quick format).
+  # NEVER commit the decrypted version. Only the .age file belongs here.
+  # Deployed to: babylinux's machines running vpn-qbittorrent.
+  # --------------------------------------------------------------------------
+  "wireguard-vpnunlimited.age".publicKeys =
+    [ linuxury-personal ] ++ babylinux-machines;
+
+  # --------------------------------------------------------------------------
+  # FreshRSS admin password
+  #
+  # Plain text password for the FreshRSS admin account (linuxury).
+  # Deployed to: Radxa-X4 only.
+  # --------------------------------------------------------------------------
+  "freshrss-admin-password.age".publicKeys =
+    [ linuxury-personal Radxa-X4 ];
+
+}
