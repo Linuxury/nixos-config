@@ -36,7 +36,7 @@ let
   # Replace with: cat ~/.ssh/id_ed25519.pub
   # This lets you re-encrypt/rekeying secrets from your admin machine.
   # --------------------------------------------------------------------------
-  linuxury-personal = "ssh-ed25519 AAAA_REPLACE_WITH_YOUR_PERSONAL_KEY linuxurypr@gmail.com";
+  linuxury-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
 
   # --------------------------------------------------------------------------
   # HOST SSH HOST KEYS
@@ -46,15 +46,15 @@ let
   #
   # Format: "ssh-ed25519 <key-data>"
   # --------------------------------------------------------------------------
-  ThinkPad     = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
-  Ryzen5900x   = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
-  Ryzen5800x   = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
-  Asus-A15     = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
-  Alex-Desktop = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
-  Alex-Laptop  = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
-  MinisForum   = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
-  Radxa-X4     = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
-  Media-Server = "ssh-ed25519 AAAA_GET_AFTER_FIRST_BOOT";
+  ThinkPad     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Ryzen5900x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFG1gbiGRl8imkfxDr8OaGq0EPP/Q2j6zREO3VhrmZgV root@Ryzen5900x";
+  Ryzen5800x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Asus-A15     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Alex-Desktop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Alex-Laptop  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  MinisForum   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Radxa-X4     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Media-Server = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
 
   # --------------------------------------------------------------------------
   # Convenience groups
