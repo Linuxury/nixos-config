@@ -94,7 +94,8 @@
   #   MANGOHUD=1 %command%
   # Or globally with: mangohud <game>
   # =========================================================================
-  programs.mangohud.enable = true;
+  # programs.mangohud.enable = true;  # not a NixOS module option; mangohud
+  #                                   # is already in systemPackages below
 
   # =========================================================================
   # Gaming packages
