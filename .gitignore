@@ -1,0 +1,30 @@
+# Nix build outputs
+result
+result-*
+
+# Claude Code project memory (local dev tool — not part of the config)
+.claude/
+
+# nix-direnv
+.direnv/
+
+# Age-decrypted secrets (NEVER commit these — only .age files belong here)
+secrets/*.conf
+secrets/*.key
+secrets/*.pem
+secrets/*.txt
+secrets/*.pass
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
