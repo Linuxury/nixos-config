@@ -239,10 +239,10 @@
     zoom-us
 
     # Gaming — Minecraft
-    prismlauncher
+    prismlauncher       # manages Java internally
     mcpelauncher-ui-qt
     jdk17
-    jdk8
+    # jdk8 removed — conflicts with jdk17 (/bin/jar); Prism manages older Java
 
     # Media
     mpv
