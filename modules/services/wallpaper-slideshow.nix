@@ -74,7 +74,7 @@ output_path = "~/.config/helix/themes/matugen.toml"
 [templates.gtk3]
 input_path  = "~/.config/matugen/templates/gtk3.css"
 output_path = "~/.config/gtk-3.0/colors.css"
-post_hook   = "gsettings set org.gnome.desktop.interface gtk-theme '' || true"
+post_hook   = "gsettings set org.gnome.desktop.interface gtk-theme ''' || true"
 
 [templates.gtk4]
 input_path  = "~/.config/matugen/templates/gtk4.css"
