@@ -128,14 +128,17 @@
   # Notification messages use plain language — he's 6.
   # =========================================================================
   systemd.user.services.hytale-flatpak-install = {
-    description = "Install Hytale launcher from bundled flatpak";
+    Unit = {
+      Description         = "Install Hytale launcher from bundled flatpak";
+      After               = [ "graphical-session.target" ];
+      Wants               = [ "graphical-session.target" ];
+      ConditionPathExists = "!/var/lib/flatpak/app/com.hytale.Hytale";
+    };
 
-    after    = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
-
-    serviceConfig = {
+    Service = {
       Type      = "oneshot";
-      ExecStart = pkgs.writeShellScript "install-hytale-alex" ''
+      Restart   = "no";
+      ExecStart = "${pkgs.writeShellScript "install-hytale-alex" ''
         FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
 
         if flatpak info com.hytale.Hytale &>/dev/null; then
@@ -176,12 +179,11 @@
             "Hytale Install Failed" \
             "Something went wrong. Ask your dad for help."
         fi
-      '';
-      Restart = "no";
+      ''}";
     };
 
-    unitConfig = {
-      ConditionPathExists = "!/var/lib/flatpak/app/com.hytale.Hytale";
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
     };
   };
 
