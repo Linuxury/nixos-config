@@ -159,14 +159,17 @@
   #   3. Rebuild
   # =========================================================================
   systemd.user.services.hytale-flatpak-install = {
-    description = "Install Hytale launcher from bundled flatpak";
+    Unit = {
+      Description         = "Install Hytale launcher from bundled flatpak";
+      After               = [ "graphical-session.target" ];
+      Wants               = [ "graphical-session.target" ];
+      ConditionPathExists = "!/var/lib/flatpak/app/com.hytale.Hytale";
+    };
 
-    after    = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
-
-    serviceConfig = {
+    Service = {
       Type      = "oneshot";
-      ExecStart = pkgs.writeShellScript "install-hytale" ''
+      Restart   = "no";
+      ExecStart = "${pkgs.writeShellScript "install-hytale" ''
         FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
 
         if flatpak info com.hytale.Hytale &>/dev/null; then
@@ -207,12 +210,11 @@
             "Hytale Install Failed" \
             "Check journalctl --user -u hytale-flatpak-install for details."
         fi
-      '';
-      Restart = "no";
+      ''}";
     };
 
-    unitConfig = {
-      ConditionPathExists = "!/var/lib/flatpak/app/com.hytale.Hytale";
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
     };
   };
 
