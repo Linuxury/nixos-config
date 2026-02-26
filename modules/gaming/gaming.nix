@@ -125,7 +125,7 @@
     mangohud        # CLI access to MangoHud (already enabled above)
 
     vulkan-tools    # vulkaninfo — useful for checking Vulkan is working
-    glxinfo         # Check OpenGL info and verify drivers are loaded correctly
+    mesa-demos      # glxinfo, glxgears — check OpenGL info and verify drivers
 
     # Controller support
     antimicrox      # Map controller buttons to keyboard/mouse
