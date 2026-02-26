@@ -155,6 +155,11 @@
   #
   # Configuration for the Nix package manager itself.
   # =========================================================================
+  # Allow unfree packages (Steam, Nvidia drivers, etc.) system-wide.
+  # The flake.nix pkgs import also sets this, but that doesn't propagate
+  # into NixOS module evaluation — this option is the correct way to do it.
+  nixpkgs.config.allowUnfree = true;
+
   nix = {
     settings = {
       # Enables the new "nix" CLI commands and flakes support.
