@@ -322,9 +322,6 @@
     jdk17
     jdk8
 
-    # Productivity
-    obsidian
-
     # Media
     mpv
     imv
