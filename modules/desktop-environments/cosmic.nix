@@ -1,24 +1,16 @@
 # ===========================================================================
 # modules/desktop-environments/cosmic.nix — COSMIC Desktop Environment
 #
-# COSMIC is System76's new Rust-based desktop environment.
-# It's still in alpha but actively developed and very promising.
+# COSMIC is System76's Rust-based desktop environment.
+# Available natively in nixpkgs as of NixOS 25.05 — no external flake needed.
 #
 # This module is the DEFAULT desktop for all non-server hosts.
 # It gets enabled in every desktop and laptop host config.
-#
-# The actual COSMIC packages come from the nixos-cosmic flake input
-# we declared in flake.nix — that's why we needed it there.
 # ===========================================================================
 
 { config, pkgs, inputs, ... }:
 
 {
-  # =========================================================================
-  # COSMIC requires its own cache and overlay to be set up.
-  # This was already wired in via flake.nix (nixos-cosmic.nixosModules.default)
-  # so here we just enable the service itself.
-  # =========================================================================
   services.desktopManager.cosmic.enable = true;
 
   # =========================================================================
