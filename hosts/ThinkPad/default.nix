@@ -228,13 +228,13 @@
   # Lid and power button behavior
   # =========================================================================
   services.logind = {
-    lidSwitch             = "suspend";           # Suspend when lid closes
+    lidSwitch              = "suspend";          # Suspend when lid closes
     lidSwitchExternalPower = "suspend";          # Even on AC — saves energy
-    extraConfig = ''
-      HandlePowerKey=suspend
-      IdleAction=suspend
-      IdleActionSec=20min
-    '';
+    settings.Login = {
+      HandlePowerKey = "suspend";
+      IdleAction     = "suspend";
+      IdleActionSec  = "20min";
+    };
   };
 
   # =========================================================================

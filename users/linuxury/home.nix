@@ -82,9 +82,6 @@
   # Dotfiles — symlinked from dotfiles/ in your repo
   # =========================================================================
   home.file = {
-    # Fish shell
-    ".config/fish/config.fish".source = ../../dotfiles/fish/config.fish;
-
     # Starship prompt
     ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
 
@@ -178,7 +175,8 @@
   # Fish shell
   # =========================================================================
   programs.fish = {
-    enable = true;
+    enable    = true;
+    shellInit = lib.fileContents ../../dotfiles/fish/config.fish;
   };
 
   # =========================================================================
