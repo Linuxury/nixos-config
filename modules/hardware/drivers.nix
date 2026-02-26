@@ -53,13 +53,9 @@
           # Extra packages for hardware video decoding (AMD Video Codec Engine)
           # This offloads video playback to the GPU instead of the CPU
           extraPackages = with pkgs; [
-            amdvlk          # AMD's official Vulkan driver (alternative to radv)
             rocmPackages.clr # OpenCL support for GPU compute
           ];
-          # 32-bit versions of the above for Steam compatibility
-          extraPackages32 = with pkgs; [
-            driversi686Linux.amdvlk
-          ];
+          # 32-bit support for Steam — RADV is included in mesa32 automatically
         };
 
         # AMD-specific CPU microcode updates.
