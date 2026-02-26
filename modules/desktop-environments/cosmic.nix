@@ -58,7 +58,6 @@
   # =========================================================================
   environment.systemPackages = with pkgs; [
     cosmic-files        # COSMIC file manager
-    cosmic-terminal     # COSMIC terminal emulator
     cosmic-text-editor  # COSMIC text editor
     cosmic-store        # COSMIC app store (Flatpak frontend)
   ];
