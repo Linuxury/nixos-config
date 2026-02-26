@@ -102,14 +102,15 @@ TOML
   # We write to it directly since there's no CLI tool yet.
   # =========================================================================
   systemd.user.services.wallpaper-slideshow = {
-    description = "Wallpaper slideshow with matugen theme sync";
+    Unit = {
+      Description = "Wallpaper slideshow with matugen theme sync";
+      After       = [ "graphical-session.target" ];
+      Wants       = [ "graphical-session.target" ];
+    };
 
-    after    = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
-
-    serviceConfig = {
+    Service = {
       Type      = "oneshot";
-      ExecStart = pkgs.writeShellScript "wallpaper-slideshow" ''
+      ExecStart = "${pkgs.writeShellScript "wallpaper-slideshow" ''
         #!/usr/bin/env bash
         set -euo pipefail
 
@@ -175,7 +176,11 @@ TOML
         fi
 
         log "Done — next change in 30 minutes"
-      '';
+      ''}";
+    };
+
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
     };
   };
 
@@ -187,18 +192,19 @@ TOML
   # due it fires as soon as the session starts.
   # =========================================================================
   systemd.user.timers.wallpaper-slideshow = {
-    description = "Wallpaper slideshow timer — every 30 minutes";
+    Unit = {
+      Description = "Wallpaper slideshow timer — every 30 minutes";
+    };
 
-    wantedBy = [ "timers.target" ];
-
-    timerConfig = {
-      # Fire immediately when session starts
-      OnActiveSec = "0";
-      # Then every 30 minutes
+    Timer = {
+      OnActiveSec     = "0";
       OnUnitActiveSec = "30min";
-      # If missed (machine was off) fire immediately on next session
-      Persistent = true;
-      Unit = "wallpaper-slideshow.service";
+      Persistent      = true;
+      Unit            = "wallpaper-slideshow.service";
+    };
+
+    Install = {
+      WantedBy = [ "timers.target" ];
     };
   };
 }
