@@ -51,16 +51,6 @@
     nixos-hardware.url = "github:nixos/nixos-hardware";
 
     # -------------------------------------------------------------------------
-    # nixos-cosmic — COSMIC desktop environment
-    # System76's new Rust-based DE. Still in alpha but very promising.
-    # We pull it directly since nixpkgs unstable may lag behind.
-    # -------------------------------------------------------------------------
-    nixos-cosmic = {
-      url = "github:lilyinstarlight/nixos-cosmic";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # -------------------------------------------------------------------------
     # agenix — Declarative secret management using age encryption
     #
     # Secrets are encrypted with age (using SSH public keys as recipients)
@@ -83,7 +73,7 @@
   # The outputs function receives all inputs and returns your configurations.
   # `@inputs` captures the whole inputs set so we can pass it around easily.
   # ===========================================================================
-  outputs = { self, nixpkgs, home-manager, nixos-hardware, nixos-cosmic, agenix, ... } @ inputs:
+  outputs = { self, nixpkgs, home-manager, nixos-hardware, agenix, ... } @ inputs:
 
     # -------------------------------------------------------------------------
     # let...in — Nix's way of defining local variables
@@ -135,9 +125,6 @@
           modules = [
             # The host's specific hardware and role configuration
             hostConfig
-
-            # COSMIC desktop overlay — needed for all hosts using COSMIC
-            nixos-cosmic.nixosModules.default
 
             # agenix — secret management via age encryption.
             # Provides the age.secrets.* options used throughout host configs.
