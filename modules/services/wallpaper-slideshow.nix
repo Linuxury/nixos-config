@@ -31,108 +31,67 @@
   ];
 
   # =========================================================================
-  # matugen configuration
+  # matugen configuration — written at activation time
   #
-  # Points at all template files from matugen-themes.
-  # Templates live in dotfiles/matugen/templates/ and are symlinked
-  # into ~/.config/matugen/templates/ via home.file.
+  # We use home.activation (shell script) instead of home.file.text to
+  # avoid Nix evaluating the tilde paths inside the config content.
+  # The config.toml is written only if it doesn't already exist so
+  # manual edits (e.g. adding WM templates) are preserved.
   #
-  # Supported apps in our setup:
-  #   - Ghostty
-  #   - Starship
-  #   - Helix
-  #   - Dunst (WM sessions)
-  #   - GTK (COSMIC uses GTK4)
-  #   - COSMIC (via ron template + Python post-hook)
-  #
-  # WM-specific templates (Hyprland, Waybar, Niri) added in WM config pass.
+  # Templates are NOT managed by Nix — clone matugen-themes manually:
+  #   git clone https://github.com/InioX/matugen-themes \
+  #     ~/.config/matugen/templates
+  # See docs/manual-steps.md for the full setup sequence.
   # =========================================================================
-  home.file = {
-    # matugen main config
-    ".config/matugen/config.toml".text = ''
-      # ===========================================================
-      # matugen configuration
-      # Generates Material You color themes from wallpaper images
-      # Templates from: https://github.com/InioX/matugen-themes
-      # ===========================================================
+  home.activation.matugenConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    MATUGEN_CONF="$HOME/.config/matugen/config.toml"
+    if [ ! -f "$MATUGEN_CONF" ]; then
+      mkdir -p "$(dirname "$MATUGEN_CONF")"
+      cat > "$MATUGEN_CONF" <<'TOML'
+# ===========================================================
+# matugen configuration
+# Generates Material You color themes from wallpaper images
+# Templates from: https://github.com/InioX/matugen-themes
+# ===========================================================
 
-      [config]
-      # Generate dark mode themes by default
-      # Change to "light" if preferred
-      mode = "dark"
+[config]
+mode = "dark"
+reload_apps = true
 
-      # Reload apps after theme generation
-      reload_apps = true
+[templates.ghostty]
+input_path  = "~/.config/matugen/templates/ghostty.conf"
+output_path = "~/.config/ghostty/colors"
+post_hook   = "pkill -SIGUSR2 ghostty || true"
 
-      # ===========================================================
-      # Ghostty — terminal emulator
-      # post_hook reloads all open Ghostty instances
-      # ===========================================================
-      [templates.ghostty]
-      input_path  = "~/.config/matugen/templates/ghostty.conf"
-      output_path = "~/.config/ghostty/colors"
-      post_hook   = "pkill -SIGUSR2 ghostty || true"
+[templates.starship]
+input_path  = "~/.config/matugen/templates/starship.toml"
+output_path = "~/.config/starship-colors.toml"
 
-      # ===========================================================
-      # Starship — prompt
-      # Replaces the Nord palette with wallpaper-generated colors
-      # ===========================================================
-      [templates.starship]
-      input_path  = "~/.config/matugen/templates/starship.toml"
-      output_path = "~/.config/starship-colors.toml"
+[templates.helix]
+input_path  = "~/.config/matugen/templates/helix.toml"
+output_path = "~/.config/helix/themes/matugen.toml"
 
-      # ===========================================================
-      # Helix — editor
-      # Generates a matugen theme then sets it as active
-      # ===========================================================
-      [templates.helix]
-      input_path  = "~/.config/matugen/templates/helix.toml"
-      output_path = "~/.config/helix/themes/matugen.toml"
+[templates.gtk3]
+input_path  = "~/.config/matugen/templates/gtk3.css"
+output_path = "~/.config/gtk-3.0/colors.css"
+post_hook   = "gsettings set org.gnome.desktop.interface gtk-theme '' || true"
 
-      # ===========================================================
-      # GTK3 — affects COSMIC and GTK apps
-      # ===========================================================
-      [templates.gtk3]
-      input_path  = "~/.config/matugen/templates/gtk3.css"
-      output_path = "~/.config/gtk-3.0/colors.css"
-      post_hook   = "gsettings set org.gnome.desktop.interface gtk-theme '' || true"
+[templates.gtk4]
+input_path  = "~/.config/matugen/templates/gtk4.css"
+output_path = "~/.config/gtk-4.0/colors.css"
 
-      # ===========================================================
-      # GTK4 — affects COSMIC and GTK4 apps
-      # ===========================================================
-      [templates.gtk4]
-      input_path  = "~/.config/matugen/templates/gtk4.css"
-      output_path = "~/.config/gtk-4.0/colors.css"
+[templates.cosmic]
+input_path  = "~/.config/matugen/templates/cosmic_theme.ron"
+output_path = "~/.config/matugen/themes/matugen_cosmic.theme.ron"
+post_hook   = "python3 ~/.config/matugen/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron"
 
-      # ===========================================================
-      # COSMIC — via ron template + Python post-hook
-      # The post-hook script applies the generated theme to COSMIC
-      # ===========================================================
-      [templates.cosmic]
-      input_path  = "~/.config/matugen/templates/cosmic_theme.ron"
-      output_path = "~/.config/matugen/themes/matugen_cosmic.theme.ron"
-      post_hook   = "python3 ~/.config/matugen/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron"
-
-      # ===========================================================
-      # Dunst — notification daemon (WM sessions only)
-      # Harmless in DE sessions since dunst isn't running
-      # ===========================================================
-      [templates.dunst]
-      input_path  = "~/.config/matugen/templates/dunst.ini"
-      output_path = "~/.config/dunst/dunstrc"
-      post_hook   = "dunstctl reload || true"
-    '';
-
-    # NOTE: matugen templates are NOT managed by Nix.
-    # Clone the matugen-themes repo manually into:
-    #   ~/.config/matugen/templates/
-    # See docs/manual-steps.md for the exact command.
-    #
-    # We can't symlink from the Nix store because the templates
-    # directory is cloned separately on each machine, not committed
-    # to this repo. The matugen config.toml above references them
-    # via runtime paths (~/.config/matugen/templates/*).
-  };
+[templates.dunst]
+input_path  = "~/.config/matugen/templates/dunst.ini"
+output_path = "~/.config/dunst/dunstrc"
+post_hook   = "dunstctl reload || true"
+TOML
+    fi
+  '';
 
   # =========================================================================
   # Wallpaper slideshow service
