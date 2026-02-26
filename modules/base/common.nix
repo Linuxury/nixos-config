@@ -235,6 +235,15 @@
   ];
 
   # =========================================================================
+  # TAILSCALE — mesh VPN
+  #
+  # Runs on every machine so you can reach all of them (desktops, laptops,
+  # servers) from anywhere without port-forwarding or opening firewall ports.
+  # After first boot on each machine: sudo tailscale up
+  # =========================================================================
+  services.tailscale.enable = true;
+
+  # =========================================================================
   # SYSTEM STATE VERSION
   #
   # This tells NixOS which version's defaults to use for stateful data.
