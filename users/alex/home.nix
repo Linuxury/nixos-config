@@ -210,10 +210,10 @@
     # Alex has his own Mojang account
     # Set up his account in Prism after first boot
     # -----------------------------------------------------------------------
-    prismlauncher       # Java Minecraft launcher
+    prismlauncher       # Java Minecraft launcher — manages Java internally
     mcpelauncher-ui-qt  # Minecraft Bedrock Edition
     jdk17               # Minecraft 1.17 and newer
-    jdk8                # Older Minecraft versions
+    # jdk8 removed — conflicts with jdk17 (/bin/jar); Prism manages older Java
 
     # -----------------------------------------------------------------------
     # Educational
