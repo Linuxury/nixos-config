@@ -80,7 +80,7 @@
     packages = with pkgs; [
       noto-fonts          # Wide unicode coverage, clean and readable
       noto-fonts-cjk-sans # Chinese, Japanese, Korean support
-      noto-fonts-emoji    # Emoji support
+      noto-fonts-color-emoji    # Emoji support
       liberation_ttf      # Free replacements for Arial, Times New Roman etc
       # JetBrainsMono Nerd Font (all three variants: Mono, Regular, Propo)
       # nerd-fonts.jetbrains-mono is also declared in common.nix —
