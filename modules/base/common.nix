@@ -204,12 +204,12 @@
   #   JetBrainsMono Nerd Font Mono   — monospaced, smaller icons
   #   JetBrainsMono Nerd Font Propo  — proportional spacing (UI text)
   #
-  # noto-fonts-emoji fills in any emoji glyphs your terminal font doesn't
+  # noto-fonts-color-emoji fills in any emoji glyphs your terminal font doesn't
   # cover — required for full emoji support in terminals and apps.
   # =========================================================================
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
-    noto-fonts-emoji
+    noto-fonts-color-emoji
   ];
 
   # =========================================================================
