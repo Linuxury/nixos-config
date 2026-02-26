@@ -56,11 +56,10 @@
   # Only install what makes sense system-wide here.
   # User-specific apps belong in the user's home.nix instead.
   # =========================================================================
-  environment.systemPackages = with pkgs; [
-    cosmic-files        # COSMIC file manager
-    cosmic-text-editor  # COSMIC text editor
-    cosmic-store        # COSMIC app store (Flatpak frontend)
-  ];
+  # COSMIC apps (files, text-editor, store, terminal, etc.) are bundled
+  # automatically by services.desktopManager.cosmic.enable — no need to
+  # list them here. Adding them explicitly causes "undefined variable" errors
+  # when package names change in the nixos-cosmic flake.
 
   # =========================================================================
   # Flatpak — Optional app distribution format
