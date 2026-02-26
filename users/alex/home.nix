@@ -79,9 +79,6 @@
   # Dotfiles — shared terminal setup with the rest of the family
   # =========================================================================
   home.file = {
-    # Fish shell — shared config
-    ".config/fish/config.fish".source = ../../dotfiles/fish/config.fish;
-
     # Starship prompt — shared config
     ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
 
@@ -107,7 +104,8 @@
   # Fish shell
   # =========================================================================
   programs.fish = {
-    enable = true;
+    enable    = true;
+    shellInit = lib.fileContents ../../dotfiles/fish/config.fish;
   };
 
   # =========================================================================

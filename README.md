@@ -294,7 +294,7 @@ mkfs.btrfs -f -L nixos   ${DISK}p2
 mkfs.fat -F 32 -n EFI ${DISK}p1
 
 # You will be asked to set and confirm the LUKS passphrase
-cryptsetup luksFormat -L nixos-luks ${DISK}p2
+cryptsetup luksFormat --label nixos-luks ${DISK}p2
 
 # Open the encrypted container
 cryptsetup open ${DISK}p2 cryptroot
