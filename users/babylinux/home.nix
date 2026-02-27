@@ -226,33 +226,18 @@
   # =========================================================================
   # Personal packages
   # =========================================================================
+  # Personal packages
+  #
+  # Packages already provided elsewhere — do not re-add:
+  #   common.nix  → ghostty, kitty, fastfetch, mpv, imv, wl-clipboard, xdg-utils
+  #   gaming.nix  → prismlauncher, mcpelauncher-ui-qt, jdk17
+  # =========================================================================
   home.packages = with pkgs; [
 
-    # Terminals — shared setup with linuxury
-    ghostty
-    kitty
-
     # Office
-    onlyoffice-bin
+    onlyoffice-bin  # Word/Excel/PowerPoint compatible office suite
 
     # Communication
-    zoom-us
-
-    # Gaming — Minecraft
-    prismlauncher       # manages Java internally
-    mcpelauncher-ui-qt
-    jdk17
-    # jdk8 removed — conflicts with jdk17 (/bin/jar); Prism manages older Java
-
-    # Media
-    mpv
-    imv
-
-    # Shell tools
-    fastfetch
-
-    # System tools
-    wl-clipboard
-    xdg-utils
+    zoom-us         # Video conferencing
   ];
 }

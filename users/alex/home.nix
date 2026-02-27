@@ -195,63 +195,35 @@
 
   # =========================================================================
   # Personal packages
+  #
+  # Packages already provided elsewhere — do not re-add:
+  #   common.nix  → ghostty, kitty, fastfetch, mpv, imv, wl-clipboard, xdg-utils
+  #   gaming.nix  → prismlauncher, mcpelauncher-ui-qt, jdk17
   # =========================================================================
   home.packages = with pkgs; [
 
     # -----------------------------------------------------------------------
-    # Terminals — same setup as the rest of the family
-    # He'll learn on these naturally over time
-    # -----------------------------------------------------------------------
-    ghostty
-    kitty
-
-    # -----------------------------------------------------------------------
-    # Gaming — Minecraft
-    # Alex has his own Mojang account
-    # Set up his account in Prism after first boot
-    # -----------------------------------------------------------------------
-    prismlauncher       # Java Minecraft launcher — manages Java internally
-    mcpelauncher-ui-qt  # Minecraft Bedrock Edition
-    jdk17               # Minecraft 1.17 and newer
-    # jdk8 removed — conflicts with jdk17 (/bin/jar); Prism manages older Java
-
-    # -----------------------------------------------------------------------
     # Educational
     # -----------------------------------------------------------------------
-    gcompris-qt         # 100+ educational activities — ages 2-10
-                        # Math, reading, geography, science, typing
-                        # Perfect for a 6 year old
+    gcompris-qt     # 100+ educational activities — ages 2-10
+                    # Math, reading, geography, science, typing
 
     # -----------------------------------------------------------------------
     # Creative
     # -----------------------------------------------------------------------
-    krita               # Digital painting and drawing
-    kdenlive            # Video editor — simple enough for kids
+    krita           # Digital painting and drawing
+    kdenlive        # Video editor — simple enough for kids
 
     # -----------------------------------------------------------------------
     # Office / School
     # -----------------------------------------------------------------------
-    libreoffice         # Full office suite
-                        # Writer for school documents
-                        # Impress for presentations
-                        # Calc for basic math exercises
+    libreoffice         # Full office suite — Writer, Impress, Calc
+    hunspell            # Spell checker for LibreOffice
+    hunspellDicts.en-us # English (US) dictionary
 
     # -----------------------------------------------------------------------
     # Media
     # -----------------------------------------------------------------------
-    freetube            # YouTube alternative — no ads, no rabbit holes
-    mpv                 # Video player for local files
-    imv                 # Image viewer
-
-    # -----------------------------------------------------------------------
-    # Shell tools
-    # -----------------------------------------------------------------------
-    fastfetch           # Kids love seeing this on terminal startup
-
-    # -----------------------------------------------------------------------
-    # System tools
-    # -----------------------------------------------------------------------
-    wl-clipboard
-    xdg-utils
+    freetube        # YouTube without ads, algorithm, or shorts
   ];
 }

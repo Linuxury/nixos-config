@@ -284,14 +284,6 @@
   };
 
   # =========================================================================
-  # Direnv — per-project environments
-  # =========================================================================
-  programs.direnv = {
-    enable            = true;
-    nix-direnv.enable = true;
-  };
-
-  # =========================================================================
   # SSH agent
   # =========================================================================
   services.ssh-agent.enable = true;
@@ -306,54 +298,109 @@
   };
 
   # =========================================================================
+  # Hytale — automatic flatpak installation from bundled file
+  #
+  # Hytale is not on Flathub yet. We bundle the flatpak from the developer
+  # directly in the assets repo and install it automatically on first login.
+  #
+  # Source: https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak
+  # Store at: ~/assets/flatpaks/hytale-launcher-latest.flatpak
+  # =========================================================================
+  systemd.user.services.hytale-flatpak-install = {
+    Unit = {
+      Description         = "Install Hytale launcher from bundled flatpak";
+      After               = [ "graphical-session.target" ];
+      Wants               = [ "graphical-session.target" ];
+      ConditionPathExists = "!/var/lib/flatpak/app/com.hytale.Hytale";
+    };
+
+    Service = {
+      Type      = "oneshot";
+      Restart   = "no";
+      ExecStart = "${pkgs.writeShellScript "install-hytale-linuxury" ''
+        FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
+
+        if flatpak info com.hytale.Hytale &>/dev/null; then
+          echo "Hytale already installed, skipping."
+          exit 0
+        fi
+
+        if [ ! -f "$FLATPAK_FILE" ]; then
+          echo "Hytale flatpak not found at $FLATPAK_FILE"
+          notify-send \
+            --app-name "Hytale" \
+            --icon "dialog-warning" \
+            --urgency normal \
+            "Hytale Not Installed" \
+            "Flatpak bundle not found. Clone the assets repo first."
+          exit 1
+        fi
+
+        notify-send \
+          --app-name "Hytale" \
+          --icon "system-software-install" \
+          --urgency normal \
+          "Installing Hytale" \
+          "Installing Hytale launcher, this may take a moment..."
+
+        if flatpak install --user --noninteractive "$FLATPAK_FILE"; then
+          notify-send \
+            --app-name "Hytale" \
+            --icon "system-software-install" \
+            --urgency normal \
+            "Hytale Installed" \
+            "Hytale launcher is ready to play!"
+        else
+          notify-send \
+            --app-name "Hytale" \
+            --icon "dialog-error" \
+            --urgency critical \
+            "Hytale Install Failed" \
+            "Check journalctl --user -u hytale-flatpak-install for details."
+        fi
+      ''}";
+    };
+
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
+  # =========================================================================
   # Personal packages
+  #
+  # Packages already provided elsewhere — do not re-add:
+  #   common.nix     → ghostty, kitty, fastfetch, mpv, imv, wl-clipboard,
+  #                     xdg-utils, btop
+  #   gaming.nix     → prismlauncher, mcpelauncher-ui-qt, jdk17
+  #   development.nix → nil, nixfmt-rfc-style, direnv
   # =========================================================================
   home.packages = with pkgs; [
 
-    # Terminals
-    ghostty
-    kitty
-
     # Shell tools
-    fastfetch
-    topgrade
+    topgrade    # One-command updater — Nix, cargo, flatpaks, etc.
 
     # File management
-    yazi
-    eza
-    bat
+    yazi        # Terminal file manager with previews
+    eza         # Modern ls replacement with colors and icons
+    bat         # cat with syntax highlighting and line numbers
 
     # Development helpers
-    lazygit
-    gh
-    delta
+    lazygit     # TUI for git — stage, commit, branch all in one
+    gh          # GitHub CLI — PRs, issues from terminal
+    delta       # Pretty diff viewer — integrates with git
 
     # System monitoring
-    btop
-    dust
-    procs
-
-    # Gaming — Minecraft
-    prismlauncher       # manages Java internally
-    mcpelauncher-ui-qt
-    jdk17
-    # jdk8 removed — conflicts with jdk17 (/bin/jar); Prism manages older Java
-
-    # Media
-    mpv
-    imv
+    dust        # Visual disk usage — like du but readable
+    procs       # Modern ps replacement with color and filtering
 
     # Networking
-    whois
-    traceroute
+    whois       # Domain registration lookup
+    traceroute  # Trace network path to a host
 
     # Misc utilities
-    wl-clipboard
-    xdg-utils
-    p7zip
-    imagemagick
-    claude-code      # Claude Code CLI
-    nil              # Nix language server for VSCodium
-    nixfmt-rfc-style # Nix formatter (what nil expects by default)
+    p7zip       # Extract .7z, .rar, and many other archive formats
+    imagemagick # CLI image conversion and manipulation
+    claude-code # Claude Code CLI — AI coding assistant
   ];
 }
