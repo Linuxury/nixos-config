@@ -197,8 +197,9 @@
   # Personal packages
   #
   # Packages already provided elsewhere — do not re-add:
-  #   common.nix  → ghostty, kitty, fastfetch, mpv, imv, wl-clipboard, xdg-utils
-  #   gaming.nix  → prismlauncher, mcpelauncher-ui-qt, jdk17
+  #   common.nix         → fastfetch
+  #   graphical-base.nix → ghostty, kitty, mpv, imv, wl-clipboard, xdg-utils
+  #   gaming.nix         → prismlauncher, mcpelauncher-ui-qt, jdk17
   # =========================================================================
   home.packages = with pkgs; [
 

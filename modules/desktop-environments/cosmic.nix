@@ -62,24 +62,6 @@
   services.flatpak.enable = true;
 
   # =========================================================================
-  # GVfs — GNOME Virtual Filesystem
-  #
-  # Enables the gvfs daemon so COSMIC Files (and other file managers) can
-  # browse network shares — including Samba (SMB) shares on your local
-  # network. Without this, network locations won't appear in the file manager
-  # sidebar and smb:// URIs won't open.
-  #
-  # The gvfs package in nixpkgs is compiled with samba support, so no extra
-  # packages are needed — just enable the service and include samba for the
-  # underlying libsmbclient that gvfs uses.
-  # =========================================================================
-  services.gvfs.enable = true;
-
-  environment.systemPackages = with pkgs; [
-    samba  # Provides libsmbclient — required by gvfs for SMB share browsing
-  ];
-
-  # =========================================================================
   # Fonts — Basic font set for a readable desktop experience
   #
   # These are system-wide fonts available to all users.

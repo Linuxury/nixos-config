@@ -24,6 +24,7 @@
   imports = [
     # nixos-hardware.nixosModules.asus-battery is passed via flake.nix extraModules
     ../../modules/base/common.nix
+    ../../modules/base/graphical-base.nix
     ../../modules/hardware/drivers.nix
     ../../modules/desktop-environments/cosmic.nix
     #../../modules/desktop-environments/kde.nix

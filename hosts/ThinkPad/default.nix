@@ -30,6 +30,7 @@
     # Our shared modules — each one we wrote is pulled in here
     # -------------------------------------------------------------------------
     ../../modules/base/common.nix
+    ../../modules/base/graphical-base.nix
     ../../modules/base/linuxury-ssh.nix
     ../../modules/hardware/drivers.nix
     ../../modules/desktop-environments/cosmic.nix
