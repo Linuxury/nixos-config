@@ -1,3 +1,6 @@
+# Ensure NixOS setuid wrappers always take priority — nix shells can displace them
+fish_add_path --prepend /run/wrappers/bin
+
 if status is-interactive
     set -g fish_greeting ""
 
@@ -18,22 +21,22 @@ if status is-interactive
     # ---------------------------------------------------------------------------
 
     # Rebuild and apply the current config (daily driver)
-    alias nr    'sudo nixos-rebuild switch --flake ~/nixos-config'
+    alias nr 'sudo nixos-rebuild switch --flake ~/nixos-config'
 
     # Rebuild + update nixpkgs flake input before switching
-    alias nru   'sudo nixos-rebuild switch --flake ~/nixos-config --update-input nixpkgs'
+    alias nru 'sudo nixos-rebuild switch --flake ~/nixos-config --update-input nixpkgs'
 
     # Set next boot target — use for kernel or bootloader changes
-    alias nrb   'sudo nixos-rebuild boot --flake ~/nixos-config'
+    alias nrb 'sudo nixos-rebuild boot --flake ~/nixos-config'
 
     # Test build without activating — catches errors safely
-    alias nrt   'sudo nixos-rebuild test --flake ~/nixos-config'
+    alias nrt 'sudo nixos-rebuild test --flake ~/nixos-config'
 
     # Roll back to the previous generation
-    alias nrr   'sudo nixos-rebuild switch --rollback'
+    alias nrr 'sudo nixos-rebuild switch --rollback'
 
     # Garbage collect — removes generations older than 30 days
-    alias ngc   'sudo nix-collect-garbage --delete-older-than 30d'
+    alias ngc 'sudo nix-collect-garbage --delete-older-than 30d'
 
     # List all system generations
     alias ngens 'sudo nix-env --list-generations --profile /nix/var/nix/profiles/system'
@@ -43,17 +46,17 @@ if status is-interactive
     # ---------------------------------------------------------------------------
 
     # Edit or create a secret (type the .age filename after)
-    alias age-edit  'nix run nixpkgs#agenix -- -e'
+    alias age-edit 'nix run github:ryantm/agenix -- -e'
 
     # Re-key all secrets after adding a new host to secrets/secrets.nix
-    alias age-rekey 'nix run nixpkgs#agenix -- -r'
+    alias age-rekey 'nix run github:ryantm/agenix -- -r'
 
     # ---------------------------------------------------------------------------
     # Snapper snapshot management
     # ---------------------------------------------------------------------------
 
-    alias snaps  'sudo snapper -c root list'             # list system snapshots
-    alias snapsh 'sudo snapper -c home list'             # list home snapshots
-    alias snapc  'sudo snapper -c root create --description'  # create manual snapshot
+    alias snaps 'sudo snapper -c root list' # list system snapshots
+    alias snapsh 'sudo snapper -c home list' # list home snapshots
+    alias snapc 'sudo snapper -c root create --description' # create manual snapshot
 
 end

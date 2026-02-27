@@ -215,6 +215,16 @@
   };
 
   # =========================================================================
+  # Firmware — required for WiFi (Qualcomm QCNFA765 / ath12k)
+  #
+  # Without linux-firmware, the ath12k driver loads but finds no firmware
+  # files and refuses to bind — leaving the WiFi adapter invisible to the
+  # system. enableRedistributableFirmware pulls in linux-firmware which
+  # contains the WCN7850/ath12k blobs needed for this card.
+  # =========================================================================
+  hardware.enableRedistributableFirmware = true;
+
+  # =========================================================================
   # Laptop specific kernel modules
   #
   # These modules improve hardware support on the T14s:

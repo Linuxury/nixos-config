@@ -9,7 +9,7 @@
 #   Ryzen5900x → "3440x1440"
 #
 # The wallpaperDir value gets symlinked:
-#   ~/assets/Wallpapers/<wallpaperDir> → ~/Pictures/Wallpapers
+#   ~/nixos-config/assets/Wallpapers/<wallpaperDir> → ~/Pictures/Wallpapers
 #
 # The wallpaper slideshow + matugen theming is handled by:
 #   modules/services/wallpaper-slideshow.nix
@@ -33,6 +33,22 @@
   home.stateVersion  = "24.11";
 
   programs.home-manager.enable = true;
+
+  # =========================================================================
+  # Session PATH — expose Nix profile bin to GUI apps
+  #
+  # GUI apps launched from COSMIC run inside a systemd user session whose
+  # PATH comes from environment.d configs, not from shell profiles.
+  # Without this, apps like VSCodium can't find binaries installed via
+  # Home Manager (e.g. claude-code, nil, nixfmt).
+  #
+  # home.sessionPath writes to ~/.config/environment.d/ which systemd user
+  # sessions read automatically — no shell involved.
+  # =========================================================================
+  home.sessionPath = [
+    "/etc/profiles/per-user/linuxury/bin"
+    "/run/current-system/sw/bin"
+  ];
 
   # =========================================================================
   # XDG User Directories
@@ -62,16 +78,12 @@
     "d ${config.home.homeDirectory}/Projects/Nix          0755 linuxury users -"
     "d ${config.home.homeDirectory}/Projects/Scripts      0755 linuxury users -"
 
-    # Assets — wallpapers, avatars, game assets etc
-    # Contents cloned separately — see docs/manual-steps.md
+    # Assets — avatars, game assets etc
+    # Wallpapers live in the repo: ~/nixos-config/assets/Wallpapers/
     "d ${config.home.homeDirectory}/assets                         0755 linuxury users -"
     "d ${config.home.homeDirectory}/assets/Avatar                  0755 linuxury users -"
     "d ${config.home.homeDirectory}/assets/Minecraft               0755 linuxury users -"
     "d ${config.home.homeDirectory}/assets/SteamGridDB             0755 linuxury users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers              0755 linuxury users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers/4k           0755 linuxury users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers/3440x1440    0755 linuxury users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers/PikaOS       0755 linuxury users -"
     "d ${config.home.homeDirectory}/assets/flatpaks                0755 linuxury users -"
 
     # SSH directory with correct permissions
@@ -107,7 +119,7 @@
     # -----------------------------------------------------------------------
     # Wallpaper symlink
     #
-    # ~/Pictures/Wallpapers → ~/assets/Wallpapers/<wallpaperDir>
+    # ~/Pictures/Wallpapers → ~/nixos-config/assets/Wallpapers/<wallpaperDir>
     #
     # wallpaperDir is passed per-host from flake.nix:
     #   ThinkPad   → "4k"
@@ -116,12 +128,12 @@
     # The wallpaper slideshow script always reads from ~/Pictures/Wallpapers
     # so it works identically on both machines without any changes.
     #
-    # mkOutOfStoreSymlink creates a symlink to a path outside the Nix store
-    # (important since wallpapers are in ~/assets, not in the repo itself)
+    # mkOutOfStoreSymlink creates a symlink to a path outside the Nix store.
+    # Wallpapers live inside the repo so no separate clone is needed.
     # -----------------------------------------------------------------------
     "Pictures/Wallpapers".source =
       config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/assets/Wallpapers/${wallpaperDir}";
+        "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
 
     # SSH config — structure only, no keys
     ".ssh/config".text = ''
@@ -215,11 +227,20 @@
   };
 
   # =========================================================================
-  # VSCodium — GUI editor with Claude extension support
+  # VSCodium — GUI editor
+  # Settings managed by VSCodium directly (edit via Ctrl+, in the app)
+  #
+  # mutableExtensionsDir = true  — each Nix extension is symlinked
+  # individually, leaving the extensions dir itself writable so VSCodium
+  # can store metadata and you can install additional extensions via the UI.
+  #
+  # product.json points VSCodium at the VS Code marketplace so extensions
+  # like Claude that are not on Open VSX are available to install.
   # =========================================================================
   programs.vscode = {
-    enable  = true;
-    package = pkgs.vscodium;
+    enable               = true;
+    package              = pkgs.vscodium;
+    mutableExtensionsDir = true;
     extensions = with pkgs.vscode-extensions; [
       jnoortheen.nix-ide
       ms-python.python
@@ -231,24 +252,20 @@
       usernamehw.errorlens
       gruntfuggly.todo-tree
     ];
-    userSettings = {
-      "editor.fontFamily"                      = "JetBrainsMono Nerd Font";
-      "editor.fontSize"                        = 14;
-      "editor.fontLigatures"                   = true;
-      "editor.lineHeight"                      = 1.6;
-      "editor.tabSize"                         = 2;
-      "editor.formatOnSave"                    = true;
-      "editor.bracketPairColorization.enabled" = true;
-      "editor.cursorBlinking"                  = "smooth";
-      "editor.smoothScrolling"                 = true;
-      "workbench.colorTheme"                   = "Tokyo Night";
-      "workbench.list.smoothScrolling"         = true;
-      "terminal.integrated.fontFamily"         = "JetBrainsMono Nerd Font";
-      "files.autoSave"                         = "afterDelay";
-      "nix.enableLanguageServer"               = true;
-      "nix.serverPath"                         = "nil";
+  };
+
+  # Point VSCodium at the VS Code marketplace so Claude and other
+  # marketplace-only extensions can be installed through the UI.
+  home.file.".config/VSCodium/product.json".text = builtins.toJSON {
+    extensionsGallery = {
+      serviceUrl      = "https://marketplace.visualstudio.com/_apis/public/gallery";
+      cacheUrl        = "https://vscode.blob.core.windows.net/gallery/index";
+      itemUrl         = "https://marketplace.visualstudio.com/items";
+      controlUrl      = "";
+      recommendationsUrl = "";
     };
   };
+  
 
   # =========================================================================
   # Zoxide — smarter cd
@@ -335,5 +352,8 @@
     xdg-utils
     p7zip
     imagemagick
+    claude-code      # Claude Code CLI
+    nil              # Nix language server for VSCodium
+    nixfmt-rfc-style # Nix formatter (what nil expects by default)
   ];
 }
