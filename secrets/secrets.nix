@@ -46,7 +46,7 @@ let
   #
   # Format: "ssh-ed25519 <key-data>"
   # --------------------------------------------------------------------------
-  ThinkPad     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  ThinkPad     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHEb/f6rkOOvJ/hcBQZVbHGFg/GyZOBJzPkdwejar82u root@ThinkPad";
   Ryzen5900x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFG1gbiGRl8imkfxDr8OaGq0EPP/Q2j6zREO3VhrmZgV root@Ryzen5900x";
   Ryzen5800x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
   Asus-A15     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
