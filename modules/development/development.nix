@@ -81,7 +81,11 @@
     just            # Command runner — like make but simpler and more readable
                     # Great for project scripts in both Python and Rust
 
-    # Editor support
+    # Editors
+    zed-editor      # Fast, Wayland-native editor written in Rust
+                    # Built-in LSP support — nil + nixfmt-rfc-style wire up automatically
+
+    # Language server + formatter support
     nil             # Nix language server — gives you autocomplete and error
                     # checking when editing your NixOS config files
     nixfmt-rfc-style # Nix code formatter — keeps your config files tidy
