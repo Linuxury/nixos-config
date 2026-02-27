@@ -21,7 +21,9 @@
   imports = [
     ../../modules/base/common.nix
     ../../modules/base/linuxury-ssh.nix
+    ../../modules/base/auto-update.nix
     ../../modules/hardware/drivers.nix
+    ../../modules/services/samba.nix
   ];
 
   # =========================================================================
@@ -231,17 +233,6 @@
 
   # Open port 8080 for FreshRSS
   networking.firewall.allowedTCPPorts = [ 8080 ];
-
-  # =========================================================================
-  # Automatic updates — same as MinisForum
-  # =========================================================================
-  system.autoUpgrade = {
-    enable      = true;
-    flake        = "github:linuxury/nixos-config";
-    flags        = [ "--update-input" "nixpkgs" ];
-    dates        = "weekly";
-    allowReboot  = false;
-  };
 
   # =========================================================================
   # Users — same three family accounts for Samba

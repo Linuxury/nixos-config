@@ -133,6 +133,15 @@
 
     # Discord — for gaming with friends
     discord
+
+    # -----------------------------------------------------------------------
+    # Minecraft — all three family members play
+    # -----------------------------------------------------------------------
+    prismlauncher       # Java Minecraft launcher — manages its own Java runtimes
+                        # Set up each user's Mojang account in Prism after first boot
+    mcpelauncher-ui-qt  # Minecraft Bedrock Edition launcher
+    jdk17               # Java 17 runtime — required for Minecraft 1.17 and newer
+                        # Prism manages older Java versions internally for legacy versions
   ];
 
   # =========================================================================

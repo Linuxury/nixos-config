@@ -224,27 +224,15 @@
   '';
 
   # =========================================================================
-  # Packages — same as desktop, school focused additions
+  # Packages
+  #
+  # Alex's personal apps (freetube, krita, kdenlive, gcompris-qt,
+  # libreoffice, hunspell) are declared in users/alex/home.nix.
+  # Gaming packages (prismlauncher, mcpelauncher-ui-qt, jdk17) are in
+  # modules/gaming/gaming.nix (imported above).
+  # Common tools (ghostty, kitty, mpv, fastfetch, etc.) are in
+  # modules/base/common.nix.
   # =========================================================================
-  environment.systemPackages = with pkgs; [
-    # Video
-    freetube
-
-    # Creative
-    krita
-    kdenlive
-
-    # Education
-    gcompris-qt
-
-    # School work
-    libreoffice       # For school documents and presentations
-    hunspell
-    hunspellDicts.en-us
-
-    # Utilities
-    vlc
-  ];
 
   # =========================================================================
   # User account — no wheel, same restrictions as desktop

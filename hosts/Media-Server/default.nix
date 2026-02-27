@@ -22,6 +22,7 @@
   imports = [
     ../../modules/base/common.nix
     ../../modules/base/linuxury-ssh.nix
+    ../../modules/base/auto-update.nix
     ../../modules/hardware/drivers.nix
     ../../modules/services/samba.nix
   ];
@@ -365,17 +366,6 @@
     "fs.inotify.max_user_watches"     = 524288;
     "net.ipv4.tcp_congestion_control" = "bbr";
     "net.core.default_qdisc"          = "fq";
-  };
-
-  # =========================================================================
-  # Automatic updates
-  # =========================================================================
-  system.autoUpgrade = {
-    enable      = true;
-    flake        = "github:linuxury/nixos-config";
-    flags        = [ "--update-input" "nixpkgs" ];
-    dates        = "weekly";
-    allowReboot  = false;
   };
 
   # =========================================================================

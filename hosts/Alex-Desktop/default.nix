@@ -179,26 +179,13 @@
   # =========================================================================
   # Kid-friendly packages
   #
-  # Only what Alex needs — nothing more.
-  # Everything else is blocked by default since NixOS only has what
-  # you explicitly declare.
+  # Alex's personal apps (freetube, krita, kdenlive, gcompris-qt,
+  # libreoffice, hunspell) are declared in users/alex/home.nix.
+  # Gaming packages (prismlauncher, mcpelauncher-ui-qt, jdk17) are in
+  # modules/gaming/gaming.nix (imported above).
+  # Common tools (ghostty, kitty, mpv, fastfetch, etc.) are in
+  # modules/base/common.nix.
   # =========================================================================
-  environment.systemPackages = with pkgs; [
-    # Video
-    freetube        # YouTube client without ads, algorithm, or shorts
-                    # Good complement to Firefox for video watching
-
-    # Creative
-    krita           # Professional drawing app, great for kids
-    kdenlive        # Video editor — kids love making videos
-
-    # Education
-    gcompris-qt     # Suite of educational games for kids
-                    # Has activities for math, reading, science etc
-
-    # Utilities
-    vlc             # Video player for local files
-  ];
 
   # =========================================================================
   # Restrict sudo
