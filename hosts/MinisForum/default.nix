@@ -20,7 +20,9 @@
   imports = [
     ../../modules/base/common.nix
     ../../modules/base/linuxury-ssh.nix
+    ../../modules/base/auto-update.nix
     ../../modules/hardware/drivers.nix
+    ../../modules/services/samba.nix
   ];
 
   # =========================================================================
@@ -145,23 +147,6 @@
     HandleLidSwitchExternalPower=ignore
     IdleAction=ignore
   '';
-
-  # =========================================================================
-  # Automatic updates
-  #
-  # Servers benefit from staying up to date automatically, especially
-  # for security patches. This runs a weekly upgrade and rebuild.
-  #
-  # allowReboot = false means it won't reboot automatically — you control
-  # when the server reboots after an update via SSH.
-  # =========================================================================
-  system.autoUpgrade = {
-    enable      = true;
-    flake        = "github:linuxury/nixos-config"; # Update with your repo URL
-    flags        = [ "--update-input" "nixpkgs" ];
-    dates        = "weekly";
-    allowReboot  = false;
-  };
 
   # =========================================================================
   # Server packages

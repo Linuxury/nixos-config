@@ -36,10 +36,9 @@
     enable      = true;
     flake        = "github:linuxury/nixos-config";
     flags        = [ "--update-input" "nixpkgs" ];
-    dates        = "weekly";
+    dates        = "Sat 03:00"; # Saturday 3am — captures full week of upstream releases
     allowReboot  = false;
-    # Run at a time when machine is likely idle
-    # 03:00 on Sunday morning
+    # Up to 45min random delay so all 9 machines don't hit GitHub at once
     randomizedDelaySec = "45min";
   };
 
