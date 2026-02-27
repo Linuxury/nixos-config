@@ -25,6 +25,7 @@
 {
   imports = [
     ../../modules/base/common.nix
+    ../../modules/base/graphical-base.nix
     ../../modules/hardware/drivers.nix
     ../../modules/desktop-environments/cosmic.nix
     ../../modules/gaming/gaming.nix
@@ -183,8 +184,8 @@
   # libreoffice, hunspell) are declared in users/alex/home.nix.
   # Gaming packages (prismlauncher, mcpelauncher-ui-qt, jdk17) are in
   # modules/gaming/gaming.nix (imported above).
-  # Common tools (ghostty, kitty, mpv, fastfetch, etc.) are in
-  # modules/base/common.nix.
+  # Graphical tools (ghostty, kitty, mpv, etc.) are in modules/base/graphical-base.nix.
+  # Shell tools (fastfetch, btop) are in modules/base/common.nix.
   # =========================================================================
 
   # =========================================================================

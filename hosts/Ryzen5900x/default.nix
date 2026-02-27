@@ -24,6 +24,7 @@
     # generic AMD support is handled by our drivers module perfectly fine.
     # -------------------------------------------------------------------------
     ../../modules/base/common.nix
+    ../../modules/base/graphical-base.nix
     ../../modules/base/linuxury-ssh.nix
     ../../modules/hardware/drivers.nix
     ../../modules/desktop-environments/cosmic.nix

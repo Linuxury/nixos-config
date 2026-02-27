@@ -370,10 +370,10 @@
   # Personal packages
   #
   # Packages already provided elsewhere — do not re-add:
-  #   common.nix     → ghostty, kitty, fastfetch, mpv, imv, wl-clipboard,
-  #                     xdg-utils, btop
-  #   gaming.nix     → prismlauncher, mcpelauncher-ui-qt, jdk17
-  #   development.nix → nil, nixfmt-rfc-style, direnv
+  #   common.nix          → fastfetch, btop
+  #   graphical-base.nix  → ghostty, kitty, mpv, imv, wl-clipboard, xdg-utils
+  #   gaming.nix          → prismlauncher, mcpelauncher-ui-qt, jdk17
+  #   development.nix     → nil, nixfmt-rfc-style, direnv
   # =========================================================================
   home.packages = with pkgs; [
 

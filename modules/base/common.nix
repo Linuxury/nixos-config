@@ -215,8 +215,9 @@
   # =========================================================================
   # BASE PACKAGES
   #
-  # Packages installed on every single machine — desktops, laptops, servers.
+  # Packages installed on every single machine — desktops, laptops, AND servers.
   # Keep this list to tools that are genuinely useful everywhere.
+  # Desktop/graphical packages belong in modules/base/graphical-base.nix.
   # =========================================================================
   environment.systemPackages = with pkgs; [
     # Core utilities
@@ -237,27 +238,8 @@
     nano         # Simple editor, always good to have available
     vim          # For those who prefer it
 
-    # -----------------------------------------------------------------------
-    # Shared desktop/family packages
-    #
-    # Present on all machines including servers — harmless on headless hosts,
-    # and tools like fastfetch are useful even over SSH.
-    # -----------------------------------------------------------------------
-
-    # Terminals
-    ghostty      # Fast GPU-accelerated terminal
-    kitty        # Alternative GPU-accelerated terminal
-
     # Shell tools
-    fastfetch    # System info display — useful on desktops and over SSH
-
-    # Media
-    mpv          # Lightweight video player — plays almost anything
-    imv          # Wayland image viewer
-
-    # Wayland / desktop utilities
-    wl-clipboard # wl-copy / wl-paste — Wayland clipboard in scripts
-    xdg-utils    # xdg-open — opens files with the correct app
+    fastfetch    # System info display — useful on desktops AND servers via SSH
   ];
 
   # =========================================================================
