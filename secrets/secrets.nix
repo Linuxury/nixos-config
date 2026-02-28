@@ -31,12 +31,15 @@
 let
 
   # --------------------------------------------------------------------------
-  # YOUR PERSONAL SSH KEY
+  # PERSONAL SSH KEYS (per-machine — each can re-key secrets independently)
   #
-  # Replace with: cat ~/.ssh/id_ed25519.pub
-  # This lets you re-encrypt/rekeying secrets from your admin machine.
+  # Add a new entry when setting up a new machine:
+  #   cat ~/.ssh/id_ed25519.pub
   # --------------------------------------------------------------------------
-  linuxury-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  linuxury-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  thinkpad-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMI6+u1Rvq/1gkZhRheZ+LsEa+3aZ+/lTU6EV0lUCHJ linuxury-thinkpad";
+
+  linuxury-admins = [ linuxury-personal thinkpad-personal ];
 
   # --------------------------------------------------------------------------
   # HOST SSH HOST KEYS
@@ -72,7 +75,7 @@ in {
   # Deployed to: all hosts where linuxury has a user account.
   # --------------------------------------------------------------------------
   "linuxury-authorized-key.age".publicKeys =
-    [ linuxury-personal ] ++ linuxury-machines;
+    linuxury-admins ++ linuxury-machines;
 
   # --------------------------------------------------------------------------
   # WireGuard config for qBittorrent VPN killswitch
@@ -82,7 +85,7 @@ in {
   # Deployed to: babylinux's machines running vpn-qbittorrent.
   # --------------------------------------------------------------------------
   "wireguard-vpnunlimited.age".publicKeys =
-    [ linuxury-personal ] ++ babylinux-machines;
+    linuxury-admins ++ babylinux-machines;
 
   # --------------------------------------------------------------------------
   # FreshRSS admin password
@@ -91,6 +94,6 @@ in {
   # Deployed to: Radxa-X4 only.
   # --------------------------------------------------------------------------
   "freshrss-admin-password.age".publicKeys =
-    [ linuxury-personal Radxa-X4 ];
+    linuxury-admins ++ [ Radxa-X4 ];
 
 }
