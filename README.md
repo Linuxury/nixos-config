@@ -132,19 +132,22 @@ cat ~/.ssh/id_ed25519.pub
 
 ### 4. Create the encrypted secrets
 
-agenix opens `$EDITOR` for each secret. Type or paste the value, save, and close.
+`age-edit` opens `$EDITOR` for each secret. Type or paste the value, save, and close.
 
 ```bash
 # linuxury's SSH public key — paste output of: cat ~/.ssh/id_ed25519.pub
-nix run nixpkgs#agenix -- -e secrets/linuxury-authorized-key.age
+age-edit secrets/linuxury-authorized-key.age
 
 # FreshRSS admin password (Radxa-X4 only)
-nix run nixpkgs#agenix -- -e secrets/freshrss-admin-password.age
+age-edit secrets/freshrss-admin-password.age
 
 # WireGuard config for qBittorrent VPN (babylinux machines)
 # Paste the full wg-quick config exported from VPN Unlimited app
-nix run nixpkgs#agenix -- -e secrets/wireguard-vpnunlimited.age
+age-edit secrets/wireguard-vpnunlimited.age
 ```
+
+> The `age-edit` alias expands to `nix run github:ryantm/agenix -- -e`.
+> Do **not** use `nix run nixpkgs#agenix` — agenix is not in nixpkgs.
 
 At this point the secrets are encrypted to your personal key only. After each host's first boot you add its host key and re-key (covered in **After First Boot**).
 
@@ -450,23 +453,51 @@ ssh alex@Alex-Desktop
 
 ### Deploy the SSH key for git access
 
-On the new machine, set up the SSH key so the user can push/pull from GitHub:
+Each machine gets its own SSH key — do not copy private keys between machines.
+Generate a new one on the freshly installed machine:
 
 ```bash
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-
-# Write the public key
-echo "ssh-ed25519 AAAA... linuxurypr@gmail.com" > ~/.ssh/id_ed25519.pub
-chmod 644 ~/.ssh/id_ed25519.pub
-
-# Write the private key — paste the contents of your id_ed25519 file
-nano ~/.ssh/id_ed25519
-chmod 600 ~/.ssh/id_ed25519
+ssh-keygen -t ed25519 -C "<hostname>-linuxury"
+# Accept the default path (~/.ssh/id_ed25519)
 
 # Add GitHub to known hosts and verify the connection
 ssh-keyscan github.com >> ~/.ssh/known_hosts
+cat ~/.ssh/id_ed25519.pub   # copy this output
+```
+
+Add the public key to GitHub: **github.com → Settings → SSH and GPG keys → New SSH key**.
+
+Verify it works:
+```bash
 ssh -T git@github.com
 # Expected: "Hi Linuxury! You've successfully authenticated..."
+```
+
+**Register the key with agenix** so future re-keys can run from this machine.
+On any existing admin machine (ThinkPad or Ryzen5900x), add an entry to `secrets/secrets.nix`:
+
+```nix
+# In the PERSONAL SSH KEYS section:
+newhost-personal = "ssh-ed25519 AAAA...";   # paste the new key here
+
+# Add it to linuxury-admins:
+linuxury-admins = [ linuxury-personal thinkpad-personal newhost-personal ];
+```
+
+Then re-key and push from that admin machine:
+
+```bash
+cd ~/nixos-config
+age-rekey
+git add secrets/
+git commit -m "add <hostname> personal key to linuxury-admins"
+git push
+```
+
+Pull on the new machine to get the updated secrets:
+
+```bash
+cd ~/nixos-config && git pull
 ```
 
 ### Add the new host's SSH key to agenix
@@ -481,7 +512,9 @@ ssh-keyscan -t ed25519 <hostname> | awk '{print $3}'
 ssh-keyscan -t ed25519 <ip> | awk '{print $3}'
 ```
 
-Open `secrets/secrets.nix` and paste the key next to `<hostname>`. Then re-key all secrets so the new host is included as a recipient:
+Open `secrets/secrets.nix` and paste the key next to `<hostname>`. Then re-key all secrets so the new host is included as a recipient.
+
+Re-key can be run from any machine in `linuxury-admins` (currently ThinkPad or Ryzen5900x):
 
 ```bash
 cd ~/nixos-config
@@ -516,6 +549,62 @@ See `docs/manual-steps.md` for the full list. Common ones:
   ```
 - **qBittorrent:** change the default password (`admin` / `adminadmin`) at `http://10.200.200.2:8080`
 - **Plex:** open `http://Media-Server:32400/web`, complete setup wizard, enable Hardware-Accelerated Transcoding
+
+---
+
+## 🔁 Reinstalling an Existing Host
+
+Reformatting a machine generates a **new SSH host key** and wipes `~/.ssh/`.
+Handle this in two parts: before and after the format.
+
+### Before formatting — back up the personal key
+
+```bash
+# Run on your admin machine (or any machine you can SSH from):
+scp <hostname>:~/.ssh/id_ed25519     ~/backup-<hostname>-key
+scp <hostname>:~/.ssh/id_ed25519.pub ~/backup-<hostname>-key.pub
+```
+
+If you have this backup, you can restore it after install and skip updating the personal key in `secrets.nix`.
+
+### After reinstall — update the host key in agenix
+
+The SSH host key **always** regenerates on a fresh install. Collect the new one and re-key from any admin machine:
+
+```bash
+# Collect new host key (run on an admin machine after the reinstalled host is up):
+ssh-keyscan -t ed25519 <hostname> | awk '{print $3}'
+```
+
+Paste it into `secrets/secrets.nix` next to `<hostname>`, replacing the old value. Then re-key and push:
+
+```bash
+cd ~/nixos-config
+age-rekey
+git add secrets/
+git commit -m "update <hostname> host key after reinstall"
+git push
+```
+
+Pull and rebuild on the reinstalled machine:
+
+```bash
+ssh <user>@<hostname> "cd ~/nixos-config && git pull && nr"
+```
+
+### After reinstall — restore the personal key (if backed up)
+
+```bash
+scp ~/backup-<hostname>-key     <hostname>:~/.ssh/id_ed25519
+scp ~/backup-<hostname>-key.pub <hostname>:~/.ssh/id_ed25519.pub
+ssh <hostname> "chmod 600 ~/.ssh/id_ed25519 && chmod 644 ~/.ssh/id_ed25519.pub"
+```
+
+Verify GitHub still works: `ssh -T git@github.com`
+
+### If the personal key was lost (no backup)
+
+Generate a fresh key and register it as if it were a new machine — follow the **Deploy the SSH key for git access** steps above. The old entry in `secrets.nix` can be replaced or left alongside the new one.
 
 ---
 
@@ -629,12 +718,17 @@ sudo snapper -c root undochange 5..0 /path/to/file
 
 ## 🔑 Rotating Your SSH Key
 
-1. Generate a new key pair: `ssh-keygen -t ed25519`
-2. Update the encrypted secret: `age-edit secrets/linuxury-authorized-key.age`
-3. Update `linuxury-personal` in `secrets/secrets.nix` to the new public key
-4. Re-key: `age-rekey`
-5. Rebuild all hosts: `nr` on each machine (or push to git and let auto-update handle it)
-6. Verify SSH works with the new key before discarding the old one
+Each machine has its own entry in the `linuxury-admins` list in `secrets/secrets.nix`.
+To rotate a specific machine's personal key:
+
+1. Generate a new key on the target machine: `ssh-keygen -t ed25519 -C "<hostname>-linuxury"`
+2. Add the new public key to GitHub (Settings → SSH keys)
+3. In `secrets/secrets.nix`, update the entry for that machine under `linuxury-admins`
+4. Update the authorized key secret so hosts accept the new key:
+   `age-edit secrets/linuxury-authorized-key.age`
+5. Re-key from any admin machine: `age-rekey`
+6. Push and rebuild all hosts: push to git, `nr` on each machine (or let auto-update handle it)
+7. Verify SSH works with the new key before removing the old entry from `secrets.nix`
 
 ---
 

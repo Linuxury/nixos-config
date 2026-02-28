@@ -78,7 +78,7 @@ secret once from your admin machine and commit it:
 
 ```bash
 # On your admin machine (in the nixos-config repo)
-nix run nixpkgs#agenix -- -e secrets/wireguard-vpnunlimited.age
+age-edit secrets/wireguard-vpnunlimited.age
 # Paste the full wg-quick config exported from VPN Unlimited, save, close
 ```
 
@@ -179,7 +179,7 @@ Each command prompts for the new Samba password twice.
 The password is managed by agenix — create the secret once from your admin
 machine:
 ```bash
-nix run nixpkgs#agenix -- -e secrets/freshrss-admin-password.age
+age-edit secrets/freshrss-admin-password.age
 # Type the password, save, close
 ```
 
