@@ -112,8 +112,8 @@ in
 
     # Assets — avatars, game assets etc
     # Wallpapers live in the repo: ~/nixos-config/assets/Wallpapers/
+    # Avatar and other asset dirs are also symlinked from the repo.
     "d ${config.home.homeDirectory}/assets                         0755 linuxury users -"
-    "d ${config.home.homeDirectory}/assets/Avatar                  0755 linuxury users -"
     "d ${config.home.homeDirectory}/assets/Minecraft               0755 linuxury users -"
     "d ${config.home.homeDirectory}/assets/SteamGridDB             0755 linuxury users -"
     "d ${config.home.homeDirectory}/assets/flatpaks                0755 linuxury users -"
@@ -167,6 +167,11 @@ in
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
 
+    # ~/assets/Avatar → ~/nixos-config/assets/Avatar (avatar images in repo)
+    "assets/Avatar".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/Avatar";
+
     # SSH config — structure only, no keys
     ".ssh/config".text = ''
       # ===========================================================
@@ -214,6 +219,15 @@ in
         IdentityFile ~/.ssh/id_ed25519
     '';
   };
+
+  # Remove old plain directory so home-manager can create the Avatar symlink.
+  # (tmpfiles previously created ~/assets/Avatar as a dir; first activation
+  # after this change swaps it for the repo symlink.)
+  home.activation.migrateAvatarDir = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+    if [ -d "$HOME/assets/Avatar" ] && [ ! -L "$HOME/assets/Avatar" ]; then
+      rmdir "$HOME/assets/Avatar" 2>/dev/null || true
+    fi
+  '';
 
   # =========================================================================
   # Fish shell
@@ -414,19 +428,19 @@ in
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size".text  = "24";
 
   # =========================================================================
-  # Hytale — automatic flatpak installation from bundled file
+  # Hytale — automatic flatpak installation
   #
-  # Hytale is not on Flathub yet. We bundle the flatpak from the developer
-  # directly in the assets repo and install it automatically on first login.
+  # Hytale is not on Flathub yet. On first login the service tries to find
+  # a pre-downloaded bundle at ~/assets/flatpaks/ and falls back to fetching
+  # it directly from the developer's CDN if the file isn't there yet.
   #
   # Source: https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak
-  # Store at: ~/assets/flatpaks/hytale-launcher-latest.flatpak
   # =========================================================================
   systemd.user.services.hytale-flatpak-install = {
     Unit = {
-      Description         = "Install Hytale launcher from bundled flatpak";
-      After               = [ "graphical-session.target" ];
-      Wants               = [ "graphical-session.target" ];
+      Description         = "Install Hytale launcher from flatpak";
+      After               = [ "graphical-session.target" "network-online.target" ];
+      Wants               = [ "graphical-session.target" "network-online.target" ];
       ConditionPathExists = "!%h/.local/share/flatpak/app/com.hytale.Hytale";
     };
 
@@ -436,22 +450,39 @@ in
       ExecStart = "${pkgs.writeShellScript "install-hytale-linuxury" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
         NOTIFY="${pkgs.libnotify}/bin/notify-send"
+        CURL="${pkgs.curl}/bin/curl"
         FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
+        HYTALE_URL="https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak"
 
         if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
           echo "Hytale already installed, skipping."
           exit 0
         fi
 
+        # Ensure Flathub is available so flatpak can pull required runtimes
+        # (e.g. org.freedesktop.Platform) when installing the bundle.
+        $FLATPAK remote-add --user --if-not-exists flathub \
+          https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+
+        # If the bundled file isn't present, download it from the official CDN.
         if [ ! -f "$FLATPAK_FILE" ]; then
-          echo "Hytale flatpak not found at $FLATPAK_FILE"
+          echo "Local bundle not found — downloading from $HYTALE_URL"
           $NOTIFY \
             --app-name "Hytale" \
-            --icon "dialog-warning" \
+            --icon "system-software-install" \
             --urgency normal \
-            "Hytale Not Installed" \
-            "Flatpak bundle not found. Clone the assets repo first."
-          exit 1
+            "Downloading Hytale" \
+            "Fetching Hytale launcher from official source..."
+          mkdir -p "$(dirname "$FLATPAK_FILE")"
+          if ! $CURL -L --fail -o "$FLATPAK_FILE" "$HYTALE_URL"; then
+            $NOTIFY \
+              --app-name "Hytale" \
+              --icon "dialog-error" \
+              --urgency normal \
+              "Hytale Download Failed" \
+              "Could not download Hytale. Check your internet or clone the assets repo."
+            exit 1
+          fi
         fi
 
         $NOTIFY \
@@ -461,7 +492,11 @@ in
           "Installing Hytale" \
           "Installing Hytale launcher, this may take a moment..."
 
-        if $FLATPAK install --user --noninteractive "$FLATPAK_FILE"; then
+        $FLATPAK install --user --noninteractive "$FLATPAK_FILE" || true
+
+        # Verify the app is actually present — covers fresh install and the
+        # edge case where flatpak returns non-zero because it was already installed.
+        if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
           $NOTIFY \
             --app-name "Hytale" \
             --icon "system-software-install" \
@@ -483,6 +518,22 @@ in
       WantedBy = [ "graphical-session.target" ];
     };
   };
+
+  # =========================================================================
+  # Hytale — Flatpak rendering fix for COSMIC (Wayland)
+  #
+  # Hytale's Electron-based launcher renders blank content on COSMIC because
+  # it tries to use native Wayland GPU rendering, which behaves differently
+  # from KWin. Forcing XWayland mode (ELECTRON_OZONE_PLATFORM_HINT=x11) makes
+  # the renderer behave exactly as it does under KDE/X11 where it works fine.
+  #
+  # flatpak override is idempotent — safe to re-apply on every HM activation.
+  # =========================================================================
+  home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    ${pkgs.flatpak}/bin/flatpak override --user \
+      --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
+      com.hytale.Hytale 2>/dev/null || true
+  '';
 
   # =========================================================================
   # Personal packages

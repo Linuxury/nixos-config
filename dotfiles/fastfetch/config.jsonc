@@ -6,15 +6,14 @@
       "left": 1
     },
     "color": {
-      "1": "#F5F5F5",
-      "2": "#40C4FF"
+      "1": "#cdd6f4",
+      "2": "#89b4fa"
     }
   },
   "display": {
     "color": {
-      "title": "#4f9ad0"
+      "title": "#b4befe"
     },
-    "hideCursor": false,
     "separator": "  "
   },
   "modules": [
@@ -22,115 +21,120 @@
     "separator",
     {
       "type": "host",
-      "keyColor": "#ffe1a3",
+      "keyColor": "#fab387",
       "key": " PC"
     },
     {
       "type": "board",
-      "keyColor": "#ffe1a3",
-      "key": " ├ 󰌢 "
+      "keyColor": "#fab387",
+      "key": " ├ 󰲅 "
     },
     {
-      "type": "CPU",
-      "keyColor": "#ffe1a3",
+      "type": "cpu",
+      "keyColor": "#fab387",
       "key": " ├ 󰻠 "
     },
     {
       "type": "gpu",
-      "keyColor": "#ffe1a3",
+      "keyColor": "#fab387",
       "detectionMethod": "vulkan",
       "key": " ├ 󰻑 "
     },
     {
       "type": "display",
-      "keyColor": "#ffe1a3",
+      "keyColor": "#fab387",
       "key": " ├ 󰍹 "
     },
     {
       "type": "disk",
-      "keyColor": "#ffe1a3",
+      "keyColor": "#fab387",
       "key": " ├ 󰋊 "
     },
     {
       "type": "memory",
-      "keyColor": "#ffe1a3",
+      "keyColor": "#fab387",
       "key": " ├  "
     },
     {
       "type": "swap",
-      "keyColor": "#ffe1a3",
+      "keyColor": "#fab387",
       "key": " ├ 󰓡 "
     },
     {
+      "type": "battery",
+      "keyColor": "#fab387",
+      "key": " ├ 󰁹 "
+    },
+    {
       "type": "uptime",
-      "keyColor": "#ffe1a3",
+      "keyColor": "#fab387",
       "key": " ╰ 󰅐 "
     },
     "break",
     {
       "type": "os",
-      "keyColor": "#4f9ad0",
+      "keyColor": "#89b4fa",
       "key": " OS"
     },
     {
       "type": "kernel",
-      "keyColor": "#4f9ad0",
+      "keyColor": "#89b4fa",
       "key": " ├  "
     },
     {
       "type": "lm",
-      "keyColor": "#4f9ad0",
+      "keyColor": "#89b4fa",
       "key": " ├ 󰍂 "
     },
     {
       "type": "shell",
-      "keyColor": "#4f9ad0",
+      "keyColor": "#89b4fa",
       "key": " ├  "
     },
     {
       "type": "terminal",
-      "keyColor": "#4f9ad0",
+      "keyColor": "#89b4fa",
       "key": " ├  "
     },
     {
       "type": "TerminalFont",
-      "keyColor": "#4f9ad0",
+      "keyColor": "#89b4fa",
       "key": " ├  "
     },
     {
-      "type": "Packages",
-      "keyColor": "#4f9ad0",
+      "type": "packages",
+      "keyColor": "#89b4fa",
       "key": " ╰ 󰏖 "
     },
     "break",
     {
-      "type": "DE",
-      "keyColor": "#FF6B6B",
+      "type": "de",
+      "keyColor": "#cba6f7",
       "key": " DE"
     },
     {
-      "type": "WM",
-      "keyColor": "#FF6B6B",
+      "type": "wm",
+      "keyColor": "#cba6f7",
       "key": " ├  "
     },
     {
-      "type": "Theme",
-      "keyColor": "#FF6B6B",
+      "type": "theme",
+      "keyColor": "#cba6f7",
       "key": " ├ 󰉼 "
     },
     {
-      "type": "Icons",
-      "keyColor": "#FF6B6B",
+      "type": "icons",
+      "keyColor": "#cba6f7",
       "key": " ├ 󰀻 "
     },
     {
-      "type": "Font",
-      "keyColor": "#FF6B6B",
+      "type": "font",
+      "keyColor": "#cba6f7",
       "key": " ├  "
     },
     {
-      "type": "Cursor",
-      "keyColor": "#FF6B6B",
+      "type": "cursor",
+      "keyColor": "#cba6f7",
       "key": " ╰ 󰇀 "
     },
     {
