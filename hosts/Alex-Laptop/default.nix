@@ -27,7 +27,6 @@
     ../../modules/hardware/drivers.nix
     ../../modules/desktop-environments/cosmic.nix
     ../../modules/gaming/gaming.nix
-    ../../modules/base/firefox.nix
     ../../modules/base/auto-update.nix
   ];
 
@@ -52,6 +51,9 @@
     device = "/dev/disk/by-label/nixos-luks";
     allowDiscards = true;
   };
+
+  # Use spinner theme for the LUKS passphrase prompt — cleaner than bgrt
+  boot.plymouth.theme = "spinner";
 
   # =========================================================================
   # Filesystem — BTRFS with subvolumes on top of LUKS
@@ -231,7 +233,7 @@
   # libreoffice, hunspell) are declared in users/alex/home.nix.
   # Gaming packages (prismlauncher, mcpelauncher-ui-qt, jdk17) are in
   # modules/gaming/gaming.nix (imported above).
-  # Graphical tools (ghostty, kitty, mpv, etc.) are in modules/base/graphical-base.nix.
+  # Graphical tools (ghostty, kitty, showtime, etc.) are in modules/base/graphical-base.nix.
   # Shell tools (fastfetch, btop) are in modules/base/common.nix.
   # =========================================================================
 
@@ -240,7 +242,6 @@
   # =========================================================================
   users.users.alex = {
     isNormalUser = true;
-    description  = "Alex";
     extraGroups  = [
       "networkmanager"
       "video"

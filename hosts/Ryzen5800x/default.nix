@@ -25,7 +25,6 @@
     ../../modules/desktop-environments/cosmic.nix
     #../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
-    ../../modules/base/firefox.nix
     ../../modules/base/auto-update.nix
     ../../modules/services/vpn-qbittorrent.nix
   ];
@@ -127,6 +126,18 @@
   ];
 
   # =========================================================================
+  # OpenRGB — RGB lighting control
+  #
+  # Controls RGB LEDs on the motherboard, RAM, and peripherals.
+  # The NixOS module installs the udev rules so OpenRGB can access
+  # USB and SMBus controllers without root.
+  # =========================================================================
+  services.hardware.openrgb = {
+    enable = true;
+    motherboard = "amd"; # Loads the i2c-piix4 SMBus driver for AMD motherboards
+  };
+
+  # =========================================================================
   # Stability focused extras
   #
   # Since this is a machine you manage for someone else, we add a few
@@ -203,7 +214,6 @@
   # =========================================================================
   users.users.babylinux = {
     isNormalUser = true;
-    description  = "BabyLinux";
     extraGroups  = [
       "wheel"
       "networkmanager"

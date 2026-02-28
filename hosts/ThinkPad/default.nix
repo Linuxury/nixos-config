@@ -38,7 +38,6 @@
     #../../modules/desktop-environments/niri.nix
     ../../modules/gaming/gaming.nix
     ../../modules/development/development.nix
-    ../../modules/base/firefox.nix
     ../../modules/base/auto-update.nix
   ];
 
@@ -68,6 +67,10 @@
     allowDiscards = true;  # Enables TRIM on the SSD through LUKS
                            # Important for SSD longevity and performance
   };
+
+  # Use spinner theme for the LUKS passphrase prompt — cleaner than bgrt
+  # (bgrt shows the manufacturer UEFI logo; spinner is a minimal animation)
+  boot.plymouth.theme = "spinner";
 
   # =========================================================================
   # Filesystem — BTRFS with subvolumes
@@ -256,7 +259,6 @@
   # =========================================================================
   users.users.linuxury = {
     isNormalUser = true;
-    description  = "Linuxury";
     extraGroups  = [
       "wheel"          # sudo access
       "networkmanager" # manage network connections without sudo

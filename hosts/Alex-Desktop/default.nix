@@ -29,7 +29,6 @@
     ../../modules/hardware/drivers.nix
     ../../modules/desktop-environments/cosmic.nix
     ../../modules/gaming/gaming.nix
-    ../../modules/base/firefox.nix
     ../../modules/base/auto-update.nix
   ];
 
@@ -109,6 +108,18 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # =========================================================================
+  # OpenRGB — RGB lighting control
+  #
+  # Controls RGB LEDs on the motherboard, RAM, and peripherals.
+  # The NixOS module installs the udev rules so OpenRGB can access
+  # USB and SMBus controllers without root.
+  # =========================================================================
+  services.hardware.openrgb = {
+    enable = true;
+    motherboard = "amd"; # Loads the i2c-piix4 SMBus driver for AMD motherboards
+  };
+
+  # =========================================================================
   # DNS filtering — Cloudflare 1.1.1.3
   #
   # 1.1.1.3 is Cloudflare's family-safe DNS resolver.
@@ -184,7 +195,7 @@
   # libreoffice, hunspell) are declared in users/alex/home.nix.
   # Gaming packages (prismlauncher, mcpelauncher-ui-qt, jdk17) are in
   # modules/gaming/gaming.nix (imported above).
-  # Graphical tools (ghostty, kitty, mpv, etc.) are in modules/base/graphical-base.nix.
+  # Graphical tools (ghostty, kitty, showtime, etc.) are in modules/base/graphical-base.nix.
   # Shell tools (fastfetch, btop) are in modules/base/common.nix.
   # =========================================================================
 
@@ -204,7 +215,6 @@
   # =========================================================================
   users.users.alex = {
     isNormalUser = true;
-    description  = "Alex";
     extraGroups  = [
       # No wheel — no sudo
       "networkmanager"  # Can connect to WiFi
