@@ -18,6 +18,38 @@
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
 { config, pkgs, inputs, lib, wallpaperDir, ... }:
 
+let
+  # ===========================================================================
+  # BreezeX cursor theme — not in nixpkgs, fetched from GitHub releases
+  #
+  # BreezeX is a refined KDE Breeze cursor with larger sizes and cleaner
+  # rendering. The v2.0.1 bundle ships three dark variants: Black, Dark, Light.
+  # BreezeX-Light is set as default here.
+  #
+  # To upgrade: run nix-prefetch-url --unpack <new release URL> and update
+  # the sha256 below.
+  # ===========================================================================
+  breezex-cursors = pkgs.stdenv.mkDerivation {
+    pname   = "breezex-cursor-theme";
+    version = "2.0.1";
+
+    src = pkgs.fetchzip {
+      url        = "https://github.com/ful1e5/BreezeX_Cursor/releases/download/v2.0.1/BreezeX.tar.xz";
+      sha256     = "10fbvbls52cgp5kshlcxbh3nqarh2mwhpj0w5kkk4hrl3sdc1bcj";
+      stripRoot  = false; # archive has multiple top-level dirs (BreezeX, BreezeX-Black, …)
+    };
+
+    dontBuild     = true;
+    dontConfigure = true;
+
+    installPhase = ''
+      mkdir -p $out/share/icons
+      cp -r . $out/share/icons/
+    '';
+  };
+
+in
+
 {
   imports = [
     # Wallpaper slideshow + matugen theming
@@ -221,9 +253,41 @@
   # =========================================================================
   # Helix editor
   # Config managed via home.file symlink from dotfiles/helix/
+  #
+  # Package is overridden to remove the upstream Helix.desktop so it doesn't
+  # appear alongside our custom xdg.desktopEntries.helix below.
   # =========================================================================
   programs.helix = {
-    enable = true;
+    enable  = true;
+    package = pkgs.helix.overrideAttrs (old: {
+      postInstall = (old.postInstall or "") + ''
+        rm -f $out/share/applications/Helix.desktop
+      '';
+    });
+  };
+
+  # Override Helix desktop entry so clicking the icon opens it in Ghostty.
+  # Helix's package installs Helix.desktop (Terminal=true), which COSMIC can't
+  # use without a configured default terminal. We remove that file from the
+  # package and replace it with our own helix.desktop (Terminal=false, explicit
+  # Ghostty launch) so only one entry appears in the app menu.
+  xdg.desktopEntries.helix = {
+    name        = "Helix";
+    genericName = "Text Editor";
+    comment     = "A post-modern text editor";
+    exec        = "ghostty -e hx %F";
+    terminal    = false;
+    categories  = [ "Utility" "TextEditor" ];
+    icon        = "helix";
+    mimeType    = [
+      "text/plain"
+      "text/x-makefile"
+      "text/x-script.python"
+      "text/x-c"
+      "text/x-c++"
+      "text/x-rust"
+      "application/x-shellscript"
+    ];
   };
 
   # =========================================================================
@@ -298,6 +362,58 @@
   };
 
   # =========================================================================
+  # Cursor theme — BreezeX (white)
+  #
+  # home.pointerCursor handles three layers at once:
+  #   1. Sets XCURSOR_THEME + XCURSOR_SIZE in the systemd user environment
+  #      so Wayland compositors (COSMIC, Hyprland, Niri) pick it up
+  #   2. Creates ~/.icons/default/index.theme for X11 fallback
+  #   3. Writes cursor settings to GTK config (gtk.enable = true below)
+  # =========================================================================
+  home.pointerCursor = {
+    name    = "BreezeX-Light";
+    package = breezex-cursors;
+    size    = 24;
+    gtk.enable = true;
+    x11.enable = true;
+  };
+
+  # =========================================================================
+  # GTK theme — icons and cursor
+  #
+  # COSMIC and most apps respect gtk-icon-theme-name and
+  # gtk-cursor-theme-name from settings.ini. Setting them here means
+  # GTK3, GTK4, and libadwaita apps all get consistent theming.
+  # =========================================================================
+  gtk = {
+    enable = true;
+    iconTheme = {
+      name    = "Tela";
+      package = pkgs.tela-icon-theme;
+    };
+    cursorTheme = {
+      name    = "BreezeX-Light";
+      package = breezex-cursors;
+      size    = 24;
+    };
+  };
+
+  # =========================================================================
+  # COSMIC appearance config
+  #
+  # COSMIC stores each setting as its own file under
+  # ~/.config/cosmic/com.system76.CosmicTk/v1/.
+  # Values are serialized as RON (Rusty Object Notation) — plain strings
+  # are just quoted strings, integers are bare numbers.
+  #
+  # Writing these declaratively means COSMIC always starts with the correct
+  # theme regardless of what its UI may have previously set.
+  # =========================================================================
+  home.file.".config/cosmic/com.system76.CosmicTk/v1/icon_theme".text  = ''"Tela"'';
+  home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_theme".text = ''"BreezeX-Light"'';
+  home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size".text  = "24";
+
+  # =========================================================================
   # Hytale — automatic flatpak installation from bundled file
   #
   # Hytale is not on Flathub yet. We bundle the flatpak from the developer
@@ -370,8 +486,10 @@
   # Personal packages
   #
   # Packages already provided elsewhere — do not re-add:
-  #   common.nix          → fastfetch, btop
-  #   graphical-base.nix  → ghostty, kitty, mpv, imv, wl-clipboard, xdg-utils
+  #   common.nix          → fastfetch, btop, rsync
+  #   graphical-base.nix  → ghostty, kitty, showtime, loupe, amberol, papers,
+  #                          gnome-disk-utility, mission-center, wl-clipboard,
+  #                          xdg-utils, kdeconnect
   #   gaming.nix          → prismlauncher, mcpelauncher-ui-qt, jdk17
   #   development.nix     → nil, nixfmt-rfc-style, direnv
   # =========================================================================
@@ -397,6 +515,17 @@
     # Networking
     whois       # Domain registration lookup
     traceroute  # Trace network path to a host
+
+    # Communication
+    thunderbird # Email client — personal use
+
+    # Internet
+    fluent-reader # RSS feed reader — clean GTK app for following news/blogs
+    obs-studio    # Screen recording and streaming
+
+    # Theming — icons and cursors
+    tela-icon-theme # Clean flat icon set, consistent across GNOME/COSMIC apps
+    breezex-cursors # BreezeX-Light cursor (defined above as custom derivation)
 
     # Misc utilities
     p7zip       # Extract .7z, .rar, and many other archive formats
