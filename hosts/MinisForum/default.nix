@@ -185,14 +185,12 @@
   users.users = {
     linuxury = {
       isNormalUser = true;
-      description  = "Linuxury";
       extraGroups  = [ "wheel" "networkmanager" ];
       shell        = pkgs.fish;
     };
 
     babylinux = {
       isNormalUser  = true;
-      description   = "BabyLinux";
       # No wheel — wife doesn't need server admin access
       extraGroups   = [ "networkmanager" ];
       shell         = pkgs.fish;
@@ -200,7 +198,6 @@
 
     alex = {
       isNormalUser  = true;
-      description   = "Alex";
       # No wheel — kid definitely doesn't need server access
       extraGroups   = [];
       shell         = pkgs.fish;

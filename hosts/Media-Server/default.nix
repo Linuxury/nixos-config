@@ -480,21 +480,18 @@
   users.users = {
     linuxury = {
       isNormalUser = true;
-      description  = "Linuxury";
       extraGroups  = [ "wheel" "networkmanager" "video" "render" "media" ];
       shell        = pkgs.fish;
     };
 
     babylinux = {
       isNormalUser = true;
-      description  = "BabyLinux";
       extraGroups  = [ "networkmanager" "media" ];
       shell        = pkgs.fish;
     };
 
     alex = {
       isNormalUser = true;
-      description  = "Alex";
       extraGroups  = [ "media" ];
       shell        = pkgs.fish;
     };

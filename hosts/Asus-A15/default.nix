@@ -29,7 +29,6 @@
     ../../modules/desktop-environments/cosmic.nix
     #../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
-    ../../modules/base/firefox.nix
     ../../modules/base/auto-update.nix
     ../../modules/services/vpn-qbittorrent.nix
   ];
@@ -80,6 +79,9 @@
     device = "/dev/disk/by-label/nixos-luks";
     allowDiscards = true;
   };
+
+  # Use spinner theme for the LUKS passphrase prompt — cleaner than bgrt
+  boot.plymouth.theme = "spinner";
 
   # =========================================================================
   # Filesystem — BTRFS with subvolumes on top of LUKS
@@ -249,7 +251,6 @@
   # =========================================================================
   users.users.babylinux = {
     isNormalUser = true;
-    description  = "BabyLinux";
     extraGroups  = [
       "wheel"
       "networkmanager"
