@@ -216,16 +216,15 @@
   # Full Nerd Fonts collection — every patched font family in one go.
   # builtins.attrValues converts the nerd-fonts attrset into a list so
   # all families (JetBrainsMono, FiraCode, CascadiaCode, Hack, etc.) are
-  # installed. Critically this includes nerd-fonts.symbols-only, a
-  # font that contains ONLY Nerd Font icon glyphs — it acts as a system-
-  # wide fallback so any terminal/app can render icons regardless of
-  # which primary font it uses (fixes fastfetch box-icon rendering).
+  # installed. nerd-fonts.symbols-only is the dedicated icon-only font
+  # that acts as a system-wide fallback for Nerd Font glyph codepoints.
   #
-  # noto-fonts-color-emoji covers emoji glyphs that aren't in Nerd Fonts.
+  # noto-fonts-color-emoji is intentionally excluded — it would claim
+  # the private-use-area codepoints that Nerd Fonts uses for icons,
+  # causing fastfetch and terminal apps to render colored emoji boxes
+  # instead of the actual icon glyphs.
   # =========================================================================
-  fonts.packages = (lib.filter lib.isDerivation (builtins.attrValues pkgs.nerd-fonts)) ++ (with pkgs; [
-    noto-fonts-color-emoji
-  ]);
+  fonts.packages = lib.filter lib.isDerivation (builtins.attrValues pkgs.nerd-fonts);
 
   # =========================================================================
   # BASE PACKAGES
