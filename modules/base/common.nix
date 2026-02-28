@@ -38,6 +38,9 @@
       # Allow NixOS to modify EFI variables so it can manage boot entries.
       # Required for systemd-boot to work correctly.
       efi.canTouchEfiVariables = true;
+
+      # Boot immediately — no menu unless you hold Space at startup.
+      timeout = 0;
     };
 
     # -----------------------------------------------------------------------
@@ -64,6 +67,16 @@
       "rd.udev.log_level=3" # Same for udev (device detection)
       "udev.log_priority=3"
     ];
+
+    # -----------------------------------------------------------------------
+    # Kernel — Zen (default for all hosts)
+    #
+    # Zen applies scheduler tweaks, lower latency preemption, and throughput
+    # patches on top of mainline — ideal for interactive/gaming workloads.
+    # mkDefault lets individual hosts override this (e.g. a server that
+    # needs a specific LTS kernel).
+    # -----------------------------------------------------------------------
+    kernelPackages = lib.mkDefault pkgs.linuxPackages_zen;
   };
 
   # =========================================================================
@@ -200,18 +213,19 @@
   # =========================================================================
   # FONTS
   #
-  # nerd-fonts.jetbrains-mono includes all three variants:
-  #   JetBrainsMono Nerd Font        — monospaced (terminal default)
-  #   JetBrainsMono Nerd Font Mono   — monospaced, smaller icons
-  #   JetBrainsMono Nerd Font Propo  — proportional spacing (UI text)
+  # Full Nerd Fonts collection — every patched font family in one go.
+  # builtins.attrValues converts the nerd-fonts attrset into a list so
+  # all families (JetBrainsMono, FiraCode, CascadiaCode, Hack, etc.) are
+  # installed. Critically this includes nerd-fonts.symbols-only, a
+  # font that contains ONLY Nerd Font icon glyphs — it acts as a system-
+  # wide fallback so any terminal/app can render icons regardless of
+  # which primary font it uses (fixes fastfetch box-icon rendering).
   #
-  # noto-fonts-color-emoji fills in any emoji glyphs your terminal font doesn't
-  # cover — required for full emoji support in terminals and apps.
+  # noto-fonts-color-emoji covers emoji glyphs that aren't in Nerd Fonts.
   # =========================================================================
-  fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono
+  fonts.packages = (lib.filter lib.isDerivation (builtins.attrValues pkgs.nerd-fonts)) ++ (with pkgs; [
     noto-fonts-color-emoji
-  ];
+  ]);
 
   # =========================================================================
   # BASE PACKAGES

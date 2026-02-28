@@ -71,7 +71,7 @@ in
   #
   # GUI apps launched from COSMIC run inside a systemd user session whose
   # PATH comes from environment.d configs, not from shell profiles.
-  # Without this, apps like VSCodium can't find binaries installed via
+  # Without this, apps like Zed can't find binaries installed via
   # Home Manager (e.g. claude-code, nil, nixfmt).
   #
   # home.sessionPath writes to ~/.config/environment.d/ which systemd user
@@ -223,7 +223,7 @@ in
   # Remove old plain directory so home-manager can create the Avatar symlink.
   # (tmpfiles previously created ~/assets/Avatar as a dir; first activation
   # after this change swaps it for the repo symlink.)
-  home.activation.migrateAvatarDir = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+  home.activation.migrateAvatarDir = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
     if [ -d "$HOME/assets/Avatar" ] && [ ! -L "$HOME/assets/Avatar" ]; then
       rmdir "$HOME/assets/Avatar" 2>/dev/null || true
     fi
@@ -304,46 +304,6 @@ in
     ];
   };
 
-  # =========================================================================
-  # VSCodium — GUI editor
-  # Settings managed by VSCodium directly (edit via Ctrl+, in the app)
-  #
-  # mutableExtensionsDir = true  — each Nix extension is symlinked
-  # individually, leaving the extensions dir itself writable so VSCodium
-  # can store metadata and you can install additional extensions via the UI.
-  #
-  # product.json points VSCodium at the VS Code marketplace so extensions
-  # like Claude that are not on Open VSX are available to install.
-  # =========================================================================
-  programs.vscode = {
-    enable               = true;
-    package              = pkgs.vscodium;
-    mutableExtensionsDir = true;
-    extensions = with pkgs.vscode-extensions; [
-      jnoortheen.nix-ide
-      ms-python.python
-      ms-python.black-formatter
-      rust-lang.rust-analyzer
-      eamodio.gitlens
-      enkia.tokyo-night
-      esbenp.prettier-vscode
-      usernamehw.errorlens
-      gruntfuggly.todo-tree
-    ];
-  };
-
-  # Point VSCodium at the VS Code marketplace so Claude and other
-  # marketplace-only extensions can be installed through the UI.
-  home.file.".config/VSCodium/product.json".text = builtins.toJSON {
-    extensionsGallery = {
-      serviceUrl      = "https://marketplace.visualstudio.com/_apis/public/gallery";
-      cacheUrl        = "https://vscode.blob.core.windows.net/gallery/index";
-      itemUrl         = "https://marketplace.visualstudio.com/items";
-      controlUrl      = "";
-      recommendationsUrl = "";
-    };
-  };
-  
 
   # =========================================================================
   # Zoxide — smarter cd
