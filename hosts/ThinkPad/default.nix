@@ -32,6 +32,7 @@
     ../../modules/base/common.nix
     ../../modules/base/graphical-base.nix
     ../../modules/base/linuxury-ssh.nix
+    ../../modules/base/linuxury-description.nix
     ../../modules/hardware/drivers.nix
     ../../modules/desktop-environments/cosmic.nix
     #../../modules/desktop-environments/hyprland.nix
@@ -67,6 +68,12 @@
     allowDiscards = true;  # Enables TRIM on the SSD through LUKS
                            # Important for SSD longevity and performance
   };
+
+  # Early KMS — load the AMD GPU driver inside initrd so Plymouth gets a real
+  # framebuffer before the root filesystem is mounted. Without this, Plymouth
+  # falls back to the VGA text console and the LUKS passphrase prompt appears
+  # as a tiny line at the top of the screen instead of a centered graphical UI.
+  boot.initrd.kernelModules = [ "amdgpu" ];
 
   # =========================================================================
   # Filesystem — BTRFS with subvolumes
@@ -134,18 +141,13 @@
   }];
 
   # =========================================================================
-  # Kernel — RC Mainline with stable fallback
+  # Kernel — Zen
   #
-  # linux-rc is the release candidate kernel — bleeding edge like you
-  # prefer from Arch. It gets the latest hardware support and fixes.
-  # The stable kernel stays available in the boot menu as a fallback
-  # via systemd-boot generations.
+  # Zen patches mainline with lower-latency preemption, scheduler tweaks,
+  # and throughput optimizations — great for both gaming and day-to-day
+  # desktop responsiveness on a laptop.
   # =========================================================================
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-  # NOTE: True RC/mainline kernel requires linuxPackages_testing or a
-  # custom kernel. linuxPackages_latest gives you the latest stable which
-  # is a safe starting point. When you're comfortable swap it for:
-  #   pkgs.linuxPackages_testing  ← closest to RC mainline in nixpkgs
+  boot.kernelPackages = pkgs.linuxPackages_zen;
 
   # =========================================================================
   # Power management — critical for laptop battery life
