@@ -3,26 +3,25 @@ pre_sudo = true
 no_retry = true
 # Keep the last 3 generations when cleaning up
 # (nixos-rebuild and auto-update handle system updates separately)
-
-[options]
 disable = [
-  # Package managers not present on NixOS
-  "brew",
-  "apt",
-  "dnf",
-  "pacman",
-  "yay",
-  "paru",
-  "zypper",
-  "emerge",
-  "opkg",
+  # Handled by commands below (prevents duplicate rebuild)
+  "system",
+  "nix",
+  "home_manager",
   # Not using these
   "pip3",
   "gem",
-  "npm",
+  "node",
   "cargo",
-  # Handled by auto-update.nix systemd service
-  "nix",
-  "nixos_rebuild",
-  "home_manager",
+  "poetry",
+  # Helix on NixOS ships with pre-compiled grammars in the Nix store (read-only).
+  # hx --grammar fetch always fails here — grammars are updated via nixpkgs, not manually.
+  "helix",
 ]
+
+[commands]
+# Pull latest config from git, then rebuild.
+# --ff-only refuses to merge if there are local uncommitted changes — fails
+# loudly rather than silently clobbering your work.
+"NixOS config (git pull)" = "git -C ~/nixos-config pull --ff-only"
+"NixOS rebuild"           = "sudo nixos-rebuild switch --flake ~/nixos-config"
