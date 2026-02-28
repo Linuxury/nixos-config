@@ -240,7 +240,6 @@
   users.users = {
     linuxury = {
       isNormalUser = true;
-      description  = "Linuxury";
       extraGroups  = [ "wheel" "networkmanager" "gpio" ];
       # gpio group added so linuxury can use GPIO pins without sudo
       shell        = pkgs.fish;
@@ -248,14 +247,12 @@
 
     babylinux = {
       isNormalUser = true;
-      description  = "BabyLinux";
       extraGroups  = [ "networkmanager" ];
       shell        = pkgs.fish;
     };
 
     alex = {
       isNormalUser = true;
-      description  = "Alex";
       extraGroups  = [];
       shell        = pkgs.fish;
     };

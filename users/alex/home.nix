@@ -132,23 +132,25 @@
       Description         = "Install Hytale launcher from bundled flatpak";
       After               = [ "graphical-session.target" ];
       Wants               = [ "graphical-session.target" ];
-      ConditionPathExists = "!/var/lib/flatpak/app/com.hytale.Hytale";
+      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hytale.Hytale";
     };
 
     Service = {
       Type      = "oneshot";
       Restart   = "no";
       ExecStart = "${pkgs.writeShellScript "install-hytale-alex" ''
+        FLATPAK="${pkgs.flatpak}/bin/flatpak"
+        NOTIFY="${pkgs.libnotify}/bin/notify-send"
         FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
 
-        if flatpak info com.hytale.Hytale &>/dev/null; then
+        if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
           echo "Hytale already installed, skipping."
           exit 0
         fi
 
         if [ ! -f "$FLATPAK_FILE" ]; then
           echo "Hytale flatpak not found at $FLATPAK_FILE"
-          notify-send \
+          $NOTIFY \
             --app-name "Hytale" \
             --icon "dialog-warning" \
             --urgency normal \
@@ -157,22 +159,22 @@
           exit 1
         fi
 
-        notify-send \
+        $NOTIFY \
           --app-name "Hytale" \
           --icon "system-software-install" \
           --urgency normal \
           "Installing Hytale" \
           "Installing Hytale launcher, almost ready to play!"
 
-        if flatpak install --user --noninteractive "$FLATPAK_FILE"; then
-          notify-send \
+        if $FLATPAK install --user --noninteractive "$FLATPAK_FILE"; then
+          $NOTIFY \
             --app-name "Hytale" \
             --icon "system-software-install" \
             --urgency normal \
             "Hytale Ready!" \
             "Hytale launcher is installed and ready to play!"
         else
-          notify-send \
+          $NOTIFY \
             --app-name "Hytale" \
             --icon "dialog-error" \
             --urgency critical \

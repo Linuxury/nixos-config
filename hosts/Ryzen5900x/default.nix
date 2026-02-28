@@ -32,7 +32,6 @@
     #../../modules/desktop-environments/niri.nix
     ../../modules/gaming/gaming.nix
     ../../modules/development/development.nix
-    ../../modules/base/firefox.nix
     ../../modules/base/auto-update.nix
   ];
 
@@ -126,6 +125,18 @@
   ];
 
   # =========================================================================
+  # OpenRGB — RGB lighting control
+  #
+  # Controls RGB LEDs on the motherboard, RAM, and peripherals.
+  # The NixOS module installs the udev rules so OpenRGB can access
+  # USB and SMBus controllers without root.
+  # =========================================================================
+  services.hardware.openrgb = {
+    enable = true;
+    motherboard = "amd"; # Loads the i2c-piix4 SMBus driver for AMD motherboards
+  };
+
+  # =========================================================================
   # CoreCtrl — GPU and CPU control
   #
   # CoreCtrl gives you a GUI to manage AMD GPU power profiles,
@@ -157,7 +168,6 @@
   # =========================================================================
   users.users.linuxury = {
     isNormalUser = true;
-    description  = "Linuxury";
     extraGroups  = [
       "wheel"
       "networkmanager"
