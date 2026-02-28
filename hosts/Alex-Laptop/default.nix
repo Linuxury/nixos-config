@@ -52,9 +52,6 @@
     allowDiscards = true;
   };
 
-  # Use spinner theme for the LUKS passphrase prompt — cleaner than bgrt
-  boot.plymouth.theme = "spinner";
-
   # =========================================================================
   # Filesystem — BTRFS with subvolumes on top of LUKS
   # =========================================================================

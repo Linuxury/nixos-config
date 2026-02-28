@@ -68,10 +68,6 @@
                            # Important for SSD longevity and performance
   };
 
-  # Use spinner theme for the LUKS passphrase prompt — cleaner than bgrt
-  # (bgrt shows the manufacturer UEFI logo; spinner is a minimal animation)
-  boot.plymouth.theme = "spinner";
-
   # =========================================================================
   # Filesystem — BTRFS with subvolumes
   #
