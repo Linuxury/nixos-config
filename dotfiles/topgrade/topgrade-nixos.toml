@@ -8,12 +8,6 @@ disable = [
   "system",
   "nix",
   "home_manager",
-  # Not using these
-  "pip3",
-  "gem",
-  "node",
-  "cargo",
-  "poetry",
   # Helix on NixOS ships with pre-compiled grammars in the Nix store (read-only).
   # hx --grammar fetch always fails here — grammars are updated via nixpkgs, not manually.
   "helix",

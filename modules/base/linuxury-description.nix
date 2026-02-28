@@ -26,4 +26,29 @@
         linuxury
     '';
   };
+
+  # AccountsService needs the avatar icon file + a user config pointing to it.
+  # The source JPEG lives in the repo; we copy it on every activation so it
+  # stays fresh if it ever changes. The users/ config file is only written once
+  # so COSMIC Settings can still overwrite it freely.
+  system.activationScripts.linuxury-greeter-avatar = {
+    deps = [];
+    text = ''
+      AVATAR_SRC="/home/linuxury/nixos-config/assets/Avatar/linuxury.jpg"
+      AVATAR_DST="/var/lib/AccountsService/icons/linuxury"
+      USERS_CFG="/var/lib/AccountsService/users/linuxury"
+
+      if [ -f "$AVATAR_SRC" ]; then
+        mkdir -p /var/lib/AccountsService/icons
+        ${pkgs.coreutils}/bin/cp -f "$AVATAR_SRC" "$AVATAR_DST"
+        chmod 644 "$AVATAR_DST"
+      fi
+
+      mkdir -p /var/lib/AccountsService/users
+      if [ ! -f "$USERS_CFG" ]; then
+        printf '[User]\nIcon=%s\nSystemAccount=false\n' "$AVATAR_DST" \
+          > "$USERS_CFG"
+      fi
+    '';
+  };
 }
