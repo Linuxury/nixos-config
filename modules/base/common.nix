@@ -46,10 +46,10 @@
     # -----------------------------------------------------------------------
     plymouth = {
       enable = true;
-      # "bgrt" shows the manufacturer logo from your UEFI firmware.
-      # Other options: "spinner", "tribar", "fade-in", or install a custom theme.
+      # "spinner" shows a minimal loading animation — consistent across all hosts.
+      # Other options: "bgrt" (UEFI logo), "tribar", "fade-in", or a custom theme.
       # mkDefault so per-host configs can override this without needing mkForce.
-      theme = lib.mkDefault "bgrt";
+      theme = lib.mkDefault "spinner";
     };
 
     # Make the boot process silent — hides kernel messages behind Plymouth.
