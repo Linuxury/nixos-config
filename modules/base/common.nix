@@ -8,7 +8,7 @@
 # If only some machines need it, it belongs in a more specific module.
 # ===========================================================================
 
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 {
   imports = [
@@ -48,7 +48,8 @@
       enable = true;
       # "bgrt" shows the manufacturer logo from your UEFI firmware.
       # Other options: "spinner", "tribar", "fade-in", or install a custom theme.
-      theme = "bgrt";
+      # mkDefault so per-host configs can override this without needing mkForce.
+      theme = lib.mkDefault "bgrt";
     };
 
     # Make the boot process silent — hides kernel messages behind Plymouth.
@@ -233,6 +234,7 @@
     iproute2     # ip command for network management
     nmap         # Network scanner (useful for finding your machines on the network)
     dig          # DNS lookup tool
+    rsync        # Fast file sync — local copies, remote backups, deploy scripts
 
     # Text editors (minimal, for emergency server access)
     nano         # Simple editor, always good to have available
