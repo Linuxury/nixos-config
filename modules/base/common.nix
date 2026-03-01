@@ -211,16 +211,6 @@
   };
 
   # =========================================================================
-  # FIRMWARE
-  #
-  # Redistributable firmware blobs (linux-firmware) for AMD/Intel GPUs,
-  # WiFi cards, Bluetooth adapters, network controllers, and more.
-  # Required for AMD GPUs (RDNA/RDNA2/RDNA3) to initialize — without it
-  # amdgpu loads but falls back to framebuffer mode (wrong resolution, no accel).
-  # =========================================================================
-  hardware.enableRedistributableFirmware = true;
-
-  # =========================================================================
   # FONTS
   #
   # Full Nerd Fonts collection — every patched font family in one go.
