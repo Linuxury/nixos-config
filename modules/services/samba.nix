@@ -104,14 +104,15 @@
   };
 
   # =========================================================================
-  # wsdd — Web Services Dynamic Discovery
+  # samba-wsdd — Web Services Dynamic Discovery
   #
   # Makes Samba shares discoverable on the Windows "Network" browser
   # (the modern replacement for the old NetBIOS broadcast discovery).
   # Without this, Windows 10/11 won't show the server in File Explorer
   # even when SMB is working perfectly.
+  # Renamed from services.wsdd → services.samba-wsdd in nixpkgs.
   # =========================================================================
-  services.wsdd = {
+  services.samba-wsdd = {
     enable      = true;
     openFirewall = true;
   };
