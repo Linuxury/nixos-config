@@ -106,6 +106,10 @@ in
     };
   };
 
+  # mimeapps.list may already exist from a previous manual edit — allow HM
+  # to take ownership so the xdg.mimeApps declarations above take effect.
+  xdg.configFile."mimeapps.list".force = true;
+
   # =========================================================================
   # XDG User Directories
   # =========================================================================
