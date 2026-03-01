@@ -28,20 +28,55 @@
     matugen       # Material You color generator — themes entire desktop
     findutils     # find command for wallpaper discovery
     coreutils     # shuf for random selection
+    git           # needed by matugenTemplates activation below
   ];
 
   # =========================================================================
-  # matugen configuration — written at activation time
+  # matugen templates — clone from InioX/matugen-themes if not present
+  #
+  # matugen requires template files to render color schemes for each app.
+  # We clone the community templates repo once on first activation.
+  # Subsequent activations are a no-op (the directory already exists).
+  #
+  # Templates land in: ~/.config/matugen/templates/
+  # Repo:              https://github.com/InioX/matugen-themes
+  # =========================================================================
+  home.activation.matugenTemplates = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    TEMPLATES_DIR="$HOME/.config/matugen/templates"
+    if [ ! -d "$TEMPLATES_DIR" ]; then
+      echo "matugen: cloning templates from InioX/matugen-themes…"
+      ${pkgs.git}/bin/git clone --depth=1 \
+        https://github.com/InioX/matugen-themes.git \
+        "$TEMPLATES_DIR" \
+        && echo "matugen: templates ready at $TEMPLATES_DIR" \
+        || echo "matugen: WARNING — template clone failed (no internet?). Run manually:"$'\n'"  git clone https://github.com/InioX/matugen-themes ~/.config/matugen/templates"
+    fi
+  '';
+
+  # =========================================================================
+  # Ghostty colors seed file
+  #
+  # ghostty's config includes ~/.config/ghostty/colors via config-file.
+  # matugen populates it on each wallpaper change, but if ghostty opens
+  # before the first slideshow run the file won't exist yet.
+  # We pre-create an empty file so ghostty always finds something to load.
+  # =========================================================================
+  home.activation.ghosttyColors = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    COLORS_FILE="$HOME/.config/ghostty/colors"
+    if [ ! -f "$COLORS_FILE" ]; then
+      mkdir -p "$(dirname "$COLORS_FILE")"
+      touch "$COLORS_FILE"
+      echo "matugen: created empty $COLORS_FILE (will be populated on first wallpaper change)"
+    fi
+  '';
+
+  # =========================================================================
+  # matugen config.toml — written at activation time if not present
   #
   # We use home.activation (shell script) instead of home.file.text to
   # avoid Nix evaluating the tilde paths inside the config content.
-  # The config.toml is written only if it doesn't already exist so
-  # manual edits (e.g. adding WM templates) are preserved.
-  #
-  # Templates are NOT managed by Nix — clone matugen-themes manually:
-  #   git clone https://github.com/InioX/matugen-themes \
-  #     ~/.config/matugen/templates
-  # See docs/manual-steps.md for the full setup sequence.
+  # The config.toml is only written if it doesn't already exist so
+  # manual edits are preserved across rebuilds.
   # =========================================================================
   home.activation.matugenConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     MATUGEN_CONF="$HOME/.config/matugen/config.toml"
