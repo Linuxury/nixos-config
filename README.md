@@ -213,9 +213,9 @@ Common disk names:
 Set these three variables once — every command from here forward uses them:
 
 ```bash
-DISK=/dev/nvme0n1   # replace with your actual disk — see lsblk output above
-HOST=Ryzen5900x     # hostname from flake.nix — see table below
-NIXUSER=linuxury    # primary user for this host — see table below
+export DISK=/dev/nvme0n1   # replace with your actual disk — see lsblk output above
+export HOST=Ryzen5900x     # hostname from flake.nix — see table below
+export NIXUSER=linuxury    # primary user for this host — see table below
 ```
 
 | `HOST` | `NIXUSER` | Role |
@@ -389,6 +389,7 @@ nixos-install \
 
 ```bash
 nixos-enter --root /mnt
+echo "Setting password for: $NIXUSER"   # verify the variable is set before continuing
 passwd $NIXUSER
 exit
 ```
