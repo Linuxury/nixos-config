@@ -409,7 +409,6 @@ in
       Restart   = "no";
       ExecStart = "${pkgs.writeShellScript "install-hytale-linuxury" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        NOTIFY="${pkgs.libnotify}/bin/notify-send"
         CURL="${pkgs.curl}/bin/curl"
         FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
         HYTALE_URL="https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak"
@@ -427,49 +426,23 @@ in
         # If the bundled file isn't present, download it from the official CDN.
         if [ ! -f "$FLATPAK_FILE" ]; then
           echo "Local bundle not found — downloading from $HYTALE_URL"
-          $NOTIFY \
-            --app-name "Hytale" \
-            --icon "system-software-install" \
-            --urgency normal \
-            "Downloading Hytale" \
-            "Fetching Hytale launcher from official source..."
           mkdir -p "$(dirname "$FLATPAK_FILE")"
           if ! $CURL -L --fail -o "$FLATPAK_FILE" "$HYTALE_URL"; then
-            $NOTIFY \
-              --app-name "Hytale" \
-              --icon "dialog-error" \
-              --urgency normal \
-              "Hytale Download Failed" \
-              "Could not download Hytale. Check your internet or clone the assets repo."
+            echo "ERROR: Could not download Hytale. Check internet or clone the assets repo."
             exit 1
           fi
         fi
 
-        $NOTIFY \
-          --app-name "Hytale" \
-          --icon "system-software-install" \
-          --urgency normal \
-          "Installing Hytale" \
-          "Installing Hytale launcher, this may take a moment..."
-
+        echo "Installing Hytale launcher..."
         $FLATPAK install --user --noninteractive "$FLATPAK_FILE" || true
 
         # Verify the app is actually present — covers fresh install and the
         # edge case where flatpak returns non-zero because it was already installed.
         if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
-          $NOTIFY \
-            --app-name "Hytale" \
-            --icon "system-software-install" \
-            --urgency normal \
-            "Hytale Installed" \
-            "Hytale launcher is ready to play!"
+          echo "Hytale installed successfully."
         else
-          $NOTIFY \
-            --app-name "Hytale" \
-            --icon "dialog-error" \
-            --urgency critical \
-            "Hytale Install Failed" \
-            "Check journalctl --user -u hytale-flatpak-install for details."
+          echo "ERROR: Hytale install failed. Check journalctl --user -u hytale-flatpak-install"
+          exit 1
         fi
       ''}";
     };

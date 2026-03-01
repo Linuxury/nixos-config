@@ -23,6 +23,16 @@
   services.displayManager.cosmic-greeter.enable = true;
 
   # =========================================================================
+  # XWayland — X11 compatibility layer
+  #
+  # Runs an X server inside the Wayland session so legacy X11 apps
+  # (and Electron apps forced to XWayland mode) work without a native
+  # Wayland renderer. COSMIC's module may enable this implicitly, but
+  # declaring it here makes the dependency explicit and clear.
+  # =========================================================================
+  programs.xwayland.enable = true;
+
+  # =========================================================================
   # XDG Portal — Desktop integration layer
   #
   # Portals allow sandboxed apps (like Flatpaks) to interact with the
@@ -31,8 +41,11 @@
   # =========================================================================
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-cosmic ];
-    config.common.default = "cosmic";
+    # xdg-desktop-portal-gtk acts as a fallback for portal interfaces that
+    # COSMIC hasn't implemented yet (e.g. some Flatpak app requests).
+    # "cosmic;gtk" means: try COSMIC first, fall back to GTK if unavailable.
+    extraPortals = [ pkgs.xdg-desktop-portal-cosmic pkgs.xdg-desktop-portal-gtk ];
+    config.common.default = "cosmic;gtk";
   };
 
   # =========================================================================
