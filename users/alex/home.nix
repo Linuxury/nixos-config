@@ -41,6 +41,29 @@
   programs.home-manager.enable = true;
 
   # =========================================================================
+  # XDG MIME type associations
+  #
+  # Tells the desktop environment which app opens each file type.
+  # Amberol's desktop entry ID: io.bassi.Amberol.desktop
+  # =========================================================================
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "audio/mpeg"       = "io.bassi.Amberol.desktop";  # MP3
+      "audio/ogg"        = "io.bassi.Amberol.desktop";  # OGG Vorbis
+      "audio/flac"       = "io.bassi.Amberol.desktop";  # FLAC
+      "audio/x-flac"     = "io.bassi.Amberol.desktop";
+      "audio/wav"        = "io.bassi.Amberol.desktop";  # WAV
+      "audio/x-wav"      = "io.bassi.Amberol.desktop";
+      "audio/mp4"        = "io.bassi.Amberol.desktop";  # M4A / AAC
+      "audio/aac"        = "io.bassi.Amberol.desktop";
+      "audio/x-m4a"      = "io.bassi.Amberol.desktop";
+      "audio/opus"       = "io.bassi.Amberol.desktop";  # Opus
+      "audio/webm"       = "io.bassi.Amberol.desktop";
+    };
+  };
+
+  # =========================================================================
   # XDG User Directories
   # =========================================================================
   xdg.userDirs = {
@@ -61,13 +84,18 @@
   # Extra directories
   # =========================================================================
   systemd.user.tmpfiles.rules = [
-    # Assets — kid friendly wallpapers
-    # Contents cloned separately — see docs/manual-steps.md
+    # Wallpaper source — wallpapers stored locally (not in repo)
+    # ~/Pictures/Wallpapers symlinks here (see home.file below)
     "d ${config.home.homeDirectory}/assets                        0755 alex users -"
     "d ${config.home.homeDirectory}/assets/Wallpapers             0755 alex users -"
     "d ${config.home.homeDirectory}/assets/Wallpapers/PikaOS      0755 alex users -"
+
+    # Minecraft assets (skins, resource packs) — game-specific, kept in ~/assets
     "d ${config.home.homeDirectory}/assets/Minecraft              0755 alex users -"
-    "d ${config.home.homeDirectory}/assets/flatpaks               0755 alex users -"
+
+    # Hytale flatpak bundle storage — moved to ~/Documents/assets/flatpaks
+    "d ${config.home.homeDirectory}/Documents/assets              0755 alex users -"
+    "d ${config.home.homeDirectory}/Documents/assets/flatpaks     0755 alex users -"
 
     # Creative workspace
     "d ${config.home.homeDirectory}/Documents/Art                 0755 alex users -"
@@ -140,7 +168,7 @@
       Restart   = "no";
       ExecStart = "${pkgs.writeShellScript "install-hytale-alex" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
+        FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
 
         if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
           echo "Hytale already installed, skipping."
@@ -148,7 +176,8 @@
         fi
 
         if [ ! -f "$FLATPAK_FILE" ]; then
-          echo "ERROR: Hytale flatpak not found at $FLATPAK_FILE — clone the assets repo first."
+          echo "ERROR: Hytale flatpak not found at $FLATPAK_FILE"
+          echo "  Place hytale-launcher-latest.flatpak in ~/Documents/assets/flatpaks/ and reboot."
           exit 1
         fi
 
