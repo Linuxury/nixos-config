@@ -35,7 +35,7 @@ A fully declarative, modular NixOS setup using flakes, designed for a 3-person f
 | **Asus-A15** | babylinux | Wife's laptop | Yes | Nvidia hybrid |
 | **Alex-Desktop** | alex | Kid's desktop | No | AMD |
 | **Alex-Laptop** | alex | Kid's laptop | No | AMD |
-| **MinisForum** | linuxury | Home server | No | Intel |
+| **MinisForum** | linuxury | Game server (Hytale) | No | Intel |
 | **Radxa-X4** | linuxury | FreshRSS server | No | Intel |
 | **Media-Server** | linuxury | Plex + Arr stack | No | AMD |
 
