@@ -83,6 +83,30 @@ in
   ];
 
   # =========================================================================
+  # XDG MIME type associations
+  #
+  # Tells the desktop environment which app opens each file type.
+  # Without this, audio files open in whatever the DE guesses (often nothing).
+  # Amberol's desktop entry ID: io.bassi.Amberol.desktop
+  # =========================================================================
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "audio/mpeg"       = "io.bassi.Amberol.desktop";  # MP3
+      "audio/ogg"        = "io.bassi.Amberol.desktop";  # OGG Vorbis
+      "audio/flac"       = "io.bassi.Amberol.desktop";  # FLAC
+      "audio/x-flac"     = "io.bassi.Amberol.desktop";
+      "audio/wav"        = "io.bassi.Amberol.desktop";  # WAV
+      "audio/x-wav"      = "io.bassi.Amberol.desktop";
+      "audio/mp4"        = "io.bassi.Amberol.desktop";  # M4A / AAC
+      "audio/aac"        = "io.bassi.Amberol.desktop";
+      "audio/x-m4a"      = "io.bassi.Amberol.desktop";
+      "audio/opus"       = "io.bassi.Amberol.desktop";  # Opus
+      "audio/webm"       = "io.bassi.Amberol.desktop";
+    };
+  };
+
+  # =========================================================================
   # XDG User Directories
   # =========================================================================
   xdg.userDirs = {
@@ -110,13 +134,11 @@ in
     "d ${config.home.homeDirectory}/Projects/Nix          0755 linuxury users -"
     "d ${config.home.homeDirectory}/Projects/Scripts      0755 linuxury users -"
 
-    # Assets — avatars, game assets etc
-    # Wallpapers live in the repo: ~/nixos-config/assets/Wallpapers/
-    # Avatar and other asset dirs are also symlinked from the repo.
-    "d ${config.home.homeDirectory}/assets                         0755 linuxury users -"
-    "d ${config.home.homeDirectory}/assets/Minecraft               0755 linuxury users -"
-    "d ${config.home.homeDirectory}/assets/SteamGridDB             0755 linuxury users -"
-    "d ${config.home.homeDirectory}/assets/flatpaks                0755 linuxury users -"
+    # Hytale flatpak bundle storage (moved out of ~/assets into ~/Documents)
+    # linuxury's Hytale service reads the bundle from here before falling
+    # back to the CDN download. Move the file here if you pre-downloaded it.
+    "d ${config.home.homeDirectory}/Documents/assets          0755 linuxury users -"
+    "d ${config.home.homeDirectory}/Documents/assets/flatpaks 0755 linuxury users -"
 
     # SSH directory with correct permissions
     "d ${config.home.homeDirectory}/.ssh  0700 linuxury users -"
@@ -167,10 +189,27 @@ in
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
 
-    # ~/assets/Avatar → ~/nixos-config/assets/Avatar (avatar images in repo)
-    "assets/Avatar".source =
+    # -----------------------------------------------------------------------
+    # Picture assets — symlinked from nixos-config/assets/ into ~/Pictures/
+    #
+    # This puts all family photos and game art where the DE and image
+    # viewer can discover them naturally, without a detour through ~/assets/.
+    # -----------------------------------------------------------------------
+
+    # ~/Pictures/Avatar → nixos-config/assets/Avatar (family profile photos)
+    "Pictures/Avatar".source =
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/assets/Avatar";
+
+    # ~/Pictures/Minecraft → nixos-config/assets/Minecraft (skins, packs art)
+    "Pictures/Minecraft".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/Minecraft";
+
+    # ~/Pictures/SteamGridDB → nixos-config/assets/SteamGridDB (Steam cover art)
+    "Pictures/SteamGridDB".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/SteamGridDB";
 
     # SSH config — structure only, no keys
     ".ssh/config".text = ''
@@ -220,12 +259,25 @@ in
     '';
   };
 
-  # Remove old plain directory so home-manager can create the Avatar symlink.
-  # (tmpfiles previously created ~/assets/Avatar as a dir; first activation
-  # after this change swaps it for the repo symlink.)
-  home.activation.migrateAvatarDir = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+  # Remove old plain directories so home-manager can create symlinks.
+  # Previous layout had ~/assets/Avatar as a tmpfiles dir; now it's a symlink
+  # at ~/Pictures/Avatar. Same for Minecraft and SteamGridDB.
+  home.activation.migrateAssetDirs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    # Old ~/assets/Avatar plain dir → now symlinked at ~/Pictures/Avatar
     if [ -d "$HOME/assets/Avatar" ] && [ ! -L "$HOME/assets/Avatar" ]; then
       rmdir "$HOME/assets/Avatar" 2>/dev/null || true
+    fi
+    # Old ~/assets/Minecraft plain dir → now symlinked at ~/Pictures/Minecraft
+    if [ -d "$HOME/assets/Minecraft" ] && [ ! -L "$HOME/assets/Minecraft" ]; then
+      rmdir "$HOME/assets/Minecraft" 2>/dev/null || true
+    fi
+    # Old ~/assets/SteamGridDB plain dir → now symlinked at ~/Pictures/SteamGridDB
+    if [ -d "$HOME/assets/SteamGridDB" ] && [ ! -L "$HOME/assets/SteamGridDB" ]; then
+      rmdir "$HOME/assets/SteamGridDB" 2>/dev/null || true
+    fi
+    # Old ~/assets/flatpaks plain dir → moved to ~/Documents/assets/flatpaks
+    if [ -d "$HOME/assets/flatpaks" ] && [ ! -L "$HOME/assets/flatpaks" ]; then
+      rmdir "$HOME/assets/flatpaks" 2>/dev/null || true
     fi
   '';
 
@@ -410,7 +462,7 @@ in
       ExecStart = "${pkgs.writeShellScript "install-hytale-linuxury" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
         CURL="${pkgs.curl}/bin/curl"
-        FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
+        FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
         HYTALE_URL="https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak"
 
         if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
@@ -424,6 +476,7 @@ in
           https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 
         # If the bundled file isn't present, download it from the official CDN.
+        # Bundle location: ~/Documents/assets/flatpaks/hytale-launcher-latest.flatpak
         if [ ! -f "$FLATPAK_FILE" ]; then
           echo "Local bundle not found — downloading from $HYTALE_URL"
           mkdir -p "$(dirname "$FLATPAK_FILE")"
@@ -480,6 +533,9 @@ in
   #   development.nix     → nil, nixfmt-rfc-style, direnv
   # =========================================================================
   home.packages = with pkgs; [
+
+    # Office
+    onlyoffice-desktopeditors  # Word/Excel/PowerPoint compatible office suite
 
     # Shell tools
     topgrade    # One-command updater — Nix, cargo, flatpaks, etc.
