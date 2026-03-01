@@ -370,7 +370,7 @@ nixos-install \
   --no-root-passwd
 ```
 
-Set the user password when prompted.
+`--no-root-passwd` skips the root password prompt. `nixos-install` does **not** set user passwords automatically — you must do that in the next step before rebooting.
 
 **Available hostnames:**
 
@@ -385,6 +385,16 @@ Set the user password when prompted.
 | `MinisForum` | linuxury | Server |
 | `Radxa-X4` | linuxury | Server |
 | `Media-Server` | linuxury | Media server |
+
+### Step 12b — Set the user password
+
+⚠️ **Do not skip this step.** Without it the user account has a locked password and you will not be able to log in after reboot.
+
+```bash
+nixos-enter --root /mnt
+passwd <user>
+exit
+```
 
 ### Step 13 — Reboot
 
@@ -410,7 +420,7 @@ ssh linuxury@ThinkPad
 ssh linuxury@<ip>
 ```
 
-**babylinux's and alex's machines** — SSH in with the password set during install:
+**babylinux's and alex's machines** — SSH in with the password set in Step 12b:
 
 ```bash
 ssh babylinux@Ryzen5800x
