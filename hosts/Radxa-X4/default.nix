@@ -199,11 +199,12 @@
   #   (Type the password, save, close)
   #
   # After first boot:
-  #   1. Open http://Radxa-X4:8080 — setup wizard runs on first visit
-  #   2. The admin account (linuxury) is pre-created from passwordFile
+  #   1. Open http://Radxa-X4:8080 — login directly (no setup wizard)
+  #   2. Username: linuxury, Password: whatever is in freshrss-admin-password.age
   #   3. Add feeds manually or import an OPML file
   #   4. FreshRSS supports the GReader API for mobile apps
   #      (compatible with: Reeder, FeedMe, Fluent Reader, etc.)
+  #   5. Enable API: Configuration → Authentication → Allow API access
   # =========================================================================
 
   # agenix decrypts the password at activation and places it at this path
@@ -231,6 +232,14 @@
 
   # Open port 8080 for FreshRSS
   networking.firewall.allowedTCPPorts = [ 8080 ];
+
+  # Ensure freshrss-config.service runs AFTER agenix has decrypted secrets.
+  # Without this, the service races against agenix at boot and reads an empty
+  # password file, creating the admin account with a blank password.
+  systemd.services.freshrss-config = {
+    after  = [ "agenix.service" ];
+    wants  = [ "agenix.service" ];
+  };
 
   # =========================================================================
   # Users — same three family accounts for Samba
