@@ -80,6 +80,18 @@
   };
 
   # =========================================================================
+  # FIRMWARE
+  #
+  # Enables linux-firmware, which contains proprietary but redistributable
+  # firmware blobs required by many devices: AMD/Intel/Nvidia GPUs, Wi-Fi
+  # cards, Bluetooth adapters, etc.
+  #
+  # Without this, the amdgpu driver loads but cannot find its firmware
+  # (psp_13_0_0_sos.bin, gc_11_0_0_pfp.bin, etc.) and the GPU fails to init.
+  # =========================================================================
+  hardware.enableRedistributableFirmware = true;
+
+  # =========================================================================
   # NETWORKING
   #
   # NetworkManager handles all network connections — wired, wireless, VPN.
