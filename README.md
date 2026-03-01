@@ -388,11 +388,11 @@ nixos-install \
 ⚠️ **Do not skip this step.** Without it the user account has a locked password and you will not be able to log in after reboot.
 
 ```bash
-nixos-enter --root /mnt
-echo "Setting password for: $NIXUSER"   # verify the variable is set before continuing
-passwd $NIXUSER
-exit
+echo "Setting password for: $NIXUSER"   # verify the variable before running the next line
+nixos-enter --root /mnt -- passwd $NIXUSER
 ```
+
+`nixos-enter -- <cmd>` runs one command in the chroot and exits automatically. It will prompt you to enter and confirm the password, then return you to the live ISO shell.
 
 ### Step 13 — Reboot
 
