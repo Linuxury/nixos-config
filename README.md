@@ -115,9 +115,8 @@ Steps: generate SSH key → clone repo → add key to `secrets.nix` → create e
 
 ## 🚀 Installing a Host
 
-> **Convention:** `<hostname>` is the machine name from `flake.nix` (e.g. `ThinkPad`, `Ryzen5800x`).
-> `<user>` is the primary user for that host (e.g. `linuxury`, `babylinux`, `alex`).
-> See the Hosts table above.
+> Three shell variables drive every command in this guide: `DISK`, `HOST`, and `NIXUSER`.
+> You set them once in Step 4 — after that every code block is copy-pasteable without edits.
 
 ### Step 1 — Boot the NixOS minimal ISO
 
@@ -211,11 +210,25 @@ Common disk names:
 
 💡 **Tip:** The target disk is usually the largest one that does not have `TYPE = rom`.
 
-Set the variable for the rest of the install:
+Set these three variables once — every command from here forward uses them:
 
 ```bash
-DISK=/dev/nvme0n1   # replace with your actual disk
+DISK=/dev/nvme0n1   # replace with your actual disk — see lsblk output above
+HOST=Ryzen5900x     # hostname from flake.nix — see table below
+NIXUSER=linuxury    # primary user for this host — see table below
 ```
+
+| `HOST` | `NIXUSER` | Role |
+|--------|-----------|------|
+| `ThinkPad` | `linuxury` | Laptop |
+| `Ryzen5900x` | `linuxury` | Desktop |
+| `Ryzen5800x` | `babylinux` | Wife's desktop |
+| `Asus-A15` | `babylinux` | Wife's laptop |
+| `Alex-Desktop` | `alex` | Kid's desktop |
+| `Alex-Laptop` | `alex` | Kid's laptop |
+| `MinisForum` | `linuxury` | Game server |
+| `Radxa-X4` | `linuxury` | FreshRSS server |
+| `Media-Server` | `linuxury` | Media server |
 
 ### Step 5 — Partition the disk
 
@@ -337,54 +350,38 @@ swapon /mnt/swap/swapfile
 The config lives in the primary user's home directory. `/etc/nixos` is symlinked there so NixOS tooling always finds it, and the config stays under version control in a readable/writable location.
 
 ```bash
-mkdir -p /mnt/home/<user>
+mkdir -p /mnt/home/$NIXUSER
 
 # SSH agent forwarding from Step 3 lets git use your admin machine's GitHub key
-git clone git@github.com:linuxury/nixos-config.git /mnt/home/<user>/nixos-config
+git clone git@github.com:linuxury/nixos-config.git /mnt/home/$NIXUSER/nixos-config
 
 # Symlink /etc/nixos → the config directory
 mkdir -p /mnt/etc
-ln -s /home/<user>/nixos-config /mnt/etc/nixos
+ln -s /home/$NIXUSER/nixos-config /mnt/etc/nixos
 ```
-
-> Replace `<user>` with the primary user for this host (`linuxury`, `babylinux`, or `alex`).
 
 ### Step 11 — Generate hardware config
 
 ```bash
 nixos-generate-config --root /mnt --show-hardware-config \
-  > /mnt/home/<user>/nixos-config/hosts/<hostname>/hardware-configuration.nix
+  > /mnt/home/$NIXUSER/nixos-config/hosts/$HOST/hardware-configuration.nix
 ```
 
 Review the generated file to make sure the detected filesystems look right:
 
 ```bash
-cat /mnt/home/<user>/nixos-config/hosts/<hostname>/hardware-configuration.nix
+cat /mnt/home/$NIXUSER/nixos-config/hosts/$HOST/hardware-configuration.nix
 ```
 
 ### Step 12 — Install
 
 ```bash
 nixos-install \
-  --flake /mnt/home/<user>/nixos-config#<hostname> \
+  --flake /mnt/home/$NIXUSER/nixos-config#$HOST \
   --no-root-passwd
 ```
 
 `--no-root-passwd` skips the root password prompt. `nixos-install` does **not** set user passwords automatically — you must do that in the next step before rebooting.
-
-**Available hostnames:**
-
-| Hostname | Primary user | Role |
-|----------|-------------|------|
-| `ThinkPad` | linuxury | Laptop |
-| `Ryzen5900x` | linuxury | Desktop |
-| `Ryzen5800x` | babylinux | Wife's desktop |
-| `Asus-A15` | babylinux | Wife's laptop |
-| `Alex-Desktop` | alex | Kid's desktop |
-| `Alex-Laptop` | alex | Kid's laptop |
-| `MinisForum` | linuxury | Server |
-| `Radxa-X4` | linuxury | Server |
-| `Media-Server` | linuxury | Media server |
 
 ### Step 12b — Set the user password
 
@@ -392,7 +389,7 @@ nixos-install \
 
 ```bash
 nixos-enter --root /mnt
-passwd <user>
+passwd $NIXUSER
 exit
 ```
 
