@@ -22,6 +22,7 @@
     ../../modules/base/common.nix
     ../../modules/base/linuxury-ssh.nix
     ../../modules/base/auto-update.nix
+    ../../modules/base/server-shell.nix
     ../../modules/hardware/drivers.nix
     ../../modules/services/samba.nix
   ];
