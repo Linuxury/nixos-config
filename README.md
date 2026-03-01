@@ -162,7 +162,7 @@ ping -c 3 nixos.org
 On the target machine (local keyboard):
 
 ```bash
-sudo passwd nixos           # Set a temporary password for this session
+sudo passwd root            # Set a temporary root password for this session
 sudo systemctl start sshd
 ip addr                     # Note the IP address
 ```
@@ -177,7 +177,7 @@ Example output — look for `inet` next to your network interface:
 On your admin machine:
 
 ```bash
-ssh -A nixos@192.168.1.42
+ssh -A root@192.168.1.42
 ```
 
 💡 The `-A` flag forwards your SSH agent. This lets git use your admin machine's GitHub SSH key inside the live ISO session — no need to copy your private key to the target machine.
