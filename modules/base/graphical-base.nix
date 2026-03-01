@@ -23,6 +23,13 @@
 { config, pkgs, ... }:
 
 {
+  imports = [
+    # Firefox with enforced policies — applies to every user on every
+    # graphical host. Policies are declared once here rather than in
+    # each host config. See modules/base/firefox.nix for full details.
+    ./firefox.nix
+  ];
+
   # =========================================================================
   # GVfs — GNOME Virtual Filesystem
   #
@@ -36,6 +43,15 @@
   # The samba package below provides libsmbclient which gvfs needs at runtime.
   # =========================================================================
   services.gvfs.enable = true;
+
+  # =========================================================================
+  # KDE Connect — Phone/desktop integration
+  #
+  # Lets your phone and desktop share clipboard, notifications, files,
+  # and more. Works on any DE — the name is misleading, it's DE-agnostic.
+  # The NixOS module opens the required firewall ports (1714-1764) automatically.
+  # =========================================================================
+  programs.kdeconnect.enable = true;
 
   # =========================================================================
   # Shared graphical packages
@@ -54,8 +70,20 @@
     # -----------------------------------------------------------------------
     # Media
     # -----------------------------------------------------------------------
-    mpv         # Lightweight video player — plays almost any format
-    imv         # Minimal Wayland image viewer
+    showtime    # GNOME video player — clean GTK4 GUI for casual viewing
+    amberol     # Music player — simple, modern, no library management needed
+    loupe       # GNOME image viewer — thumbnails, zoom, EXIF
+
+    # -----------------------------------------------------------------------
+    # Documents & disks
+    # -----------------------------------------------------------------------
+    papers             # GNOME document viewer — PDFs and more (GTK4, modern)
+    gnome-disk-utility # Disk management GUI — partition, format, check health
+
+    # -----------------------------------------------------------------------
+    # System monitoring
+    # -----------------------------------------------------------------------
+    mission-center  # Modern system monitor — CPU, RAM, GPU, network at a glance
 
     # -----------------------------------------------------------------------
     # Wayland / desktop integration

@@ -1,1 +1,1 @@
-include /usr/share/nano/*.nanorc
+include /run/current-system/sw/share/nano/*.nanorc
