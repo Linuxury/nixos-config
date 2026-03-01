@@ -36,10 +36,11 @@ let
   # Add a new entry when setting up a new machine:
   #   cat ~/.ssh/id_ed25519.pub
   # --------------------------------------------------------------------------
-  linuxury-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
-  thinkpad-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMI6+u1Rvq/1gkZhRheZ+LsEa+3aZ+/lTU6EV0lUCHJ linuxury-thinkpad";
+  linuxury-personal    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  thinkpad-personal    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFMI6+u1Rvq/1gkZhRheZ+LsEa+3aZ+/lTU6EV0lUCHJ linuxury-thinkpad";
+  ryzen5900x-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ7VayUjJnywEEhyLOnc5E4Pqb5DxoNDmVVNLRpiV7dQ ryzen5900x-linuxury";
 
-  linuxury-admins = [ linuxury-personal thinkpad-personal ];
+  linuxury-admins = [ linuxury-personal thinkpad-personal ryzen5900x-personal ];
 
   # --------------------------------------------------------------------------
   # HOST SSH HOST KEYS
@@ -50,7 +51,7 @@ let
   # Format: "ssh-ed25519 <key-data>"
   # --------------------------------------------------------------------------
   ThinkPad     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHEb/f6rkOOvJ/hcBQZVbHGFg/GyZOBJzPkdwejar82u root@ThinkPad";
-  Ryzen5900x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFG1gbiGRl8imkfxDr8OaGq0EPP/Q2j6zREO3VhrmZgV root@Ryzen5900x";
+  Ryzen5900x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHyps7MacHDkQcGP1kr6ZOc6fR/JTMrj4my3Bg5ybyJo root@Ryzen5900x";
   Ryzen5800x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
   Asus-A15     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
   Alex-Desktop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
