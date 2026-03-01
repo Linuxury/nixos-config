@@ -236,25 +236,23 @@ From here LUKS and plain setups diverge. Follow the column for your host:
 
 <table>
 <tr>
-<th>Without LUKS<br><sub>Ryzen5900x · Ryzen5800x · Alex-Desktop · Alex-Laptop · Servers</sub></th>
-<th>With LUKS<br><sub>ThinkPad · Asus-A15</sub></th>
+<th>Without LUKS &nbsp;—&nbsp; <sub>Ryzen5900x · Ryzen5800x · Alex-Desktop · Alex-Laptop · Servers</sub></th>
+<th>With LUKS &nbsp;—&nbsp; <sub>ThinkPad · Asus-A15</sub></th>
 </tr>
 <tr>
-<td><pre><code># NVMe / eMMC → p1, p2  |  SATA → 1, 2
-mkfs.fat -F 32 -n EFI   ${DISK}p1
-mkfs.btrfs -f -L nixos   ${DISK}p2
-</code></pre></td>
-<td><pre><code>mkfs.fat -F 32 -n EFI ${DISK}p1
-
-# Set and confirm the LUKS passphrase when prompted
-cryptsetup luksFormat --label nixos-luks ${DISK}p2
-
-# Open the encrypted container
-cryptsetup open ${DISK}p2 cryptroot
-
-# Format inside the container
-mkfs.btrfs -f -L nixos /dev/mapper/cryptroot
-</code></pre></td>
+<td>
+<code>mkfs.fat -F 32 -n EFI &nbsp; ${DISK}p1</code><br>
+<code>mkfs.btrfs -f -L nixos &nbsp; ${DISK}p2</code>
+</td>
+<td>
+<code>mkfs.fat -F 32 -n EFI ${DISK}p1</code><br>
+<br>
+<em># prompted to set LUKS passphrase</em><br>
+<code>cryptsetup luksFormat --label nixos-luks ${DISK}p2</code><br>
+<code>cryptsetup open ${DISK}p2 cryptroot</code><br>
+<br>
+<code>mkfs.btrfs -f -L nixos /dev/mapper/cryptroot</code>
+</td>
 </tr>
 </table>
 
@@ -270,10 +268,8 @@ Set the source device first, then create subvolumes:
 <th>With LUKS</th>
 </tr>
 <tr>
-<td><pre><code>mount /dev/disk/by-label/nixos /mnt
-</code></pre></td>
-<td><pre><code>mount /dev/mapper/cryptroot /mnt
-</code></pre></td>
+<td><code>mount /dev/disk/by-label/nixos /mnt</code></td>
+<td><code>mount /dev/mapper/cryptroot /mnt</code></td>
 </tr>
 </table>
 
@@ -299,10 +295,8 @@ Set the BTRFS device variable to match your setup:
 <th>With LUKS</th>
 </tr>
 <tr>
-<td><pre><code>BTRFS=/dev/disk/by-label/nixos
-</code></pre></td>
-<td><pre><code>BTRFS=/dev/mapper/cryptroot
-</code></pre></td>
+<td><code>BTRFS=/dev/disk/by-label/nixos</code></td>
+<td><code>BTRFS=/dev/mapper/cryptroot</code></td>
 </tr>
 </table>
 
