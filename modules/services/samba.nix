@@ -50,57 +50,57 @@
     # Enable nmbd — NetBIOS Name Service
     # Allows Windows machines to find the server by hostname.
     # Without this, Windows clients need the IP address directly.
-    enableNmbd = true;
+    nmbd.enable = true;
 
-    extraConfig = ''
+    settings.global = {
       # -------------------------------------------------------------------
       # Identity
       # -------------------------------------------------------------------
-      workgroup    = WORKGROUP
-      server string = %h
+      workgroup       = "WORKGROUP";
+      "server string" = "%h";
 
       # -------------------------------------------------------------------
       # Security — authenticated access only, no guest
       # -------------------------------------------------------------------
-      security      = user
-      passdb backend = tdbsam
-      map to guest  = Bad User
+      security           = "user";
+      "passdb backend"   = "tdbsam";
+      "map to guest"     = "Bad User";
 
       # -------------------------------------------------------------------
       # Restrict to modern SMB protocol versions
       # SMB1 is disabled — it has known security vulnerabilities (EternalBlue)
       # and is not needed for any current OS (Windows 7+, macOS, Linux)
       # -------------------------------------------------------------------
-      min protocol = SMB2
-      max protocol = SMB3
+      "min protocol" = "SMB2";
+      "max protocol" = "SMB3";
 
       # -------------------------------------------------------------------
       # Performance tuning
       # -------------------------------------------------------------------
-      socket options   = TCP_NODELAY IPTOS_LOWDELAY
-      use sendfile     = yes
-      aio read size    = 16384
-      aio write size   = 16384
+      "socket options" = "TCP_NODELAY IPTOS_LOWDELAY";
+      "use sendfile"   = "yes";
+      "aio read size"  = "16384";
+      "aio write size" = "16384";
 
       # -------------------------------------------------------------------
       # macOS compatibility — makes shares work well in Finder
       # -------------------------------------------------------------------
-      vfs objects    = fruit streams_xattr
-      fruit:metadata = stream
-      fruit:model    = MacSamba
-      fruit:veto_appledouble = no
-      fruit:posix_rename     = yes
-      fruit:zero_file_id     = yes
-      fruit:wipe_intentionally_left_blank_rfork = yes
-      fruit:delete_empty_adfiles = yes
+      "vfs objects"                          = "fruit streams_xattr";
+      "fruit:metadata"                       = "stream";
+      "fruit:model"                          = "MacSamba";
+      "fruit:veto_appledouble"               = "no";
+      "fruit:posix_rename"                   = "yes";
+      "fruit:zero_file_id"                   = "yes";
+      "fruit:wipe_intentionally_left_blank_rfork" = "yes";
+      "fruit:delete_empty_adfiles"           = "yes";
 
       # -------------------------------------------------------------------
       # Logging — minimal, errors only
       # -------------------------------------------------------------------
-      log level    = 1
-      log file     = /var/log/samba/%m.log
-      max log size = 50
-    '';
+      "log level"    = "1";
+      "log file"     = "/var/log/samba/%m.log";
+      "max log size" = "50";
+    };
   };
 
   # =========================================================================

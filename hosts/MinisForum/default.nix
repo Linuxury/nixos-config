@@ -126,8 +126,6 @@
   # Overrides the PipeWire setup in common.nix
   # =========================================================================
   services.pipewire.enable = lib.mkForce false;
-  sound.enable             = lib.mkForce false;
-  hardware.pulseaudio.enable = lib.mkForce false;
 
   # =========================================================================
   # Disable suspend/sleep — servers must stay on
@@ -140,13 +138,13 @@
   systemd.targets.hibernate.enable  = false;
   systemd.targets.hybrid-sleep.enable = false;
 
-  services.logind.extraConfig = ''
-    HandleSuspendKey=ignore
-    HandleHibernateKey=ignore
-    HandleLidSwitch=ignore
-    HandleLidSwitchExternalPower=ignore
-    IdleAction=ignore
-  '';
+  services.logind.settings.Login = {
+    HandleSuspendKey             = "ignore";
+    HandleHibernateKey           = "ignore";
+    HandleLidSwitch              = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    IdleAction                   = "ignore";
+  };
 
   # =========================================================================
   # Server packages
