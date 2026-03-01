@@ -216,12 +216,26 @@
 
   services.freshrss = {
     enable       = true;
-    baseUrl      = "http://Radxa-X4:8080";
+    baseUrl      = "http://radxa-x4.tail1023a0.ts.net:8080";
     defaultUser  = "linuxury";
     passwordFile = config.age.secrets.freshrss-admin-password.path;
     virtualHost  = "freshrss";
     # Database: SQLite is the default and perfectly adequate
     # for a single-user RSS reader. No extra database service needed.
+
+    # GReader API + Fever API — required for mobile clients
+    # (FeedMe, Reeder, Fluent Reader, etc.)
+    # After enabling: each user must set an API password in their profile
+    # under Profile → API management.
+    api.enable = true;
+
+    # Declarative extensions — deployed read-only to THIRDPARTY_EXTENSIONS_PATH.
+    # The web UI (Administration → Extensions) can still manage additional
+    # extensions uploaded to DATA_PATH/extensions/ (/var/lib/freshrss/extensions/).
+    extensions = with pkgs.freshrss-extensions; [
+      youtube       # Better YouTube feed rendering (thumbnails, descriptions)
+      reading-time  # Shows estimated reading time per article
+    ];
   };
 
   # Override the nginx virtualHost to listen on port 8080 instead of 80.
