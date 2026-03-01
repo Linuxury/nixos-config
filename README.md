@@ -97,6 +97,7 @@ nixos-config/
 │   └── freshrss-admin-password.age
 ├── assets/                            # Wallpapers, SteamGridDB art, etc.
 └── docs/
+    ├── admin-setup.md                 # One-time admin machine bootstrap (SSH keys, agenix)
     └── manual-steps.md                # Post-deploy steps that can't be automated
 ```
 
@@ -104,52 +105,11 @@ nixos-config/
 
 ## 🔧 One-time Admin Setup
 
-Do this once on your admin machine (the machine you install FROM). You do not repeat these steps for each host.
+Do this once on the machine you manage the flake from — currently **ThinkPad** and **Ryzen5900x**. You do not repeat this per host.
 
-### 1. Generate your SSH key pair
+Steps: generate SSH key → clone repo → add key to `secrets.nix` → create encrypted secrets → set git remote to SSH.
 
-```bash
-ssh-keygen -t ed25519 -C "linuxurypr@gmail.com"
-```
-
-The keys are saved to `~/.ssh/id_ed25519` (private) and `~/.ssh/id_ed25519.pub` (public).
-
-### 2. Clone the config
-
-```bash
-git clone https://github.com/linuxury/nixos-config ~/nixos-config
-cd ~/nixos-config
-```
-
-### 3. Add your personal key to secrets.nix
-
-Open `secrets/secrets.nix` and replace the `linuxury-personal` placeholder:
-
-```bash
-cat ~/.ssh/id_ed25519.pub
-# Paste the output into secrets/secrets.nix under linuxury-personal
-```
-
-### 4. Create the encrypted secrets
-
-`age-edit` opens `$EDITOR` for each secret. Type or paste the value, save, and close.
-
-```bash
-# linuxury's SSH public key — paste output of: cat ~/.ssh/id_ed25519.pub
-age-edit secrets/linuxury-authorized-key.age
-
-# FreshRSS admin password (Radxa-X4 only)
-age-edit secrets/freshrss-admin-password.age
-
-# WireGuard config for qBittorrent VPN (babylinux machines)
-# Paste the full wg-quick config exported from VPN Unlimited app
-age-edit secrets/wireguard-vpnunlimited.age
-```
-
-> The `age-edit` alias expands to `nix run github:ryantm/agenix -- -e`.
-> Do **not** use `nix run nixpkgs#agenix` — agenix is not in nixpkgs.
-
-At this point the secrets are encrypted to your personal key only. After each host's first boot you add its host key and re-key (covered in **After First Boot**).
+**Full walkthrough:** [`docs/admin-setup.md`](docs/admin-setup.md)
 
 ---
 
@@ -259,18 +219,7 @@ DISK=/dev/nvme0n1   # replace with your actual disk
 
 ### Step 5 — Partition the disk
 
-**Without LUKS encryption** (Ryzen5900x, Ryzen5800x, Alex-Desktop, Alex-Laptop, all servers):
-
-```bash
-wipefs -a $DISK
-
-parted $DISK -- mklabel gpt
-parted $DISK -- mkpart EFI fat32 1MiB 513MiB
-parted $DISK -- set 1 esp on
-parted $DISK -- mkpart primary 513MiB 100%
-```
-
-**With LUKS encryption** (ThinkPad, Asus-A15):
+The partition layout is identical for both encrypted and plain setups:
 
 ```bash
 wipefs -a $DISK
@@ -283,20 +232,21 @@ parted $DISK -- mkpart primary 513MiB 100%
 
 ### Step 6 — Format the partitions
 
-**Without LUKS:**
+From here LUKS and plain setups diverge. Follow the column for your host:
 
-```bash
-# NVMe / eMMC → p1, p2  |  SATA → 1, 2
+<table>
+<tr>
+<th>Without LUKS<br><sub>Ryzen5900x · Ryzen5800x · Alex-Desktop · Alex-Laptop · Servers</sub></th>
+<th>With LUKS<br><sub>ThinkPad · Asus-A15</sub></th>
+</tr>
+<tr>
+<td><pre><code># NVMe / eMMC → p1, p2  |  SATA → 1, 2
 mkfs.fat -F 32 -n EFI   ${DISK}p1
 mkfs.btrfs -f -L nixos   ${DISK}p2
-```
+</code></pre></td>
+<td><pre><code>mkfs.fat -F 32 -n EFI ${DISK}p1
 
-**With LUKS** — encrypt first, then format inside the container:
-
-```bash
-mkfs.fat -F 32 -n EFI ${DISK}p1
-
-# You will be asked to set and confirm the LUKS passphrase
+# Set and confirm the LUKS passphrase when prompted
 cryptsetup luksFormat --label nixos-luks ${DISK}p2
 
 # Open the encrypted container
@@ -304,17 +254,30 @@ cryptsetup open ${DISK}p2 cryptroot
 
 # Format inside the container
 mkfs.btrfs -f -L nixos /dev/mapper/cryptroot
-```
+</code></pre></td>
+</tr>
+</table>
 
 > For SATA drives, replace `${DISK}p1` / `${DISK}p2` with `${DISK}1` / `${DISK}2`.
 
 ### Step 7 — Create BTRFS subvolumes
 
-```bash
-# LUKS machines: mount /dev/mapper/cryptroot
-# Unencrypted:   mount /dev/disk/by-label/nixos
-mount /dev/disk/by-label/nixos /mnt
+Set the source device first, then create subvolumes:
 
+<table>
+<tr>
+<th>Without LUKS</th>
+<th>With LUKS</th>
+</tr>
+<tr>
+<td><pre><code>mount /dev/disk/by-label/nixos /mnt
+</code></pre></td>
+<td><pre><code>mount /dev/mapper/cryptroot /mnt
+</code></pre></td>
+</tr>
+</table>
+
+```bash
 btrfs subvolume create /mnt/@
 btrfs subvolume create /mnt/@home
 btrfs subvolume create /mnt/@nix
@@ -328,11 +291,22 @@ umount /mnt
 
 ### Step 8 — Mount everything
 
-```bash
-# LUKS machines: use /dev/mapper/cryptroot
-# Unencrypted:   use /dev/disk/by-label/nixos
-BTRFS=/dev/disk/by-label/nixos
+Set the BTRFS device variable to match your setup:
 
+<table>
+<tr>
+<th>Without LUKS</th>
+<th>With LUKS</th>
+</tr>
+<tr>
+<td><pre><code>BTRFS=/dev/disk/by-label/nixos
+</code></pre></td>
+<td><pre><code>BTRFS=/dev/mapper/cryptroot
+</code></pre></td>
+</tr>
+</table>
+
+```bash
 mount -o subvol=@,compress=zstd:1,noatime           $BTRFS /mnt
 
 mkdir -p /mnt/{boot,home,nix,var/log,var/cache,.snapshots,swap}

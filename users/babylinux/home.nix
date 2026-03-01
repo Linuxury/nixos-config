@@ -171,7 +171,6 @@
       Restart   = "no";
       ExecStart = "${pkgs.writeShellScript "install-hytale" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        NOTIFY="${pkgs.libnotify}/bin/notify-send"
         FLATPAK_FILE="$HOME/assets/flatpaks/hytale-launcher-latest.flatpak"
 
         if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
@@ -180,37 +179,16 @@
         fi
 
         if [ ! -f "$FLATPAK_FILE" ]; then
-          echo "Hytale flatpak not found at $FLATPAK_FILE"
-          $NOTIFY \
-            --app-name "Hytale" \
-            --icon "dialog-warning" \
-            --urgency normal \
-            "Hytale Not Installed" \
-            "Flatpak bundle not found. Clone the assets repo first."
+          echo "ERROR: Hytale flatpak not found at $FLATPAK_FILE — clone the assets repo first."
           exit 1
         fi
 
-        $NOTIFY \
-          --app-name "Hytale" \
-          --icon "system-software-install" \
-          --urgency normal \
-          "Installing Hytale" \
-          "Installing Hytale launcher, this may take a moment..."
-
+        echo "Installing Hytale launcher..."
         if $FLATPAK install --user --noninteractive "$FLATPAK_FILE"; then
-          $NOTIFY \
-            --app-name "Hytale" \
-            --icon "system-software-install" \
-            --urgency normal \
-            "Hytale Installed" \
-            "Hytale launcher is ready to play!"
+          echo "Hytale installed successfully."
         else
-          $NOTIFY \
-            --app-name "Hytale" \
-            --icon "dialog-error" \
-            --urgency critical \
-            "Hytale Install Failed" \
-            "Check journalctl --user -u hytale-flatpak-install for details."
+          echo "ERROR: Hytale install failed. Check journalctl --user -u hytale-flatpak-install"
+          exit 1
         fi
       ''}";
     };

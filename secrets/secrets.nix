@@ -64,6 +64,7 @@ let
   # --------------------------------------------------------------------------
   linuxury-machines = [ ThinkPad Ryzen5900x MinisForum Radxa-X4 Media-Server ];
   babylinux-machines = [ Ryzen5800x Asus-A15 ];
+  alex-machines = [ Alex-Desktop Alex-Laptop ];
 
 in {
 
@@ -86,6 +87,24 @@ in {
   # --------------------------------------------------------------------------
   "wireguard-vpnunlimited.age".publicKeys =
     linuxury-admins ++ babylinux-machines;
+
+  # --------------------------------------------------------------------------
+  # User display names (GECOS / full names)
+  #
+  # These secrets are set via activation scripts so nixos-rebuild does not
+  # reset the GECOS field to blank on every switch.
+  #
+  # Machines with placeholder host keys (babylinux/alex) should only import
+  # the corresponding module after real host keys are collected and re-keyed.
+  # --------------------------------------------------------------------------
+  "description-linuxury.age".publicKeys =
+    linuxury-admins ++ [ ThinkPad Ryzen5900x ];
+
+  "description-babylinux.age".publicKeys =
+    linuxury-admins ++ babylinux-machines;
+
+  "description-alex.age".publicKeys =
+    linuxury-admins ++ alex-machines;
 
   # --------------------------------------------------------------------------
   # FreshRSS admin password

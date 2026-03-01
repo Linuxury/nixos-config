@@ -117,12 +117,29 @@
 
     wine-staging    # Latest Wine with extra patches for better compatibility
     winetricks      # Installs Windows libraries/runtimes needed by some games
+    protontricks    # Winetricks wrapper for Steam/Proton — handles the Proton
+                    # runtime paths automatically so you don't have to
+
+    # -----------------------------------------------------------------------
+    # Gamescope — Valve's gaming microcompositor
+    #
+    # Runs games in a nested compositor session. Lets you:
+    #   - Force a game to render at a lower resolution and upscale
+    #   - Cap framerate independently per game
+    #   - Enable HDR output on supported displays
+    #
+    # Steam launch option: gamescope -W 2560 -H 1440 -- %command%
+    # -----------------------------------------------------------------------
+    gamescope
 
     # -----------------------------------------------------------------------
     # Utilities
     # -----------------------------------------------------------------------
     gamemode        # CLI access to GameMode (already enabled above)
     mangohud        # CLI access to MangoHud (already enabled above)
+    goverlay        # GUI configurator for MangoHud and vkBasalt overlays
+                    # Makes tweaking your overlay much easier than editing
+                    # the dotfile directly
 
     vulkan-tools    # vulkaninfo — useful for checking Vulkan is working
     mesa-demos      # glxinfo, glxgears — check OpenGL info and verify drivers
@@ -131,8 +148,15 @@
     antimicrox      # Map controller buttons to keyboard/mouse
                     # Useful for games with no controller support
 
-    # Discord — for gaming with friends
-    discord
+    # -----------------------------------------------------------------------
+    # Communication
+    # -----------------------------------------------------------------------
+    # XMPP — primary messaging client (self-hosted server coming)
+    gajim           # Full-featured XMPP client — OMEMO encryption, groupchat,
+                    # file transfer. Will replace Discord once server is set up.
+
+    # TODO: Remove discord once XMPP server is set up
+    discord         # Temporary — kept for gaming coordination during transition
 
     # -----------------------------------------------------------------------
     # Minecraft — all three family members play

@@ -1,6 +1,11 @@
 # Ensure NixOS setuid wrappers always take priority — nix shells can displace them
 fish_add_path --prepend /run/wrappers/bin
 
+# Default editor — Helix for both terminal and "visual" contexts.
+# Most tools check VISUAL first, then fall back to EDITOR.
+set -gx EDITOR hx
+set -gx VISUAL hx
+
 if status is-interactive
     set -g fish_greeting ""
 
