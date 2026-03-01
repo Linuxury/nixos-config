@@ -177,10 +177,16 @@ Example output — look for `inet` next to your network interface:
 On your admin machine:
 
 ```bash
+# Ensure your key is loaded into the agent — required for forwarding to work
+ssh-add ~/.ssh/id_ed25519
+
+# Verify a key is present before connecting
+ssh-add -l
+
 ssh -A root@192.168.1.42
 ```
 
-💡 The `-A` flag forwards your SSH agent. This lets git use your admin machine's GitHub SSH key inside the live ISO session — no need to copy your private key to the target machine.
+💡 The `-A` flag forwards your SSH agent so git can use your admin machine's GitHub key inside the live ISO — no need to copy your private key to the target. **The `ssh-add` step is mandatory:** if the agent has no keys loaded the forwarding socket is created but empty, and `git clone` will fail with "Permission denied (publickey)" even though `-A` was used.
 
 **All remaining steps run over this SSH session.**
 
@@ -350,14 +356,24 @@ swapon /mnt/swap/swapfile
 The config lives in the primary user's home directory. `/etc/nixos` is symlinked there so NixOS tooling always finds it, and the config stays under version control in a readable/writable location.
 
 ```bash
+# Verify your variables are set before running anything here
+echo "DISK=$DISK  HOST=$HOST  NIXUSER=$NIXUSER"
+```
+
+⚠️ **If any variable is blank, stop and re-export it** — an empty `$NIXUSER` will clone to the wrong path and silently break later steps.
+
+```bash
 mkdir -p /mnt/home/$NIXUSER
 
 # SSH agent forwarding from Step 3 lets git use your admin machine's GitHub key
 git clone git@github.com:linuxury/nixos-config.git /mnt/home/$NIXUSER/nixos-config
 
-# Symlink /etc/nixos → the config directory
+# Symlink /etc/nixos → the config directory (-sf overwrites if retrying)
 mkdir -p /mnt/etc
-ln -s /home/$NIXUSER/nixos-config /mnt/etc/nixos
+ln -sf /home/$NIXUSER/nixos-config /mnt/etc/nixos
+
+# Verify the symlink points to the right place
+ls -la /mnt/etc/nixos
 ```
 
 ### Step 11 — Generate hardware config
