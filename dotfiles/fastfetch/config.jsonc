@@ -6,135 +6,137 @@
       "left": 1
     },
     "color": {
-      "1": "#cdd6f4",
-      "2": "#89b4fa"
+      "1": "#F5F5F5", // Off-white for hardware
+      "2": "#40C4FF"  // Sky blue for logo
     }
   },
   "display": {
     "color": {
-      "title": "#b4befe"
+      "title": "#4f9ad0" // Blue
     },
-    "separator": "  "
+    "hideCursor": false,
+    "separator": "  "
   },
   "modules": [
     "title",
     "separator",
     {
       "type": "host",
-      "keyColor": "#fab387",
-      "key": " PC"
+      "keyColor": "#ffe1a3", // Yellow
+      "key": "  PC",
+      "format": "{name} (Custom PC)" // Fallback for ASUS ROG STRIX B550-E
     },
     {
       "type": "board",
-      "keyColor": "#fab387",
-      "key": " ├ 󰲅 "
+      "keyColor": "#ffe1a3",
+      "key": " ├ 󰌢 "
     },
     {
-      "type": "cpu",
-      "keyColor": "#fab387",
+      "type": "CPU",
+      "keyColor": "#ffe1a3",
       "key": " ├ 󰻠 "
     },
     {
       "type": "gpu",
-      "keyColor": "#fab387",
+      "keyColor": "#ffe1a3",
       "detectionMethod": "vulkan",
       "key": " ├ 󰻑 "
     },
     {
       "type": "display",
-      "keyColor": "#fab387",
+      "keyColor": "#ffe1a3",
       "key": " ├ 󰍹 "
     },
     {
       "type": "disk",
-      "keyColor": "#fab387",
-      "key": " ├ 󰋊 "
+      "keyColor": "#ffe1a3",
+      "key": " ├ 󰋊 ",
     },
     {
       "type": "memory",
-      "keyColor": "#fab387",
-      "key": " ├  "
+      "keyColor": "#ffe1a3",
+      "key": " ├  "
     },
     {
       "type": "swap",
-      "keyColor": "#fab387",
+      "keyColor": "#ffe1a3",
       "key": " ├ 󰓡 "
     },
     {
-      "type": "battery",
-      "keyColor": "#fab387",
-      "key": " ├ 󰁹 "
-    },
-    {
       "type": "uptime",
-      "keyColor": "#fab387",
+      "keyColor": "#ffe1a3",
       "key": " ╰ 󰅐 "
     },
     "break",
     {
       "type": "os",
-      "keyColor": "#89b4fa",
-      "key": " OS"
+      "keyColor": "#4f9ad0", // Blue
+      "key": "  OS"
     },
     {
       "type": "kernel",
-      "keyColor": "#89b4fa",
-      "key": " ├  "
+      "keyColor": "#4f9ad0",
+      "key": " ├  "
     },
     {
       "type": "lm",
-      "keyColor": "#89b4fa",
+      "keyColor": "#4f9ad0",
       "key": " ├ 󰍂 "
     },
     {
       "type": "shell",
-      "keyColor": "#89b4fa",
-      "key": " ├  "
+      "keyColor": "#4f9ad0",
+      "key": " ├  "
     },
     {
       "type": "terminal",
-      "keyColor": "#89b4fa",
-      "key": " ├  "
+      "keyColor": "#4f9ad0",
+      "key": " ├  "
     },
     {
       "type": "TerminalFont",
-      "keyColor": "#89b4fa",
-      "key": " ├  "
+      "keyColor": "#4f9ad0",
+      "key": " ├  "
     },
     {
-      "type": "packages",
-      "keyColor": "#89b4fa",
+      "type": "Packages",
+      "keyColor": "#4f9ad0",
       "key": " ╰ 󰏖 "
     },
     "break",
     {
-      "type": "de",
-      "keyColor": "#cba6f7",
-      "key": " DE"
+      "type": "DE",
+      "keyColor": "#FF6B6B", // Coral red
+      "key": "  DE"
     },
     {
-      "type": "wm",
-      "keyColor": "#cba6f7",
-      "key": " ├  "
+      "type": "WM",
+      "keyColor": "#FF6B6B",
+      "key": " ├  "
     },
     {
-      "type": "theme",
-      "keyColor": "#cba6f7",
+      "type": "WMTheme",
+      "keyColor": "#FF6B6B",
       "key": " ├ 󰉼 "
     },
     {
-      "type": "icons",
-      "keyColor": "#cba6f7",
+      "type": "Theme",
+      "keyColor": "#FF6B6B",
+      "key": " ├ 󰉼 "
+    },
+    {
+      "type": "Icons",
+      "keyColor": "#FF6B6B",
       "key": " ├ 󰀻 "
     },
     {
-      "type": "font",
-      "keyColor": "#cba6f7",
-      "key": " ├  "
+      "type": "Font",
+      "keyColor": "#FF6B6B",
+      "key": " ├  "
     },
     {
-      "type": "cursor",
-      "keyColor": "#cba6f7",
+      "type": "Cursor",
+      "keyColor": "#FF6B6B",
       "key": " ╰ 󰇀 "
     },
     {
