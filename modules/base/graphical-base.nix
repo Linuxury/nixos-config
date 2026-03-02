@@ -78,8 +78,6 @@
     # Documents & disks
     # -----------------------------------------------------------------------
     papers             # GNOME document viewer — PDFs and more (GTK4, modern)
-    gnome-disk-utility # Disk management GUI — partition, format, check health
-
     # -----------------------------------------------------------------------
     # System monitoring
     # -----------------------------------------------------------------------

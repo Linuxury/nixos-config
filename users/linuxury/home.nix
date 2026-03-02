@@ -555,7 +555,7 @@ in
   # Packages already provided elsewhere — do not re-add:
   #   common.nix          → fastfetch, btop, rsync
   #   graphical-base.nix  → ghostty, kitty, showtime, loupe, amberol, papers,
-  #                          gnome-disk-utility, mission-center, wl-clipboard,
+  #                          mission-center, wl-clipboard,
   #                          xdg-utils, kdeconnect
   #   gaming.nix          → prismlauncher, mcpelauncher-ui-qt, jdk17
   #   development.nix     → nil, nixfmt-rfc-style, direnv
@@ -569,7 +569,6 @@ in
     topgrade    # One-command updater — Nix, cargo, flatpaks, etc.
 
     # File management
-    yazi        # Terminal file manager with previews
     eza         # Modern ls replacement with colors and icons
     bat         # cat with syntax highlighting and line numbers
 
