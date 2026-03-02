@@ -597,12 +597,6 @@ in
     tela-icon-theme # Clean flat icon set, consistent across GNOME/COSMIC apps
     breezex-cursors # BreezeX-Light cursor (defined above as custom derivation)
 
-    # COSMIC panel applets — installed via Nix where available, Flatpak otherwise
-    # Still on Flatpak (not yet in nixpkgs — migrate when they land):
-    #   Clipboard Manager  → io.github.cosmic_utils.cosmic-ext-applet-clipboard-manager
-    #   Tempest weather    → com.vintagetechie.CosmicExtAppletTempest
-    cosmic-ext-applet-privacy-indicator  # Camera/mic/screen-share indicator in panel
-
     # Misc utilities
     p7zip       # Extract .7z, .rar, and many other archive formats
     imagemagick # CLI image conversion and manipulation
