@@ -14,6 +14,16 @@
   services.desktopManager.cosmic.enable = true;
 
   # =========================================================================
+  # COSMIC Data Control — Wayland clipboard protocol
+  #
+  # Enables the zwlr_data_control_v1 Wayland protocol, which allows
+  # clipboard manager applets (like the one in the COSMIC panel) to read
+  # and monitor clipboard content from other applications.
+  # Without this, the clipboard applet is visible but non-functional.
+  # =========================================================================
+  environment.variables.COSMIC_DATA_CONTROL_ENABLED = "1";
+
+  # =========================================================================
   # COSMIC Display Manager
   #
   # The display manager is the login screen you see before the desktop loads.
@@ -71,8 +81,31 @@
   #
   # COSMIC Store uses Flatpak as its backend.
   # Useful for apps not in nixpkgs or that need sandboxing.
+  #
+  # The activation script adds Flathub at system scope on first boot.
+  # This is required for COSMIC Store to browse and display apps —
+  # user-level remotes are not visible to the system Flatpak installation
+  # that COSMIC Store queries.
   # =========================================================================
   services.flatpak.enable = true;
+
+  # =========================================================================
+  # PackageKit — D-Bus package management abstraction
+  #
+  # COSMIC Store queries PackageKit for the "Installed" and "Updates" views.
+  # Without this service running, Store logs ServiceUnknown D-Bus errors and
+  # cannot list system packages. PackageKit has no Nix backend so it won't
+  # manage Nix packages, but the daemon must be present for Store to function.
+  # =========================================================================
+  services.packagekit.enable = true;
+
+  system.activationScripts.flatpak-flathub = {
+    text = ''
+      ${pkgs.flatpak}/bin/flatpak remote-add --system --if-not-exists flathub \
+        https://dl.flathub.org/repo/flathub.flatpakrepo || true
+    '';
+    deps = [ "specialfs" ];
+  };
 
   # =========================================================================
   # Fonts — Basic font set for a readable desktop experience
