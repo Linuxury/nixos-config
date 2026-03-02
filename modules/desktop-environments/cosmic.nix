@@ -75,6 +75,14 @@
   # automatically by services.desktopManager.cosmic.enable — no need to
   # list them here. Adding them explicitly causes "undefined variable" errors
   # when package names change in the nixos-cosmic flake.
+  #
+  # Community COSMIC extensions available in nixpkgs go here.
+  # Still on Flatpak (not yet in nixpkgs — migrate when they land):
+  #   Clipboard Manager  → io.github.cosmic_utils.cosmic-ext-applet-clipboard-manager
+  #   Tempest weather    → com.vintagetechie.CosmicExtAppletTempest
+  environment.systemPackages = with pkgs; [
+    cosmic-ext-applet-privacy-indicator  # Camera/mic/screen-share indicator in panel
+  ];
 
   # =========================================================================
   # Flatpak — Optional app distribution format
