@@ -251,8 +251,6 @@
 
     # Text editors (minimal, for emergency server access)
     nano         # Simple editor, always good to have available
-    vim          # For those who prefer it
-
     # Shell tools
     fastfetch    # System info display — useful on desktops AND servers via SSH
   ];
