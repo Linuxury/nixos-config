@@ -91,6 +91,13 @@
     wl-clipboard  # wl-copy / wl-paste — Wayland clipboard access from scripts
     xdg-utils     # xdg-open — opens files with the correct default app
 
+    # GSettings schemas for GNOME/GTK desktop preferences.
+    # COSMIC does not ship these, but GTK apps like Firefox read
+    # org.gnome.desktop.wm.preferences:button-layout from this package
+    # to know which window buttons (minimize, maximize, close) to draw.
+    # Without it, Firefox CSD defaults to close-only on COSMIC.
+    gsettings-desktop-schemas
+
     # -----------------------------------------------------------------------
     # Network share client
     #

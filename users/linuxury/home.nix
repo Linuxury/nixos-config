@@ -426,6 +426,25 @@ in
       package = breezex-cursors;
       size    = 24;
     };
+    # GTK reads this key to decide which window buttons to draw in CSD mode.
+    # Without it Firefox (native Wayland, GTK CSD) shows only a close button.
+    # Format: "left-buttons:right-buttons" — colon separates sides.
+    gtk3.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
+    gtk4.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
+  };
+
+  # =========================================================================
+  # GTK window button layout via GSettings / dconf
+  #
+  # Firefox (native Wayland, GTK CSD) reads window button layout from the
+  # GSettings key org.gnome.desktop.wm.preferences:button-layout, NOT from
+  # settings.ini. Without this key being set, GTK defaults to close-only.
+  #
+  # gsettings-desktop-schemas must be installed (graphical-base.nix) for
+  # Firefox to find the schema. This dconf entry sets the actual value.
+  # =========================================================================
+  dconf.settings."org/gnome/desktop/wm/preferences" = {
+    button-layout = ":minimize,maximize,close";
   };
 
   # =========================================================================
