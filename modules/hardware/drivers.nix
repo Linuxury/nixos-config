@@ -44,6 +44,11 @@
 
       services.xserver.videoDrivers = [ "amdgpu" ];
 
+      # AMD GPU firmware blobs (PSP, SMU, DCN, GFX) ship in linux-firmware,
+      # which is a redistributable package. Without this, amdgpu loads but
+      # finds no firmware and fails to initialize the GPU entirely.
+      hardware.enableRedistributableFirmware = true;
+
       hardware = {
         # Enable general OpenGL/Vulkan support
         graphics = {
