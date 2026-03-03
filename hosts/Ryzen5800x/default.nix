@@ -27,6 +27,7 @@
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
     ../../modules/services/vpn-qbittorrent.nix
+    ../../modules/base/linuxury-ssh.nix
   ];
 
   # =========================================================================
