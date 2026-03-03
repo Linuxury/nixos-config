@@ -28,6 +28,7 @@
     ../../modules/desktop-environments/cosmic.nix
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
+    ../../modules/base/linuxury-ssh.nix
   ];
 
   # =========================================================================

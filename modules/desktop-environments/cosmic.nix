@@ -116,6 +116,20 @@
   };
 
   # =========================================================================
+  # Keyring — Secret storage for apps
+  #
+  # Without a keyring, apps like Zed and browsers that use the Secret Service
+  # API (via libsecret) will prompt for a password on every launch instead of
+  # reading stored credentials. GNOME Keyring works fine outside of GNOME —
+  # it's just a DBus daemon implementing the Secret Service spec.
+  #
+  # enableGnomeKeyring on the login PAM service makes cosmic-greeter unlock
+  # the keyring automatically at login so no separate unlock prompt appears.
+  # =========================================================================
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.login.enableGnomeKeyring = true;
+
+  # =========================================================================
   # Fonts — Basic font set for a readable desktop experience
   #
   # These are system-wide fonts available to all users.

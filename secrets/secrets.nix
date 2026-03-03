@@ -77,7 +77,7 @@ in {
   # Deployed to: all hosts where linuxury has a user account.
   # --------------------------------------------------------------------------
   "linuxury-authorized-key.age".publicKeys =
-    linuxury-admins ++ linuxury-machines;
+    linuxury-admins ++ linuxury-machines ++ babylinux-machines ++ alex-machines;
 
   # --------------------------------------------------------------------------
   # WireGuard config for qBittorrent VPN killswitch
