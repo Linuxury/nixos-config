@@ -180,24 +180,23 @@
   # =========================================================================
   # Lid and power button behavior
   # =========================================================================
-  services.logind = {
-    lidSwitch              = "suspend";
-    lidSwitchExternalPower = "suspend";
-    settings.Login = {
-      HandlePowerKey = "suspend";
-      IdleAction     = "suspend";
-      IdleActionSec  = "15min";
-    };
+  services.logind.settings.Login = {
+    HandleLidSwitch              = "suspend";
+    HandleLidSwitchExternalPower = "suspend";
+    HandlePowerKey               = "suspend";
+    IdleAction                   = "suspend";
+    IdleActionSec                = "15min";
   };
 
   # =========================================================================
   # DNS filtering — same as Alex-Desktop
   # =========================================================================
   networking.nameservers = [ "1.1.1.3" "1.0.0.3" ];
-  networking.networkmanager.dns = "none";
+  # mkForce needed because services.resolved sets this to "systemd-resolved"
+  networking.networkmanager.dns = lib.mkForce "none";
   services.resolved = {
     enable = true;
-    fallbackDns = [ "1.1.1.3" "1.0.0.3" ];
+    settings.Resolve.FallbackDNS = [ "1.1.1.3" "1.0.0.3" ];
   };
 
   # =========================================================================
