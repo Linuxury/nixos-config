@@ -3,7 +3,7 @@
 #
 # Owner: alex
 # Hardware: Older HP laptop, AMD A-10 APU (integrated graphics)
-# Type: Laptop — LUKS encrypted, kid focused
+# Type: Laptop — kid focused
 # Role: Kid's laptop — school, gaming, videos
 #
 # Enabled modules:
@@ -44,16 +44,7 @@
   hardware.gpu = "amd";
 
   # =========================================================================
-  # LUKS — Full disk encryption
-  # Laptop can travel so we encrypt it just like the other laptops.
-  # =========================================================================
-  boot.initrd.luks.devices."cryptroot" = {
-    device = "/dev/disk/by-label/nixos-luks";
-    allowDiscards = true;
-  };
-
-  # =========================================================================
-  # Filesystem — BTRFS with subvolumes on top of LUKS
+  # Filesystem — BTRFS with subvolumes
   # =========================================================================
   fileSystems = {
     "/" = {
