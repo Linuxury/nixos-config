@@ -217,14 +217,14 @@
     # -----------------------------------------------------------------------
     # Educational
     # -----------------------------------------------------------------------
-    gcompris-qt     # 100+ educational activities — ages 2-10
+    gcompris        # 100+ educational activities — ages 2-10
                     # Math, reading, geography, science, typing
 
     # -----------------------------------------------------------------------
     # Creative
     # -----------------------------------------------------------------------
     krita           # Digital painting and drawing
-    kdenlive        # Video editor — simple enough for kids
+    kdePackages.kdenlive  # Video editor — simple enough for kids
 
     # -----------------------------------------------------------------------
     # Office / School

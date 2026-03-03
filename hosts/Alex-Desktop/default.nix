@@ -135,10 +135,11 @@
   ];
 
   # Lock DNS so NetworkManager cannot override it
-  networking.networkmanager.dns = "none";  # Tells NM to not manage DNS
+  # mkForce needed because services.resolved sets this to "systemd-resolved"
+  networking.networkmanager.dns = lib.mkForce "none";
   services.resolved = {
     enable = true;
-    fallbackDns = [ "1.1.1.3" "1.0.0.3" ];
+    settings.Resolve.FallbackDNS = [ "1.1.1.3" "1.0.0.3" ];
   };
 
   # =========================================================================
