@@ -101,7 +101,6 @@
 
     # Creative workspace
     "d ${config.home.homeDirectory}/Documents/Art                 0755 alex users -"
-    "d ${config.home.homeDirectory}/Documents/Videos              0755 alex users -"
     "d ${config.home.homeDirectory}/Documents/School              0755 alex users -"
   ];
 
@@ -224,14 +223,13 @@
     # Creative
     # -----------------------------------------------------------------------
     krita           # Digital painting and drawing
-    kdePackages.kdenlive  # Video editor — simple enough for kids
 
     # -----------------------------------------------------------------------
     # Office / School
     # -----------------------------------------------------------------------
-    libreoffice         # Full office suite — Writer, Impress, Calc
-    hunspell            # Spell checker for LibreOffice
-    hunspellDicts.en-us # English (US) dictionary
+    onlyoffice-desktopeditors  # Word/Excel/PowerPoint compatible office suite
+    hunspell                   # Spell checker
+    hunspellDicts.en-us        # English (US) dictionary
 
     # -----------------------------------------------------------------------
     # Media
