@@ -229,12 +229,15 @@
   # =========================================================================
   # Laptop specific kernel modules
   #
-  # These modules improve hardware support on the T14s:
-  # thinkpad_acpi — fan control, hotkeys, LED control
-  # acpi_call     — required by TLP for battery threshold control
+  # thinkpad_acpi — fan control, hotkeys, LED control, battery events
+  #
+  # NOTE: acpi_call was previously included for TLP battery thresholds,
+  # but the T14s Gen 4 (2022+) exposes charge thresholds natively via sysfs
+  # (NATACPI interface). TLP 1.4+ uses that automatically — no acpi_call
+  # needed. Loading it caused ACPI method execution during TLP restarts
+  # (e.g. on nixos-rebuild switch) which could freeze the system.
   # =========================================================================
-  boot.kernelModules = [ "thinkpad_acpi" "acpi_call" ];
-  boot.extraModulePackages = with config.boot.kernelPackages; [ acpi_call ];
+  boot.kernelModules = [ "thinkpad_acpi" ];
 
   # =========================================================================
   # Lid and power button behavior
