@@ -218,11 +218,11 @@
   services.logind = {
     lidSwitch              = "suspend";   # Suspend on lid close
     lidSwitchExternalPower = "suspend";   # Even on AC
-    extraConfig = ''
-      HandlePowerKey=suspend
-      IdleAction=suspend
-      IdleActionSec=20min
-    '';
+    settings.Login = {
+      HandlePowerKey = "suspend";
+      IdleAction     = "suspend";
+      IdleActionSec  = "20min";
+    };
   };
 
   # =========================================================================

@@ -476,7 +476,7 @@ in
       Description         = "Install Hytale launcher from flatpak";
       After               = [ "graphical-session.target" "network-online.target" ];
       Wants               = [ "graphical-session.target" "network-online.target" ];
-      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hypixel.HytaleLauncher";
+      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hytale.Hytale";
     };
 
     Service = {
@@ -488,7 +488,7 @@ in
         FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
         HYTALE_URL="https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak"
 
-        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
+        if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
           echo "Hytale already installed, skipping."
           exit 0
         fi
@@ -519,7 +519,7 @@ in
 
         # Verify the app is actually present — covers fresh install and the
         # edge case where flatpak returns non-zero because it was already installed.
-        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
+        if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
           echo "Hytale installed successfully."
         else
           echo "ERROR: Hytale install failed. Check journalctl --user -u hytale-flatpak-install"
@@ -546,7 +546,7 @@ in
   home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${pkgs.flatpak}/bin/flatpak override --user \
       --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
-      com.hypixel.HytaleLauncher 2>/dev/null || true
+      com.hytale.Hytale 2>/dev/null || true
   '';
 
   # =========================================================================
@@ -599,6 +599,10 @@ in
     # Misc utilities
     p7zip       # Extract .7z, .rar, and many other archive formats
     imagemagick # CLI image conversion and manipulation
-    claude-code # Claude Code CLI — AI coding assistant
+
+    # Claude Code CLI — wrapped so its Bash tool uses bash (fish is not POSIX-compatible)
+    (pkgs.writeShellScriptBin "claude" ''
+      exec env SHELL=${pkgs.bash}/bin/bash ${pkgs.claude-code}/bin/claude "$@"
+    '')
   ];
 }

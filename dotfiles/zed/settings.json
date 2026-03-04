@@ -1,0 +1,40 @@
+// Zed settings — managed via nixos-config/dotfiles/zed/settings.json
+// Symlinked by Home Manager: do not edit ~/.config/zed/settings.json directly.
+{
+  "session": {
+    "trust_all_worktrees": true
+  },
+
+  // -------------------------------------------------------------------------
+  // Appearance
+  // -------------------------------------------------------------------------
+  "theme": {
+    "mode": "dark",
+    "dark": "Catppuccin Mocha",
+    "light": "Catppuccin Latte"
+  },
+  "icon_theme": "Material Icon Theme",
+  "window_background_appearance": "blurred",
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+
+  // -------------------------------------------------------------------------
+  // Editor behaviour
+  // -------------------------------------------------------------------------
+  "vim_mode": true,
+  "relative_line_numbers": true,
+
+  // -------------------------------------------------------------------------
+  // Terminal — use fish as the shell
+  // -------------------------------------------------------------------------
+  "terminal": {
+    "shell": {
+      "program": "/etc/profiles/per-user/linuxury/bin/fish"
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Direnv — pick up .envrc automatically
+  // -------------------------------------------------------------------------
+  "load_direnv": "shell_hook"
+}
