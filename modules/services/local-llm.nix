@@ -47,10 +47,12 @@
   config = lib.mkIf config.services.localLlm.enable {
 
     # -------------------------------------------------------------------------
-    # Ollama binary — ROCm acceleration is activated at runtime via
-    # HSA_OVERRIDE_GFX_VERSION. Your 7900 XTX is RDNA3 = gfx1100 = 11.0.0
+    # Ollama binary — ROCm build required for AMD GPU acceleration.
+    # pkgs.ollama is CPU-only; pkgs.ollama-rocm compiles in HIP/ROCm support.
+    # HSA_OVERRIDE_GFX_VERSION tells ROCm to treat your 7900 XTX (gfx1100)
+    # as a fully supported target (RDNA3 = 11.0.0).
     # -------------------------------------------------------------------------
-    environment.systemPackages = [ pkgs.ollama ];
+    environment.systemPackages = [ pkgs.ollama-rocm ];
 
     # -------------------------------------------------------------------------
     # ROCm needs /dev/dri/renderD* access — that's the render group.
