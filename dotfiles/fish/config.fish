@@ -26,10 +26,12 @@ if status is-interactive
     # ---------------------------------------------------------------------------
 
     # Rebuild and apply the current config (daily driver)
-    alias nr 'sudo nixos-rebuild switch --flake ~/nixos-config'
+    # systemd-inhibit prevents idle-suspend from killing the build if the
+    # terminal crashes mid-way (e.g. during a kernel-inclusive switch)
+    alias nr 'sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" nixos-rebuild switch --flake ~/nixos-config'
 
     # Rebuild + update nixpkgs flake input before switching
-    alias nru 'sudo nixos-rebuild switch --flake ~/nixos-config --update-input nixpkgs'
+    alias nru 'sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" nixos-rebuild switch --flake ~/nixos-config --update-input nixpkgs'
 
     # Set next boot target — use for kernel or bootloader changes
     alias nrb 'sudo nixos-rebuild boot --flake ~/nixos-config'
@@ -48,13 +50,17 @@ if status is-interactive
 
     # ---------------------------------------------------------------------------
     # agenix secret management
+    #
+    # agenix looks for secrets.nix in the CURRENT directory, so we use
+    # env -C to run from ~/nixos-config/secrets/ without changing the shell's cwd.
+    # Usage: age-edit description-linuxury.age  (filename only, no path prefix)
     # ---------------------------------------------------------------------------
 
-    # Edit or create a secret (type the .age filename after)
-    alias age-edit 'nix run github:ryantm/agenix -- -e'
+    # Edit or create a secret (pass just the .age filename, no path prefix)
+    alias age-edit 'env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -e'
 
     # Re-key all secrets after adding a new host to secrets/secrets.nix
-    alias age-rekey 'nix run github:ryantm/agenix -- -r'
+    alias age-rekey 'env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -r'
 
     # ---------------------------------------------------------------------------
     # Snapper snapshot management

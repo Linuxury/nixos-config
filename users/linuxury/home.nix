@@ -171,6 +171,9 @@ in
     # MangoHud — performance overlay for gaming
     ".config/MangoHud".source = ../../dotfiles/MangoHud;
 
+    # Zed editor
+    ".config/zed/settings.json".source = ../../dotfiles/zed/settings.json;
+
     # Nano — for quick root edits
     ".nanorc".source = ../../dotfiles/nano/.nanorc;
 
