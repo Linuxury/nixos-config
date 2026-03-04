@@ -14,7 +14,6 @@
 #
 # Parental controls:
 #   - Same as Alex-Desktop
-#   - LUKS encryption since it's a laptop
 #   - Extra power management for older battery
 # ===========================================================================
 
