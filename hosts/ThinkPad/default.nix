@@ -15,7 +15,13 @@
 #   - Development
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  lib,
+  ...
+}:
 
 {
   imports = [
@@ -38,7 +44,7 @@
     #../../modules/desktop-environments/hyprland.nix
     #../../modules/desktop-environments/niri.nix
     ../../modules/gaming/gaming.nix
-    ../../modules/development/development.nix
+    #../../modules/development/development.nix
     ../../modules/base/auto-update.nix
   ];
 
@@ -65,8 +71,9 @@
     # We reference by label so it works regardless of whether the drive
     # is nvme0n1, nvme1n1, or any other device name
     device = "/dev/disk/by-label/nixos-luks";
-    allowDiscards = true;  # Enables TRIM on the SSD through LUKS
-                           # Important for SSD longevity and performance
+    allowDiscards = true;
+    # Enables TRIM on the SSD through LUKS
+    # Important for SSD longevity and performance
   };
 
   # Early KMS — load the AMD GPU driver inside initrd so Plymouth gets a real
@@ -85,50 +92,80 @@
     "/" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/home" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@home" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@home"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/nix" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@nix" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@nix"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/var/log" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@log" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@log"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/var/cache" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@cache" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@cache"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/.snapshots" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@snapshots" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@snapshots"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/swap" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@swap" "noatime" ];
+      options = [
+        "subvol=@swap"
+        "noatime"
+      ];
       # No compression on swap — compressed swap causes issues
     };
 
     "/boot" = {
       device = "/dev/disk/by-label/EFI";
       fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
+      options = [
+        "fmask=0077"
+        "dmask=0077"
+      ];
       # Restrictive permissions on /boot for security
     };
   };
@@ -136,9 +173,11 @@
   # =========================================================================
   # Swap
   # =========================================================================
-  swapDevices = [{
-    device = "/swap/swapfile";
-  }];
+  swapDevices = [
+    {
+      device = "/swap/swapfile";
+    }
+  ];
 
   # =========================================================================
   # Kernel — Zen
@@ -159,17 +198,17 @@
     enable = true;
     settings = {
       # CPU scaling governor
-      CPU_SCALING_GOVERNOR_ON_AC  = "performance";  # Full speed on charger
-      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";    # Save battery on battery
+      CPU_SCALING_GOVERNOR_ON_AC = "performance"; # Full speed on charger
+      CPU_SCALING_GOVERNOR_ON_BAT = "powersave"; # Save battery on battery
 
       # AMD CPU power management
-      CPU_ENERGY_PERF_POLICY_ON_AC  = "performance";
+      CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
       CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
 
       # Keep battery between 20-80% to preserve long term health.
       # ThinkPads support this natively via the embedded controller.
       START_CHARGE_THRESH_BAT0 = 20;
-      STOP_CHARGE_THRESH_BAT0  = 80;
+      STOP_CHARGE_THRESH_BAT0 = 80;
 
       # PCIe power management
       PCIE_ASPM_ON_BAT = "powersupersave";
@@ -188,10 +227,10 @@
   services.libinput = {
     enable = true;
     touchpad = {
-      tapping          = true;   # Tap to click
-      naturalScrolling = true;   # Reverse scroll direction (like macOS/modern default)
-      scrollMethod     = "twofinger";
-      middleEmulation  = true;   # Three finger tap = middle click
+      tapping = true; # Tap to click
+      naturalScrolling = true; # Reverse scroll direction (like macOS/modern default)
+      scrollMethod = "twofinger";
+      middleEmulation = true; # Three finger tap = middle click
       disableWhileTyping = true; # Disable touchpad while typing to avoid accidental input
     };
   };
@@ -211,8 +250,8 @@
 
   # Allow PAM (authentication system) to use fingerprint as an auth method
   security.pam.services = {
-    login.fprintAuth   = true;
-    sudo.fprintAuth    = true;
+    login.fprintAuth = true;
+    sudo.fprintAuth = true;
     polkit-1.fprintAuth = true;
   };
 
@@ -243,12 +282,12 @@
   # Lid and power button behavior
   # =========================================================================
   services.logind = {
-    lidSwitch              = "suspend";          # Suspend when lid closes
-    lidSwitchExternalPower = "suspend";          # Even on AC — saves energy
+    lidSwitch = "suspend"; # Suspend when lid closes
+    lidSwitchExternalPower = "suspend"; # Even on AC — saves energy
     settings.Login = {
       HandlePowerKey = "suspend";
-      IdleAction     = "suspend";
-      IdleActionSec  = "20min";
+      IdleAction = "suspend";
+      IdleActionSec = "20min";
     };
   };
 
@@ -260,13 +299,13 @@
   # =========================================================================
   users.users.linuxury = {
     isNormalUser = true;
-    extraGroups  = [
-      "wheel"          # sudo access
+    extraGroups = [
+      "wheel" # sudo access
       "networkmanager" # manage network connections without sudo
-      "video"          # access to video devices
-      "audio"          # access to audio devices
-      "input"          # access to input devices (controllers, etc)
-      "gamemode"       # access to GameMode daemon
+      "video" # access to video devices
+      "audio" # access to audio devices
+      "input" # access to input devices (controllers, etc)
+      "gamemode" # access to GameMode daemon
     ];
     shell = pkgs.fish; # We'll configure fish properly in home.nix
   };
