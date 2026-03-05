@@ -36,5 +36,26 @@
   // -------------------------------------------------------------------------
   // Direnv — pick up .envrc automatically
   // -------------------------------------------------------------------------
-  "load_direnv": "shell_hook"
+  "load_direnv": "shell_hook",
+
+  // -------------------------------------------------------------------------
+  // AI Assistant — local Ollama (llm-start must be running first)
+  //
+  // Open the assistant panel with:  Ctrl+?  or  cmd palette → "assistant"
+  // The Ollama server must be running — use llm-start in terminal first.
+  // To change model: update "model" here and make sure it's been pulled.
+  // -------------------------------------------------------------------------
+  "assistant": {
+    "enabled": true,
+    "version": "2",
+    "default_model": {
+      "provider": "ollama",
+      "model": "qwen2.5:14b"
+    }
+  },
+  "language_model": {
+    "ollama": {
+      "api_url": "http://localhost:11434"
+    }
+  }
 }
