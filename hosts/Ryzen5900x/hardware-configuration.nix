@@ -61,6 +61,18 @@
       options = [ "fmask=0022" "dmask=0022" ];
     };
 
+  fileSystems."/mnt/Warehouse" =
+    { device = "/dev/disk/by-label/Warehouse";
+      fsType = "ext4";
+      options = [ "defaults" "nofail" ];
+    };
+
+  fileSystems."/mnt/Games" =
+    { device = "/dev/disk/by-label/Games";
+      fsType = "ext4";
+      options = [ "defaults" "nofail" ];
+    };
+
   swapDevices = [ ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
