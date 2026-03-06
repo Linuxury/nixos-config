@@ -466,6 +466,26 @@ in
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size".text  = "24";
 
   # =========================================================================
+  # COSMIC Files — sidebar favorites
+  #
+  # COSMIC Files reads favorites from this RON file. Custom mount points
+  # use the Path() variant. This is Ryzen5900x-specific (warehouse/games)
+  # but harmless on ThinkPad — missing paths are simply skipped.
+  # =========================================================================
+  home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites".text = ''
+    [
+        Home,
+        Documents,
+        Downloads,
+        Music,
+        Pictures,
+        Videos,
+        Path("/mnt/warehouse"),
+        Path("/mnt/games"),
+    ]
+  '';
+
+  # =========================================================================
   # Hytale — automatic flatpak installation
   #
   # Hytale is not on Flathub yet. On first login the service tries to find
