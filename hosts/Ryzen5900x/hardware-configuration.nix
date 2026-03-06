@@ -61,16 +61,16 @@
       options = [ "fmask=0022" "dmask=0022" ];
     };
 
-  fileSystems."/mnt/Warehouse" =
-    { device = "/dev/disk/by-label/Warehouse";
+  fileSystems."/mnt/warehouse" =
+    { device = "/dev/disk/by-label/warehouse";
       fsType = "ext4";
-      options = [ "defaults" "nofail" ];
+      options = [ "defaults" "nofail" "x-gvfs-show" ];
     };
 
-  fileSystems."/mnt/Games" =
-    { device = "/dev/disk/by-label/Games";
+  fileSystems."/mnt/games" =
+    { device = "/dev/disk/by-label/games";
       fsType = "ext4";
-      options = [ "defaults" "nofail" ];
+      options = [ "defaults" "nofail" "x-gvfs-show" ];
     };
 
   swapDevices = [ ];
