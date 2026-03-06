@@ -153,6 +153,15 @@
   };
 
   # =========================================================================
+  # Drive ownership — ensure linuxury owns the ext4 drive roots so Steam
+  # and other user apps can write to them (tmpfiles runs after local-fs.target)
+  # =========================================================================
+  systemd.tmpfiles.rules = [
+    "d /mnt/warehouse 0755 linuxury users -"
+    "d /mnt/games     0755 linuxury users -"
+  ];
+
+  # =========================================================================
   # Agenix secrets
   # =========================================================================
   age.secrets.smb-credentials = {
