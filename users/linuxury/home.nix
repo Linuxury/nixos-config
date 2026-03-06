@@ -472,18 +472,21 @@ in
   # use the Path() variant. This is Ryzen5900x-specific (warehouse/games)
   # but harmless on ThinkPad — missing paths are simply skipped.
   # =========================================================================
-  home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites".text = ''
-    [
-        Home,
-        Documents,
-        Downloads,
-        Music,
-        Pictures,
-        Videos,
-        Path("/mnt/warehouse"),
-        Path("/mnt/games"),
-    ]
-  '';
+  home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites" = {
+    force = true;
+    text = ''
+      [
+          Home,
+          Documents,
+          Downloads,
+          Music,
+          Pictures,
+          Videos,
+          Path("/mnt/warehouse"),
+          Path("/mnt/games"),
+      ]
+    '';
+  };
 
   # =========================================================================
   # Hytale — automatic flatpak installation
