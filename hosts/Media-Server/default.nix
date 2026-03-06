@@ -164,7 +164,6 @@
     enable      = true;
     enable32Bit = true;
     extraPackages = with pkgs; [
-      amdvlk
       rocmPackages.clr
       libva
       libva-utils   # vainfo command — verify VAAPI after first boot
