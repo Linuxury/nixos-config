@@ -35,6 +35,7 @@
     ../../modules/development/development.nix
     ../../modules/base/auto-update.nix
     ../../modules/services/local-llm.nix
+    ../../modules/users/linuxury-packages.nix
   ];
 
   # =========================================================================
@@ -100,6 +101,64 @@
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
+
+    "/mnt/warehouse" = {
+      device = "/dev/disk/by-label/warehouse";
+      fsType = "ext4";
+      options = [ "defaults" "nofail" "x-gvfs-show" ];
+    };
+
+    "/mnt/games" = {
+      device = "/dev/disk/by-label/games";
+      fsType = "ext4";
+      options = [ "defaults" "nofail" "x-gvfs-show" ];
+    };
+
+    # -----------------------------------------------------------------------
+    # Media-Server Samba shares (10.0.0.3)
+    # Credentials decrypted by agenix to /run/agenix/smb-credentials
+    # -----------------------------------------------------------------------
+    "/mnt/media-server/media" = {
+      device  = "//10.0.0.3/media";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=1000" "gid=100"
+        "nofail" "_netdev" "auto"
+        "x-gvfs-show"
+      ];
+    };
+
+    "/mnt/media-server/shared" = {
+      device  = "//10.0.0.3/shared";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=1000" "gid=100"
+        "nofail" "_netdev" "auto"
+        "x-gvfs-show"
+      ];
+    };
+
+    "/mnt/media-server/downloads" = {
+      device  = "//10.0.0.3/downloads";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=1000" "gid=100"
+        "nofail" "_netdev" "auto"
+        "x-gvfs-show"
+      ];
+    };
+  };
+
+  # =========================================================================
+  # Agenix secrets
+  # =========================================================================
+  age.secrets.smb-credentials = {
+    file  = ../../secrets/smb-credentials.age;
+    mode  = "0400";
+    owner = "root";
   };
 
   # =========================================================================
@@ -165,6 +224,7 @@
   environment.systemPackages = with pkgs; [
     arandr       # GUI monitor arrangement tool
     autorandr    # Automatic monitor layout switching
+    cifs-utils   # Required for CIFS/Samba mounts
     # corectrl is installed by programs.corectrl.enable above
   ];
 

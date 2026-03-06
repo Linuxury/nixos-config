@@ -1,0 +1,51 @@
+# ===========================================================================
+# modules/users/linuxury-packages.nix — System packages for linuxury
+#
+# Imported by: ThinkPad, Ryzen5900x
+# ===========================================================================
+
+{ pkgs, ... }:
+
+{
+  environment.systemPackages = with pkgs; [
+
+    # Office
+    onlyoffice-desktopeditors  # Word/Excel/PowerPoint compatible office suite
+
+    # Shell tools
+    topgrade    # One-command updater — Nix, cargo, flatpaks, etc.
+
+    # File management
+    eza         # Modern ls replacement with colors and icons
+    bat         # cat with syntax highlighting and line numbers
+
+    # Development helpers
+    lazygit     # TUI for git — stage, commit, branch all in one
+    gh          # GitHub CLI — PRs, issues from terminal
+    delta       # Pretty diff viewer — integrates with git
+
+    # System monitoring
+    dust        # Visual disk usage — like du but readable
+    procs       # Modern ps replacement with color and filtering
+
+    # Networking
+    whois       # Domain registration lookup
+    traceroute  # Trace network path to a host
+
+    # Communication
+    thunderbird # Email client — personal use
+
+    # Internet
+    fluent-reader # RSS feed reader — clean GTK app for following news/blogs
+    obs-studio    # Screen recording and streaming
+
+    # Misc utilities
+    p7zip       # Extract .7z, .rar, and many other archive formats
+    imagemagick # CLI image conversion and manipulation
+
+    # Claude Code CLI — wrapped so its Bash tool uses bash (fish is not POSIX-compatible)
+    (pkgs.writeShellScriptBin "claude" ''
+      exec env SHELL=${pkgs.bash}/bin/bash ${pkgs.claude-code}/bin/claude "$@"
+    '')
+  ];
+}
