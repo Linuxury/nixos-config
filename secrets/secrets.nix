@@ -108,6 +108,12 @@ in {
     linuxury-admins ++ alex-machines;
 
   # --------------------------------------------------------------------------
+  # Samba credentials for mounting Media-Server shares on Ryzen5900x
+  # --------------------------------------------------------------------------
+  "smb-credentials.age".publicKeys =
+    linuxury-admins ++ [ Ryzen5900x ];
+
+  # --------------------------------------------------------------------------
   # FreshRSS admin password
   #
   # Plain text password for the FreshRSS admin account (linuxury).

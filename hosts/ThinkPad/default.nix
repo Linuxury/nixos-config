@@ -46,6 +46,7 @@
     ../../modules/gaming/gaming.nix
     #../../modules/development/development.nix
     ../../modules/base/auto-update.nix
+    ../../modules/users/linuxury-packages.nix
   ];
 
   # =========================================================================

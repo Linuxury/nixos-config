@@ -28,6 +28,7 @@
     ../../modules/base/auto-update.nix
     ../../modules/services/vpn-qbittorrent.nix
     ../../modules/base/linuxury-ssh.nix
+    ../../modules/users/babylinux-packages.nix
   ];
 
   # =========================================================================

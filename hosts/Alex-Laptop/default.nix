@@ -28,6 +28,7 @@
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
     ../../modules/base/linuxury-ssh.nix
+    ../../modules/users/alex-packages.nix
   ];
 
   # =========================================================================
