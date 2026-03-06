@@ -117,6 +117,11 @@
     # -----------------------------------------------------------------------
     # Media-Server Samba shares (10.0.0.3)
     # Credentials decrypted by agenix to /run/agenix/smb-credentials
+    #
+    # noauto + x-systemd.automount: mounts on first access, not at boot.
+    # x-systemd.automount-timeout: fail fast if server is unreachable.
+    # x-gvfs-show is intentionally omitted — shares appear in COSMIC Files
+    # under Networks via Avahi discovery only when the server is online.
     # -----------------------------------------------------------------------
     "/mnt/media-server/media" = {
       device  = "//10.0.0.3/media";
@@ -124,8 +129,8 @@
       options = [
         "credentials=/run/agenix/smb-credentials"
         "uid=1000" "gid=100"
-        "nofail" "_netdev" "auto"
-        "x-gvfs-show"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.automount-timeout=5s"
       ];
     };
 
@@ -135,8 +140,8 @@
       options = [
         "credentials=/run/agenix/smb-credentials"
         "uid=1000" "gid=100"
-        "nofail" "_netdev" "auto"
-        "x-gvfs-show"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.automount-timeout=5s"
       ];
     };
 
@@ -146,20 +151,42 @@
       options = [
         "credentials=/run/agenix/smb-credentials"
         "uid=1000" "gid=100"
-        "nofail" "_netdev" "auto"
-        "x-gvfs-show"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.automount-timeout=5s"
       ];
     };
   };
 
   # =========================================================================
-  # Drive ownership — ensure linuxury owns the ext4 drive roots so Steam
-  # and other user apps can write to them (tmpfiles runs after local-fs.target)
+  # Drive ownership — ensure linuxury owns the XFS drive roots
+  #
+  # tmpfiles.d alone is unreliable here: it may run before the drives are
+  # mounted, setting ownership on the bare mount-point directory instead of
+  # the XFS root inode. The systemd service below explicitly waits for the
+  # mount units to complete, then chowns the filesystem root correctly.
+  # tmpfiles rules are kept to create the directories on first boot if needed.
   # =========================================================================
   systemd.tmpfiles.rules = [
     "d /mnt/warehouse 0755 linuxury users -"
     "d /mnt/games     0755 linuxury users -"
   ];
+
+  systemd.services."xfs-drive-ownership" = {
+    description = "Set linuxury ownership on XFS drive roots";
+    after       = [ "mnt-warehouse.mount" "mnt-games.mount" ];
+    requires    = [ "mnt-warehouse.mount" "mnt-games.mount" ];
+    wantedBy    = [ "local-fs.target" ];
+    serviceConfig = {
+      Type            = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "xfs-drive-ownership" ''
+        chown linuxury:users /mnt/warehouse
+        chown linuxury:users /mnt/games
+        chmod 755 /mnt/warehouse
+        chmod 755 /mnt/games
+      '';
+    };
+  };
 
   # =========================================================================
   # Agenix secrets
