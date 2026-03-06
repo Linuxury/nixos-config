@@ -118,10 +118,11 @@
     # Media-Server Samba shares (10.0.0.3)
     # Credentials decrypted by agenix to /run/agenix/smb-credentials
     #
-    # noauto + x-systemd.automount: mounts on first access, not at boot.
-    # x-systemd.automount-timeout: fail fast if server is unreachable.
+    # noauto: never mounted at boot or during nixos-rebuild switch.
+    # _netdev + nofail: safe ordering, non-fatal if server is offline.
     # x-gvfs-show is intentionally omitted — shares appear in COSMIC Files
     # under Networks via Avahi discovery only when the server is online.
+    # Mount manually with: sudo mount /mnt/media-server/<share>
     # -----------------------------------------------------------------------
     "/mnt/media-server/media" = {
       device  = "//10.0.0.3/media";
@@ -130,7 +131,6 @@
         "credentials=/run/agenix/smb-credentials"
         "uid=1000" "gid=100"
         "nofail" "_netdev" "noauto"
-        "x-systemd.automount" "x-systemd.automount-timeout=5s"
       ];
     };
 
@@ -141,7 +141,6 @@
         "credentials=/run/agenix/smb-credentials"
         "uid=1000" "gid=100"
         "nofail" "_netdev" "noauto"
-        "x-systemd.automount" "x-systemd.automount-timeout=5s"
       ];
     };
 
@@ -152,7 +151,6 @@
         "credentials=/run/agenix/smb-credentials"
         "uid=1000" "gid=100"
         "nofail" "_netdev" "noauto"
-        "x-systemd.automount" "x-systemd.automount-timeout=5s"
       ];
     };
   };
