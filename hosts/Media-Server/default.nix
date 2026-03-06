@@ -13,7 +13,7 @@
 # Enabled modules:
 #   - AMD drivers
 #   - base/common.nix
-#   - samba.nix (media, shared, downloads shares)
+#   - samba.nix (single Media-Server share → /data)
 # ===========================================================================
 
 { config, pkgs, inputs, lib, ... }:
@@ -398,10 +398,10 @@
   # Global Samba config (security, protocol, discovery) is in samba.nix.
   # Here we define what this specific server actually shares.
   #
-  # Share layout:
-  #   media     — /data/media    — all users read, linuxury can write
-  #   shared    — /data/shared   — all users read/write (family drop-box)
-  #   downloads — /data/downloads — linuxury + babylinux read/write
+  # Single share exposing /data under the server's hostname. Subdirectories
+  # (media/, shared/, downloads/) are visible inside it. Per-folder access
+  # control is enforced by filesystem permissions on the server rather than
+  # separate Samba shares.
   #
   # After first boot, set Samba passwords (separate from Linux password):
   #   sudo smbpasswd -a linuxury
@@ -409,64 +409,20 @@
   #   sudo smbpasswd -a alex
   #
   # Access from clients:
-  #   Windows:  \\Media-Server\media
-  #   macOS:    smb://Media-Server/media
-  #   Linux:    smb://Media-Server/media
+  #   Windows:  \\Media-Server\Media-Server
+  #   macOS:    smb://Media-Server/Media-Server
+  #   Linux:    smb://Media-Server/Media-Server
+  #   fstab:    //10.0.0.3/Media-Server → /mnt/media-server
   # =========================================================================
   services.samba.shares = {
 
-    # -----------------------------------------------------------------------
-    # media — the main library (movies, TV, music, books, anime)
-    #
-    # All family members can browse and read.
-    # Only linuxury can write — library management is your job.
-    # alex and babylinux won't accidentally delete or move things.
-    # -----------------------------------------------------------------------
-    media = {
-      path           = "/data/media";
-      comment        = "Media library";
-      browseable     = "yes";
-      "read only"    = "yes";
-      "write list"   = "linuxury";
-      "valid users"  = "linuxury babylinux alex";
-      # Ensure new files created by linuxury are readable by the group
-      "create mask"      = "0664";
-      "directory mask"   = "0775";
-      "force group"      = "media";
-    };
-
-    # -----------------------------------------------------------------------
-    # shared — family shared workspace
-    #
-    # Everyone can put files here and see each other's files.
-    # Good for: photos to share, documents, school stuff, etc.
-    # -----------------------------------------------------------------------
-    shared = {
-      path          = "/data/shared";
-      comment       = "Shared family folder";
-      browseable    = "yes";
-      "read only"   = "no";
-      "valid users" = "linuxury babylinux alex";
-      "force group" = "media";
-      "create mask"     = "0664";
-      "directory mask"  = "0775";
-    };
-
-    # -----------------------------------------------------------------------
-    # downloads — torrent staging area
-    #
-    # Where completed downloads land before being moved to the media library.
-    # linuxury and babylinux can access (she downloads via VPN on her machines,
-    # but she might want to browse completed downloads from here too).
-    # alex has no access — nothing here is appropriate for a 6 year old.
-    # -----------------------------------------------------------------------
-    downloads = {
-      path          = "/data/downloads";
-      comment       = "Download staging";
-      browseable    = "yes";
-      "read only"   = "no";
-      "valid users" = "linuxury babylinux";
-      "force group" = "media";
+    "Media-Server" = {
+      path              = "/data";
+      comment           = "Media Server";
+      browseable        = "yes";
+      "read only"       = "no";
+      "valid users"     = "linuxury babylinux alex";
+      "force group"     = "media";
       "create mask"     = "0664";
       "directory mask"  = "0775";
     };

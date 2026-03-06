@@ -115,37 +115,21 @@
     };
 
     # -----------------------------------------------------------------------
-    # Media-Server Samba shares (10.0.0.3)
+    # Media-Server Samba share (10.0.0.3)
     # Credentials decrypted by agenix to /run/agenix/smb-credentials
+    #
+    # Single share exposing /data — media/, shared/, downloads/ appear
+    # as subdirectories. Filesystem permissions on the server enforce
+    # per-folder access control.
     #
     # noauto: never mounted at boot or during nixos-rebuild switch.
     # _netdev + nofail: safe ordering, non-fatal if server is offline.
-    # x-gvfs-show is intentionally omitted — shares appear in COSMIC Files
-    # under Networks via Avahi discovery only when the server is online.
-    # Mount manually with: sudo mount /mnt/media-server/<share>
+    # x-gvfs-show is intentionally omitted — the share appears in COSMIC
+    # Files under Networks via Avahi discovery when the server is online.
+    # Mount manually with: sudo mount /mnt/media-server
     # -----------------------------------------------------------------------
-    "/mnt/media-server/media" = {
-      device  = "//10.0.0.3/media";
-      fsType  = "cifs";
-      options = [
-        "credentials=/run/agenix/smb-credentials"
-        "uid=1000" "gid=100"
-        "nofail" "_netdev" "noauto"
-      ];
-    };
-
-    "/mnt/media-server/shared" = {
-      device  = "//10.0.0.3/shared";
-      fsType  = "cifs";
-      options = [
-        "credentials=/run/agenix/smb-credentials"
-        "uid=1000" "gid=100"
-        "nofail" "_netdev" "noauto"
-      ];
-    };
-
-    "/mnt/media-server/downloads" = {
-      device  = "//10.0.0.3/downloads";
+    "/mnt/media-server" = {
+      device  = "//10.0.0.3/Media-Server";
       fsType  = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
