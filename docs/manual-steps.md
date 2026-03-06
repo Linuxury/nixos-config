@@ -203,12 +203,13 @@ sudo smbpasswd -a babylinux
 sudo smbpasswd -a alex
 ```
 
-Shares available after setup:
-| Share | Path | Access |
-|-------|------|--------|
-| `\\Media-Server\media` | `/data/media` | All read, linuxury write |
-| `\\Media-Server\shared` | `/data/shared` | All read/write |
-| `\\Media-Server\downloads` | `/data/downloads` | linuxury + babylinux |
+Share available after setup:
+| Share | Path | Notes |
+|-------|------|-------|
+| `\\Media-Server\Media-Server` | `/data` | Single share — media/, shared/, downloads/ inside |
+
+Access control is enforced by filesystem permissions on the server, not at the
+Samba share level. Mount on Ryzen5900x with `sudo mount /mnt/media-server`.
 
 ### Plex setup
 1. Open http://Media-Server:32400/web
