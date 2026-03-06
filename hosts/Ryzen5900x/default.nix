@@ -104,13 +104,13 @@
 
     "/mnt/warehouse" = {
       device = "/dev/disk/by-label/warehouse";
-      fsType = "ext4";
+      fsType = "xfs";
       options = [ "defaults" "nofail" "x-gvfs-show" ];
     };
 
     "/mnt/games" = {
       device = "/dev/disk/by-label/games";
-      fsType = "ext4";
+      fsType = "xfs";
       options = [ "defaults" "nofail" "x-gvfs-show" ];
     };
 
