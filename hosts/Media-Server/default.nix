@@ -165,8 +165,6 @@
     enable32Bit = true;
     extraPackages = with pkgs; [
       rocmPackages.clr
-      libva
-      libva-utils   # vainfo command — verify VAAPI after first boot
     ];
   };
 
@@ -371,6 +369,7 @@
   # =========================================================================
   environment.systemPackages = with pkgs; [
     # Monitoring
+    libva-utils  # vainfo — verify VAAPI hardware transcoding
     iotop
     nethogs
     ncdu
