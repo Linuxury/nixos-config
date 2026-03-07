@@ -468,6 +468,7 @@
   # After first boot: sudo tailscale up
   # =========================================================================
   services.tailscale.enable = true;
+  services.tailscale.extraUpFlags = [ "--advertise-tags=tag:ssh" ];
 
   programs.fish.enable = true;
 }
