@@ -484,6 +484,7 @@ in
           Videos,
           Path("/mnt/warehouse"),
           Path("/mnt/games"),
+          Path("/mnt/media-server"),
       ]
     '';
   };
@@ -569,19 +570,7 @@ in
   #
   # flatpak override is idempotent — safe to re-apply on every HM activation.
   # =========================================================================
-  # Add Media-Server Samba share to COSMIC Files sidebar favorites.
-  # Only writes the file if it doesn't exist — preserves any favorites
-  # the user adds through the COSMIC Files UI.
-  home.activation.cosmicFilesFavorites = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    favdir="$HOME/.config/cosmic/com.system76.CosmicFiles/v1"
-    favfile="$favdir/favorites"
-    if [ ! -f "$favfile" ]; then
-      mkdir -p "$favdir"
-      echo '["/mnt/media-server"]' > "$favfile"
-    fi
-  '';
-
-  home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${pkgs.flatpak}/bin/flatpak override --user \
       --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
       com.hytale.Hytale 2>/dev/null || true
