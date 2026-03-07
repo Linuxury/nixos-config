@@ -300,6 +300,12 @@
   # Tailscale — remote management
   # After first boot: sudo tailscale up
   # =========================================================================
+  # First-boot checklist:
+  #   1. sudo tailscale up
+  #   2. sudo smbpasswd -a linuxury && sudo smbpasswd -a babylinux
+  #   3. git clone git@github.com:Linuxury/nixos-config.git ~/nixos-config
+  #   4. sudo chown -R linuxury:users ~/nixos-config   ← required if cloned as root
+  # =========================================================================
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = [ "--advertise-tags=tag:ssh" ];
 
