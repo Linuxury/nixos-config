@@ -368,6 +368,9 @@ mkdir -p /mnt/home/$NIXUSER
 # SSH agent forwarding from Step 3 lets git use your admin machine's GitHub key
 git clone git@github.com:linuxury/nixos-config.git /mnt/home/$NIXUSER/nixos-config
 
+# Fix ownership — git clone runs as root, but the user needs to own the repo
+chown -R 1000:100 /mnt/home/$NIXUSER/nixos-config
+
 # Symlink /etc/nixos → the config directory (-sf overwrites if retrying)
 mkdir -p /mnt/etc
 ln -sf /home/$NIXUSER/nixos-config /mnt/etc/nixos
