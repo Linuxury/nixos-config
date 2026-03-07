@@ -364,16 +364,5 @@ in
   # =========================================================================
   services.tailscale.enable = true;
 
-  # =========================================================================
-  # Local LLM — on-demand Ollama with ROCm for the 7900 XTX
-  # First-time setup: ollama pull qwen2.5:14b
-  # Usage: llm (chat), llm-start / llm-stop (server control)
-  # =========================================================================
-  services.localLlm = {
-    enable = true;
-    user = "linuxury";
-    # model defaults to "qwen2.5:14b" — change to "qwen2.5:32b" for more power
-  };
-
   programs.fish.enable = true;
 }
