@@ -63,7 +63,7 @@ let
   Asus-A15     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
   Alex-Desktop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
   Alex-Laptop  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILyHn+dSmJU01t4p81PfmhHb8yaRjUhoarvQwTDJQ69T root@Alex-Laptop";
-  MinisForum   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGaSm7ihZQhPELVOhjVnhJCHaVJ65ZCR6tV7StXWo/R0";
+  MinisForum   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/HPvxQY35jS4VDZRy4viIfHIGjUqkCgFhRVNcIsZRG root@MinisForum";
   Radxa-X4     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPBE88V1jx/3qtbt94uueOdch+E+NEyIZ0JqIFYFRaEz";
   Media-Server          = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICY9WqgrApfNR85yBAilUncMSVwnaatj9obAkmG7jSm/ root@Media-Server";
   media-server-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYO2Wc9utl/dH/8y6CB6s6gfGIsOMGOq7DwFxcR4G1I Media-Server-linuxury";
