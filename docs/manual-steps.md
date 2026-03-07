@@ -209,7 +209,7 @@ Share available after setup:
 | `\\Media-Server\Media-Server` | `/data` | Single share — media/, shared/, downloads/ inside |
 
 Access control is enforced by filesystem permissions on the server, not at the
-Samba share level. Mount on Ryzen5900x with `sudo mount /mnt/media-server`.
+Samba share level. Mount on any host with `sudo mount /mnt/Media-Server`.
 
 ### Plex setup
 1. Open http://Media-Server:32400/web

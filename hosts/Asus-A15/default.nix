@@ -30,7 +30,6 @@
     #../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
-    ../../modules/services/vpn-qbittorrent.nix
     ../../modules/base/linuxury-ssh.nix
     ../../modules/users/babylinux-packages.nix
   ];
@@ -133,6 +132,42 @@
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
+
+    # -----------------------------------------------------------------------
+    # Media-Server Samba share
+    # Automounts on first access, disconnects after 60s idle.
+    # nofail: non-fatal if the server is offline (common on laptop away from home).
+    # -----------------------------------------------------------------------
+    "/mnt/Media-Server" = {
+      device  = "//10.0.0.3/Media-Server";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=babylinux" "gid=users"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+      ];
+    };
+  };
+
+  # =========================================================================
+  # Mount point directory + CIFS tools
+  # =========================================================================
+  systemd.tmpfiles.rules = [
+    "d /mnt/Media-Server 0755 babylinux users -"
+  ];
+
+  environment.systemPackages = with pkgs; [
+    cifs-utils
+  ];
+
+  # =========================================================================
+  # Agenix secrets
+  # =========================================================================
+  age.secrets.smb-credentials = {
+    file  = ../../secrets/smb-credentials.age;
+    mode  = "0400";
+    owner = "root";
   };
 
   # =========================================================================
@@ -224,25 +259,6 @@
       IdleAction     = "suspend";
       IdleActionSec  = "20min";
     };
-  };
-
-  # =========================================================================
-  # VPN-scoped qBittorrent
-  #
-  # Shared with the desktop — same VPN Unlimited WireGuard config via agenix.
-  # Web UI: http://10.200.200.2:8080
-  # Change default password (admin/adminadmin) immediately after first boot.
-  # =========================================================================
-
-  age.secrets.wireguard-vpnunlimited = {
-    file = ../../secrets/wireguard-vpnunlimited.age;
-    path = "/etc/wireguard/vpnunlimited.conf";
-    mode = "0600";
-  };
-
-  services.vpn-qbittorrent = {
-    enable = true;
-    user   = "babylinux";
   };
 
   # =========================================================================

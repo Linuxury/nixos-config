@@ -26,7 +26,6 @@
     #../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
-    ../../modules/services/vpn-qbittorrent.nix
     ../../modules/base/linuxury-ssh.nix
     ../../modules/users/babylinux-packages.nix
   ];
@@ -102,6 +101,42 @@
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
+
+    # -----------------------------------------------------------------------
+    # Media-Server Samba share
+    # Automounts on first access, disconnects after 60s idle.
+    # nofail: non-fatal if the server is offline.
+    # -----------------------------------------------------------------------
+    "/mnt/Media-Server" = {
+      device  = "//10.0.0.3/Media-Server";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=babylinux" "gid=users"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+      ];
+    };
+  };
+
+  # =========================================================================
+  # Mount point directory + CIFS tools
+  # =========================================================================
+  systemd.tmpfiles.rules = [
+    "d /mnt/Media-Server 0755 babylinux users -"
+  ];
+
+  environment.systemPackages = with pkgs; [
+    cifs-utils
+  ];
+
+  # =========================================================================
+  # Agenix secrets
+  # =========================================================================
+  age.secrets.smb-credentials = {
+    file  = ../../secrets/smb-credentials.age;
+    mode  = "0400";
+    owner = "root";
   };
 
   # =========================================================================
@@ -178,37 +213,6 @@
     enable = true;
     nssmdns4 = true;  # Enables .local hostname resolution
     openFirewall = true;
-  };
-
-  # =========================================================================
-  # VPN-scoped qBittorrent
-  #
-  # qBittorrent runs inside a WireGuard network namespace — all torrent
-  # traffic is forced through VPN Unlimited. If the VPN drops, qBittorrent
-  # loses network access completely (no leaks possible).
-  #
-  # Web UI: http://10.200.200.2:8080
-  # Change default password (admin/adminadmin) immediately after first boot.
-  #
-  # The WireGuard config (including private key) is managed by agenix.
-  # Create the secret once from your admin machine:
-  #   nix run nixpkgs#agenix -- -e secrets/wireguard-vpnunlimited.age
-  #   (Paste the full wg-quick config exported from VPN Unlimited app)
-  # =========================================================================
-
-  # agenix decrypts the WireGuard config at activation.
-  # We write directly to the path vpn-qbittorrent.nix expects,
-  # so the module works without any further changes.
-  age.secrets.wireguard-vpnunlimited = {
-    file = ../../secrets/wireguard-vpnunlimited.age;
-    path = "/etc/wireguard/vpnunlimited.conf";
-    mode = "0600";  # private key inside — must not be world-readable
-  };
-
-  services.vpn-qbittorrent = {
-    enable = true;
-    user   = "babylinux";
-    # configFile defaults to /etc/wireguard/vpnunlimited.conf — matches above
   };
 
   # =========================================================================

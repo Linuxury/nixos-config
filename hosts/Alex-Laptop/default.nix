@@ -95,6 +95,43 @@
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
+
+    # -----------------------------------------------------------------------
+    # Media-Server Samba share
+    # Read-only for alex — he can browse media but not accidentally delete.
+    # Automounts on first access, disconnects after 60s idle.
+    # -----------------------------------------------------------------------
+    "/mnt/Media-Server" = {
+      device  = "//10.0.0.3/Media-Server";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=alex" "gid=users"
+        "ro"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+      ];
+    };
+  };
+
+  # =========================================================================
+  # Mount point directory + CIFS tools
+  # =========================================================================
+  systemd.tmpfiles.rules = [
+    "d /mnt/Media-Server 0755 alex users -"
+  ];
+
+  environment.systemPackages = with pkgs; [
+    cifs-utils
+  ];
+
+  # =========================================================================
+  # Agenix secrets
+  # =========================================================================
+  age.secrets.smb-credentials = {
+    file  = ../../secrets/smb-credentials.age;
+    mode  = "0400";
+    owner = "root";
   };
 
   # =========================================================================

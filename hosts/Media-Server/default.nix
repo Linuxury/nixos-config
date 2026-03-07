@@ -4,7 +4,7 @@
 # Owner: managed by linuxury
 # Hardware: AMD Ryzen 5 3600x, AMD Radeon RX 480
 # Type: Headless server — no DE, no display manager
-# Role: Media server — Plex, Arr stack, Immich, file serving
+# Role: Media server — Plex, Arr stack, Immich, FreshRSS, file serving
 #
 # Storage:
 #   - NVMe 232.9G — OS drive (BTRFS)
@@ -14,6 +14,7 @@
 #   - AMD drivers
 #   - base/common.nix
 #   - samba.nix (single Media-Server share → /data)
+#   - freshrss.nix (migrated from Radxa-X4)
 # ===========================================================================
 
 { config, pkgs, inputs, lib, ... }:
@@ -26,6 +27,7 @@
     ../../modules/base/server-shell.nix
     ../../modules/hardware/drivers.nix
     ../../modules/services/samba.nix
+    ./freshrss.nix
   ];
 
   # =========================================================================
@@ -178,6 +180,9 @@
   users.groups = {
     media        = { members = [ "plex" "sonarr" "radarr" "lidarr" "readarr" "bazarr" "prowlarr" ]; };
     arr-services = {};  # Shared group for all arr services
+    # linuxury/babylinux in the immich group so Samba connections can read
+    # photo files (which immich creates as immich:immich).
+    immich       = { members = [ "linuxury" "babylinux" ]; };
   };
 
   # =========================================================================
@@ -311,6 +316,12 @@
     host          = "0.0.0.0";
   };
 
+  # Override Immich's default restrictive umask (0077) so that files are
+  # readable by group members (linuxury/babylinux via the immich group).
+  # 0022 → files: 0644, dirs: 0755 — group + others can read.
+  systemd.services.immich-server.serviceConfig.UMask        = "0022";
+  systemd.services.immich-microservices.serviceConfig.UMask = "0022";
+
   # =========================================================================
   # Open firewall ports for all services
   # =========================================================================
@@ -412,7 +423,7 @@
   #   Windows:  \\Media-Server\Media-Server
   #   macOS:    smb://Media-Server/Media-Server
   #   Linux:    smb://Media-Server/Media-Server
-  #   fstab:    //10.0.0.3/Media-Server → /mnt/media-server
+  #   fstab:    //10.0.0.3/Media-Server → /mnt/Media-Server
   # =========================================================================
   services.samba.settings = {
 
@@ -451,6 +462,12 @@
       shell        = pkgs.fish;
     };
   };
+
+  # =========================================================================
+  # Tailscale — remote access to FreshRSS and management
+  # After first boot: sudo tailscale up
+  # =========================================================================
+  services.tailscale.enable = true;
 
   programs.fish.enable = true;
 }

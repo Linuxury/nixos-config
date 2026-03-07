@@ -169,6 +169,64 @@
       ];
       # Restrictive permissions on /boot for security
     };
+
+    # -----------------------------------------------------------------------
+    # Media-Server Samba share
+    # Automounts on first access, disconnects after 60s idle.
+    # nofail: non-fatal if the server is offline (e.g. away from home).
+    # Mount manually with: sudo mount /mnt/Media-Server
+    # -----------------------------------------------------------------------
+    "/mnt/Media-Server" = {
+      device  = "//10.0.0.3/Media-Server";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=1000" "gid=100"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+      ];
+    };
+
+    # -----------------------------------------------------------------------
+    # MinisForum Samba share — game server file management
+    # Automounts on first access, disconnects after 60s idle.
+    # nofail: non-fatal if the server is offline (e.g. away from home).
+    # Mount manually with: sudo mount /mnt/MinisForum
+    # -----------------------------------------------------------------------
+    "/mnt/MinisForum" = {
+      device  = "//MinisForum/GameServers";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=1000" "gid=100"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+      ];
+    };
+  };
+
+  # =========================================================================
+  # CIFS tools — required for Samba/SMB mounts
+  # =========================================================================
+  environment.systemPackages = with pkgs; [
+    cifs-utils
+  ];
+
+  # =========================================================================
+  # Mount point directory
+  # =========================================================================
+  systemd.tmpfiles.rules = [
+    "d /mnt/Media-Server 0755 linuxury users -"
+    "d /mnt/MinisForum   0755 linuxury users -"
+  ];
+
+  # =========================================================================
+  # Agenix secrets
+  # =========================================================================
+  age.secrets.smb-credentials = {
+    file  = ../../secrets/smb-credentials.age;
+    mode  = "0400";
+    owner = "root";
   };
 
   # =========================================================================
