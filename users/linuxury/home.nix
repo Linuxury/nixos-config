@@ -434,6 +434,9 @@ in
     # Format: "left-buttons:right-buttons" — colon separates sides.
     gtk3.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
     gtk4.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
+    gtk3.bookmarks = [
+      "file:///mnt/media-server Media-Server"
+    ];
   };
 
   # =========================================================================
