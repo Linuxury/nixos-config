@@ -164,6 +164,28 @@ in
         "x-systemd.automount" "x-systemd.idle-timeout=60"
       ];
     };
+
+    "/mnt/MinisForum" = {
+      device  = "//MinisForum/GameServers";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=babylinux" "gid=users"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+      ];
+    };
+
+    "/mnt/Torrents" = {
+      device  = "//Radxa-X4/Torrents";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=babylinux" "gid=users"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+      ];
+    };
   };
 
   # =========================================================================
@@ -171,6 +193,8 @@ in
   # =========================================================================
   systemd.tmpfiles.rules = [
     "d /mnt/Media-Server 0755 babylinux users -"
+    "d /mnt/MinisForum   0755 babylinux users -"
+    "d /mnt/Torrents     0755 babylinux users -"
   ];
 
   environment.systemPackages = with pkgs; [
