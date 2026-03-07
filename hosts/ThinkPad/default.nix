@@ -200,6 +200,7 @@ in
         "uid=1000" "gid=100"
         "nofail" "_netdev" "noauto"
         "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "x-systemd.mount-timeout=5s"
       ];
     };
 
@@ -217,6 +218,7 @@ in
         "uid=1000" "gid=100"
         "nofail" "_netdev" "noauto"
         "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "x-systemd.mount-timeout=5s"
       ];
     };
 
@@ -234,6 +236,7 @@ in
         "uid=1000" "gid=100"
         "nofail" "_netdev" "noauto"
         "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "x-systemd.mount-timeout=5s"
       ];
     };
   };
