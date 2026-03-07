@@ -412,7 +412,7 @@
   #   Linux:    smb://Media-Server/Media-Server
   #   fstab:    //10.0.0.3/Media-Server → /mnt/media-server
   # =========================================================================
-  services.samba.shares = {
+  services.samba.settings = {
 
     "Media-Server" = {
       path              = "/data";
