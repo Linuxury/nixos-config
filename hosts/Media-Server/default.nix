@@ -201,12 +201,13 @@
     "d /data/downloads/incomplete         0775 root media        -"
 
     # Photos — Immich library
-    "d /data/photos                       0775 root media        -"
-    "d /data/photos/library               0755 root media        -"
-    "d /data/photos/uploads               0755 root media        -"
-    "d /data/photos/thumbs                0755 root media        -"
-    "d /data/photos/profile               0755 root media        -"
-    "d /data/photos/backups               0755 root media        -"
+    "d /data/photos                       0775 root  immich -"
+    "d /data/photos/library               0775 immich immich -"
+    "d /data/photos/uploads               0775 immich immich -"
+    "d /data/photos/thumbs                0775 immich immich -"
+    "d /data/photos/profile               0775 immich immich -"
+    "d /data/photos/backups               0775 immich immich -"
+    "d /data/photos/encoded-video         0775 immich immich -"
 
     # Shared workspace — accessible to all family via Samba
     "d /data/shared                       0775 root media        -"
@@ -214,7 +215,7 @@
     # Service config directories — persistent app data
     "d /data/config                       0755 root         root         -"
     "d /data/config/plex                  0755 plex         media        -"
-    "d /data/config/immich                0755 root         root         -"
+    "d /data/config/immich                0755 immich       immich       -"
     "d /data/config/arr-services          0755 root         arr-services -"
     "d /data/config/arr-services/sonarr   0755 sonarr       arr-services -"
     "d /data/config/arr-services/radarr   0755 radarr       arr-services -"
@@ -307,6 +308,7 @@
     enable        = true;
     openFirewall  = true;
     mediaLocation = "/data/photos";
+    host          = "0.0.0.0";
   };
 
   # =========================================================================
