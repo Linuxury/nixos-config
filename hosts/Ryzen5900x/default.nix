@@ -15,7 +15,24 @@
 #   - Development
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  lib,
+  ...
+}:
+
+let
+  # Logical CPU count (threads) on this machine.
+  # Used to cap parallel Nix builds — each large package (LLVM, chromium, etc.)
+  # can consume 4-8 GB RAM per job, so unconstrained builds cause OOM crashes.
+  numThreads = 24; # Ryzen 9 5900x: 12 cores / 24 threads
+
+  # Allow at most 1/4 of threads as parallel Nix build jobs.
+  # 24 / 4 = 6 — enough throughput while leaving RAM headroom.
+  nixBuildJobs = builtins.div numThreads 4;
+in
 
 {
   imports = [
@@ -34,9 +51,14 @@
     ../../modules/gaming/gaming.nix
     ../../modules/development/development.nix
     ../../modules/base/auto-update.nix
-    ../../modules/services/local-llm.nix
+    #../../modules/services/local-llm.nix
     ../../modules/users/linuxury-packages.nix
   ];
+
+  # =========================================================================
+  # Nix build limits
+  # =========================================================================
+  nix.settings.max-jobs = nixBuildJobs;
 
   # =========================================================================
   # Host identity
@@ -57,61 +79,99 @@
     "/" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/home" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@home" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@home"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/nix" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@nix" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@nix"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/var/log" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@log" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@log"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/var/cache" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@cache" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@cache"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/.snapshots" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@snapshots" "compress=zstd:1" "noatime" ];
+      options = [
+        "subvol=@snapshots"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
 
     "/swap" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
-      options = [ "subvol=@swap" "noatime" ];
+      options = [
+        "subvol=@swap"
+        "noatime"
+      ];
     };
 
     "/boot" = {
       device = "/dev/disk/by-label/EFI";
       fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
+      options = [
+        "fmask=0077"
+        "dmask=0077"
+      ];
     };
 
     "/mnt/Warehouse" = {
       device = "/dev/disk/by-label/warehouse";
       fsType = "xfs";
-      options = [ "defaults" "nofail" "x-gvfs-show" ];
+      options = [
+        "defaults"
+        "nofail"
+        "x-gvfs-show"
+      ];
     };
 
     "/mnt/Games" = {
       device = "/dev/disk/by-label/games";
       fsType = "xfs";
-      options = [ "defaults" "nofail" "x-gvfs-show" ];
+      options = [
+        "defaults"
+        "nofail"
+        "x-gvfs-show"
+      ];
     };
 
     # -----------------------------------------------------------------------
@@ -129,13 +189,17 @@
     # Mount manually with: sudo mount /mnt/Media-Server
     # -----------------------------------------------------------------------
     "/mnt/Media-Server" = {
-      device  = "//10.0.0.3/Media-Server";
-      fsType  = "cifs";
+      device = "//10.0.0.3/Media-Server";
+      fsType = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
-        "uid=1000" "gid=100"
-        "nofail" "_netdev" "noauto"
-        "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "uid=1000"
+        "gid=100"
+        "nofail"
+        "_netdev"
+        "noauto"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=60"
       ];
     };
 
@@ -145,13 +209,17 @@
     # Mount manually with: sudo mount /mnt/MinisForum
     # -----------------------------------------------------------------------
     "/mnt/MinisForum" = {
-      device  = "//MinisForum/GameServers";
-      fsType  = "cifs";
+      device = "//MinisForum/GameServers";
+      fsType = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
-        "uid=1000" "gid=100"
-        "nofail" "_netdev" "noauto"
-        "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "uid=1000"
+        "gid=100"
+        "nofail"
+        "_netdev"
+        "noauto"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=60"
       ];
     };
   };
@@ -174,11 +242,17 @@
 
   systemd.services."xfs-drive-ownership" = {
     description = "Set linuxury ownership on XFS drive roots";
-    after       = [ "mnt-Warehouse.mount" "mnt-Games.mount" ];
-    requires    = [ "mnt-Warehouse.mount" "mnt-Games.mount" ];
-    wantedBy    = [ "local-fs.target" ];
+    after = [
+      "mnt-Warehouse.mount"
+      "mnt-Games.mount"
+    ];
+    requires = [
+      "mnt-Warehouse.mount"
+      "mnt-Games.mount"
+    ];
+    wantedBy = [ "local-fs.target" ];
     serviceConfig = {
-      Type            = "oneshot";
+      Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = pkgs.writeShellScript "xfs-drive-ownership" ''
         chown linuxury:users /mnt/Warehouse
@@ -193,17 +267,19 @@
   # Agenix secrets
   # =========================================================================
   age.secrets.smb-credentials = {
-    file  = ../../secrets/smb-credentials.age;
-    mode  = "0400";
+    file = ../../secrets/smb-credentials.age;
+    mode = "0400";
     owner = "root";
   };
 
   # =========================================================================
   # Swap
   # =========================================================================
-  swapDevices = [{
-    device = "/swap/swapfile";
-  }];
+  swapDevices = [
+    {
+      device = "/swap/swapfile";
+    }
+  ];
 
   # =========================================================================
   # Kernel — Zen
@@ -221,8 +297,8 @@
   # =========================================================================
   boot.kernelParams = [
     "amdgpu.ppfeaturemask=0xffffffff" # Unlocks all power management features
-                                       # Required for full fan curve and
-                                       # overclock control via corectrl
+    # Required for full fan curve and
+    # overclock control via corectrl
   ];
 
   # =========================================================================
@@ -259,10 +335,10 @@
   # autorandr remembers and restores monitor layouts automatically.
   # =========================================================================
   environment.systemPackages = with pkgs; [
-    arandr       # GUI monitor arrangement tool
-    autorandr    # Automatic monitor layout switching
-    cifs-utils   # Required for CIFS/Samba mounts
-    xfsprogs     # XFS filesystem tools (mkfs.xfs, xfs_repair, etc.)
+    arandr # GUI monitor arrangement tool
+    autorandr # Automatic monitor layout switching
+    cifs-utils # Required for CIFS/Samba mounts
+    xfsprogs # XFS filesystem tools (mkfs.xfs, xfs_repair, etc.)
     # corectrl is installed by programs.corectrl.enable above
   ];
 
@@ -271,7 +347,7 @@
   # =========================================================================
   users.users.linuxury = {
     isNormalUser = true;
-    extraGroups  = [
+    extraGroups = [
       "wheel"
       "networkmanager"
       "video"
@@ -295,7 +371,7 @@
   # =========================================================================
   services.localLlm = {
     enable = true;
-    user   = "linuxury";
+    user = "linuxury";
     # model defaults to "qwen2.5:14b" — change to "qwen2.5:32b" for more power
   };
 
