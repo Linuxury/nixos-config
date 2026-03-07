@@ -30,6 +30,13 @@
 
 let
 
+  # Deduplicate a list — prevents ragenix errors when placeholder host keys
+  # are identical to a personal key already in linuxury-admins.
+  # Replace placeholder keys with real host keys after first boot:
+  #   ssh-keyscan -t ed25519 <hostname-or-ip> | awk '{print $2 " " $3}'
+  uniq = builtins.foldl'
+    (acc: x: if builtins.elem x acc then acc else acc ++ [ x ]) [];
+
   # --------------------------------------------------------------------------
   # PERSONAL SSH KEYS (per-machine — each can re-key secrets independently)
   #
@@ -77,18 +84,19 @@ in {
   # agenix decrypts it onto each host so linuxury can SSH in after install.
   # Deployed to: all hosts where linuxury has a user account.
   # --------------------------------------------------------------------------
-  "linuxury-authorized-key.age".publicKeys =
-    linuxury-admins ++ linuxury-machines ++ babylinux-machines ++ alex-machines;
+  "linuxury-authorized-key.age".publicKeys = uniq (
+    linuxury-admins ++ linuxury-machines ++ babylinux-machines ++ alex-machines);
 
   # --------------------------------------------------------------------------
   # WireGuard config for qBittorrent VPN killswitch
   #
   # Contains the PRIVATE key + peer config (wg-quick format).
   # NEVER commit the decrypted version. Only the .age file belongs here.
-  # Deployed to: babylinux's machines running vpn-qbittorrent.
+  # Moved from babylinux machines to Radxa-X4 (dedicated torrent host).
+  # After updating: nix run nixpkgs#agenix -- -r
   # --------------------------------------------------------------------------
-  "wireguard-vpnunlimited.age".publicKeys =
-    linuxury-admins ++ babylinux-machines;
+  "wireguard-vpnunlimited.age".publicKeys = uniq (
+    linuxury-admins ++ [ Radxa-X4 ]);
 
   # --------------------------------------------------------------------------
   # User display names (GECOS / full names)
@@ -99,28 +107,34 @@ in {
   # Machines with placeholder host keys (babylinux/alex) should only import
   # the corresponding module after real host keys are collected and re-keyed.
   # --------------------------------------------------------------------------
-  "description-linuxury.age".publicKeys =
-    linuxury-admins ++ [ ThinkPad Ryzen5900x ];
+  "description-linuxury.age".publicKeys = uniq (
+    linuxury-admins ++ [ ThinkPad Ryzen5900x ]);
 
-  "description-babylinux.age".publicKeys =
-    linuxury-admins ++ babylinux-machines;
+  "description-babylinux.age".publicKeys = uniq (
+    linuxury-admins ++ babylinux-machines);
 
-  "description-alex.age".publicKeys =
-    linuxury-admins ++ alex-machines;
+  "description-alex.age".publicKeys = uniq (
+    linuxury-admins ++ alex-machines);
 
   # --------------------------------------------------------------------------
-  # Samba credentials for mounting Media-Server shares on Ryzen5900x
+  # Samba credentials for mounting Media-Server share
+  # Deployed to all COSMIC hosts — each mounts /mnt/Media-Server in their
+  # fileSystems config. Authenticates as linuxury; uid/gid set per host.
+  #
+  # After updating this list, re-encrypt with:
+  #   nix run nixpkgs#agenix -- -r
   # --------------------------------------------------------------------------
-  "smb-credentials.age".publicKeys =
-    linuxury-admins ++ [ Ryzen5900x ];
+  "smb-credentials.age".publicKeys = uniq (
+    linuxury-admins ++ [ ThinkPad Ryzen5900x Radxa-X4 MinisForum ] ++ babylinux-machines ++ alex-machines);
 
   # --------------------------------------------------------------------------
   # FreshRSS admin password
   #
   # Plain text password for the FreshRSS admin account (linuxury).
-  # Deployed to: Radxa-X4 only.
+  # Migrated from Radxa-X4 to Media-Server.
+  # After updating: nix run nixpkgs#agenix -- -r
   # --------------------------------------------------------------------------
-  "freshrss-admin-password.age".publicKeys =
-    linuxury-admins ++ [ Radxa-X4 ];
+  "freshrss-admin-password.age".publicKeys = uniq (
+    linuxury-admins ++ [ Media-Server ]);
 
 }
