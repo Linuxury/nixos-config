@@ -155,7 +155,7 @@ in
     };
 
     "/mnt/Warehouse" = {
-      device = "/dev/disk/by-label/Warehouse";
+      device = "/dev/disk/by-label/warehouse";
       fsType = "xfs";
       options = [
         "defaults"
@@ -165,7 +165,7 @@ in
     };
 
     "/mnt/Games" = {
-      device = "/dev/disk/by-label/Games";
+      device = "/dev/disk/by-label/games";
       fsType = "xfs";
       options = [
         "defaults"
