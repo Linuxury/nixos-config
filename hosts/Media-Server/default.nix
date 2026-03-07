@@ -176,7 +176,7 @@
   # for read/write access to /data/media and related folders.
   # =========================================================================
   users.groups = {
-    media        = {};  # Shared group for all media services
+    media        = { members = [ "plex" "sonarr" "radarr" "lidarr" "readarr" "bazarr" "prowlarr" ]; };
     arr-services = {};  # Shared group for all arr services
   };
 
