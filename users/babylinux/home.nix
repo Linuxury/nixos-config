@@ -2,7 +2,7 @@
 # users/babylinux/home.nix — Home Manager config for babylinux
 #
 # Machines: Ryzen5800x (desktop), Asus-A15 (laptop)
-# Role: Daily driver — light gaming, media, office, torrenting
+# Role: Daily driver — light gaming, media, office
 #
 # This file is a function that accepts wallpaperDir from the flake.
 # wallpaperDir is passed per-host in flake.nix:
@@ -10,8 +10,6 @@
 #   Asus-A15   → "4k"
 #
 # Notable:
-#   - qBittorrent runs inside a WireGuard network namespace
-#     (VPN Unlimited via wg-quick) — killswitch scoped to qBittorrent only
 #   - Hytale installed from bundled flatpak in assets repo
 #   - Prism Launcher + Bedrock launcher for Minecraft
 #   - Shares terminal dotfiles with linuxury (ghostty + kitty)
@@ -97,10 +95,6 @@
     # SSH directory with correct permissions
     "d ${config.home.homeDirectory}/.ssh  0700 babylinux users -"
 
-    # qBittorrent download staging
-    "d ${config.home.homeDirectory}/Downloads/torrents            0755 babylinux users -"
-    "d ${config.home.homeDirectory}/Downloads/torrents/complete   0755 babylinux users -"
-    "d ${config.home.homeDirectory}/Downloads/torrents/incomplete 0755 babylinux users -"
   ];
 
   # =========================================================================
@@ -234,6 +228,27 @@
   # SSH agent
   # =========================================================================
   services.ssh-agent.enable = true;
+
+  # =========================================================================
+  # COSMIC Files — sidebar favorites
+  #
+  # Path() display name = last path segment, so /mnt/Media-Server → "Media-Server".
+  # Missing paths are silently skipped (safe on laptops not on home LAN).
+  # =========================================================================
+  home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites" = {
+    force = true;
+    text = ''
+      [
+          Home,
+          Documents,
+          Downloads,
+          Music,
+          Pictures,
+          Videos,
+          Path("/mnt/Media-Server"),
+      ]
+    '';
+  };
 
   # Personal packages live in modules/users/babylinux-packages.nix
 }
