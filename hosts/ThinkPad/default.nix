@@ -210,7 +210,7 @@ in
     # Mount manually with: sudo mount /mnt/MinisForum
     # -----------------------------------------------------------------------
     "/mnt/MinisForum" = {
-      device  = "//MinisForum/GameServers";
+      device  = "//10.0.0.7/GameServers";
       fsType  = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
@@ -227,7 +227,7 @@ in
     # Mount manually with: sudo mount /mnt/Torrents
     # -----------------------------------------------------------------------
     "/mnt/Torrents" = {
-      device  = "//Radxa-X4/Torrents";
+      device  = "//10.0.0.5/Torrents";
       fsType  = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
