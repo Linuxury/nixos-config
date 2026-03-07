@@ -11,7 +11,7 @@
 # every server has different storage and different access requirements.
 # In the host config, add your shares under:
 #
-#   services.samba.shares = {
+#   services.samba.settings = {
 #     shareName = {
 #       path         = "/the/path";
 #       browseable   = "yes";
