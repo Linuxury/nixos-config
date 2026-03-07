@@ -222,6 +222,26 @@ in
         "x-systemd.idle-timeout=60"
       ];
     };
+
+    # -----------------------------------------------------------------------
+    # Radxa-X4 Samba share — torrent downloads
+    # Automounts on first access, disconnects after 60s idle.
+    # Mount manually with: sudo mount /mnt/Torrents
+    # -----------------------------------------------------------------------
+    "/mnt/Torrents" = {
+      device = "//Radxa-X4/Torrents";
+      fsType = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=1000"
+        "gid=100"
+        "nofail"
+        "_netdev"
+        "noauto"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=60"
+      ];
+    };
   };
 
   # =========================================================================
@@ -238,6 +258,7 @@ in
     "d /mnt/Games        0755 linuxury users -"
     "d /mnt/Media-Server 0755 linuxury users -"
     "d /mnt/MinisForum   0755 linuxury users -"
+    "d /mnt/Torrents     0755 linuxury users -"
   ];
 
   systemd.services."xfs-drive-ownership" = {
