@@ -135,6 +135,7 @@
         "credentials=/run/agenix/smb-credentials"
         "uid=1000" "gid=100"
         "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
       ];
     };
   };
@@ -149,8 +150,9 @@
   # tmpfiles rules are kept to create the directories on first boot if needed.
   # =========================================================================
   systemd.tmpfiles.rules = [
-    "d /mnt/warehouse 0755 linuxury users -"
-    "d /mnt/games     0755 linuxury users -"
+    "d /mnt/warehouse    0755 linuxury users -"
+    "d /mnt/games        0755 linuxury users -"
+    "d /mnt/media-server 0755 linuxury users -"
   ];
 
   systemd.services."xfs-drive-ownership" = {
