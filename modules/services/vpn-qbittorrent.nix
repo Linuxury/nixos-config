@@ -66,9 +66,10 @@ let
   nsVeth   = "veth-qbt-ns";
   wgIface  = "wg-qbt";
 
-  # Shorthand for the ip binary path (used heavily in scripts)
+  # Shorthand for binary paths (used heavily in scripts)
   ip  = "${pkgs.iproute2}/bin/ip";
   wg  = "${pkgs.wireguard-tools}/bin/wg";
+  awk = "${pkgs.gawk}/bin/awk";
 
   # ===========================================================================
   # netns-setup — creates the namespace, veth pair, and WireGuard tunnel
@@ -104,19 +105,19 @@ let
     # -----------------------------------------------------------------------
 
     # Address = 10.x.x.x/32  — the IP assigned to our tunnel interface
-    WG_ADDR=$(awk -F' *= *' '/^\[Interface\]/{f=1} f && /^Address/{print $2; exit}' "$WG_CONF")
+    WG_ADDR=$(${awk} -F' *= *' '/^\[Interface\]/{f=1} f && /^Address/{print $2; exit}' "$WG_CONF")
     if [ -z "$WG_ADDR" ]; then
       echo "ERROR: Could not parse Address from $WG_CONF"
       exit 1
     fi
 
     # DNS = 1.1.1.1  — take the first address if comma-separated
-    WG_DNS=$(awk -F' *= *' '/^\[Interface\]/{f=1} f && /^DNS/{print $2; exit}' "$WG_CONF" \
+    WG_DNS=$(${awk} -F' *= *' '/^\[Interface\]/{f=1} f && /^DNS/{print $2; exit}' "$WG_CONF" \
              | cut -d, -f1 | tr -d ' ')
     WG_DNS="''${WG_DNS:-1.1.1.1}"
 
     # Endpoint = 1.2.3.4:51820  — we need just the IP part for routing
-    WG_ENDPOINT_IP=$(awk -F' *= *' '/^\[Peer\]/{f=1} f && /^Endpoint/{print $2; exit}' "$WG_CONF" \
+    WG_ENDPOINT_IP=$(${awk} -F' *= *' '/^\[Peer\]/{f=1} f && /^Endpoint/{print $2; exit}' "$WG_CONF" \
                      | cut -d: -f1)
     if [ -z "$WG_ENDPOINT_IP" ]; then
       echo "ERROR: Could not parse Endpoint from $WG_CONF"
