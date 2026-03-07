@@ -47,7 +47,7 @@ let
   thinkpad-personal    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILx6aZyKXvPNCP9q+Mv+5FLJ/G3O7IA8duJuTkxeB6Uz linuxury-thinkpad";
   ryzen5900x-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ7VayUjJnywEEhyLOnc5E4Pqb5DxoNDmVVNLRpiV7dQ ryzen5900x-linuxury";
 
-  linuxury-admins = [ linuxury-personal thinkpad-personal ryzen5900x-personal ];
+  linuxury-admins = [ linuxury-personal thinkpad-personal ryzen5900x-personal minisforum-personal ];
 
   # --------------------------------------------------------------------------
   # HOST SSH HOST KEYS
@@ -66,7 +66,8 @@ let
   MinisForum   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/HPvxQY35jS4VDZRy4viIfHIGjUqkCgFhRVNcIsZRG root@MinisForum";
   Radxa-X4     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPBE88V1jx/3qtbt94uueOdch+E+NEyIZ0JqIFYFRaEz";
   Media-Server          = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICY9WqgrApfNR85yBAilUncMSVwnaatj9obAkmG7jSm/ root@Media-Server";
-  media-server-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYO2Wc9utl/dH/8y6CB6s6gfGIsOMGOq7DwFxcR4G1I Media-Server-linuxury";
+  media-server-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYO2Wc9utl/dH/8y6CB6s6gfGIsOMGOq7DwFxcR4G1I Media-Server-linuxury";
+  minisforum-personal    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP9EOXj696mEgZ9Ke3wtOyNA2kH6t0uc820AVXcc+yEH MinisForum-linuxury";
 
   # --------------------------------------------------------------------------
   # Convenience groups
