@@ -102,13 +102,13 @@
       options = [ "fmask=0077" "dmask=0077" ];
     };
 
-    "/mnt/warehouse" = {
+    "/mnt/Warehouse" = {
       device = "/dev/disk/by-label/warehouse";
       fsType = "xfs";
       options = [ "defaults" "nofail" "x-gvfs-show" ];
     };
 
-    "/mnt/games" = {
+    "/mnt/Games" = {
       device = "/dev/disk/by-label/games";
       fsType = "xfs";
       options = [ "defaults" "nofail" "x-gvfs-show" ];
@@ -126,10 +126,26 @@
     # _netdev + nofail: safe ordering, non-fatal if server is offline.
     # x-gvfs-show is intentionally omitted — the share appears in COSMIC
     # Files under Networks via Avahi discovery when the server is online.
-    # Mount manually with: sudo mount /mnt/media-server
+    # Mount manually with: sudo mount /mnt/Media-Server
     # -----------------------------------------------------------------------
-    "/mnt/media-server" = {
+    "/mnt/Media-Server" = {
       device  = "//10.0.0.3/Media-Server";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=1000" "gid=100"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+      ];
+    };
+
+    # -----------------------------------------------------------------------
+    # MinisForum Samba share — game server file management
+    # Automounts on first access, disconnects after 60s idle.
+    # Mount manually with: sudo mount /mnt/MinisForum
+    # -----------------------------------------------------------------------
+    "/mnt/MinisForum" = {
+      device  = "//MinisForum/GameServers";
       fsType  = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
@@ -150,24 +166,25 @@
   # tmpfiles rules are kept to create the directories on first boot if needed.
   # =========================================================================
   systemd.tmpfiles.rules = [
-    "d /mnt/warehouse    0755 linuxury users -"
-    "d /mnt/games        0755 linuxury users -"
-    "d /mnt/media-server 0755 linuxury users -"
+    "d /mnt/Warehouse    0755 linuxury users -"
+    "d /mnt/Games        0755 linuxury users -"
+    "d /mnt/Media-Server 0755 linuxury users -"
+    "d /mnt/MinisForum   0755 linuxury users -"
   ];
 
   systemd.services."xfs-drive-ownership" = {
     description = "Set linuxury ownership on XFS drive roots";
-    after       = [ "mnt-warehouse.mount" "mnt-games.mount" ];
-    requires    = [ "mnt-warehouse.mount" "mnt-games.mount" ];
+    after       = [ "mnt-Warehouse.mount" "mnt-Games.mount" ];
+    requires    = [ "mnt-Warehouse.mount" "mnt-Games.mount" ];
     wantedBy    = [ "local-fs.target" ];
     serviceConfig = {
       Type            = "oneshot";
       RemainAfterExit = true;
       ExecStart = pkgs.writeShellScript "xfs-drive-ownership" ''
-        chown linuxury:users /mnt/warehouse
-        chown linuxury:users /mnt/games
-        chmod 755 /mnt/warehouse
-        chmod 755 /mnt/games
+        chown linuxury:users /mnt/Warehouse
+        chown linuxury:users /mnt/Games
+        chmod 755 /mnt/Warehouse
+        chmod 755 /mnt/Games
       '';
     };
   };

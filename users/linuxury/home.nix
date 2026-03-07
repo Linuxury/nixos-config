@@ -469,8 +469,14 @@ in
   # COSMIC Files — sidebar favorites
   #
   # COSMIC Files reads favorites from this RON file. Custom mount points
-  # use the Path() variant. This is Ryzen5900x-specific (warehouse/games)
-  # but harmless on ThinkPad — missing paths are simply skipped.
+  # use the Path() variant — the last path segment becomes the display name,
+  # so capitalized paths show as "Warehouse", "Games", "Media-Server", etc.
+  #
+  # Local XFS drives (Warehouse, Games) are intentionally omitted here —
+  # COSMIC Files already shows locally attached drives in the Devices section.
+  # Only network shares need explicit entries.
+  #
+  # Missing paths (e.g. Warehouse/Games on ThinkPad) are silently skipped.
   # =========================================================================
   home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites" = {
     force = true;
@@ -482,9 +488,8 @@ in
           Music,
           Pictures,
           Videos,
-          Path("/mnt/warehouse"),
-          Path("/mnt/games"),
-          Path("/mnt/media-server"),
+          Path("/mnt/Media-Server"),
+          Path("/mnt/MinisForum"),
       ]
     '';
   };
