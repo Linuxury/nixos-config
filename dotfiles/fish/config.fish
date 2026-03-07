@@ -28,16 +28,16 @@ if status is-interactive
     # Rebuild and apply the current config (daily driver)
     # systemd-inhibit prevents idle-suspend from killing the build if the
     # terminal crashes mid-way (e.g. during a kernel-inclusive switch)
-    alias nr 'sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" nixos-rebuild switch --flake ~/nixos-config'
+    alias nr 'sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" nixos-rebuild switch --flake ~/nixos-config --print-build-logs'
 
     # Rebuild + update nixpkgs flake input before switching
-    alias nru 'sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" nixos-rebuild switch --flake ~/nixos-config --update-input nixpkgs'
+    alias nru 'sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" nixos-rebuild switch --flake ~/nixos-config --update-input nixpkgs --print-build-logs'
 
     # Set next boot target — use for kernel or bootloader changes
-    alias nrb 'sudo nixos-rebuild boot --flake ~/nixos-config'
+    alias nrb 'sudo nixos-rebuild boot --flake ~/nixos-config --print-build-logs'
 
     # Test build without activating — catches errors safely
-    alias nrt 'sudo nixos-rebuild test --flake ~/nixos-config'
+    alias nrt 'sudo nixos-rebuild test --flake ~/nixos-config --print-build-logs'
 
     # Roll back to the previous generation
     alias nrr 'sudo nixos-rebuild switch --rollback'

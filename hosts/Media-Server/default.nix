@@ -319,8 +319,8 @@
   # Override Immich's default restrictive umask (0077) so that files are
   # readable by group members (linuxury/babylinux via the immich group).
   # 0022 → files: 0644, dirs: 0755 — group + others can read.
-  systemd.services.immich-server.serviceConfig.UMask        = "0022";
-  systemd.services.immich-microservices.serviceConfig.UMask = "0022";
+  systemd.services.immich-server.serviceConfig.UMask        = lib.mkForce "0022";
+  systemd.services.immich-microservices.serviceConfig.UMask = lib.mkForce "0022";
 
   # =========================================================================
   # Open firewall ports for all services

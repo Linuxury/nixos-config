@@ -113,7 +113,7 @@ let
     # DNS = 1.1.1.1  — take the first address if comma-separated
     WG_DNS=$(awk -F' *= *' '/^\[Interface\]/{f=1} f && /^DNS/{print $2; exit}' "$WG_CONF" \
              | cut -d, -f1 | tr -d ' ')
-    WG_DNS="${WG_DNS:-1.1.1.1}"
+    WG_DNS="''${WG_DNS:-1.1.1.1}"
 
     # Endpoint = 1.2.3.4:51820  — we need just the IP part for routing
     WG_ENDPOINT_IP=$(awk -F' *= *' '/^\[Peer\]/{f=1} f && /^Endpoint/{print $2; exit}' "$WG_CONF" \
