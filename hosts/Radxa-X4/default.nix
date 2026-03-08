@@ -186,7 +186,7 @@
   #   - qBittorrent runs inside the vpn-qbt network namespace
   #   - All torrent traffic exits via WireGuard — structural killswitch
   #
-  # Web UI: http://10.200.200.2:8080  (accessible on LAN via Tailscale)
+  # Web UI: http://Radxa-X4:8080  (LAN) or via Tailscale hostname:8080
   #
   # Setup steps:
   #   1. Export WireGuard config from VPN Unlimited app
