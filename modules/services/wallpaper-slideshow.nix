@@ -161,7 +161,7 @@ TOML
         # Pick a random wallpaper from ~/Pictures/Wallpapers
         # Supports jpg, jpeg, png, webp
         # ---------------------------------------------------------------
-        WALLPAPER=$(find "$WALLPAPER_DIR" \
+        WALLPAPER=$(find -L "$WALLPAPER_DIR" \
           -type f \
           \( -iname "*.jpg" -o -iname "*.jpeg" \
              -o -iname "*.png" -o -iname "*.webp" \) \
