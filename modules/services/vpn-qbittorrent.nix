@@ -289,6 +289,7 @@ in {
     environment.systemPackages = with pkgs; [
       wireguard-tools   # wg, wg-quick — for inspecting the tunnel manually
       qbittorrent-nox   # Headless qBittorrent daemon with web UI
+      socat             # Used by the web UI proxy service
     ];
 
     # =========================================================================
@@ -378,5 +379,41 @@ in {
         TimeoutStopSec = "30s";
       };
     };
+
+    # =========================================================================
+    # Service 3 — Web UI proxy (host → namespace)
+    #
+    # The qBittorrent web UI binds inside the vpn-qbt namespace on
+    # 10.200.200.2:8080. That address is not reachable from other machines
+    # on the LAN or via Tailscale — it only exists locally on this host.
+    #
+    # socat listens on 0.0.0.0:webUIPort on the host's real network interfaces
+    # and forwards each connection into the namespace. This makes the web UI
+    # accessible at http://Radxa-X4:8080 from any machine on the network
+    # without any SSH tunneling.
+    #
+    # The proxy is NOT inside the VPN namespace — it runs on the host — so
+    # it does not bypass the killswitch. Only web UI traffic is proxied;
+    # qBittorrent's torrent traffic still goes exclusively through WireGuard.
+    # =========================================================================
+    systemd.services.qbittorrent-vpn-proxy = {
+      description = "Proxy qBittorrent web UI from host to VPN namespace";
+
+      after    = [ "qbittorrent-vpn.service" ];
+      requires = [ "qbittorrent-vpn.service" ];
+      wantedBy = [ "multi-user.target" ];
+
+      serviceConfig = {
+        Type       = "simple";
+        ExecStart  = "${pkgs.socat}/bin/socat"
+                   + " TCP-LISTEN:${toString cfg.webUIPort},fork,reuseaddr"
+                   + " TCP:${cfg.nsVethIP}:${toString cfg.webUIPort}";
+        Restart    = "on-failure";
+        RestartSec = "5s";
+      };
+    };
+
+    # Open the web UI port on the host firewall so LAN/Tailscale can reach it
+    networking.firewall.allowedTCPPorts = [ cfg.webUIPort ];
   };
 }
