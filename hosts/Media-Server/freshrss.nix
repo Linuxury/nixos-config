@@ -68,7 +68,7 @@ in
 
   services.freshrss = {
     enable       = true;
-    baseUrl      = "http://media-server.tail1023a0.ts.net:8080";
+    baseUrl      = "http://Media-Server:8080";
     defaultUser  = "linuxury";
     passwordFile = config.age.secrets.freshrss-admin-password.path;
     virtualHost  = "freshrss";
