@@ -72,6 +72,28 @@
   '';
 
   # =========================================================================
+  # COSMIC accent template — written once, used by matugen on every run
+  #
+  # This is a custom template (not from InioX/matugen-themes) that outputs
+  # the Material You primary color directly into COSMIC's accent config file.
+  # COSMIC watches the file via inotify and picks up changes automatically.
+  # =========================================================================
+  home.activation.matugenCosmicAccentTemplate = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    ACCENT_TMPL="$HOME/.config/matugen/templates/cosmic-accent.ron"
+    if [ ! -f "$ACCENT_TMPL" ]; then
+      mkdir -p "$(dirname "$ACCENT_TMPL")"
+      cat > "$ACCENT_TMPL" <<'RON'
+(
+    red: {{ colors.primary.default.red }},
+    green: {{ colors.primary.default.green }},
+    blue: {{ colors.primary.default.blue }},
+    alpha: 1.0,
+)
+RON
+    fi
+  '';
+
+  # =========================================================================
   # matugen config.toml — written at activation time if not present
   #
   # We use home.activation (shell script) instead of home.file.text to
@@ -111,6 +133,11 @@ output_path = "~/.config/gtk-4.0/colors.css"
 input_path  = "~/.config/matugen/templates/templates/cosmic_theme.ron"
 output_path = "~/.config/matugen/themes/matugen_cosmic.theme.ron"
 post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron"
+
+[templates.cosmic-accent]
+input_path  = "~/.config/matugen/templates/cosmic-accent.ron"
+output_path = "~/.config/cosmic/com.system76.CosmicTheme.Dark/v1/accent"
+post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/cosmic/com.system76.CosmicTheme.Dark/v1/accent"
 
 [templates.dunst]
 input_path  = "~/.config/matugen/templates/templates/dunstrc-colors"
