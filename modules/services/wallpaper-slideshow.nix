@@ -132,42 +132,6 @@ input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
 output_path = "~/.config/zed/themes/matugen.json"
 TOML
     fi
-
-    # -----------------------------------------------------------------------
-    # Light-mode config — only the COSMIC template, mode = "light"
-    # Used by wallpaper-color-sync to keep COSMIC's Light theme in sync
-    # so that COSMIC's automatic dark/light schedule works correctly.
-    # -----------------------------------------------------------------------
-    MATUGEN_LIGHT_CONF="$HOME/.config/matugen/config-light.toml"
-    if [ ! -f "$MATUGEN_LIGHT_CONF" ]; then
-      cat > "$MATUGEN_LIGHT_CONF" <<'TOML'
-# matugen light-mode config — COSMIC light theme only
-[config]
-mode = "light"
-reload_apps = false
-
-[templates.cosmic-light]
-input_path  = "~/.config/matugen/templates/cosmic_theme_light.ron"
-output_path = "~/.config/matugen/themes/matugen_cosmic_light.theme.ron"
-post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic_light.theme.ron && cosmic-settings appearance import ~/.config/matugen/themes/matugen_cosmic_light.theme.ron || true"
-TOML
-    fi
-
-    # -----------------------------------------------------------------------
-    # Light COSMIC template — palette: Light(...) variant of cosmic_theme.ron
-    # Written once; InioX/matugen-themes only ships the Dark variant.
-    # -----------------------------------------------------------------------
-    LIGHT_TEMPLATE="$HOME/.config/matugen/templates/cosmic_theme_light.ron"
-    if [ ! -f "$LIGHT_TEMPLATE" ]; then
-      DARK_TEMPLATE="$HOME/.config/matugen/templates/templates/cosmic_theme.ron"
-      if [ -f "$DARK_TEMPLATE" ]; then
-        sed 's/palette: Dark((/palette: Light((/; s/name: "matugen-cosmic-dark"/name: "matugen-cosmic-light"/' \
-          "$DARK_TEMPLATE" > "$LIGHT_TEMPLATE"
-        echo "matugen: created light COSMIC template at $LIGHT_TEMPLATE"
-      else
-        echo "matugen: WARNING — dark template not found yet, light template will be created after matugenTemplates activation"
-      fi
-    fi
   '';
 
   # =========================================================================
@@ -262,14 +226,6 @@ TOML
   # below whenever the COSMIC background config changes — this covers
   # both our 30-minute rotation and manual wallpaper changes in COSMIC.
   #
-  # Runs matugen TWICE:
-  #   1. Dark mode  → all templates (ghostty, kitty, btop, zed, COSMIC dark)
-  #   2. Light mode → COSMIC light theme only (uses ~/.config/matugen/config-light.toml)
-  #
-  # This keeps both the COSMIC dark and light themes in sync with the
-  # wallpaper so that COSMIC's automatic dark/light schedule works without
-  # any additional intervention.
-  #
   # matugen 4.x has a regression in its image reading path.
   # Workaround: extract the dominant color with ImageMagick first,
   # then feed the hex value to matugen color hex.
@@ -287,7 +243,6 @@ TOML
         set -euo pipefail
 
         COSMIC_BG_CONF="$HOME/.config/cosmic/com.system76.CosmicBackground/v1/all"
-        MATUGEN_LIGHT_CONF="$HOME/.config/matugen/config-light.toml"
         LOG="$HOME/.local/share/wallpaper-slideshow.log"
 
         log() {
@@ -332,21 +287,8 @@ TOML
           exit 0
         fi
 
-        # ---------------------------------------------------------------
-        # Dark mode — all templates (ghostty, kitty, btop, zed, COSMIC dark)
-        # ---------------------------------------------------------------
-        log "Dominant color: #$DOMINANT_HEX — running matugen (dark)"
+        log "Dominant color: #$DOMINANT_HEX — running matugen"
         matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1
-
-        # ---------------------------------------------------------------
-        # Light mode — COSMIC light theme only, so COSMIC's auto dark/light
-        # schedule has a matching wallpaper-derived light theme ready
-        # ---------------------------------------------------------------
-        if [ -f "$MATUGEN_LIGHT_CONF" ]; then
-          log "Running matugen (light) for COSMIC light theme"
-          matugen --config "$MATUGEN_LIGHT_CONF" color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1
-        fi
-
         log "matugen complete"
       ''}";
     };
