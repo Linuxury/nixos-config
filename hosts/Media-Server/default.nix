@@ -217,6 +217,9 @@
     # Shared workspace — accessible to all family via Samba
     "d /data/shared                       0775 root media        -"
 
+    # Mount point for Radxa-X4 Torrents CIFS share
+    "d /mnt/Torrents                      0755 root         root         -"
+
     # Service config directories — persistent app data
     "d /data/config                       0755 root         root         -"
     "d /data/config/plex                  0755 plex         media        -"
@@ -229,6 +232,41 @@
     "d /data/config/arr-services/readarr  0755 readarr      arr-services -"
     "d /data/config/arr-services/lidarr   0755 lidarr       arr-services -"
   ];
+
+  # =========================================================================
+  # Samba credentials for mounting Radxa-X4's Torrents share
+  # =========================================================================
+  age.secrets.smb-credentials = {
+    file = ../../secrets/smb-credentials.age;
+    mode = "0400";
+  };
+
+  # =========================================================================
+  # CIFS mount — Radxa-X4 Torrents share
+  #
+  # Sonarr/Radarr need to read completed downloads from Radxa-X4 so they
+  # can import/move files into /data/media. This mount makes the remote
+  # path visible locally at /mnt/Torrents.
+  #
+  # Remote path mapping in Sonarr/Radarr (manual setup after first boot):
+  #   Download Clients → qBittorrent → Remote Path Mappings:
+  #     Remote path: /data/torrents/complete
+  #     Local path:  /mnt/Torrents/complete
+  #
+  # Automounts on first access, disconnects after 60s idle.
+  # nofail: non-fatal if Radxa-X4 is offline.
+  # =========================================================================
+  fileSystems."/mnt/Torrents" = {
+    device  = "//10.0.0.5/Torrents";
+    fsType  = "cifs";
+    options = [
+      "credentials=/run/agenix/smb-credentials"
+      "file_mode=0664" "dir_mode=0775"
+      "nofail" "_netdev" "noauto"
+      "x-systemd.automount" "x-systemd.idle-timeout=60"
+      "x-systemd.mount-timeout=5s"
+    ];
+  };
 
   # =========================================================================
   # Plex Media Server
@@ -401,6 +439,7 @@
 
     # Storage
     mergerfs         # CLI access to mergerfs pool
+    cifs-utils       # Required for CIFS/SMB mounts
   ];
 
   # =========================================================================
