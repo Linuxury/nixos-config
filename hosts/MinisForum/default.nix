@@ -6,10 +6,12 @@
 # Type: Headless server — no DE, no display manager
 # Role: Game server host
 #   - Crafty Controller (Docker, web UI on port 8443)
-#       Manages all Minecraft servers (Java + Bedrock)
+#       Manages Minecraft servers (Java + Bedrock) only
 #       Access: https://MinisForum:8443  (or via Tailscale)
 #       First login: admin / crafty  (change immediately)
-#   - Hytale server (systemd service, port 7777 — ready when beta releases)
+#   - Hytale server (systemd service, QUIC/UDP port 5520)
+#       Official binary via hytale-downloader — see FIRST-TIME SETUP comment
+#       Files: /data/gameservers/hytale/Server/
 #
 # Storage layout:
 #   /data/gameservers/crafty/servers/  — Crafty-managed server files
@@ -184,13 +186,18 @@
                   # If your SSH connection drops, tmux keeps things running
     lsof          # List open files — useful for debugging
     strace        # Trace system calls — useful for debugging services
+
+    # Hytale server runtime
+    jdk25_headless # Required by HytaleServer.jar
+    wget           # Download hytale-downloader
+    unzip          # Extract server zip
   ];
 
   # =========================================================================
   # Game server directories
   #
   # Crafty owns everything under crafty/ — Docker mounts these as volumes.
-  # Hytale gets its own dir for when the server binary ships.
+  # Hytale runs directly under hytale/Server/ (downloaded via hytale-downloader).
   # =========================================================================
   systemd.tmpfiles.rules = [
     "d /data                                  0755 root     users -"
@@ -202,13 +209,14 @@
     "d /data/gameservers/crafty/logs          0775 linuxury users -"
     "d /data/gameservers/crafty/import        0775 linuxury users -"
     "d /data/gameservers/hytale               0775 linuxury users -"
+    "d /data/gameservers/hytale/Server        0775 linuxury users -"
   ];
 
   # =========================================================================
   # Crafty Controller — web-based Minecraft server manager
   #
-  # Runs in Docker. Manages server installs, JVM flags, backups, and the
-  # live console — no SSH needed for day-to-day server ops.
+  # Runs in Docker. Manages Minecraft servers only (Java + Bedrock).
+  # Hytale is managed directly via systemd (see below).
   #
   # Web UI:  https://MinisForum:8443  (self-signed cert, click through)
   #          or https://<tailscale-ip>:8443
@@ -233,8 +241,6 @@
         "8443:8443"       # Web UI
         "25565:25565"     # Minecraft Java (default server)
         "19132:19132/udp" # Minecraft Bedrock (optional)
-        "5520:5520"       # Hytale game server
-        "5523:5523"       # Hytale Nitrado web panel
       ];
       volumes = [
         "/data/gameservers/crafty/backups:/crafty/backups"
@@ -247,34 +253,48 @@
   };
 
   # =========================================================================
-  # Hytale server
+  # Hytale server — official binary, direct systemd service
   #
-  # Hytale multiplayer is not yet publicly available (beta).
-  # This service is a placeholder — drop the server binary into
-  # /data/gameservers/hytale/ and update ExecStart when it ships.
+  # Uses Java 25 + QUIC/UDP on port 5520.
+  # Server files live in /data/gameservers/hytale/Server/
   #
-  # Expected port: 7777 (placeholder — adjust when known)
+  # FIRST-TIME SETUP (run once as linuxury on MinisForum):
+  #   cd /data/gameservers/hytale
+  #   wget https://downloader.hytale.com/hytale-downloader.zip
+  #   unzip hytale-downloader.zip
+  #   chmod +x hytale-downloader-linux-amd64
+  #   ./hytale-downloader-linux-amd64 -download-path server.zip
+  #   unzip server.zip -d .
+  #   mv Assets.zip Server/
+  #
+  #   # Run manually once to authenticate:
+  #   cd Server
+  #   java -jar HytaleServer.jar --assets Assets.zip --bind 0.0.0.0:5520
+  #   # In the Hytale console:
+  #   /auth login device       ← visit https://accounts.hytale.com/device + enter code
+  #   /auth persistence Encrypted  ← persists credentials across reboots
+  #   # Then Ctrl+C and start via systemd:
+  #   sudo systemctl start hytale-server
+  #
+  # Service is gated on HytaleServer.jar existing — safe to rebuild before setup.
   # =========================================================================
   systemd.services.hytale-server = {
     description = "Hytale Game Server";
     after       = [ "network-online.target" ];
     wants       = [ "network-online.target" ];
-    # Uncomment when the server binary is available:
-    # wantedBy  = [ "multi-user.target" ];
+    wantedBy    = [ "multi-user.target" ];
 
     serviceConfig = {
-      Type             = "simple";
-      User             = "linuxury";
-      WorkingDirectory = "/data/gameservers/hytale";
-      # ExecStart = "/data/gameservers/hytale/hytale-server";
-      Restart          = "on-failure";
-      RestartSec       = "10s";
+      Type                    = "simple";
+      User                    = "linuxury";
+      WorkingDirectory        = "/data/gameservers/hytale/Server";
+      ExecStart               = "${pkgs.jdk25_headless}/bin/java -jar HytaleServer.jar --assets Assets.zip --bind 0.0.0.0:5520";
+      Restart                 = "on-failure";
+      RestartSec              = "10s";
+      # Only start if server files are present — prevents failure before first-time setup
+      ConditionPathExists     = "/data/gameservers/hytale/Server/HytaleServer.jar";
     };
   };
-
-  # Open Hytale port (uncomment when server is active)
-  # networking.firewall.allowedTCPPorts = [ 7777 ];
-  # networking.firewall.allowedUDPPorts = [ 7777 ];
 
   # =========================================================================
   # Samba — GameServers share for managing server files
@@ -295,8 +315,8 @@
     };
   };
 
-  networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 5520 5523 ];
-  networking.firewall.allowedUDPPorts = [ 137 138 19132 ];
+  networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 ];
+  networking.firewall.allowedUDPPorts = [ 137 138 19132 5520 ]; # 5520/udp — Hytale uses QUIC (UDP only)
 
   # =========================================================================
   # Tailscale — remote management
