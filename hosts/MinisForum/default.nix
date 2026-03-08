@@ -276,7 +276,23 @@
   #   # Then Ctrl+C and start via systemd:
   #   sudo systemctl start hytale-server
   #
-  # Service is gated on HytaleServer.jar existing — safe to rebuild before setup.
+  # Service is gated on both files existing — safe to rebuild before setup.
+  #
+  # START / STOP / LOGS:
+  #   sudo systemctl start hytale-server
+  #   sudo systemctl stop hytale-server
+  #   sudo systemctl status hytale-server
+  #   journalctl -u hytale-server -f        ← watch logs live
+  #   (auto-starts on boot once files are present)
+  #
+  # UPDATE:
+  #   sudo systemctl stop hytale-server
+  #   cd /data/gameservers/hytale
+  #   ./hytale-downloader-linux-amd64 -download-path server.zip
+  #   unzip -o server.zip -d .              ← -o overwrites old JAR
+  #   mv -f Assets.zip Server/
+  #   sudo systemctl start hytale-server
+  #   (auth credentials and server config survive updates)
   # =========================================================================
   systemd.services.hytale-server = {
     description = "Hytale Game Server";
