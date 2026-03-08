@@ -126,7 +126,7 @@ in {
   #   nix run nixpkgs#agenix -- -r
   # --------------------------------------------------------------------------
   "smb-credentials.age".publicKeys = uniq (
-    linuxury-admins ++ [ ThinkPad Ryzen5900x Radxa-X4 MinisForum ] ++ babylinux-machines ++ alex-machines);
+    linuxury-admins ++ [ ThinkPad Ryzen5900x Radxa-X4 MinisForum Media-Server ] ++ babylinux-machines ++ alex-machines);
 
   # --------------------------------------------------------------------------
   # FreshRSS admin password
