@@ -233,6 +233,7 @@
         "8443:8443"       # Web UI
         "25565:25565"     # Minecraft Java (default server)
         "19132:19132/udp" # Minecraft Bedrock (optional)
+        "5523:5523"       # Hytale
       ];
       volumes = [
         "/data/gameservers/crafty/backups:/crafty/backups"
@@ -293,7 +294,7 @@
     };
   };
 
-  networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 ];
+  networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 5523 ];
   networking.firewall.allowedUDPPorts = [ 137 138 19132 ];
 
   # =========================================================================
