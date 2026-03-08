@@ -284,15 +284,22 @@
     wants       = [ "network-online.target" ];
     wantedBy    = [ "multi-user.target" ];
 
+    # Guard: only start if both server files are present.
+    # ConditionPathExists must be in [Unit] (unitConfig), not [Service].
+    # When either file is missing, systemd skips cleanly — no failure.
+    # After first-time setup run: sudo systemctl start hytale-server
+    unitConfig.ConditionPathExists = [
+      "/data/gameservers/hytale/Server/HytaleServer.jar"
+      "/data/gameservers/hytale/Server/Assets.zip"
+    ];
+
     serviceConfig = {
-      Type                    = "simple";
-      User                    = "linuxury";
-      WorkingDirectory        = "/data/gameservers/hytale/Server";
-      ExecStart               = "${pkgs.jdk25_headless}/bin/java -jar HytaleServer.jar --assets Assets.zip --bind 0.0.0.0:5520";
-      Restart                 = "on-failure";
-      RestartSec              = "10s";
-      # Only start if server files are present — prevents failure before first-time setup
-      ConditionPathExists     = "/data/gameservers/hytale/Server/HytaleServer.jar";
+      Type             = "simple";
+      User             = "linuxury";
+      WorkingDirectory = "/data/gameservers/hytale/Server";
+      ExecStart        = "${pkgs.jdk25_headless}/bin/java -jar HytaleServer.jar --assets Assets.zip --bind 0.0.0.0:5520";
+      Restart          = "on-failure";
+      RestartSec       = "10s";
     };
   };
 
