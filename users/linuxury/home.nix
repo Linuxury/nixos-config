@@ -171,6 +171,9 @@ in
     # MangoHud — performance overlay for gaming
     ".config/MangoHud".source = ../../dotfiles/MangoHud;
 
+    # Kitty terminal — base config; colors written by matugen at runtime
+    ".config/kitty/kitty.conf".source = ../../dotfiles/kitty/kitty.conf;
+
     # Zed editor
     ".config/zed/settings.json".source = ../../dotfiles/zed/settings.json;
 
