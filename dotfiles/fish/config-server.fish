@@ -5,6 +5,9 @@ fish_add_path --prepend /run/wrappers/bin
 set -gx EDITOR hx
 set -gx VISUAL hx
 
+# Canonical path to the nixos-config repo — used by nru and other tools
+set -gx NIXOS_CONFIG $HOME/nixos-config
+
 if status is-interactive
     set -g fish_greeting ""
 
@@ -19,7 +22,12 @@ if status is-interactive
     alias nr 'sudo nixos-rebuild switch --flake ~/nixos-config --print-build-logs'
 
     # Rebuild + update nixpkgs flake input before switching
-    alias nru 'sudo nixos-rebuild switch --flake ~/nixos-config --update-input nixpkgs --print-build-logs'
+    # Pulls latest git changes first so the build always reflects what's in the repo
+    function nru --description "git pull + nixos-rebuild switch + update nixpkgs"
+        echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+        git -C $NIXOS_CONFIG pull; or return 1
+        sudo nixos-rebuild switch --flake $NIXOS_CONFIG --update-input nixpkgs --print-build-logs
+    end
 
     # Set next boot target — use for kernel or bootloader changes
     alias nrb 'sudo nixos-rebuild boot --flake ~/nixos-config --print-build-logs'
