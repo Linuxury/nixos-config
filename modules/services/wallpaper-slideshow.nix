@@ -116,6 +116,20 @@ post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.
 input_path  = "~/.config/matugen/templates/templates/dunstrc-colors"
 output_path = "~/.config/dunst/dunstrc-colors"
 post_hook   = "dunstctl reload || true"
+
+[templates.kitty]
+input_path  = "~/.config/matugen/templates/templates/kitty-colors.conf"
+output_path = "~/.config/kitty/colors.conf"
+post_hook   = "pkill -USR1 kitty || true"
+
+[templates.btop]
+input_path  = "~/.config/matugen/templates/templates/btop.theme"
+output_path = "~/.config/btop/themes/matugen.theme"
+post_hook   = "mkdir -p ~/.config/btop/themes && sed -i 's/^color_theme = .*/color_theme = \"matugen\"/' ~/.config/btop/btop.conf 2>/dev/null || true"
+
+[templates.zed]
+input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
+output_path = "~/.config/zed/themes/matugen.json"
 TOML
     fi
   '';
