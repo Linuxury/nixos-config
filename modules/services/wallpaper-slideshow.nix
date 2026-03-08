@@ -220,12 +220,19 @@ TOML
         # ---------------------------------------------------------------
         # Set wallpaper in COSMIC
         #
+        # If COSMIC is already using its own slideshow (source: Path(dir)),
+        # skip overwriting — its rotation takes precedence.
         # Writing this file triggers wallpaper-color-sync.path, which
         # runs matugen to regenerate all color themes automatically.
         # ---------------------------------------------------------------
         mkdir -p "$COSMIC_BG_DIR"
 
-        cat > "$COSMIC_BG_DIR/all" <<RON
+        CURRENT_SOURCE=$(grep -oP '(?:File|Path)\("\K[^"]+' "$COSMIC_BG_DIR/all" 2>/dev/null | head -1)
+        if [ -d "$CURRENT_SOURCE" ]; then
+          log "COSMIC slideshow is active — skipping wallpaper write, triggering color sync directly"
+          systemctl --user start wallpaper-color-sync.service
+        else
+          cat > "$COSMIC_BG_DIR/all" <<RON
         (
             wallpapers: [
                 (
@@ -237,8 +244,8 @@ TOML
             ],
         )
         RON
-
-        log "COSMIC wallpaper config updated — color sync will follow"
+          log "COSMIC wallpaper config updated — color sync will follow"
+        fi
       ''}";
     };
 
@@ -289,12 +296,26 @@ TOML
 
         # ---------------------------------------------------------------
         # Read current wallpaper from COSMIC config
-        # Handles both File("...") and Path("...") RON variants
+        # Handles both File("...") and Path("...") RON variants.
+        # If source is a directory (COSMIC slideshow mode), pick a
+        # random file from it — colors stay in sync with the collection.
         # ---------------------------------------------------------------
         WALLPAPER=$(grep -oP '(?:File|Path)\("\K[^"]+' "$COSMIC_BG_CONF" | head -1)
 
+        if [ -z "$WALLPAPER" ]; then
+          log "ERROR: Could not parse wallpaper source from $COSMIC_BG_CONF"
+          exit 1
+        fi
+
+        if [ -d "$WALLPAPER" ]; then
+          WALLPAPER=$(find -L "$WALLPAPER" -type f \
+            \( -iname "*.jpg" -o -iname "*.jpeg" \
+               -o -iname "*.png" -o -iname "*.webp" \) \
+            | shuf -n 1)
+        fi
+
         if [ -z "$WALLPAPER" ] || [ ! -f "$WALLPAPER" ]; then
-          log "ERROR: Could not determine current wallpaper from $COSMIC_BG_CONF"
+          log "ERROR: Could not find a usable wallpaper file"
           exit 1
         fi
 
