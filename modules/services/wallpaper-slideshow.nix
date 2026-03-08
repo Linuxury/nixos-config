@@ -26,6 +26,7 @@
   # =========================================================================
   home.packages = with pkgs; [
     matugen       # Material You color generator — themes entire desktop
+    imagemagick   # dominant color extraction (workaround for matugen 4.x image bug)
     findutils     # find command for wallpaper discovery
     coreutils     # shuf for random selection
     git           # needed by matugenTemplates activation below
@@ -94,35 +95,26 @@ mode = "dark"
 reload_apps = true
 
 [templates.ghostty]
-input_path  = "~/.config/matugen/templates/ghostty.conf"
+input_path  = "~/.config/matugen/templates/templates/ghostty"
 output_path = "~/.config/ghostty/colors"
 post_hook   = "pkill -SIGUSR2 ghostty || true"
 
 [templates.starship]
-input_path  = "~/.config/matugen/templates/starship.toml"
+input_path  = "~/.config/matugen/templates/templates/starship-colors.toml"
 output_path = "~/.config/starship-colors.toml"
 
-[templates.helix]
-input_path  = "~/.config/matugen/templates/helix.toml"
-output_path = "~/.config/helix/themes/matugen.toml"
-
-[templates.gtk3]
-input_path  = "~/.config/matugen/templates/gtk3.css"
-output_path = "~/.config/gtk-3.0/colors.css"
-post_hook   = "gsettings set org.gnome.desktop.interface gtk-theme ''' || true"
-
-[templates.gtk4]
-input_path  = "~/.config/matugen/templates/gtk4.css"
+[templates.gtk]
+input_path  = "~/.config/matugen/templates/templates/gtk-colors.css"
 output_path = "~/.config/gtk-4.0/colors.css"
 
 [templates.cosmic]
-input_path  = "~/.config/matugen/templates/cosmic_theme.ron"
+input_path  = "~/.config/matugen/templates/templates/cosmic_theme.ron"
 output_path = "~/.config/matugen/themes/matugen_cosmic.theme.ron"
-post_hook   = "python3 ~/.config/matugen/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron"
+post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron"
 
 [templates.dunst]
-input_path  = "~/.config/matugen/templates/dunst.ini"
-output_path = "~/.config/dunst/dunstrc"
+input_path  = "~/.config/matugen/templates/templates/dunstrc-colors"
+output_path = "~/.config/dunst/dunstrc-colors"
 post_hook   = "dunstctl reload || true"
 TOML
     fi
@@ -200,12 +192,21 @@ TOML
 
         # ---------------------------------------------------------------
         # Run matugen to regenerate all color themes
-        # from the new wallpaper image
+        #
+        # matugen 4.x has a regression in its image reading path.
+        # Workaround: extract the dominant color with ImageMagick first,
+        # then feed the hex value to matugen color hex.
         # ---------------------------------------------------------------
         if command -v matugen &>/dev/null; then
-          log "Running matugen on $WALLPAPER"
-          matugen image "$WALLPAPER" >> "$LOG" 2>&1
-          log "matugen complete"
+          log "Extracting dominant color from $WALLPAPER"
+          DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1\! -format "%[hex:u]" info: 2>/dev/null)
+          if [ -z "$DOMINANT_HEX" ]; then
+            log "WARNING: ImageMagick failed to extract color, skipping theme generation"
+          else
+            log "Dominant color: #$DOMINANT_HEX — running matugen"
+            matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1
+            log "matugen complete"
+          fi
         else
           log "WARNING: matugen not found, skipping theme generation"
         fi
