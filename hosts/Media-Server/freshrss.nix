@@ -276,7 +276,8 @@ in
 
   # Serve on port 8080; the freshrss module handles PHP-FPM and locations
   services.nginx.virtualHosts.freshrss = {
-    listen = [{ addr = "0.0.0.0"; port = 8080; }];
+    listen     = [{ addr = "0.0.0.0"; port = 8080; extraParameters = [ "default_server" ]; }];
+    serverName = "_";  # catch-all — respond to any hostname on port 8080
   };
 
   networking.firewall.allowedTCPPorts = lib.mkAfter [ 8080 ];
