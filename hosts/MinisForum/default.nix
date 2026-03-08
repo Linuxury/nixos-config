@@ -238,7 +238,7 @@
         "/data/gameservers/crafty/backups:/crafty/backups"
         "/data/gameservers/crafty/logs:/crafty/logs"
         "/data/gameservers/crafty/servers:/crafty/servers"
-        "/data/gameservers/crafty/config:/crafty/config"
+        "/data/gameservers/crafty/config:/crafty/app/config"
         "/data/gameservers/crafty/import:/crafty/import"
       ];
     };
