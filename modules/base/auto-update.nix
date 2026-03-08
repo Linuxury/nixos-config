@@ -35,7 +35,8 @@
   system.autoUpgrade = {
     enable      = true;
     flake        = "github:linuxury/nixos-config";
-    flags        = [ "--update-input" "nixpkgs" ];
+    # No --update-input: servers use flake.lock from the repo.
+    # Update nixpkgs from an admin machine with `nru`, then push.
     dates        = "Sat 03:00"; # Saturday 3am — captures full week of upstream releases
     allowReboot  = false;
     # Up to 45min random delay so all 9 machines don't hit GitHub at once
