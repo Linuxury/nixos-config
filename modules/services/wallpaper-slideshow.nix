@@ -137,14 +137,15 @@ TOML
   # =========================================================================
   # Wallpaper slideshow service
   #
-  # Picks a random wallpaper, sets it in COSMIC, runs matugen.
-  # COSMIC stores its wallpaper config in a ron file under
-  # ~/.config/cosmic/com.system76.CosmicBackground/v1/
-  # We write to it directly since there's no CLI tool yet.
+  # Picks a random wallpaper and sets it in COSMIC's config file.
+  # Color theme sync is handled separately by wallpaper-color-sync.service,
+  # which is triggered by wallpaper-color-sync.path whenever the COSMIC
+  # background config changes — covering both our rotation and manual
+  # wallpaper changes made through COSMIC's settings.
   # =========================================================================
   systemd.user.services.wallpaper-slideshow = {
     Unit = {
-      Description = "Wallpaper slideshow with matugen theme sync";
+      Description = "Wallpaper slideshow — picks a random wallpaper";
       After       = [ "graphical-session.target" ];
       Wants       = [ "graphical-session.target" ];
     };
@@ -183,9 +184,8 @@ TOML
         # ---------------------------------------------------------------
         # Set wallpaper in COSMIC
         #
-        # COSMIC stores wallpaper config as a ron file.
-        # We write the same wallpaper for all outputs (monitors).
-        # Format confirmed from COSMIC source and config inspection.
+        # Writing this file triggers wallpaper-color-sync.path, which
+        # runs matugen to regenerate all color themes automatically.
         # ---------------------------------------------------------------
         mkdir -p "$COSMIC_BG_DIR"
 
@@ -202,31 +202,91 @@ TOML
         )
         RON
 
-        log "COSMIC wallpaper config updated"
+        log "COSMIC wallpaper config updated — color sync will follow"
+      ''}";
+    };
+
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
+  # =========================================================================
+  # Wallpaper color sync service
+  #
+  # Reads the currently active wallpaper from COSMIC's config and runs
+  # matugen to regenerate all color themes. Triggered by the path unit
+  # below whenever the COSMIC background config changes — this covers
+  # both our 30-minute rotation and manual wallpaper changes in COSMIC.
+  #
+  # matugen 4.x has a regression in its image reading path.
+  # Workaround: extract the dominant color with ImageMagick first,
+  # then feed the hex value to matugen color hex.
+  # =========================================================================
+  systemd.user.services.wallpaper-color-sync = {
+    Unit = {
+      Description = "Sync matugen colors with current COSMIC wallpaper";
+      After       = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      Type      = "oneshot";
+      ExecStart = "${pkgs.writeShellScript "wallpaper-color-sync" ''
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        COSMIC_BG_CONF="$HOME/.config/cosmic/com.system76.CosmicBackground/v1/all"
+        LOG="$HOME/.local/share/wallpaper-slideshow.log"
+
+        log() {
+          echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"
+        }
 
         # ---------------------------------------------------------------
-        # Run matugen to regenerate all color themes
-        #
-        # matugen 4.x has a regression in its image reading path.
-        # Workaround: extract the dominant color with ImageMagick first,
-        # then feed the hex value to matugen color hex.
+        # Read current wallpaper from COSMIC config
+        # Handles both File("...") and Path("...") RON variants
         # ---------------------------------------------------------------
-        if command -v matugen &>/dev/null; then
-          log "Extracting dominant color from $WALLPAPER"
-          DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1\! -format "%[hex:u]" info: 2>/dev/null)
-          if [ -z "$DOMINANT_HEX" ]; then
-            log "WARNING: ImageMagick failed to extract color, skipping theme generation"
-          else
-            log "Dominant color: #$DOMINANT_HEX — running matugen"
-            matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1
-            log "matugen complete"
-          fi
-        else
-          log "WARNING: matugen not found, skipping theme generation"
+        WALLPAPER=$(grep -oP '(?:File|Path)\("\K[^"]+' "$COSMIC_BG_CONF" | head -1)
+
+        if [ -z "$WALLPAPER" ] || [ ! -f "$WALLPAPER" ]; then
+          log "ERROR: Could not determine current wallpaper from $COSMIC_BG_CONF"
+          exit 1
         fi
 
-        log "Done — next change in 30 minutes"
+        if ! command -v matugen &>/dev/null; then
+          log "WARNING: matugen not found, skipping theme generation"
+          exit 0
+        fi
+
+        log "Color sync triggered — wallpaper: $WALLPAPER"
+        DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1\! -format "%[hex:u]" info: 2>/dev/null)
+
+        if [ -z "$DOMINANT_HEX" ]; then
+          log "WARNING: ImageMagick failed to extract color, skipping theme generation"
+          exit 0
+        fi
+
+        log "Dominant color: #$DOMINANT_HEX — running matugen"
+        matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1
+        log "matugen complete"
       ''}";
+    };
+  };
+
+  # =========================================================================
+  # Wallpaper color sync path unit
+  #
+  # Watches COSMIC's background config file for any change.
+  # Fires whether the change came from our slideshow service or from
+  # the user changing the wallpaper manually in COSMIC settings.
+  # =========================================================================
+  systemd.user.paths.wallpaper-color-sync = {
+    Unit = {
+      Description = "Watch COSMIC wallpaper config for changes";
+    };
+
+    Path = {
+      PathChanged = "%h/.config/cosmic/com.system76.CosmicBackground/v1/all";
     };
 
     Install = {
