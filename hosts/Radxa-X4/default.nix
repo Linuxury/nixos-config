@@ -115,6 +115,7 @@
   ];
 
   hardware.cpu.intel.updateMicrocode = true;
+  hardware.enableRedistributableFirmware = true;  # required for Intel WiFi firmware
   powerManagement.powertop.enable = true;
 
   # =========================================================================
