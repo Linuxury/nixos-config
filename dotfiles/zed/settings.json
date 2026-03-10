@@ -25,11 +25,11 @@
   "relative_line_numbers": true,
 
   // -------------------------------------------------------------------------
-  // Terminal — use fish as the shell
+  // Terminal — use zsh as the shell
   // -------------------------------------------------------------------------
   "terminal": {
     "shell": {
-      "program": "/etc/profiles/per-user/linuxury/bin/fish"
+      "program": "/etc/profiles/per-user/linuxury/bin/zsh"
     }
   },
 

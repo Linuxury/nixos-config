@@ -292,8 +292,8 @@
       "input"
       "gamemode"
     ];
-    shell = pkgs.fish;
+    shell = pkgs.zsh;
   };
 
-  programs.fish.enable = true;
+  programs.zsh.enable = true;
 }

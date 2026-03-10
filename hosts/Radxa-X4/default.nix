@@ -242,21 +242,19 @@
     linuxury = {
       isNormalUser = true;
       extraGroups  = [ "wheel" "networkmanager" "gpio" ];
-      shell        = pkgs.fish;
+      shell        = pkgs.zsh;
     };
 
     babylinux = {
       isNormalUser = true;
       extraGroups  = [ "networkmanager" ];
-      shell        = pkgs.fish;
+      shell        = pkgs.zsh;
     };
 
     alex = {
       isNormalUser = true;
       extraGroups  = [];
-      shell        = pkgs.fish;
+      shell        = pkgs.zsh;
     };
   };
-
-  programs.fish.enable = true;
 }

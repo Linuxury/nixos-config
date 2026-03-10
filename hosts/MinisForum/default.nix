@@ -361,23 +361,21 @@
     linuxury = {
       isNormalUser = true;
       extraGroups  = [ "wheel" "networkmanager" "docker" ];
-      shell        = pkgs.fish;
+      shell        = pkgs.zsh;
     };
 
     babylinux = {
       isNormalUser  = true;
       # No wheel — wife doesn't need server admin access
       extraGroups   = [ "networkmanager" ];
-      shell         = pkgs.fish;
+      shell         = pkgs.zsh;
     };
 
     alex = {
       isNormalUser  = true;
       # No wheel — kid definitely doesn't need server access
       extraGroups   = [];
-      shell         = pkgs.fish;
+      shell         = pkgs.zsh;
     };
   };
-
-  programs.fish.enable = true;
 }

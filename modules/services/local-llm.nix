@@ -2,7 +2,7 @@
 # modules/services/local-llm.nix — On-demand local LLM via Ollama (ROCm)
 #
 # Designed for AMD GPU hosts. Does NOT run a background service — you
-# control it manually with fish functions:
+# control it manually with zsh functions:
 #
 #   llm-start   — start Ollama server in background
 #   llm-stop    — stop Ollama server
@@ -61,41 +61,41 @@
     users.users.${config.services.localLlm.user}.extraGroups = [ "render" ];
 
     # -------------------------------------------------------------------------
-    # Fish functions — on-demand control, no systemd service, no sudo needed
+    # Zsh functions — on-demand control, no systemd service, no sudo needed
     # -------------------------------------------------------------------------
-    programs.fish.interactiveShellInit = lib.mkAfter ''
-      function llm-start --description "Start Ollama LLM server in background (ROCm)"
-        if pgrep -x ollama > /dev/null
+    programs.zsh.interactiveShellInit = lib.mkAfter ''
+      llm-start() {
+        if pgrep -x ollama > /dev/null; then
           echo "Ollama is already running"
           return 0
-        end
-        set -x HSA_OVERRIDE_GFX_VERSION 11.0.0
+        fi
+        export HSA_OVERRIDE_GFX_VERSION=11.0.0
         ollama serve > /tmp/ollama.log 2>&1 &
         disown
         sleep 1
         echo "Ollama started — use llm-log to watch output"
-      end
+      }
 
-      function llm-stop --description "Stop Ollama server"
-        if pkill -x ollama
+      llm-stop() {
+        if pkill -x ollama; then
           echo "Ollama stopped"
         else
           echo "Ollama was not running"
-        end
-      end
+        fi
+      }
 
-      function llm --description "Chat with local LLM (${config.services.localLlm.model})"
-        if not pgrep -x ollama > /dev/null
+      llm() {
+        if ! pgrep -x ollama > /dev/null; then
           echo "Starting Ollama..."
           llm-start
           sleep 2
-        end
-        ollama run ${config.services.localLlm.model} $argv
-      end
+        fi
+        ollama run ${config.services.localLlm.model} "$@"
+      }
 
-      function llm-log --description "Tail the Ollama server log"
+      llm-log() {
         tail -f /tmp/ollama.log
-      end
+      }
     '';
 
   };

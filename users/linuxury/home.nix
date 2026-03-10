@@ -292,11 +292,48 @@ in
   '';
 
   # =========================================================================
-  # Fish shell
+  # Zsh shell
   # =========================================================================
-  programs.fish = {
-    enable    = true;
-    shellInit = lib.fileContents ../../dotfiles/fish/config.fish;
+  programs.zsh = {
+    enable            = true;
+    autosuggestion.enable = true;
+    enableCompletion  = true;
+
+    # fast-syntax-highlighting — richer colors and faster than zsh-syntax-highlighting
+    plugins = [
+      {
+        name = "fast-syntax-highlighting";
+        src  = pkgs.zsh-fast-syntax-highlighting;
+        file = "share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh";
+      }
+    ];
+
+    # Abbreviations expand inline before running — you see the full command first.
+    # Managed declaratively by Home Manager via programs.zsh.zsh-abbr.
+    zsh-abbr = {
+      enable = true;
+      abbreviations = {
+        # NixOS management
+        nr    = "sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why=\"NixOS rebuild in progress\" nixos-rebuild switch --flake ~/nixos-config --print-build-logs";
+        nrb   = "sudo nixos-rebuild boot --flake ~/nixos-config --print-build-logs";
+        nrt   = "sudo nixos-rebuild test --flake ~/nixos-config --print-build-logs";
+        nrr   = "sudo nixos-rebuild switch --rollback";
+        ngc   = "sudo nix-collect-garbage --delete-older-than 30d";
+        ngens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
+
+        # agenix — run from secrets/ dir without changing shell's cwd
+        age-edit  = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -e";
+        age-rekey = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -r";
+
+        # Snapper snapshot management
+        snaps  = "sudo snapper -c root list";
+        snapsh = "sudo snapper -c home list";
+        snapc  = "sudo snapper -c root create --description";
+      };
+    };
+
+    # Shared shell initialization — env vars, PATH, fastfetch, nru function
+    initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
   };
 
   # =========================================================================
@@ -371,16 +408,16 @@ in
   # Zoxide — smarter cd
   # =========================================================================
   programs.zoxide = {
-    enable                = true;
-    enableFishIntegration = true;
+    enable               = true;
+    enableZshIntegration = true;
   };
 
   # =========================================================================
   # FZF — fuzzy finder
   # =========================================================================
   programs.fzf = {
-    enable                = true;
-    enableFishIntegration = true;
+    enable               = true;
+    enableZshIntegration = true;
   };
 
   # =========================================================================
