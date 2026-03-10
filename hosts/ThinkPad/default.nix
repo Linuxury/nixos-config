@@ -403,7 +403,7 @@ in
       "input" # access to input devices (controllers, etc)
       "gamemode" # access to GameMode daemon
     ];
-    shell = pkgs.fish; # We'll configure fish properly in home.nix
+    shell = pkgs.zsh;
   };
 
   # =========================================================================
@@ -413,8 +413,8 @@ in
   services.tailscale.enable = true;
 
   # =========================================================================
-  # Fish — enable system-wide so it's available as a login shell
+  # Zsh — enable system-wide so it's available as a login shell
   # Actual configuration lives in users/linuxury/home.nix
   # =========================================================================
-  programs.fish.enable = true;
+  programs.zsh.enable = true;
 }

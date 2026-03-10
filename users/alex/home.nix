@@ -130,11 +130,36 @@
   };
 
   # =========================================================================
-  # Fish shell
+  # Zsh shell
   # =========================================================================
-  programs.fish = {
-    enable    = true;
-    shellInit = lib.fileContents ../../dotfiles/fish/config.fish;
+  programs.zsh = {
+    enable            = true;
+    autosuggestion.enable = true;
+    enableCompletion  = true;
+
+    plugins = [
+      {
+        name = "fast-syntax-highlighting";
+        src  = pkgs.zsh-fast-syntax-highlighting;
+        file = "share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh";
+      }
+    ];
+
+    # Minimal abbreviations for alex — he won't use most of these but they're
+    # harmless, and he'll grow into them.
+    zsh-abbr = {
+      enable = true;
+      abbreviations = {
+        nr    = "sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why=\"NixOS rebuild in progress\" nixos-rebuild switch --flake ~/nixos-config --print-build-logs";
+        nrb   = "sudo nixos-rebuild boot --flake ~/nixos-config --print-build-logs";
+        nrt   = "sudo nixos-rebuild test --flake ~/nixos-config --print-build-logs";
+        nrr   = "sudo nixos-rebuild switch --rollback";
+        ngc   = "sudo nix-collect-garbage --delete-older-than 30d";
+        ngens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
+      };
+    };
+
+    initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
   };
 
   # =========================================================================
