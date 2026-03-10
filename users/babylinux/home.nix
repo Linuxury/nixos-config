@@ -19,10 +19,7 @@
 { config, pkgs, inputs, lib, wallpaperDir, ... }:
 
 {
-  imports = [
-    # Wallpaper slideshow + matugen theming
-    ../../modules/services/wallpaper-slideshow.nix
-  ];
+  imports = [];
 
   # =========================================================================
   # Home Manager basics

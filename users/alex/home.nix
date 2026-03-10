@@ -25,11 +25,7 @@
 { config, pkgs, inputs, lib, wallpaperDir, ... }:
 
 {
-  imports = [
-    # Wallpaper slideshow + matugen theming
-    # PikaOS wallpapers will generate colorful kid-friendly themes
-    ../../modules/services/wallpaper-slideshow.nix
-  ];
+  imports = [];
 
   # =========================================================================
   # Home Manager basics
