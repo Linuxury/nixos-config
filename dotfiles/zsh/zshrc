@@ -1,0 +1,39 @@
+# Ensure NixOS setuid wrappers always take priority — nix shells can displace them
+typeset -U path
+path=(/run/wrappers/bin $path)
+
+# Default editor — Helix for both terminal and "visual" contexts.
+# Most tools check VISUAL first, then fall back to EDITOR.
+export EDITOR=hx
+export VISUAL=hx
+
+# Canonical path to the nixos-config repo — used by nru and other tools
+export NIXOS_CONFIG=$HOME/nixos-config
+
+# System info on startup
+fastfetch
+
+# ---------------------------------------------------------------------------
+# Completion styling
+# ---------------------------------------------------------------------------
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# ---------------------------------------------------------------------------
+# NixOS management functions
+#
+# Config lives at ~/nixos-config (symlinked from /etc/nixos).
+# The hostname is picked up automatically from the flake.
+# Abbreviations for one-liner commands are defined declaratively in home.nix
+# via programs.zsh.zsh-abbr.abbreviations — they expand inline before running.
+# ---------------------------------------------------------------------------
+
+# Rebuild + update nixpkgs flake input before switching.
+# Pulls latest git changes first so the build always reflects what's in the repo.
+nru() {
+  echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+  git -C "$NIXOS_CONFIG" pull || return 1
+  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
+    nixos-rebuild switch --flake "$NIXOS_CONFIG" --update-input nixpkgs --print-build-logs
+}

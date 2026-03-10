@@ -486,19 +486,19 @@
     linuxury = {
       isNormalUser = true;
       extraGroups  = [ "wheel" "networkmanager" "video" "render" "media" ];
-      shell        = pkgs.fish;
+      shell        = pkgs.zsh;
     };
 
     babylinux = {
       isNormalUser = true;
       extraGroups  = [ "networkmanager" "media" ];
-      shell        = pkgs.fish;
+      shell        = pkgs.zsh;
     };
 
     alex = {
       isNormalUser = true;
       extraGroups  = [ "media" ];
-      shell        = pkgs.fish;
+      shell        = pkgs.zsh;
     };
   };
 
@@ -508,6 +508,4 @@
   # =========================================================================
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = [ "--advertise-tags=tag:ssh" ];
-
-  programs.fish.enable = true;
 }
