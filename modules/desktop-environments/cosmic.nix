@@ -116,6 +116,17 @@
   };
 
   # =========================================================================
+  # Wallpaper slideshow + matugen theming — injected into every HM user
+  #
+  # home-manager.sharedModules adds this HM module to all users on any host
+  # that imports cosmic.nix. No need to import it individually in each
+  # user's home.nix — it's automatic for every COSMIC desktop.
+  # =========================================================================
+  home-manager.sharedModules = [
+    ../services/wallpaper-slideshow.nix
+  ];
+
+  # =========================================================================
   # Keyring — Secret storage for apps
   #
   # Without a keyring, apps like Zed and browsers that use the Secret Service

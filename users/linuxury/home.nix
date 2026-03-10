@@ -51,11 +51,7 @@ let
 in
 
 {
-  imports = [
-    # Wallpaper slideshow + matugen theming
-    # Rotates wallpapers every 30 minutes and syncs colors via matugen
-    ../../modules/services/wallpaper-slideshow.nix
-  ];
+  imports = [];
 
   # =========================================================================
   # Home Manager basics
