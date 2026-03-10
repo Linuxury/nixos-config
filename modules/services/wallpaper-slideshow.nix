@@ -107,7 +107,7 @@
       [templates.cosmic]
       input_path  = "~/.config/matugen/templates/templates/cosmic_theme.ron"
       output_path = "~/.config/matugen/themes/matugen_cosmic.theme.ron"
-      post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron && cosmic-settings appearance import ~/.config/matugen/themes/matugen_cosmic.theme.ron || true"
+      post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron && sed -i 's/alpha: 0\\.6,/alpha: 0.85,/' ~/.config/matugen/themes/matugen_cosmic.theme.ron && cosmic-settings appearance import ~/.config/matugen/themes/matugen_cosmic.theme.ron || true"
 
       [templates.dunst]
       input_path  = "~/.config/matugen/templates/templates/dunstrc-colors"
@@ -230,6 +230,10 @@
     Unit = {
       Description = "Sync matugen colors with current COSMIC wallpaper";
       After       = [ "graphical-session.target" ];
+      # Disable rate limiting — cosmic-settings appearance import triggers COSMIC to
+      # rewrite its config, which re-fires the path watcher. The service exits fast
+      # and cleanly so rapid retriggers are harmless.
+      StartLimitIntervalSec = 0;
     };
 
     Service = {
