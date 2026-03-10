@@ -73,67 +73,62 @@
   '';
 
   # =========================================================================
-  # matugen config.toml — written at activation time if not present
+  # matugen config.toml — managed declaratively by Home Manager
   #
-  # We use home.activation (shell script) instead of home.file.text to
-  # avoid Nix evaluating the tilde paths inside the config content.
-  # The config.toml is only written if it doesn't already exist so
-  # manual edits are preserved across rebuilds.
+  # force = true ensures stale configs (wrong template paths, old layout)
+  # are always replaced on rebuild. Every COSMIC user stays in sync.
   # =========================================================================
-  home.activation.matugenConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    MATUGEN_CONF="$HOME/.config/matugen/config.toml"
-    if [ ! -f "$MATUGEN_CONF" ]; then
-      mkdir -p "$(dirname "$MATUGEN_CONF")"
-      cat > "$MATUGEN_CONF" <<'TOML'
-# ===========================================================
-# matugen configuration
-# Generates Material You color themes from wallpaper images
-# Templates from: https://github.com/InioX/matugen-themes
-# ===========================================================
+  home.file.".config/matugen/config.toml" = {
+    force = true;
+    text = ''
+      # ===========================================================
+      # matugen configuration
+      # Generates Material You color themes from wallpaper images
+      # Templates from: https://github.com/InioX/matugen-themes
+      # ===========================================================
 
-[config]
-mode = "dark"
-reload_apps = true
+      [config]
+      mode = "dark"
+      reload_apps = true
 
-[templates.ghostty]
-input_path  = "~/.config/matugen/templates/templates/ghostty"
-output_path = "~/.config/ghostty/colors"
-post_hook   = "pkill -SIGUSR2 ghostty || true"
+      [templates.ghostty]
+      input_path  = "~/.config/matugen/templates/templates/ghostty"
+      output_path = "~/.config/ghostty/colors"
+      post_hook   = "pkill -SIGUSR2 ghostty || true"
 
-[templates.starship]
-input_path  = "~/.config/matugen/templates/templates/starship-colors.toml"
-output_path = "~/.config/starship-colors.toml"
+      [templates.starship]
+      input_path  = "~/.config/matugen/templates/templates/starship-colors.toml"
+      output_path = "~/.config/starship-colors.toml"
 
-[templates.gtk]
-input_path  = "~/.config/matugen/templates/templates/gtk-colors.css"
-output_path = "~/.config/gtk-4.0/colors.css"
+      [templates.gtk]
+      input_path  = "~/.config/matugen/templates/templates/gtk-colors.css"
+      output_path = "~/.config/gtk-4.0/colors.css"
 
-[templates.cosmic]
-input_path  = "~/.config/matugen/templates/templates/cosmic_theme.ron"
-output_path = "~/.config/matugen/themes/matugen_cosmic.theme.ron"
-post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron && cosmic-settings appearance import ~/.config/matugen/themes/matugen_cosmic.theme.ron || true"
+      [templates.cosmic]
+      input_path  = "~/.config/matugen/templates/templates/cosmic_theme.ron"
+      output_path = "~/.config/matugen/themes/matugen_cosmic.theme.ron"
+      post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron && cosmic-settings appearance import ~/.config/matugen/themes/matugen_cosmic.theme.ron || true"
 
-[templates.dunst]
-input_path  = "~/.config/matugen/templates/templates/dunstrc-colors"
-output_path = "~/.config/dunst/dunstrc-colors"
-post_hook   = "dunstctl reload || true"
+      [templates.dunst]
+      input_path  = "~/.config/matugen/templates/templates/dunstrc-colors"
+      output_path = "~/.config/dunst/dunstrc-colors"
+      post_hook   = "dunstctl reload || true"
 
-[templates.kitty]
-input_path  = "~/.config/matugen/templates/templates/kitty-colors.conf"
-output_path = "~/.config/kitty/colors.conf"
-post_hook   = "pkill -USR1 kitty || true"
+      [templates.kitty]
+      input_path  = "~/.config/matugen/templates/templates/kitty-colors.conf"
+      output_path = "~/.config/kitty/colors.conf"
+      post_hook   = "pkill -USR1 kitty || true"
 
-[templates.btop]
-input_path  = "~/.config/matugen/templates/templates/btop.theme"
-output_path = "~/.config/btop/themes/matugen.theme"
-post_hook   = "mkdir -p ~/.config/btop/themes && sed -i 's/^color_theme = .*/color_theme = \"matugen\"/' ~/.config/btop/btop.conf 2>/dev/null || true"
+      [templates.btop]
+      input_path  = "~/.config/matugen/templates/templates/btop.theme"
+      output_path = "~/.config/btop/themes/matugen.theme"
+      post_hook   = "mkdir -p ~/.config/btop/themes && sed -i 's/^color_theme = .*/color_theme = \"matugen\"/' ~/.config/btop/btop.conf 2>/dev/null || true"
 
-[templates.zed]
-input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
-output_path = "~/.config/zed/themes/matugen.json"
-TOML
-    fi
-  '';
+      [templates.zed]
+      input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
+      output_path = "~/.config/zed/themes/matugen.json"
+    '';
+  };
 
   # =========================================================================
   # Wallpaper slideshow service
