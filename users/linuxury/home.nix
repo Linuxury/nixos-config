@@ -332,6 +332,11 @@ in
       };
     };
 
+    shellAliases = {
+      # eza — modern ls with colors, icons, and git status (eza is in linuxury-packages.nix)
+      ll = "eza -la --color=always --icons --group-directories-first --git";
+    };
+
     # Shared shell initialization — env vars, PATH, fastfetch, nru function
     initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
   };

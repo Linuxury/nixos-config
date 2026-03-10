@@ -97,6 +97,11 @@
     gsettings-desktop-schemas
 
     # -----------------------------------------------------------------------
+    # Shell tools
+    # -----------------------------------------------------------------------
+    eza   # Modern ls replacement — colors, icons, git status, dir grouping
+
+    # -----------------------------------------------------------------------
     # Network share client
     #
     # Provides libsmbclient — the library gvfs (above) links against at
