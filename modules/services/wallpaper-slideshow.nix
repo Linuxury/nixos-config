@@ -238,8 +238,13 @@
 
     Service = {
       Type        = "oneshot";
-      # Include nix profile and system bins so matugen post-hooks (python3, etc.) work
-      Environment = "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin:/usr/bin:/bin";
+      # matugen uses $SHELL -c to run post_hooks. SHELL=fish breaks POSIX operators (||, &&).
+      # Force POSIX sh so hooks work correctly regardless of the user's login shell.
+      # Also include nix profile and system bins so post-hook tools (python3, etc.) are found.
+      Environment = [
+        "SHELL=/bin/sh"
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin:/usr/bin:/bin"
+      ];
       ExecStart = "${pkgs.writeShellScript "wallpaper-color-sync" ''
         #!/usr/bin/env bash
         set -euo pipefail
