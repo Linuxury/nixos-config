@@ -171,6 +171,10 @@
       };
     };
 
+    shellAliases = {
+      ll = "eza -la --color=always --icons --group-directories-first --git";
+    };
+
     initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
   };
 

@@ -16,7 +16,6 @@
     topgrade    # One-command updater — Nix, cargo, flatpaks, etc.
 
     # File management
-    eza         # Modern ls replacement with colors and icons
     bat         # cat with syntax highlighting and line numbers
 
     # Development helpers
