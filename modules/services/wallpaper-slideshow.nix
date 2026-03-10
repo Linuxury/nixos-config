@@ -30,6 +30,7 @@
     findutils     # find command for wallpaper discovery
     coreutils     # shuf for random selection
     git           # needed by matugenTemplates activation below
+    python3       # needed by matugen's COSMIC post-hook (cosmic_postprocess.py)
   ];
 
   # =========================================================================
@@ -237,7 +238,9 @@ TOML
     };
 
     Service = {
-      Type      = "oneshot";
+      Type        = "oneshot";
+      # Include nix profile and system bins so matugen post-hooks (python3, etc.) work
+      Environment = "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin:/usr/bin:/bin";
       ExecStart = "${pkgs.writeShellScript "wallpaper-color-sync" ''
         #!/usr/bin/env bash
         set -euo pipefail
