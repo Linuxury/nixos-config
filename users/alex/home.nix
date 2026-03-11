@@ -170,6 +170,31 @@
   };
 
   # =========================================================================
+  # Zoxide — smarter cd
+  # =========================================================================
+  programs.zoxide = {
+    enable               = true;
+    enableZshIntegration = true;
+  };
+
+  # =========================================================================
+  # FZF — fuzzy finder
+  # =========================================================================
+  programs.fzf = {
+    enable               = true;
+    enableZshIntegration = true;
+  };
+
+  # =========================================================================
+  # Direnv — auto-loads .envrc on cd (nix develop shells, project env vars)
+  # =========================================================================
+  programs.direnv = {
+    enable               = true;
+    enableZshIntegration = true;
+    nix-direnv.enable    = true;
+  };
+
+  # =========================================================================
   # Hytale — automatic flatpak installation from bundled file
   #
   # Same approach as babylinux — installs from assets repo on first login.

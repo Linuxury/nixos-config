@@ -2,10 +2,12 @@
 # modules/base/server-shell.nix — Zsh config for headless servers
 #
 # Provides the same NixOS aliases as desktop hosts (nr, nru, nrb, etc.)
-# but WITHOUT the desktop-only tools:
+# and the same quality-of-life tools (zoxide, fzf, direnv) configured at
+# the NixOS system level (no Home Manager on servers).
+#
+# Desktop-only tools intentionally excluded:
 #   - fastfetch   (graphical eye candy — not useful over SSH)
 #   - starship    (prompt — servers use the default zsh prompt)
-#   - zoxide      (smarter cd — not installed on servers)
 #   - snapper     (BTRFS snapshots — servers don't import snapper.nix)
 #   - zsh-abbr    (overkill for servers — plain aliases used instead)
 #
@@ -18,6 +20,19 @@
 { lib, ... }:
 
 {
+  # Zoxide — smarter cd (system-level, all users)
+  programs.zoxide.enable = true;
+
+  # FZF — fuzzy finder: Ctrl+R history, Ctrl+T file picker, Alt+C cd
+  programs.fzf.fuzzyCompletion = true;
+  programs.fzf.keybindings     = true;
+
+  # Direnv — auto-loads .envrc on cd (nix develop shells, project env vars)
+  programs.direnv = {
+    enable            = true;
+    nix-direnv.enable = true;
+  };
+
   programs.zsh = {
     enable = true;
     autosuggestions.enable   = true;

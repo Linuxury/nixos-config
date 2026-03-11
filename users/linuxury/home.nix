@@ -242,16 +242,19 @@ in
         HostName     Media-Server
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
+        SetEnv       TERM=xterm-256color
 
       Host minisforum
         HostName     MinisForum
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
+        SetEnv       TERM=xterm-256color
 
       Host radxa
         HostName     Radxa-X4
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
+        SetEnv       TERM=xterm-256color
 
       Host ryzen5800x
         HostName     Ryzen5800x
@@ -419,6 +422,15 @@ in
   programs.fzf = {
     enable               = true;
     enableZshIntegration = true;
+  };
+
+  # =========================================================================
+  # Direnv — auto-loads .envrc on cd (nix develop shells, project env vars)
+  # =========================================================================
+  programs.direnv = {
+    enable               = true;
+    enableZshIntegration = true;
+    nix-direnv.enable    = true;
   };
 
   # =========================================================================
