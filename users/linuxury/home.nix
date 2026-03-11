@@ -232,6 +232,7 @@ in
         IdentitiesOnly      yes
         ServerAliveInterval 60
         ServerAliveCountMax 3
+        SetEnv              TERM=xterm-256color
 
       Host github.com
         HostName     github.com
@@ -242,19 +243,16 @@ in
         HostName     Media-Server
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
-        SetEnv       TERM=xterm-256color
 
       Host minisforum
         HostName     MinisForum
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
-        SetEnv       TERM=xterm-256color
 
       Host radxa
         HostName     Radxa-X4
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
-        SetEnv       TERM=xterm-256color
 
       Host ryzen5800x
         HostName     Ryzen5800x
