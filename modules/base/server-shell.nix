@@ -37,6 +37,16 @@
   # Fastfetch — system info on shell start
   environment.systemPackages = [ pkgs.fastfetch ];
 
+  # Fall back to xterm-256color for terminals the server doesn't have terminfo
+  # for (e.g. xterm-ghostty). Runs in /etc/zsh/zshenv — before NixOS's
+  # set-environment script — so it silences the "can't find terminal definition"
+  # errors that otherwise appear on every SSH login from ghostty.
+  programs.zsh.shellInit = ''
+    if [ -n "$TERM" ] && ! infocmp "$TERM" >/dev/null 2>&1; then
+      export TERM=xterm-256color
+    fi
+  '';
+
   programs.zsh = {
     enable = true;
     autosuggestions.enable   = true;
