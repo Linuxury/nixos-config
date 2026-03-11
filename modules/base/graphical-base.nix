@@ -28,6 +28,11 @@
     # graphical host. Policies are declared once here rather than in
     # each host config. See modules/base/firefox.nix for full details.
     ./firefox.nix
+
+    # Fast-fail pre-check for the Torrents CIFS automount.
+    # Self-activating: only applies to hosts that have /mnt/Torrents
+    # in fileSystems. No-op on hosts without it.
+    ./torrents-precheck.nix
   ];
 
   # =========================================================================
