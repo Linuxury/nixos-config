@@ -299,6 +299,7 @@
           Videos,
           Path("/mnt/Media-Server"),
           Path("/mnt/MinisForum"),
+          Path("/mnt/Torrents"),
       ]
     '';
   };
