@@ -237,6 +237,10 @@
     containers.crafty = {
       image     = "registry.gitlab.com/crafty-controller/crafty-4:latest";
       autoStart = true;
+      # Run as linuxury (UID 1002, GID 100) so the container process can write
+      # to the mounted volumes, which are owned by linuxury:users on the host.
+      # Crafty defaults to UID 1000; linuxury on MinisForum is 1002.
+      user = "1002:100";
       ports = [
         "8443:8443"       # Web UI
         "25565:25565"     # Minecraft Java (default server)
@@ -360,6 +364,7 @@
   users.users = {
     linuxury = {
       isNormalUser = true;
+      uid          = 1002; # Pinned — crafty container user = "1002:100" depends on this
       extraGroups  = [ "wheel" "networkmanager" "docker" ];
       shell        = pkgs.zsh;
     };
