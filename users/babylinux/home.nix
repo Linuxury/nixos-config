@@ -11,7 +11,7 @@
 #
 # Notable:
 #   - Hytale installed from bundled flatpak in assets repo
-#   - Prism Launcher + Bedrock launcher for Minecraft
+#   - Prism Launcher for Minecraft (Java Edition)
 #   - Shares terminal dotfiles with linuxury (ghostty + kitty)
 # ===========================================================================
 
