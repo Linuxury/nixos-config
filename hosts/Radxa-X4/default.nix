@@ -54,7 +54,11 @@
   ];
 
   # Disable IPv6 — not needed and reduces attack surface / complexity.
+  # networking.enableIPv6 sets net.ipv6.conf.all/default.disable_ipv6,
+  # but NetworkManager re-enables IPv6 on interfaces it manages (wlp1s0).
+  # The per-interface sysctl overrides NM after it brings the interface up.
   networking.enableIPv6 = false;
+  boot.kernel.sysctl."net.ipv6.conf.wlp1s0.disable_ipv6" = 1;
 
   # =========================================================================
   # GPU driver selection
