@@ -2,12 +2,10 @@
 # modules/base/server-shell.nix — Zsh config for headless servers
 #
 # Provides the same NixOS aliases as desktop hosts (nr, nru, nrb, etc.)
-# and the same quality-of-life tools (zoxide, fzf, direnv) configured at
-# the NixOS system level (no Home Manager on servers).
+# and the same quality-of-life tools (zoxide, fzf, direnv, starship,
+# fastfetch) configured at the NixOS system level (no Home Manager on servers).
 #
 # Desktop-only tools intentionally excluded:
-#   - fastfetch   (graphical eye candy — not useful over SSH)
-#   - starship    (prompt — servers use the default zsh prompt)
 #   - snapper     (BTRFS snapshots — servers don't import snapper.nix)
 #   - zsh-abbr    (overkill for servers — plain aliases used instead)
 #
@@ -17,9 +15,12 @@
 # Import this in: Radxa-X4, MinisForum, Media-Server (any headless host).
 # ===========================================================================
 
-{ lib, ... }:
+{ pkgs, lib, ... }:
 
 {
+  # Starship — cross-shell prompt (system-level, all users)
+  programs.starship.enable = true;
+
   # Zoxide — smarter cd (system-level, all users)
   programs.zoxide.enable = true;
 
@@ -32,6 +33,9 @@
     enable            = true;
     nix-direnv.enable = true;
   };
+
+  # Fastfetch — system info on shell start
+  environment.systemPackages = [ pkgs.fastfetch ];
 
   programs.zsh = {
     enable = true;
@@ -73,6 +77,9 @@
 
       # Canonical path to the nixos-config repo
       export NIXOS_CONFIG=$HOME/nixos-config
+
+      # System info on login
+      fastfetch
 
       # Rebuild + update nixpkgs flake input before switching
       nru() {
