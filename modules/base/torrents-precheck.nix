@@ -45,12 +45,19 @@ lib.mkIf (config.fileSystems ? "/mnt/Torrents") {
   #   - StartLimitBurst=2: after 2 failures in 60s, return immediate
   #     errors to callers (automount releases waiting processes instantly)
   #     instead of triggering another slow mount attempt
-  environment.etc."systemd/system/mnt-Torrents.mount.d/precheck.conf".text = ''
-    [Unit]
-    Requires=radxa-smb-check.service
-    After=radxa-smb-check.service
-    StartLimitIntervalSec=60
-    StartLimitBurst=2
-  '';
+  #
+  # Uses systemd.units with overrideStrategy="asDropin" rather than
+  # environment.etc — NixOS manages /etc/systemd/system/ as a store
+  # symlink so environment.etc can't create subdirectories inside it.
+  systemd.units."mnt-Torrents.mount" = {
+    overrideStrategy = "asDropin";
+    text = ''
+      [Unit]
+      Requires=radxa-smb-check.service
+      After=radxa-smb-check.service
+      StartLimitIntervalSec=60
+      StartLimitBurst=2
+    '';
+  };
 
 }
