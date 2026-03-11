@@ -37,6 +37,26 @@
   networking.hostName = "Radxa-X4";
 
   # =========================================================================
+  # Network interface configuration
+  #
+  # enp2s0 (Ethernet) — LAN only, static IP, no default gateway.
+  #   Used by Samba, SSH, and Tailscale. Removed from NetworkManager so
+  #   NM doesn't try to DHCP it or add a competing default route.
+  #   Router also has a static DHCP lease for this MAC → always 10.0.0.5.
+  #
+  # wlp1s0 (WiFi) — internet-facing, managed by NetworkManager (DHCP).
+  #   Provides the default route, which is what WireGuard uses for its
+  #   VPN handshake traffic via the masquerade in vpn-qbittorrent.nix.
+  # =========================================================================
+  networking.networkmanager.unmanaged = [ "enp2s0" ];
+  networking.interfaces.enp2s0.ipv4.addresses = [
+    { address = "10.0.0.5"; prefixLength = 24; }
+  ];
+
+  # Disable IPv6 — not needed and reduces attack surface / complexity.
+  networking.enableIPv6 = false;
+
+  # =========================================================================
   # GPU driver selection
   # Intel UHD integrated graphics (Alder Lake N)
   # =========================================================================
@@ -221,6 +241,14 @@
   # Access: \\Radxa-X4\Torrents
   # =========================================================================
   services.samba.settings = {
+    # Bind Samba to Ethernet only — never listens on WiFi or the veth pair.
+    # "bind interfaces only" prevents nmbd/smbd from accepting connections
+    # on wlp1s0 (10.0.0.32) or veth-qbt (10.200.200.x).
+    global = {
+      "interfaces"           = "lo enp2s0";
+      "bind interfaces only" = "yes";
+    };
+
     "Torrents" = {
       path             = "/data/torrents";
       comment          = "Torrent downloads";
