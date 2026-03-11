@@ -227,7 +227,6 @@
   # Ports mapped to host:
   #   8443        — Crafty web UI (HTTPS)
   #   25565       — Minecraft Java default (add more in Crafty UI as needed)
-  #   19132/udp   — Minecraft Bedrock default (if you add a Bedrock server)
   #
   # To add more Minecraft ports (e.g. a second server on 25566):
   #   Add "25566:25566" to ports below and 25566 to allowedTCPPorts.
@@ -242,7 +241,6 @@
       ports = [
         "8443:8443"       # Web UI
         "25565:25565"     # Minecraft Java (default server)
-        "19132:19132/udp" # Minecraft Bedrock (optional)
       ];
       volumes = [
         "/data/gameservers/crafty/backups:/crafty/backups"
@@ -341,7 +339,7 @@
   };
 
   networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 ];
-  networking.firewall.allowedUDPPorts = [ 137 138 19132 5520 ]; # 5520/udp — Hytale uses QUIC (UDP only)
+  networking.firewall.allowedUDPPorts = [ 137 138 5520 ]; # 5520/udp — Hytale uses QUIC (UDP only)
 
   # =========================================================================
   # Tailscale — remote management
