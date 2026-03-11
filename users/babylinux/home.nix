@@ -130,6 +130,7 @@
         IdentitiesOnly      yes
         ServerAliveInterval 60
         ServerAliveCountMax 3
+        SetEnv              TERM=xterm-256color
 
       Host media-server
         HostName     Media-Server
