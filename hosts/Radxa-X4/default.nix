@@ -49,9 +49,10 @@
   #   VPN handshake traffic via the masquerade in vpn-qbittorrent.nix.
   # =========================================================================
   networking.networkmanager.unmanaged = [ "enp2s0" ];
-  networking.interfaces.enp2s0.ipv4.addresses = [
-    { address = "10.0.0.5"; prefixLength = 24; }
-  ];
+  networking.interfaces.enp2s0 = {
+    useDHCP = false;  # LAN only — no DHCP, no default route via Ethernet
+    ipv4.addresses = [{ address = "10.0.0.5"; prefixLength = 24; }];
+  };
 
   # Disable IPv6 — not needed and reduces attack surface / complexity.
   # networking.enableIPv6 sets net.ipv6.conf.all/default.disable_ipv6,
