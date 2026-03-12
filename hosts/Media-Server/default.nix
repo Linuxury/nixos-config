@@ -299,14 +299,14 @@
   services.sonarr = {
     enable  = true;
     user    = "sonarr";
-    group   = "arr-services";
+    group   = "media";
     dataDir = "/data/config/arr-services/sonarr";
   };
 
   services.radarr = {
     enable  = true;
     user    = "radarr";
-    group   = "arr-services";
+    group   = "media";
     dataDir = "/data/config/arr-services/radarr";
   };
 
@@ -319,14 +319,14 @@
   services.lidarr = {
     enable  = true;
     user    = "lidarr";
-    group   = "arr-services";
+    group   = "media";
     dataDir = "/data/config/arr-services/lidarr";
   };
 
   services.readarr = {
     enable  = true;
     user    = "readarr";
-    group   = "arr-services";
+    group   = "media";
     dataDir = "/data/config/arr-services/readarr";
   };
 
