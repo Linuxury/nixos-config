@@ -206,13 +206,15 @@
     "d /data/downloads/incomplete         0775 root media        -"
 
     # Photos — Immich library
-    "d /data/photos                       0775 root  immich -"
-    "d /data/photos/library               0775 immich immich -"
-    "d /data/photos/uploads               0775 immich immich -"
-    "d /data/photos/thumbs                0775 immich immich -"
-    "d /data/photos/profile               0775 immich immich -"
-    "d /data/photos/backups               0775 immich immich -"
-    "d /data/photos/encoded-video         0775 immich immich -"
+    # Use 'z' (not 'd') so permissions are enforced on existing dirs too.
+    # 0750: immich group (linuxury, babylinux) can read/browse but not write.
+    "z /data/photos                       0750 immich immich -"
+    "z /data/photos/library               0750 immich immich -"
+    "z /data/photos/uploads               0750 immich immich -"
+    "z /data/photos/thumbs                0750 immich immich -"
+    "z /data/photos/profile               0750 immich immich -"
+    "z /data/photos/backups               0750 immich immich -"
+    "z /data/photos/encoded-video         0750 immich immich -"
 
     # Shared workspace — accessible to all family via Samba
     "d /data/shared                       0775 root media        -"
