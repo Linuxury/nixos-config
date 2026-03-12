@@ -200,10 +200,9 @@
     "d /data/media/music                  0775 root media        -"
     "d /data/media/books                  0775 root media        -"
 
-    # Downloads — Arr services write here, then move to media
-    "d /data/downloads                    0775 root media        -"
-    "d /data/downloads/complete           0775 root media        -"
-    "d /data/downloads/incomplete         0775 root media        -"
+    # Downloads — mount point for Radxa-X4 Torrents CIFS share
+    # The CIFS mount overlays this dir, so only the mountpoint needs to exist.
+    "d /data/downloads                    0755 root root         -"
 
     # Photos — Immich library
     # Use 'z' (not 'd') so permissions are enforced on existing dirs too.
@@ -219,10 +218,7 @@
     # Shared workspace — accessible to all family via Samba
     "d /data/shared                       0775 root media        -"
 
-    # Mount point for Radxa-X4 Torrents CIFS share
-    "d /mnt/Torrents                      0755 root         root         -"
-
-    # Service config directories — persistent app data
+# Service config directories — persistent app data
     "d /data/config                       0755 root         root         -"
     "d /data/config/plex                  0755 plex         media        -"
     "d /data/config/immich                0755 immich       immich       -"
@@ -246,19 +242,19 @@
   # =========================================================================
   # CIFS mount — Radxa-X4 Torrents share
   #
-  # Sonarr/Radarr need to read completed downloads from Radxa-X4 so they
-  # can import/move files into /data/media. This mount makes the remote
-  # path visible locally at /mnt/Torrents.
+  # Mounted directly at /data/downloads so it appears as the "downloads"
+  # folder in the Media-Server Samba share and Arr services can access it
+  # at the expected path.
   #
   # Remote path mapping in Sonarr/Radarr (manual setup after first boot):
   #   Download Clients → qBittorrent → Remote Path Mappings:
   #     Remote path: /data/torrents/complete
-  #     Local path:  /mnt/Torrents/complete
+  #     Local path:  /data/downloads/complete
   #
   # Automounts on first access, disconnects after 60s idle.
   # nofail: non-fatal if Radxa-X4 is offline.
   # =========================================================================
-  fileSystems."/mnt/Torrents" = {
+  fileSystems."/data/downloads" = {
     device  = "//10.0.0.5/Torrents";
     fsType  = "cifs";
     options = [
