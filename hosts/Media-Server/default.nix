@@ -500,7 +500,7 @@
 
     babylinux = {
       isNormalUser = true;
-      extraGroups  = [ "networkmanager" "media" ];
+      extraGroups  = [ "networkmanager" "media" "immich" ];
       shell        = pkgs.zsh;
     };
 
