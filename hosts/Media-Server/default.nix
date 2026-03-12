@@ -458,9 +458,9 @@
   #   sudo smbpasswd -a alex
   #
   # Access from clients:
-  #   Windows:  \\Media-Server\Media-Server
-  #   macOS:    smb://Media-Server/Media-Server
-  #   Linux:    smb://Media-Server/Media-Server
+  #   Windows:  \\Media-Server\Media-Server  and  \\Media-Server\Downloads
+  #   macOS:    smb://Media-Server/Media-Server  and  smb://Media-Server/Downloads
+  #   Linux:    smb://Media-Server/Media-Server  and  smb://Media-Server/Downloads
   #   fstab:    //10.0.0.3/Media-Server → /mnt/Media-Server
   # =========================================================================
   services.samba.settings = {
@@ -468,6 +468,17 @@
     "Media-Server" = {
       path              = "/data";
       comment           = "Media Server";
+      browseable        = "yes";
+      "read only"       = "no";
+      "valid users"     = "linuxury babylinux alex";
+      "force group"     = "media";
+      "create mask"     = "0664";
+      "directory mask"  = "0775";
+    };
+
+    "Downloads" = {
+      path              = "/data/downloads";
+      comment           = "Torrents (Radxa-X4)";
       browseable        = "yes";
       "read only"       = "no";
       "valid users"     = "linuxury babylinux alex";
