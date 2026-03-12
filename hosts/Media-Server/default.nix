@@ -178,7 +178,7 @@
   # for read/write access to /data/media and related folders.
   # =========================================================================
   users.groups = {
-    media        = { gid = 985; members = [ "plex" "sonarr" "radarr" "lidarr" "readarr" "bazarr" "prowlarr" ]; };
+    media        = { gid = 995; members = [ "plex" "sonarr" "radarr" "lidarr" "readarr" "bazarr" "prowlarr" ]; };
     arr-services = {};  # Shared group for all arr services
     # linuxury/babylinux in the immich group so Samba connections can read
     # photo files (which immich creates as immich:immich).
@@ -261,7 +261,7 @@
     fsType  = "cifs";
     options = [
       "credentials=/run/agenix/smb-credentials"
-      "uid=0" "gid=985"
+      "uid=0" "gid=995"
       "file_mode=0664" "dir_mode=0775"
       "nofail" "_netdev" "noauto"
       "x-systemd.automount" "x-systemd.idle-timeout=60"
