@@ -472,8 +472,8 @@ in
   gtk = {
     enable = true;
     iconTheme = {
-      name    = "Tela";
-      package = pkgs.tela-icon-theme;
+      name    = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
     };
     cursorTheme = {
       name    = "BreezeX-Light";
@@ -512,7 +512,7 @@ in
   # Writing these declaratively means COSMIC always starts with the correct
   # theme regardless of what its UI may have previously set.
   # =========================================================================
-  home.file.".config/cosmic/com.system76.CosmicTk/v1/icon_theme".text  = ''"Tela"'';
+  home.file.".config/cosmic/com.system76.CosmicTk/v1/icon_theme".text  = ''"Papirus-Dark"'';
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_theme".text = ''"BreezeX-Light"'';
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size".text  = "24";
 
