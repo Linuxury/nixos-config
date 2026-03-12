@@ -367,7 +367,7 @@
     babylinux = {
       isNormalUser  = true;
       # No wheel — wife doesn't need server admin access
-      extraGroups   = [ "networkmanager" ];
+      extraGroups   = [ "networkmanager" "docker" ];
       shell         = pkgs.zsh;
     };
 
