@@ -283,7 +283,6 @@
     user         = "plex";
     group        = "media";
     dataDir      = "/data/config/plex";
-    package      = pkgs.plexPass;
   };
 
   # =========================================================================
