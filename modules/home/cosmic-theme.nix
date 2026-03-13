@@ -6,7 +6,7 @@
 # (linuxury, babylinux, alex) inherit these settings automatically.
 #
 # Sets:
-#   - Papirus-Dark as the icon theme (GTK + COSMIC)
+#   - Tela-dark as the icon theme (GTK + COSMIC)
 #   - BreezeX-Light as the cursor theme (GTK + COSMIC + X11/Wayland env)
 # ===========================================================================
 
@@ -72,8 +72,8 @@ in
   gtk = {
     enable    = true;
     iconTheme = {
-      name    = "Papirus-Dark";
-      package = pkgs.papirus-icon-theme;
+      name    = "Tela-dark";
+      package = pkgs.tela-icon-theme;
     };
     cursorTheme = {
       name    = "BreezeX-Light";
@@ -93,7 +93,7 @@ in
   # Writing these declaratively means COSMIC always starts with the correct
   # theme regardless of what its UI may have previously set.
   # =========================================================================
-  home.file.".config/cosmic/com.system76.CosmicTk/v1/icon_theme".text   = ''"Papirus-Dark"'';
+  home.file.".config/cosmic/com.system76.CosmicTk/v1/icon_theme".text   = ''"Tela-dark"'';
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_theme".text = ''"BreezeX-Light"'';
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size".text  = "24";
 }
