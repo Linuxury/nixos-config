@@ -59,7 +59,8 @@ in
   # GPU driver selection
   # Nvidia hybrid triggers the PRIME offload setup in drivers.nix
   # =========================================================================
-  hardware.gpu = "nvidia-hybrid";
+  # TODO: switch back to "nvidia-hybrid" once PCI bus IDs are filled in above
+  hardware.gpu = "amd";
 
   # =========================================================================
   # PRIME PCI Bus IDs
@@ -78,10 +79,11 @@ in
   # Then fill in below and remove this comment block.
   # This is tracked in docs/manual-steps.md
   # =========================================================================
-  hardware.nvidia.prime = {
-    amdgpuBusId = "PCI:FILL:IN"; # AMD iGPU — replace with actual ID
-    nvidiaBusId = "PCI:FILL:IN"; # Nvidia dGPU — replace with actual ID
-  };
+  # hardware.nvidia.prime = {
+  #   amdgpuBusId = "PCI:FILL:IN"; # AMD iGPU — replace with actual ID
+  #   nvidiaBusId = "PCI:FILL:IN"; # Nvidia dGPU — replace with actual ID
+  # };
+  # TODO: fill in PCI bus IDs from: lspci | grep -E "VGA|3D"
 
   # =========================================================================
   # Display manager session priority
@@ -234,10 +236,7 @@ in
   # After first boot set battery limit with:
   #   asusctl -c 80
   # =========================================================================
-  services.asusd = {
-    enable = true;
-    enableUserService = true; # Allows controlling without sudo
-  };
+  services.asusd.enable = true;
 
   # =========================================================================
   # Power management for hybrid laptop
