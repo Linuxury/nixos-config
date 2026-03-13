@@ -169,6 +169,19 @@
   ];
 
   # =========================================================================
+  # ntsync — NT synchronization primitives (kernel 6.14+)
+  #
+  # Exposes /dev/ntsync with proper udev rules so non-root users can use it.
+  # Wine-staging and Proton-GE pick this up automatically for much lower
+  # CPU overhead on synchronization-heavy Windows games.
+  # No Steam launch option needed — Wine/Proton auto-detects it.
+  # =========================================================================
+  boot.kernelModules = [ "ntsync" ];
+  services.udev.extraRules = ''
+    KERNEL=="ntsync", TAG+="uaccess"
+  '';
+
+  # =========================================================================
   # Controller support — udev rules
   #
   # Without these rules, controllers need root access to be read.

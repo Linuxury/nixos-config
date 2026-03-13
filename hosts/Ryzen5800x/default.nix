@@ -157,10 +157,6 @@ in
     "d /mnt/MinisForum   0755 babylinux users -"
   ];
 
-  environment.systemPackages = with pkgs; [
-    cifs-utils
-  ];
-
   # =========================================================================
   # Agenix secrets
   # =========================================================================
@@ -212,6 +208,8 @@ in
   # quality of life things that make it easier to support remotely.
   # =========================================================================
   environment.systemPackages = with pkgs; [
+    cifs-utils
+
     # Remote support
     rustdesk          # Open source remote desktop — lets you help her
                       # remotely without needing to be physically present

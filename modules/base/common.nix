@@ -256,6 +256,15 @@
   ];
 
   # =========================================================================
+  # FWUPD — firmware update daemon
+  #
+  # Lets you update firmware (BIOS, SSD, peripherals) via LVFS directly
+  # from the command line or a GUI (e.g. GNOME Software / KDE Discover).
+  # Run: fwupdmgr refresh && fwupdmgr update
+  # =========================================================================
+  services.fwupd.enable = true;
+
+  # =========================================================================
   # TAILSCALE — mesh VPN
   #
   # Runs on every machine so you can reach all of them (desktops, laptops,

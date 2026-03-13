@@ -174,6 +174,15 @@
       log "Cleaning up old generations..."
       sudo nix-collect-garbage --delete-older-than 30d >> "$LOG_FILE" 2>&1 || true
 
+      # Firmware updates via fwupd
+      log "Checking for firmware updates..."
+      if sudo fwupdmgr refresh >> "$LOG_FILE" 2>&1; then
+        sudo fwupdmgr update --no-reboot-check >> "$LOG_FILE" 2>&1 || \
+          log "No firmware updates available or update skipped"
+      else
+        log "fwupdmgr refresh failed — skipping firmware update"
+      fi
+
       # Notify success
       notify-send \
         --app-name "NixOS Update" \
@@ -282,6 +291,10 @@
         }
         {
           command  = "/run/current-system/sw/bin/nixos-rebuild";
+          options  = [ "NOPASSWD" ];
+        }
+        {
+          command  = "${pkgs.fwupd}/bin/fwupdmgr";
           options  = [ "NOPASSWD" ];
         }
       ];
