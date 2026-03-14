@@ -4,12 +4,12 @@
     // kitty-direct uses the kitty graphics protocol — works in kitty and ghostty.
     // Replace the source path with any image you prefer.
     "type": "kitty-direct",
-    "source": "~/Pictures/Fastfetch/naruto.png",
+    "source": "~/Pictures/Fastfetch/naruto-chibi.png",
     "width": 22,
-    "height": 22,
+    "height": 19,
     "padding": {
-      "top": 1,
-      "left": 1,
+      "top": 0,
+      "left": 0,
       "right": 2,
     },
   },
