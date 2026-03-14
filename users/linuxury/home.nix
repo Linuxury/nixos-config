@@ -347,11 +347,14 @@
   # =========================================================================
   programs.helix = {
     enable  = true;
-    package = pkgs.helix.overrideAttrs (old: {
-      postInstall = (old.postInstall or "") + ''
-        rm -f $out/share/applications/Helix.desktop
-      '';
-    });
+    # Helix.desktop lives in helix-unwrapped, not the wrapper — override there.
+    package = pkgs.helix.override {
+      helix-unwrapped = pkgs.helix-unwrapped.overrideAttrs (old: {
+        postInstall = (old.postInstall or "") + ''
+          rm -f $out/share/applications/Helix.desktop
+        '';
+      });
+    };
   };
 
   # Override Helix desktop entry so clicking the icon opens it in Ghostty.
