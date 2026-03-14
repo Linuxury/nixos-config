@@ -5,8 +5,8 @@
     // Replace the source path with any image you prefer.
     "type": "kitty-direct",
     "source": "~/Pictures/Fastfetch/naruto-chibi-2.png",
-    "width": 22,
-    "height": 22,
+    "width": 38,
+    "height": 19,
     "padding": {
       "top": 0,
       "left": 0,
