@@ -65,6 +65,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # -------------------------------------------------------------------------
+    # zen-browser — Firefox-based browser with vertical tabs and zen features
+    # Not yet in nixpkgs, distributed as a community flake.
+    # Provides packages.x86_64-linux.default (hardware-accelerated build)
+    # -------------------------------------------------------------------------
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   # ===========================================================================
