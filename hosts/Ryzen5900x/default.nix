@@ -66,6 +66,34 @@ in
   networking.hostName = "Ryzen5900x";
 
   # =========================================================================
+  # Network — prefer ethernet, auto-disable WiFi when ethernet is up
+  #
+  # Having both interfaces active on the same subnet causes duplicate packets
+  # and routing confusion, which breaks browsers even on fast connections.
+  # This dispatcher script disables WiFi as soon as ethernet connects, and
+  # re-enables it if ethernet goes down (e.g. cable unplugged).
+  # =========================================================================
+  networking.networkmanager.dispatcherScripts = [{
+    source = pkgs.writeText "wifi-ethernet-exclusive" ''
+      #!/bin/sh
+      IFACE="$1"
+      STATUS="$2"
+
+      # Only act on ethernet interfaces (enp*, eth*, eno*)
+      case "$IFACE" in
+        en*|eth*|eno*)
+          if [ "$STATUS" = "up" ]; then
+            nmcli radio wifi off
+          elif [ "$STATUS" = "down" ]; then
+            nmcli radio wifi on
+          fi
+          ;;
+      esac
+    '';
+    type = "basic";
+  }];
+
+  # =========================================================================
   # GPU driver selection
   # =========================================================================
   hardware.gpu = "amd";
