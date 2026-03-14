@@ -117,6 +117,11 @@
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/assets/Wallpapers/${wallpaperDir}";
 
+    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
+    "Pictures/Fastfetch".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "/home/linuxury/nixos-config/assets/Fastfetch";
+
     # SSH config
     ".ssh/config".text = ''
       # ===========================================================
