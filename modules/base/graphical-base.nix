@@ -76,7 +76,7 @@
     # Media
     # -----------------------------------------------------------------------
     showtime    # GNOME video player — clean GTK4 GUI for casual viewing
-    amberol     # Music player — simple, modern, no library management needed
+    gapless     # Music player — GTK4, gapless playback, fast and lightweight
     loupe       # GNOME image viewer — thumbnails, zoom, EXIF
 
     # -----------------------------------------------------------------------

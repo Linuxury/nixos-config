@@ -40,22 +40,22 @@
   # XDG MIME type associations
   #
   # Tells the desktop environment which app opens each file type.
-  # Amberol's desktop entry ID: io.bassi.Amberol.desktop
+  # G4Music's desktop entry ID: com.github.neithern.g4music.desktop
   # =========================================================================
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "audio/mpeg"       = "io.bassi.Amberol.desktop";  # MP3
-      "audio/ogg"        = "io.bassi.Amberol.desktop";  # OGG Vorbis
-      "audio/flac"       = "io.bassi.Amberol.desktop";  # FLAC
-      "audio/x-flac"     = "io.bassi.Amberol.desktop";
-      "audio/wav"        = "io.bassi.Amberol.desktop";  # WAV
-      "audio/x-wav"      = "io.bassi.Amberol.desktop";
-      "audio/mp4"        = "io.bassi.Amberol.desktop";  # M4A / AAC
-      "audio/aac"        = "io.bassi.Amberol.desktop";
-      "audio/x-m4a"      = "io.bassi.Amberol.desktop";
-      "audio/opus"       = "io.bassi.Amberol.desktop";  # Opus
-      "audio/webm"       = "io.bassi.Amberol.desktop";
+      "audio/mpeg"       = "com.github.neithern.g4music.desktop";  # MP3
+      "audio/ogg"        = "com.github.neithern.g4music.desktop";  # OGG Vorbis
+      "audio/flac"       = "com.github.neithern.g4music.desktop";  # FLAC
+      "audio/x-flac"     = "com.github.neithern.g4music.desktop";
+      "audio/wav"        = "com.github.neithern.g4music.desktop";  # WAV
+      "audio/x-wav"      = "com.github.neithern.g4music.desktop";
+      "audio/mp4"        = "com.github.neithern.g4music.desktop";  # M4A / AAC
+      "audio/aac"        = "com.github.neithern.g4music.desktop";
+      "audio/x-m4a"      = "com.github.neithern.g4music.desktop";
+      "audio/opus"       = "com.github.neithern.g4music.desktop";  # Opus
+      "audio/webm"       = "com.github.neithern.g4music.desktop";
     };
   };
 
