@@ -20,7 +20,7 @@
 #   ]
 # ===========================================================================
 
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   imports = [
@@ -114,5 +114,13 @@
     # "Network" in any file manager will fail to connect to your servers.
     # -----------------------------------------------------------------------
     samba
+
+    # -----------------------------------------------------------------------
+    # Browsers
+    #
+    # zen-browser is not in nixpkgs — installed from the community flake input.
+    # Available on every graphical host for all users.
+    # -----------------------------------------------------------------------
+    inputs.zen-browser.packages.${pkgs.system}.default
   ];
 }
