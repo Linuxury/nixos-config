@@ -196,19 +196,16 @@
         # ---------------------------------------------------------------
         # Set wallpaper in COSMIC
         #
-        # If COSMIC is already using its own slideshow (source: Path(dir)),
-        # skip overwriting — its rotation takes precedence.
-        # Writing this file triggers wallpaper-color-sync.path, which
-        # runs matugen to regenerate all color themes automatically.
+        # Always write our selected wallpaper as File() — this ensures
+        # wallpaper-color-sync.path fires and matugen runs on the exact
+        # file that is displayed on screen. Writing a specific File()
+        # also prevents the mismatch that occurred when COSMIC's own
+        # slideshow was active (Path("/dir")) and color sync would pick
+        # a random file from the directory instead of the shown one.
         # ---------------------------------------------------------------
         mkdir -p "$COSMIC_BG_DIR"
 
-        CURRENT_SOURCE=$(grep -oP '(?:File|Path)\("\K[^"]+' "$COSMIC_BG_DIR/all" 2>/dev/null | head -1)
-        if [ -d "$CURRENT_SOURCE" ]; then
-          log "COSMIC slideshow is active — skipping wallpaper write, triggering color sync directly"
-          systemctl --user start wallpaper-color-sync.service
-        else
-          cat > "$COSMIC_BG_DIR/all" <<RON
+        cat > "$COSMIC_BG_DIR/all" <<RON
         (
             wallpapers: [
                 (
@@ -220,8 +217,7 @@
             ],
         )
         RON
-          log "COSMIC wallpaper config updated — color sync will follow"
-        fi
+        log "COSMIC wallpaper config updated — color sync will follow"
       ''}";
     };
 
