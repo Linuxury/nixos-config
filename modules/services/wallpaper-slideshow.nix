@@ -73,6 +73,22 @@
   '';
 
   # =========================================================================
+  # Kitty colors seed file
+  #
+  # kitty's config includes ~/.config/kitty/colors.conf via include directive.
+  # matugen populates it on each wallpaper change, but kitty will fail to
+  # start if the file is missing entirely on first boot.
+  # =========================================================================
+  home.activation.kittyColors = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    COLORS_FILE="$HOME/.config/kitty/colors.conf"
+    if [ ! -f "$COLORS_FILE" ]; then
+      mkdir -p "$(dirname "$COLORS_FILE")"
+      touch "$COLORS_FILE"
+      echo "matugen: created empty $COLORS_FILE (will be populated on first wallpaper change)"
+    fi
+  '';
+
+  # =========================================================================
   # matugen config.toml — managed declaratively by Home Manager
   #
   # force = true ensures stale configs (wrong template paths, old layout)

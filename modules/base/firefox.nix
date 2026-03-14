@@ -193,20 +193,16 @@ in
       # -----------------------------------------------------------------------
       # Security settings
       # -----------------------------------------------------------------------
-      HttpsOnlyMode         = "enabled";  # Force HTTPS everywhere
+      # HttpsOnlyMode removed — "enabled" adds a redirect attempt + timeout on
+      # every HTTP URL which causes noticeable slowdowns. Users can enable it
+      # per-site via the padlock menu if they want it.
       EnableTrackingProtection = {
-        Value            = true;
-        Locked           = true;          # Cannot be disabled by users
-        Cryptomining     = true;
-        Fingerprinting   = true;
-      };
-
-      # -----------------------------------------------------------------------
-      # Cookies and privacy
-      # -----------------------------------------------------------------------
-      Cookies = {
-        Behavior         = "reject-tracker-and-partition-foreign";
-        BehaviorPrivateBrowsing = "reject-tracker-and-partition-foreign";
+        Value        = true;
+        Cryptomining = true;
+        # Fingerprinting protection removed — too aggressive, breaks/slows
+        # many legitimate sites that use fingerprint APIs for non-tracking
+        # purposes (canvas fonts, WebGL, etc.). Users can toggle this in
+        # about:preferences#privacy if needed.
       };
     };
   };
