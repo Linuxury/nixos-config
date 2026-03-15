@@ -39,8 +39,9 @@
     obs-studio    # Screen recording and streaming
 
     # Misc utilities
-    p7zip       # Extract .7z, .rar, and many other archive formats
-    imagemagick # CLI image conversion and manipulation
+    p7zip              # Extract .7z, .rar, and many other archive formats
+    imagemagick        # CLI image conversion and manipulation
+    nix-output-monitor # Progress bar + TUI for nix builds (nom)
 
   ];
 }

@@ -35,5 +35,5 @@ nru() {
   echo "→ Pulling latest changes from $NIXOS_CONFIG..."
   git -C "$NIXOS_CONFIG" pull || return 1
   sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
-    nixos-rebuild switch --flake "$NIXOS_CONFIG" --update-input nixpkgs --print-build-logs
+    nixos-rebuild switch --flake "$NIXOS_CONFIG" --update-input nixpkgs |& nom
 }
