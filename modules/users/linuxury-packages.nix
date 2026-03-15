@@ -42,9 +42,5 @@
     p7zip       # Extract .7z, .rar, and many other archive formats
     imagemagick # CLI image conversion and manipulation
 
-    # Claude Code CLI — wrapped so its Bash tool uses bash (fish is not POSIX-compatible)
-    (pkgs.writeShellScriptBin "claude" ''
-      exec env SHELL=${pkgs.bash}/bin/bash ${pkgs.claude-code}/bin/claude "$@"
-    '')
   ];
 }
