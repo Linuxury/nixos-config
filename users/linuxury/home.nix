@@ -284,9 +284,9 @@
       enable = true;
       abbreviations = {
         # NixOS management
-        nr    = "sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why=\"NixOS rebuild in progress\" nixos-rebuild switch --flake ~/nixos-config --print-build-logs";
-        nrb   = "sudo nixos-rebuild boot --flake ~/nixos-config --print-build-logs";
-        nrt   = "sudo nixos-rebuild test --flake ~/nixos-config --print-build-logs";
+        nr    = "sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why=\"NixOS rebuild in progress\" nixos-rebuild switch --flake ~/nixos-config |& nom";
+        nrb   = "sudo nixos-rebuild boot --flake ~/nixos-config |& nom";
+        nrt   = "sudo nixos-rebuild test --flake ~/nixos-config |& nom";
         nrr   = "sudo nixos-rebuild switch --rollback";
         ngc   = "sudo nix-collect-garbage --delete-older-than 30d";
         ngens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
