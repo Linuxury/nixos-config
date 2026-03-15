@@ -242,7 +242,12 @@ RON
 )
 RON
         [ ! -f "$COSMIC_BG_DIR/same-on-all" ] && echo "true" > "$COSMIC_BG_DIR/same-on-all"
-        log "COSMIC config updated — wallpaper-color-sync will run matugen"
+
+        # Restart cosmic-bg so it reads the new File("...") config.
+        # Direct file writes don't trigger COSMIC's internal config notification,
+        # so a restart is the reliable way to make the new wallpaper appear.
+        systemctl --user restart cosmic-bg.service || true
+        log "COSMIC config updated and cosmic-bg restarted"
       ''}";
     };
 
