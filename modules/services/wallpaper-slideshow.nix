@@ -149,20 +149,18 @@
   # =========================================================================
   # COSMIC background config — written once via activation
   #
-  # COSMIC natively handles the 10-minute wallpaper slideshow when its
-  # config uses Path(dir) + rotation_frequency. We write this format
-  # via activation (not from a service) so rebuilds never clobber it.
-  #
-  # The activation only writes the file if it's missing or still contains
-  # the old File("...") format from our previous approach, which caused
-  # COSMIC settings to show "slideshow disabled".
+  # Writes a Path(dir) config only if the file is missing entirely.
+  # After first boot, the wallpaper-slideshow service takes over and
+  # writes File("specific") entries so COSMIC and matugen stay in sync.
+  # We intentionally never reset a File(...) config here — the slideshow
+  # service owns those updates.
   # =========================================================================
   home.activation.cosmicBackground = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     COSMIC_BG_DIR="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
     COSMIC_BG_CONF="$COSMIC_BG_DIR/all"
     WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 
-    if [ ! -f "$COSMIC_BG_CONF" ] || grep -q 'source: File(' "$COSMIC_BG_CONF" 2>/dev/null; then
+    if [ ! -f "$COSMIC_BG_CONF" ]; then
       mkdir -p "$COSMIC_BG_DIR"
       cat > "$COSMIC_BG_CONF" << RON
 (
@@ -176,25 +174,25 @@
 )
 RON
       [ ! -f "$COSMIC_BG_DIR/same-on-all" ] && echo "true" > "$COSMIC_BG_DIR/same-on-all"
-      echo "cosmic-bg: restored slideshow config at $COSMIC_BG_CONF"
+      echo "cosmic-bg: initialized background config at $COSMIC_BG_CONF"
     fi
   '';
 
   # =========================================================================
   # Wallpaper slideshow service
   #
-  # COSMIC handles the actual wallpaper rotation (10 min, Path(dir) format).
-  # This service runs matugen every 10 minutes independently so the color
-  # theme stays in sync with the wallpaper collection. It picks a random
-  # file from the same directory COSMIC is cycling through — colors stay
-  # within the same aesthetic palette even if not the exact displayed file.
+  # Picks a random wallpaper and writes it as File("...") into COSMIC's
+  # background config. Two things happen as a result:
+  #   1. COSMIC detects the config change and displays the new wallpaper.
+  #   2. wallpaper-color-sync.path fires (file changed) → matugen runs.
   #
-  # Manual wallpaper changes in COSMIC settings are handled separately by
-  # wallpaper-color-sync.path + wallpaper-color-sync.service below.
+  # This keeps the displayed wallpaper and the color theme always in sync.
+  # Manual wallpaper changes in COSMIC settings are also caught by the
+  # path watcher — that path is the single source of truth for matugen.
   # =========================================================================
   systemd.user.services.wallpaper-slideshow = {
     Unit = {
-      Description = "Wallpaper slideshow — run matugen on random wallpaper";
+      Description = "Wallpaper slideshow — rotate wallpaper and trigger color sync";
       After       = [ "graphical-session.target" ];
       Wants       = [ "graphical-session.target" ];
     };
@@ -210,6 +208,8 @@ RON
         set -euo pipefail
 
         WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+        COSMIC_BG_DIR="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
+        COSMIC_BG_CONF="$COSMIC_BG_DIR/all"
         LOG="$HOME/.local/share/wallpaper-slideshow.log"
 
         log() {
@@ -227,18 +227,22 @@ RON
           exit 1
         fi
 
-        log "Running matugen on: $WALLPAPER"
+        log "Setting wallpaper: $WALLPAPER"
 
-        DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1\! -format "%[hex:u]" info: 2>/dev/null)
-
-        if [ -z "$DOMINANT_HEX" ]; then
-          log "WARNING: ImageMagick failed to extract color, skipping"
-          exit 0
-        fi
-
-        log "Dominant color: #$DOMINANT_HEX — running matugen"
-        matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1
-        log "matugen complete"
+        mkdir -p "$COSMIC_BG_DIR"
+        cat > "$COSMIC_BG_CONF" << RON
+(
+    output: "all",
+    source: File("$WALLPAPER"),
+    filter_by_theme: false,
+    rotation_frequency: 600,
+    filter_method: Lanczos,
+    scaling_mode: Zoom,
+    sampling_method: Random,
+)
+RON
+        [ ! -f "$COSMIC_BG_DIR/same-on-all" ] && echo "true" > "$COSMIC_BG_DIR/same-on-all"
+        log "COSMIC config updated — wallpaper-color-sync will run matugen"
       ''}";
     };
 
