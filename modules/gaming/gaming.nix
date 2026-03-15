@@ -36,10 +36,10 @@
     # work correctly on NixOS's non-standard filesystem layout
     package = pkgs.steam.override {
       extraPkgs = steamPkgs: with steamPkgs; [
-        xorg.libXcursor
-        xorg.libXi
-        xorg.libXinerama
-        xorg.libXScrnSaver
+        libxcursor
+        libxi
+        libxinerama
+        libxscrnsaver
         libpng
         libpulseaudio
         libvorbis

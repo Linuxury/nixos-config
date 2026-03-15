@@ -121,6 +121,6 @@
     # zen-browser is not in nixpkgs — installed from the community flake input.
     # Available on every graphical host for all users.
     # -----------------------------------------------------------------------
-    inputs.zen-browser.packages.${pkgs.system}.default
+    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }

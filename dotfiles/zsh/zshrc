@@ -32,17 +32,17 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # Rebuild and switch to the current flake config.
 nr() {
   sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
-    nixos-rebuild switch --flake "$NIXOS_CONFIG" --log-format internal-json -v |& nom
+    nixos-rebuild switch --flake "$NIXOS_CONFIG" --log-format internal-json -v |& nom --json
 }
 
 # Rebuild into boot (applies on next reboot, not immediately).
 nrb() {
-  sudo nixos-rebuild boot --flake "$NIXOS_CONFIG" --log-format internal-json -v |& nom
+  sudo nixos-rebuild boot --flake "$NIXOS_CONFIG" --log-format internal-json -v |& nom --json
 }
 
 # Test rebuild — activates without touching the boot entry.
 nrt() {
-  sudo nixos-rebuild test --flake "$NIXOS_CONFIG" --log-format internal-json -v |& nom
+  sudo nixos-rebuild test --flake "$NIXOS_CONFIG" --log-format internal-json -v |& nom --json
 }
 
 # Rebuild + pull latest nixpkgs before switching.
@@ -50,6 +50,7 @@ nrt() {
 nru() {
   echo "→ Pulling latest changes from $NIXOS_CONFIG..."
   git -C "$NIXOS_CONFIG" pull || return 1
+  nix flake update nixpkgs --flake "$NIXOS_CONFIG"
   sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
-    nixos-rebuild switch --flake "$NIXOS_CONFIG" --update-input nixpkgs --log-format internal-json -v |& nom
+    nixos-rebuild switch --flake "$NIXOS_CONFIG" --log-format internal-json -v |& nom --json
 }

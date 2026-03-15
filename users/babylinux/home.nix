@@ -218,9 +218,9 @@
   # =========================================================================
   programs.git = {
     enable    = true;
-    userName  = "babylinux";
-    userEmail = "her@email.com"; # Replace with her actual email
-    extraConfig = {
+    settings = {
+      user.name  = "babylinux";
+      user.email = "her@email.com"; # Replace with her actual email
       init.defaultBranch = "main";
       pull.rebase        = false;
     };

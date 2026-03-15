@@ -321,9 +321,9 @@
   # =========================================================================
   programs.git = {
     enable    = true;
-    userName  = "Linuxury";
-    userEmail = "linuxurypr@gmail.com";
-    extraConfig = {
+    settings = {
+      user.name  = "Linuxury";
+      user.email = "linuxurypr@gmail.com";
       init.defaultBranch = "main";
       pull.rebase        = false;
       core.editor        = "hx";
