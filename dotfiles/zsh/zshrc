@@ -29,7 +29,23 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # via programs.zsh.zsh-abbr.abbreviations — they expand inline before running.
 # ---------------------------------------------------------------------------
 
-# Rebuild + update nixpkgs flake input before switching.
+# Rebuild and switch to the current flake config.
+nr() {
+  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
+    nixos-rebuild switch --flake "$NIXOS_CONFIG" |& nom
+}
+
+# Rebuild into boot (applies on next reboot, not immediately).
+nrb() {
+  sudo nixos-rebuild boot --flake "$NIXOS_CONFIG" |& nom
+}
+
+# Test rebuild — activates without touching the boot entry.
+nrt() {
+  sudo nixos-rebuild test --flake "$NIXOS_CONFIG" |& nom
+}
+
+# Rebuild + pull latest nixpkgs before switching.
 # Pulls latest git changes first so the build always reflects what's in the repo.
 nru() {
   echo "→ Pulling latest changes from $NIXOS_CONFIG..."
