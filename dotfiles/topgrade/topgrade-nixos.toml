@@ -11,6 +11,10 @@ disable = [
   # Helix on NixOS ships with pre-compiled grammars in the Nix store (read-only).
   # hx --grammar fetch always fails here — grammars are updated via nixpkgs, not manually.
   "helix",
+  # Managed by Nix — self-update writes to the Nix store (read-only), always fails.
+  # Update these via nru instead.
+  "claude",
+  "poetry",
 ]
 
 [commands]
