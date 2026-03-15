@@ -337,9 +337,11 @@
   # =========================================================================
   # Wallpaper slideshow timer
   #
-  # Fires immediately on session start (OnActiveSec=0) then every
-  # 30 minutes after that. If the machine was off when a timer was
-  # due it fires as soon as the session starts.
+  # Fires every 30 minutes. Persistent=true means it fires on login if
+  # the last run was more than 30 minutes ago (e.g. after being suspended
+  # or powered off). We intentionally omit OnActiveSec=0 — if we included
+  # it, the timer would fire immediately every time HM restarts it on
+  # rebuild, resetting the wallpaper mid-session unexpectedly.
   # =========================================================================
   systemd.user.timers.wallpaper-slideshow = {
     Unit = {
@@ -347,7 +349,6 @@
     };
 
     Timer = {
-      OnActiveSec     = "0";
       OnUnitActiveSec = "30min";
       Persistent      = true;
       Unit            = "wallpaper-slideshow.service";

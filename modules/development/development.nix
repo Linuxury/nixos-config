@@ -81,6 +81,11 @@
     just            # Command runner — like make but simpler and more readable
                     # Great for project scripts in both Python and Rust
 
+    # AI coding assistant
+    (pkgs.writeShellScriptBin "claude" ''
+      exec env SHELL=${pkgs.bash}/bin/bash ${pkgs.claude-code}/bin/claude "$@"
+    '')
+
     # Editors
     zed-editor      # Fast, Wayland-native editor written in Rust
                     # Built-in LSP support — nil + nixfmt-rfc-style wire up automatically
