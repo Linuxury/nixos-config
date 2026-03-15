@@ -147,39 +147,75 @@
   };
 
   # =========================================================================
+  # COSMIC background config — written once via activation
+  #
+  # COSMIC natively handles the 10-minute wallpaper slideshow when its
+  # config uses Path(dir) + rotation_frequency. We write this format
+  # via activation (not from a service) so rebuilds never clobber it.
+  #
+  # The activation only writes the file if it's missing or still contains
+  # the old File("...") format from our previous approach, which caused
+  # COSMIC settings to show "slideshow disabled".
+  # =========================================================================
+  home.activation.cosmicBackground = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    COSMIC_BG_DIR="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
+    COSMIC_BG_CONF="$COSMIC_BG_DIR/all"
+    WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+
+    if [ ! -f "$COSMIC_BG_CONF" ] || grep -q 'source: File(' "$COSMIC_BG_CONF" 2>/dev/null; then
+      mkdir -p "$COSMIC_BG_DIR"
+      cat > "$COSMIC_BG_CONF" << RON
+(
+    output: "all",
+    source: Path("$WALLPAPER_DIR"),
+    filter_by_theme: false,
+    rotation_frequency: 600,
+    filter_method: Lanczos,
+    scaling_mode: Zoom,
+    sampling_method: Random,
+)
+RON
+      [ ! -f "$COSMIC_BG_DIR/same-on-all" ] && echo "true" > "$COSMIC_BG_DIR/same-on-all"
+      echo "cosmic-bg: restored slideshow config at $COSMIC_BG_CONF"
+    fi
+  '';
+
+  # =========================================================================
   # Wallpaper slideshow service
   #
-  # Picks a random wallpaper and sets it in COSMIC's config file.
-  # Color theme sync is handled separately by wallpaper-color-sync.service,
-  # which is triggered by wallpaper-color-sync.path whenever the COSMIC
-  # background config changes — covering both our rotation and manual
-  # wallpaper changes made through COSMIC's settings.
+  # COSMIC handles the actual wallpaper rotation (10 min, Path(dir) format).
+  # This service runs matugen every 10 minutes independently so the color
+  # theme stays in sync with the wallpaper collection. It picks a random
+  # file from the same directory COSMIC is cycling through — colors stay
+  # within the same aesthetic palette even if not the exact displayed file.
+  #
+  # Manual wallpaper changes in COSMIC settings are handled separately by
+  # wallpaper-color-sync.path + wallpaper-color-sync.service below.
   # =========================================================================
   systemd.user.services.wallpaper-slideshow = {
     Unit = {
-      Description = "Wallpaper slideshow — picks a random wallpaper";
+      Description = "Wallpaper slideshow — run matugen on random wallpaper";
       After       = [ "graphical-session.target" ];
       Wants       = [ "graphical-session.target" ];
     };
 
     Service = {
       Type      = "oneshot";
+      Environment = [
+        "SHELL=/bin/sh"
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin:/usr/bin:/bin"
+      ];
       ExecStart = "${pkgs.writeShellScript "wallpaper-slideshow" ''
         #!/usr/bin/env bash
         set -euo pipefail
 
         WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
-        COSMIC_BG_DIR="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
         LOG="$HOME/.local/share/wallpaper-slideshow.log"
 
         log() {
           echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"
         }
 
-        # ---------------------------------------------------------------
-        # Pick a random wallpaper from ~/Pictures/Wallpapers
-        # Supports jpg, jpeg, png, webp
-        # ---------------------------------------------------------------
         WALLPAPER=$(find -L "$WALLPAPER_DIR" \
           -type f \
           \( -iname "*.jpg" -o -iname "*.jpeg" \
@@ -191,33 +227,18 @@
           exit 1
         fi
 
-        log "Selected wallpaper: $WALLPAPER"
+        log "Running matugen on: $WALLPAPER"
 
-        # ---------------------------------------------------------------
-        # Set wallpaper in COSMIC
-        #
-        # Always write our selected wallpaper as File() — this ensures
-        # wallpaper-color-sync.path fires and matugen runs on the exact
-        # file that is displayed on screen. Writing a specific File()
-        # also prevents the mismatch that occurred when COSMIC's own
-        # slideshow was active (Path("/dir")) and color sync would pick
-        # a random file from the directory instead of the shown one.
-        # ---------------------------------------------------------------
-        mkdir -p "$COSMIC_BG_DIR"
+        DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1\! -format "%[hex:u]" info: 2>/dev/null)
 
-        cat > "$COSMIC_BG_DIR/all" <<RON
-        (
-            wallpapers: [
-                (
-                    output: "all",
-                    source: File("$WALLPAPER"),
-                    scaling_mode: Zoom,
-                    sampling_method: Alphanumeric,
-                )
-            ],
-        )
-        RON
-        log "COSMIC wallpaper config updated — color sync will follow"
+        if [ -z "$DOMINANT_HEX" ]; then
+          log "WARNING: ImageMagick failed to extract color, skipping"
+          exit 0
+        fi
+
+        log "Dominant color: #$DOMINANT_HEX — running matugen"
+        matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1
+        log "matugen complete"
       ''}";
     };
 
@@ -231,8 +252,8 @@
   #
   # Reads the currently active wallpaper from COSMIC's config and runs
   # matugen to regenerate all color themes. Triggered by the path unit
-  # below whenever the COSMIC background config changes — this covers
-  # both our 30-minute rotation and manual wallpaper changes in COSMIC.
+  # below whenever COSMIC's background config changes — this covers
+  # manual wallpaper changes made through COSMIC settings.
   #
   # matugen 4.x has a regression in its image reading path.
   # Workaround: extract the dominant color with ImageMagick first,
@@ -337,19 +358,17 @@
   # =========================================================================
   # Wallpaper slideshow timer
   #
-  # Fires every 30 minutes. Persistent=true means it fires on login if
-  # the last run was more than 30 minutes ago (e.g. after being suspended
-  # or powered off). We intentionally omit OnActiveSec=0 — if we included
-  # it, the timer would fire immediately every time HM restarts it on
-  # rebuild, resetting the wallpaper mid-session unexpectedly.
+  # Fires every 10 minutes to run matugen on a random wallpaper.
+  # Persistent=true fires it on login if last run was >10min ago.
+  # No OnActiveSec=0 — avoids an immediate fire on every HM rebuild.
   # =========================================================================
   systemd.user.timers.wallpaper-slideshow = {
     Unit = {
-      Description = "Wallpaper slideshow timer — every 30 minutes";
+      Description = "Wallpaper slideshow timer — every 10 minutes";
     };
 
     Timer = {
-      OnUnitActiveSec = "30min";
+      OnUnitActiveSec = "10min";
       Persistent      = true;
       Unit            = "wallpaper-slideshow.service";
     };
