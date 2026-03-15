@@ -354,10 +354,8 @@ in
   # The polkit rule below lets you use CoreCtrl without needing
   # to enter your password every time it applies settings.
   # =========================================================================
-  programs.corectrl = {
-    enable = true;
-    gpuOverclock.enable = true; # Allows GPU overclock controls in CoreCtrl
-  };
+  programs.corectrl.enable = true;
+  hardware.amdgpu.overdrive.enable = true;
 
   # =========================================================================
   # Multi-monitor support

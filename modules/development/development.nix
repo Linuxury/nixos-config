@@ -93,7 +93,7 @@
     # Language server + formatter support
     nil             # Nix language server — gives you autocomplete and error
                     # checking when editing your NixOS config files
-    nixfmt-rfc-style # Nix code formatter — keeps your config files tidy
+    nixfmt # Nix code formatter — keeps your config files tidy
 
     # -----------------------------------------------------------------------
     # Terminal and shell tools useful during development
