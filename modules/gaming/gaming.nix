@@ -105,7 +105,6 @@
     # -----------------------------------------------------------------------
     # Launchers — for games outside of Steam
     # -----------------------------------------------------------------------
-    heroic          # Epic Games Store + GOG launcher for Linux
     lutris          # Universal game launcher, supports many sources
                     # and has community install scripts for tricky games
     faugus-launcher # Lightweight launcher for Windows games via UMU/Proton
