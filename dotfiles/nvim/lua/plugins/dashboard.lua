@@ -107,31 +107,38 @@ if _img_ok then
 end
 
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = "dashboard",
-  once    = false,
+  pattern  = "dashboard",
+  once     = false,
   callback = function()
     local ok, image = pcall(require, "image")
     if not ok then return end
 
-    -- Image path is set by neovim.nix via vim.g.naruto_image_path
     local img_path = vim.g.naruto_image_path
     if not img_path or vim.fn.filereadable(img_path) == 0 then return end
 
-    local buf = vim.api.nvim_get_current_buf()
-    local win = vim.api.nvim_get_current_win()
+    -- Defer until the window is fully drawn to avoid screenpos E966
+    vim.schedule(function()
+      local buf = vim.api.nvim_get_current_buf()
+      local win = vim.api.nvim_get_current_win()
+      if not vim.api.nvim_buf_is_valid(buf) then return end
+      if vim.bo[buf].filetype ~= "dashboard" then return end
 
-    -- Render image at top of dashboard window
-    local img = image.from_file(img_path, {
-      buffer             = buf,
-      window             = win,
-      with_virtual_padding = true,
-      x                  = 0,
-      y                  = 0,
-      height             = 14,  -- rows of terminal cells
-    })
+      local img_height = 14
+      local win_width  = vim.api.nvim_win_get_width(win)
+      -- Approximate rendered width: height × (img_w/img_h) / cell_aspect
+      -- naruto-chibi-3.png is 613×951; terminal cell ≈ 0.5 w:h
+      local img_width = math.floor(img_height * (613 / 951) / 0.5)
+      local x = math.max(0, math.floor((win_width - img_width) / 2))
 
-    if img then
-      img:render()
-    end
+      local img = image.from_file(img_path, {
+        buffer               = buf,
+        window               = win,
+        with_virtual_padding = true,
+        x                    = x,
+        y                    = 0,
+        height               = img_height,
+      })
+      if img then img:render() end
+    end)
   end,
 })
