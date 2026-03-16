@@ -11,12 +11,29 @@ telescope.setup({
     selection_caret = "  ",
     path_display    = { "smart" },
     file_ignore_patterns = {
+      -- Version control
       "%.git/",
+      -- Package managers / build artifacts
       "node_modules/",
       "__pycache__/",
-      "%.cache/",
-      "result/",      -- Nix build results
       "%.direnv/",
+      "result/",        -- Nix build results
+      "%.cargo/registry/",
+      "%.rustup/",
+      -- Caches and logs
+      "%.cache/",
+      "%.npm/_logs/",
+      "%.npm/cache/",
+      "%.local/share/Steam/",
+      "%.local/share/flatpak/",
+      "%.local/lib/",
+      "%.steam/",
+      "%.var/",
+      -- Binary / large files
+      "%.exe$",
+      "%.so$",
+      "%.dylib$",
+      "%.class$",
     },
     layout_config = {
       horizontal = {
@@ -55,11 +72,17 @@ telescope.setup({
 
   pickers = {
     find_files = {
-      hidden       = true,
-      follow       = true,    -- follow symlinks
+      hidden       = false,   -- don't search hidden dirs by default
+      follow       = false,   -- don't follow symlinks (avoids crawling ~/Pictures/Wallpapers etc.)
+      -- Use fd if available: faster and respects .gitignore automatically
+      find_command = (function()
+        if vim.fn.executable("fd") == 1 then
+          return { "fd", "--type", "f", "--color", "never", "--strip-cwd-prefix" }
+        end
+      end)(),
     },
     live_grep = {
-      additional_args = { "--hidden" },
+      additional_args = {},   -- no --hidden: skip dotfiles in grep too
     },
     buffers = {
       sort_mru         = true,
