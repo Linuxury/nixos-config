@@ -19,7 +19,9 @@
 { config, pkgs, inputs, lib, wallpaperDir, ... }:
 
 {
-  imports = [];
+  imports = [
+    ../../modules/home/neovim.nix
+  ];
 
   # =========================================================================
   # Home Manager basics
@@ -123,8 +125,6 @@
     ".config/ghostty/config".source  = ../../dotfiles/ghostty/config;
     ".config/ghostty/shader".source  = ../../dotfiles/ghostty/shader;
 
-    # Helix editor
-    ".config/helix".source = ../../dotfiles/helix;
 
     # Fastfetch
     ".config/fastfetch".source = ../../dotfiles/fastfetch;
@@ -337,37 +337,35 @@
   };
 
   # =========================================================================
-  # Helix editor
-  # Config managed via home.file symlink from dotfiles/helix/
+  # Neovim — live config editing
   #
-  # Package is overridden to remove the upstream Helix.desktop so it doesn't
-  # appear alongside our custom xdg.desktopEntries.helix below.
+  # The shared module (modules/home/neovim.nix) links init.lua and lua/
+  # from the Nix store (read-only). linuxury overrides those with live
+  # symlinks into the nixos-config repo so edits take effect immediately
+  # without a rebuild — useful when iterating on the config.
+  #
+  # The colors/ directory is NOT overridden: matugen writes to it directly
+  # on each wallpaper change (managed by wallpaper-slideshow.nix).
   # =========================================================================
-  programs.helix = {
-    enable  = true;
-    # Helix.desktop lives in helix-unwrapped, not the wrapper — override there.
-    package = pkgs.helix.override {
-      helix-unwrapped = pkgs.helix-unwrapped.overrideAttrs (old: {
-        postInstall = (old.postInstall or "") + ''
-          rm -f $out/share/applications/Helix.desktop
-        '';
-      });
-    };
+  xdg.configFile."nvim/init.lua" = lib.mkForce {
+    source = config.lib.file.mkOutOfStoreSymlink
+      "${config.home.homeDirectory}/nixos-config/dotfiles/nvim/init.lua";
   };
 
-  # Override Helix desktop entry so clicking the icon opens it in Ghostty.
-  # Helix's package installs Helix.desktop (Terminal=true), which COSMIC can't
-  # use without a configured default terminal. We remove that file from the
-  # package and replace it with our own helix.desktop (Terminal=false, explicit
-  # Ghostty launch) so only one entry appears in the app menu.
-  xdg.desktopEntries.helix = {
-    name        = "Helix";
+  xdg.configFile."nvim/lua" = lib.mkForce {
+    source = config.lib.file.mkOutOfStoreSymlink
+      "${config.home.homeDirectory}/nixos-config/dotfiles/nvim/lua";
+  };
+
+  # Desktop entry — opens Neovim in Ghostty (same pattern as helix had)
+  xdg.desktopEntries.nvim = {
+    name        = "Neovim";
     genericName = "Text Editor";
-    comment     = "A post-modern text editor";
-    exec        = "ghostty -e hx %F";
+    comment     = "Hyperextensible Vim-based text editor";
+    exec        = "kitty nvim %F";
     terminal    = false;
     categories  = [ "Utility" "TextEditor" ];
-    icon        = "helix";
+    icon        = "nvim";
     mimeType    = [
       "text/plain"
       "text/x-makefile"
@@ -376,6 +374,9 @@
       "text/x-c++"
       "text/x-rust"
       "application/x-shellscript"
+      "application/json"
+      "application/x-yaml"
+      "application/toml"
     ];
   };
 

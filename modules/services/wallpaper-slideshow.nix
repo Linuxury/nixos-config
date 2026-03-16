@@ -89,6 +89,19 @@
   '';
 
   # =========================================================================
+  # Neovim matugen template — custom template (not from InioX repo)
+  #
+  # Placed at ~/.config/matugen/neovim.lua (outside the InioX git repo).
+  # On each wallpaper change, matugen renders it to:
+  #   ~/.config/nvim/colors/matugen.lua
+  # Neovim picks up the new colors immediately via the autocmd in autocmds.lua.
+  # =========================================================================
+  home.file.".config/matugen/neovim.lua" = {
+    source = ../../dotfiles/nvim/templates/matugen.lua;
+    force  = true;  # always keep in sync with the template in the repo
+  };
+
+  # =========================================================================
   # matugen config.toml — managed declaratively by Home Manager
   #
   # force = true ensures stale configs (wrong template paths, old layout)
@@ -143,6 +156,10 @@
       [templates.zed]
       input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
       output_path = "~/.config/zed/themes/matugen.json"
+
+      [templates.neovim]
+      input_path  = "~/.config/matugen/neovim.lua"
+      output_path = "~/.config/nvim/colors/matugen.lua"
     '';
   };
 
