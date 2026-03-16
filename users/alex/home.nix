@@ -25,7 +25,9 @@
 { config, pkgs, inputs, lib, wallpaperDir, ... }:
 
 {
-  imports = [];
+  imports = [
+    ../../modules/home/neovim.nix
+  ];
 
   # =========================================================================
   # Home Manager basics
