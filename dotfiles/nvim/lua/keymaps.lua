@@ -118,7 +118,7 @@ map("n", "<leader>td", "<cmd>TodoTelescope<cr>", "Search TODOs")
 -- ─── AI Tools ─────────────────────────────────────────────
 -- Claude Code (claudecode-nvim)
 map("n", "<leader>cc", "<cmd>ClaudeCode<cr>",       "Toggle Claude Code")
-map("n", "<leader>cs", "<cmd>ClaudeCodeSend<cr>",   "Send selection to Claude", { mode = "v" })
+map("v", "<leader>cs", "<cmd>ClaudeCodeSend<cr>",   "Send selection to Claude")
 
 -- Opencode (opencode-nvim or toggleterm fallback)
 map("n", "<leader>oc", "<cmd>Opencode<cr>", "Toggle Opencode")
