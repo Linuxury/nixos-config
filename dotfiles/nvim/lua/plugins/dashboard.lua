@@ -93,6 +93,19 @@ db.setup({
 
 -- ── OPTION A: Render actual PNG image via image.nvim ───────────────────────
 -- Comment out this entire block to switch to OPTION B (ASCII art).
+local _img_ok, image = pcall(require, "image")
+if _img_ok then
+  image.setup({
+    backend          = "kitty",
+    integrations     = {},
+    max_width        = nil,
+    max_height       = 14,
+    max_width_window_percentage  = nil,
+    max_height_window_percentage = 50,
+    kitty_method     = "normal",
+  })
+end
+
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "dashboard",
   once    = false,
