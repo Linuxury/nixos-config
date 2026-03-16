@@ -194,6 +194,10 @@ EOF
     # ── Git ───────────────────────────────────────────────────
     lazygit                         # TUI git client (used by lazygit-nvim)
 
+    # ── Search ────────────────────────────────────────────────
+    fd                              # Fast file finder (telescope find_files backend)
+    ripgrep                         # Fast grep (telescope live_grep backend)
+
     # ── Image rendering (image.nvim dependency) ───────────────
     # imagemagick is already in wallpaper-slideshow.nix for matugen
     # but include here as fallback for users without slideshow
