@@ -28,11 +28,25 @@ require("bufferline").setup({
       local icon = level:match("error") and " " or " "
       return " " .. icon .. count
     end,
+    -- Keep terminal buffers (Claude, toggleterm) out of the tab bar
+    custom_filter = function(buf_number)
+      if vim.bo[buf_number].buftype == "terminal" then
+        return false
+      end
+      return true
+    end,
+
     offsets = {
       {
         filetype   = "neo-tree",
         text       = "  File Explorer",
         text_align = "left",
+        separator  = true,
+      },
+      {
+        filetype   = "claudecode",
+        text       = "  Claude Code",
+        text_align = "center",
         separator  = true,
       },
     },

@@ -19,14 +19,16 @@ autocmd("BufReadPost", {
       local name = vim.api.nvim_buf_get_name(buf)
       if name == "" then return end
 
-      -- Left: file explorer
-      vim.cmd("Neotree show")
-      vim.cmd("wincmd l")
+      -- Remember the editor window so we can return to it after opening panels
+      local editor_win = vim.api.nvim_get_current_win()
 
-      -- Right: Claude Code panel
+      -- Left: file explorer (neo-tree stays pinned, doesn't take a bufferline slot)
+      vim.cmd("Neotree show")
+
+      -- Right: Claude Code panel (split_side = "right" in terminal.lua keeps it pinned)
+      -- Return focus to the editor window explicitly rather than relying on wincmd direction
       vim.cmd("ClaudeCode")
-      -- ClaudeCode focuses its own window; go back to editor
-      vim.cmd("wincmd h")
+      vim.api.nvim_set_current_win(editor_win)
     end)
   end,
 })
@@ -141,6 +143,34 @@ autocmd("FileType", {
   callback = function()
     vim.opt_local.tabstop    = 2
     vim.opt_local.shiftwidth = 2
+  end,
+})
+
+-- ─── Neo-tree: auto-open file preview as side split ───────
+-- When neo-tree opens, automatically trigger the preview pane (same as pressing P)
+-- so you can see file contents while navigating without any extra keypress.
+-- Checks if a preview window is already visible before firing to avoid toggling it closed.
+augroup("NeoTreeAutoPreview", { clear = true })
+autocmd("FileType", {
+  group   = "NeoTreeAutoPreview",
+  pattern = "neo-tree",
+  callback = function(ev)
+    vim.defer_fn(function()
+      local preview_open = false
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.bo[buf].filetype == "neo-tree-preview" then
+          preview_open = true
+          break
+        end
+      end
+      if not preview_open then
+        local tree_win = vim.fn.bufwinid(ev.buf)
+        if tree_win ~= -1 and vim.api.nvim_win_is_valid(tree_win) then
+          vim.fn.win_execute(tree_win, "normal! P")
+        end
+      end
+    end, 200)
   end,
 })
 
