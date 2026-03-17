@@ -51,21 +51,19 @@ require("Comment").setup({
 -- ds<char>          — delete surround
 -- cs<old><new>      — change surround
 -- Example: ysiw" surrounds word with quotes, cs"' changes " to '
-require("nvim-surround").setup({
-  keymaps = {
-    insert          = "<C-g>s",
-    insert_line     = "<C-g>S",
-    normal          = "ys",
-    normal_cur      = "yss",
-    normal_line     = "yS",
-    normal_cur_line = "ySS",
-    visual          = "S",
-    visual_line     = "gS",
-    delete          = "ds",
-    change          = "cs",
-    change_line     = "cS",
-  },
-})
+-- Note: v4 removed keymaps from setup(); set them via the keymap API instead.
+require("nvim-surround").setup()
+vim.keymap.set("i", "<C-g>s", "<Plug>(nvim-surround-insert)",          { desc = "Surround insert" })
+vim.keymap.set("i", "<C-g>S", "<Plug>(nvim-surround-insert-line)",     { desc = "Surround insert line" })
+vim.keymap.set("n", "ys",     "<Plug>(nvim-surround-normal)",          { desc = "Surround add" })
+vim.keymap.set("n", "yss",    "<Plug>(nvim-surround-normal-cur)",      { desc = "Surround add line" })
+vim.keymap.set("n", "yS",     "<Plug>(nvim-surround-normal-line)",     { desc = "Surround add (line)" })
+vim.keymap.set("n", "ySS",    "<Plug>(nvim-surround-normal-cur-line)", { desc = "Surround add cur line" })
+vim.keymap.set("x", "S",      "<Plug>(nvim-surround-visual)",          { desc = "Surround visual" })
+vim.keymap.set("x", "gS",     "<Plug>(nvim-surround-visual-line)",     { desc = "Surround visual line" })
+vim.keymap.set("n", "ds",     "<Plug>(nvim-surround-delete)",          { desc = "Surround delete" })
+vim.keymap.set("n", "cs",     "<Plug>(nvim-surround-change)",          { desc = "Surround change" })
+vim.keymap.set("n", "cS",     "<Plug>(nvim-surround-change-line)",     { desc = "Surround change line" })
 
 -- ── nvim-ts-autotag ───────────────────────────────────────
 require("nvim-ts-autotag").setup({

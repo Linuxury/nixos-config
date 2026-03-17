@@ -51,6 +51,10 @@ require("noice").setup({
       }},
       opts = { skip = true },
     },
+    -- Suppress nvim-surround v4 keymap migration notice
+    { filter = { event = "notify", find = "nvim%-surround" },
+      opts = { skip = true },
+    },
     -- Send long messages to a split instead of the cmdline
     { filter = { event = "msg_show", min_height = 10 },
       view = "split",
@@ -68,4 +72,5 @@ require("notify").setup({
   fps               = 30,
 })
 
-vim.notify = require("notify")
+-- noice replaces vim.notify internally and uses nvim-notify as its backend.
+-- Do NOT override vim.notify here — it bypasses noice's routes/filters.

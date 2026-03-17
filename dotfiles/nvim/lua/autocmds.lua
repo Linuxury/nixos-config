@@ -5,6 +5,32 @@
 local augroup = vim.api.nvim_create_augroup
 local autocmd = vim.api.nvim_create_autocmd
 
+-- ─── Auto-layout on first file open ──────────────────────
+-- Opens: NeoTree (left) | Editor (center) | Claude (right)
+--                    Terminal (bottom)
+-- Fires once per session on the first real file read.
+augroup("AutoLayout", { clear = true })
+autocmd("BufReadPost", {
+  group = "AutoLayout",
+  once  = true,
+  callback = function()
+    vim.schedule(function()
+      local buf  = vim.api.nvim_get_current_buf()
+      local name = vim.api.nvim_buf_get_name(buf)
+      if name == "" then return end
+
+      -- Left: file explorer
+      vim.cmd("Neotree show")
+      vim.cmd("wincmd l")
+
+      -- Right: Claude Code panel
+      vim.cmd("ClaudeCode")
+      -- ClaudeCode focuses its own window; go back to editor
+      vim.cmd("wincmd h")
+    end)
+  end,
+})
+
 -- ─── Highlight on yank ────────────────────────────────────
 augroup("YankHighlight", { clear = true })
 autocmd("TextYankPost", {
@@ -47,6 +73,19 @@ autocmd("FileType", {
   callback = function(event)
     vim.bo[event.buf].buflisted = false
     vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = event.buf, silent = true })
+  end,
+})
+
+-- ─── Transparent background (survives colorscheme changes) ─
+augroup("TransparentBg", { clear = true })
+autocmd("ColorScheme", {
+  group = "TransparentBg",
+  pattern = "*",
+  callback = function()
+    vim.api.nvim_set_hl(0, "Normal",    { bg = "NONE", ctermbg = "NONE" })
+    vim.api.nvim_set_hl(0, "NormalNC",  { bg = "NONE", ctermbg = "NONE" })
+    vim.api.nvim_set_hl(0, "SignColumn",{ bg = "NONE" })
+    vim.api.nvim_set_hl(0, "FoldColumn",{ bg = "NONE" })
   end,
 })
 

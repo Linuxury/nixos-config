@@ -19,7 +19,7 @@ require("claudecode").setup({
 -- ── Opencode ──────────────────────────────────────────────
 -- opencode-nvim provides a side panel similar to claudecode-nvim
 local ok_oc, opencode = pcall(require, "opencode")
-if ok_oc then
+if ok_oc and type(opencode) == "table" and opencode.setup then
   opencode.setup({
     split_direction        = "right",
     split_size             = 0.38,
@@ -30,7 +30,7 @@ end
 require("toggleterm").setup({
   size = function(term)
     if term.direction == "horizontal" then
-      return 15
+      return 12
     elseif term.direction == "vertical" then
       return vim.o.columns * 0.4
     end
@@ -45,7 +45,7 @@ require("toggleterm").setup({
   terminal_mappings  = true,
   persist_size       = true,
   persist_mode       = true,
-  direction          = "float",
+  direction          = "horizontal",
   close_on_exit      = true,
   shell              = vim.o.shell,
   auto_scroll        = true,
