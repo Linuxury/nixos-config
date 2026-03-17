@@ -84,7 +84,6 @@ Boot the target machine from the USB. You'll land at a shell logged in as `nixos
 setfont ter-118b   # larger console font — makes everything much easier to read
 ```
 
-→ [Continue to Step 2 — Connect to the Network](#step-2--connect-to-the-network)
 
 ---
 
@@ -116,7 +115,6 @@ ping -c 3 nixos.org
 
 > ⚠️ Do not continue until `ping` succeeds. Every remaining step requires internet access.
 
-→ [Continue to Step 3 — Enable SSH](#step-3--enable-ssh-and-connect-from-your-admin-machine)
 
 ---
 
@@ -151,7 +149,6 @@ The `-A` flag is what makes `git clone` work without copying your private key to
 
 **All remaining steps run over this SSH session on the target machine.**
 
-→ [Continue to Step 4 — Identify Your Disk](#step-4--identify-your-disk-and-set-variables)
 
 ---
 
@@ -217,7 +214,6 @@ echo "Disk: $DISK  |  Partitions: ${DISK}${P}1 / ${DISK}${P}2  |  Host: $HOST  |
 | `Radxa-X4` | `linuxury` | Torrent server |
 | `Media-Server` | `linuxury` | Media server |
 
-→ [Continue to Step 5 — Partition the Disk](#step-5--partition-the-disk)
 
 ---
 
@@ -240,7 +236,6 @@ parted $DISK -- mkpart primary 513MiB 100%        # main partition — gets ever
 
 After this completes you have two partitions: `${DISK}${P}1` for EFI and `${DISK}${P}2` for the main system. Neither has a filesystem yet — that happens in Step 6.
 
-→ [Continue to Step 6 — Format the Partitions](#step-6--format-the-partitions)
 
 ---
 
@@ -438,7 +433,6 @@ mount /dev/disk/by-label/EFI /mnt/boot   # EFI is never encrypted — mount it d
 
 Run `lsblk` to confirm all mount points are in place before continuing.
 
-→ [Continue to Step 9 — Create the Swapfile](#step-9--create-the-swapfile)
 
 ---
 
@@ -457,7 +451,6 @@ swapon /mnt/swap/swapfile                                    # activate it for t
 
 > **Size guide:** 16G works well for machines with 16–32G RAM. If you want hibernation to work reliably, the swapfile should be at least as large as your installed RAM. For a machine with 64G RAM, use `--size 64G`.
 
-→ [Continue to Step 10 — Clone the Config](#step-10--clone-the-config)
 
 ---
 
@@ -488,7 +481,6 @@ ln -sf /home/$NIXUSER/nixos-config /mnt/etc/nixos   # symlink /etc/nixos → the
 ls -la /mnt/etc/nixos                                # verify the symlink points where expected before moving on
 ```
 
-→ [Continue to Step 11 — Generate Hardware Config](#step-11--generate-hardware-config)
 
 ---
 
@@ -513,7 +505,6 @@ cat /mnt/home/$NIXUSER/nixos-config/hosts/$HOST/hardware-configuration.nix
 
 Check that the BTRFS subvolumes (`@`, `@home`, `@nix`, etc.) appear in the filesystems section with the correct mount points and options. If you installed with LUKS, confirm there is a `boot.initrd.luks.devices` section — if that section is missing, check `hosts/ThinkPad/default.nix` for a working reference and add it manually before proceeding.
 
-→ [Continue to Step 12 — Install](#step-12--install)
 
 ---
 
@@ -533,7 +524,6 @@ nixos-install \
 
 You will see a lot of output as packages download and build — that is normal. Warnings about locale or missing optional files during activation are generally harmless. If the command exits with an error, scroll up past the activation output to find the actual build failure — it typically appears well before the end of the output.
 
-→ [Continue to Step 13 — Set the User Password](#step-13--set-the-user-password)
 
 ---
 
@@ -552,7 +542,6 @@ nixos-enter --root /mnt -- passwd $NIXUSER   # enter the new system's chroot and
 
 It will prompt for the new password twice, then return you to the ISO shell automatically.
 
-→ [Continue to Step 14 — Reboot](#step-14--reboot)
 
 ---
 
