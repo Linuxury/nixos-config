@@ -6,7 +6,7 @@
 -- DO NOT EDIT the output file — it will be overwritten on the next
 -- wallpaper change. Edit this template instead.
 --
--- Template syntax: {{colors.<role>.<variant>.hex}}
+-- Template syntax: colors.<role>.<variant>.hex  (wrapped in double curly braces)
 -- Roles: primary, secondary, tertiary, error, surface, surface_dim,
 --        surface_bright, surface_container, surface_container_high,
 --        surface_container_low, on_surface, on_surface_variant,
@@ -19,37 +19,37 @@ vim.g.colors_name = "matugen"
 
 local c = {
   -- Backgrounds
-  bg          = "#{{colors.surface.default.hex}}",
-  bg_dim      = "#{{colors.surface_dim.default.hex}}",
-  bg_bright   = "#{{colors.surface_bright.default.hex}}",
+  bg          = "{{colors.surface.default.hex}}",
+  bg_dim      = "{{colors.surface_dim.default.hex}}",
+  bg_bright   = "{{colors.surface_bright.default.hex}}",
 
   -- Containers (panels, popups, sidebars)
-  container   = "#{{colors.surface_container.default.hex}}",
-  cont_high   = "#{{colors.surface_container_high.default.hex}}",
-  cont_low    = "#{{colors.surface_container_low.default.hex}}",
+  container   = "{{colors.surface_container.default.hex}}",
+  cont_high   = "{{colors.surface_container_high.default.hex}}",
+  cont_low    = "{{colors.surface_container_low.default.hex}}",
 
   -- Foreground / text
-  fg          = "#{{colors.on_surface.default.hex}}",
-  fg_muted    = "#{{colors.on_surface_variant.default.hex}}",
+  fg          = "{{colors.on_surface.default.hex}}",
+  fg_muted    = "{{colors.on_surface_variant.default.hex}}",
 
   -- Primary (keywords, highlights, active elements)
-  primary     = "#{{colors.primary.default.hex}}",
-  on_primary  = "#{{colors.on_primary.default.hex}}",
+  primary     = "{{colors.primary.default.hex}}",
+  on_primary  = "{{colors.on_primary.default.hex}}",
 
   -- Secondary (strings, types)
-  secondary   = "#{{colors.secondary.default.hex}}",
-  on_sec      = "#{{colors.on_secondary.default.hex}}",
+  secondary   = "{{colors.secondary.default.hex}}",
+  on_sec      = "{{colors.on_secondary.default.hex}}",
 
   -- Tertiary (functions, numbers)
-  tertiary    = "#{{colors.tertiary.default.hex}}",
+  tertiary    = "{{colors.tertiary.default.hex}}",
 
   -- Error
-  error       = "#{{colors.error.default.hex}}",
-  on_error    = "#{{colors.on_error.default.hex}}",
+  error       = "{{colors.error.default.hex}}",
+  on_error    = "{{colors.on_error.default.hex}}",
 
   -- Borders / separators
-  outline     = "#{{colors.outline.default.hex}}",
-  outline_v   = "#{{colors.outline_variant.default.hex}}",
+  outline     = "{{colors.outline.default.hex}}",
+  outline_v   = "{{colors.outline_variant.default.hex}}",
 }
 
 local function hi(group, opts)
@@ -301,9 +301,9 @@ hi("GitSignsCurrentLineBlame",{ fg = c.outline, italic = true })
 -- ===========================================================================
 -- Neo-tree
 -- ===========================================================================
-hi("NeoTreeNormal",             { fg = c.fg,       bg = c.bg_dim })
-hi("NeoTreeNormalNC",           { fg = c.fg_muted, bg = c.bg_dim })
-hi("NeoTreeEndOfBuffer",        { fg = c.bg_dim,   bg = c.bg_dim })
+hi("NeoTreeNormal",             { fg = c.fg,       bg = "NONE" })
+hi("NeoTreeNormalNC",           { fg = c.fg_muted, bg = "NONE" })
+hi("NeoTreeEndOfBuffer",        { fg = c.outline_v, bg = "NONE" })
 hi("NeoTreeRootName",           { fg = c.primary,  bold = true })
 hi("NeoTreeFileName",           { fg = c.fg })
 hi("NeoTreeFileNameOpened",     { fg = c.primary })
@@ -396,8 +396,8 @@ hi("CmpDocumentationBorder",  { fg = c.outline, bg = c.container })
 -- ===========================================================================
 -- Trouble
 -- ===========================================================================
-hi("TroubleNormal",       { fg = c.fg,       bg = c.bg_dim })
-hi("TroubleNormalNC",     { fg = c.fg_muted, bg = c.bg_dim })
+hi("TroubleNormal",       { fg = c.fg,       bg = "NONE" })
+hi("TroubleNormalNC",     { fg = c.fg_muted, bg = "NONE" })
 hi("TroubleText",         { fg = c.fg })
 hi("TroubleCount",        { fg = c.primary,  bold = true })
 hi("TroubleError",        { fg = c.error })
@@ -490,5 +490,5 @@ hi("FidgetTask",   { fg = c.fg_muted })
 -- ===========================================================================
 -- Claude Code (claudecode.nvim)
 -- ===========================================================================
-hi("ClaudeCodeNormal", { fg = c.fg, bg = c.bg_dim })
+hi("ClaudeCodeNormal", { fg = c.fg, bg = "NONE" })
 hi("ClaudeCodeBorder", { fg = c.outline })

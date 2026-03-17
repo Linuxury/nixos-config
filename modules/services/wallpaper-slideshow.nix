@@ -1,21 +1,16 @@
 # ===========================================================================
-# modules/services/wallpaper-slideshow.nix — Wallpaper Slideshow + matugen
+# modules/services/wallpaper-slideshow.nix — matugen color sync
 #
-# Rotates wallpapers every 30 minutes and runs matugen on each change
-# to keep the entire desktop theme in sync with the current wallpaper.
+# COSMIC handles wallpaper rotation via its built-in slideshow.
+# Set it up in COSMIC Settings > Desktop > Wallpaper.
 #
-# How it works:
-#   1. A systemd timer fires every 30 minutes
-#   2. The service picks a random wallpaper from ~/Pictures/Wallpapers
-#   3. Sets it via COSMIC's config file (ron format)
-#   4. Runs matugen to regenerate all color themes from the new wallpaper
-#   5. Each app's post-hook reloads with the new colors automatically
+# This module only handles the matugen side:
+#   - Watches COSMIC's background config for any change
+#   - Runs matugen to regenerate all color themes from the current wallpaper
+#   - Each app's post-hook reloads with the new colors automatically
 #
-# ~/Pictures/Wallpapers is a symlink pointing at the right resolution
-# folder from ~/assets/Wallpapers/ — set per host via home.nix argument.
-#
-# To disable on a specific host:
-#   services.wallpaper-slideshow.enable = lib.mkForce false;
+# Also runs matugen once on login via a timer so colors match the wallpaper
+# that was active when you last closed the session.
 # ===========================================================================
 
 { config, pkgs, lib, ... }:
@@ -35,13 +30,6 @@
 
   # =========================================================================
   # matugen templates — clone from InioX/matugen-themes if not present
-  #
-  # matugen requires template files to render color schemes for each app.
-  # We clone the community templates repo once on first activation.
-  # Subsequent activations are a no-op (the directory already exists).
-  #
-  # Templates land in: ~/.config/matugen/templates/
-  # Repo:              https://github.com/InioX/matugen-themes
   # =========================================================================
   home.activation.matugenTemplates = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     TEMPLATES_DIR="$HOME/.config/matugen/templates"
@@ -56,56 +44,34 @@
   '';
 
   # =========================================================================
-  # Ghostty colors seed file
-  #
-  # ghostty's config includes ~/.config/ghostty/colors via config-file.
-  # matugen populates it on each wallpaper change, but if ghostty opens
-  # before the first slideshow run the file won't exist yet.
-  # We pre-create an empty file so ghostty always finds something to load.
+  # Seed files — pre-create empty color files so apps don't fail on first boot
   # =========================================================================
   home.activation.ghosttyColors = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     COLORS_FILE="$HOME/.config/ghostty/colors"
     if [ ! -f "$COLORS_FILE" ]; then
       mkdir -p "$(dirname "$COLORS_FILE")"
       touch "$COLORS_FILE"
-      echo "matugen: created empty $COLORS_FILE (will be populated on first wallpaper change)"
     fi
   '';
 
-  # =========================================================================
-  # Kitty colors seed file
-  #
-  # kitty's config includes ~/.config/kitty/colors.conf via include directive.
-  # matugen populates it on each wallpaper change, but kitty will fail to
-  # start if the file is missing entirely on first boot.
-  # =========================================================================
   home.activation.kittyColors = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     COLORS_FILE="$HOME/.config/kitty/colors.conf"
     if [ ! -f "$COLORS_FILE" ]; then
       mkdir -p "$(dirname "$COLORS_FILE")"
       touch "$COLORS_FILE"
-      echo "matugen: created empty $COLORS_FILE (will be populated on first wallpaper change)"
     fi
   '';
 
   # =========================================================================
-  # Neovim matugen template — custom template (not from InioX repo)
-  #
-  # Placed at ~/.config/matugen/neovim.lua (outside the InioX git repo).
-  # On each wallpaper change, matugen renders it to:
-  #   ~/.config/nvim/colors/matugen.lua
-  # Neovim picks up the new colors immediately via the autocmd in autocmds.lua.
+  # Neovim matugen template
   # =========================================================================
   home.file.".config/matugen/neovim.lua" = {
     source = ../../dotfiles/nvim/templates/matugen.lua;
-    force  = true;  # always keep in sync with the template in the repo
+    force  = true;
   };
 
   # =========================================================================
-  # matugen config.toml — managed declaratively by Home Manager
-  #
-  # force = true ensures stale configs (wrong template paths, old layout)
-  # are always replaced on rebuild. Every COSMIC user stays in sync.
+  # matugen config.toml
   # =========================================================================
   home.file.".config/matugen/config.toml" = {
     force = true;
@@ -164,142 +130,21 @@
   };
 
   # =========================================================================
-  # COSMIC background config — written once via activation
-  #
-  # Writes a Path(dir) config only if the file is missing entirely.
-  # After first boot, the wallpaper-slideshow service takes over and
-  # writes File("specific") entries so COSMIC and matugen stay in sync.
-  # We intentionally never reset a File(...) config here — the slideshow
-  # service owns those updates.
-  # =========================================================================
-  home.activation.cosmicBackground = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    COSMIC_BG_DIR="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
-    COSMIC_BG_CONF="$COSMIC_BG_DIR/all"
-    WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
-
-    if [ ! -f "$COSMIC_BG_CONF" ]; then
-      mkdir -p "$COSMIC_BG_DIR"
-      cat > "$COSMIC_BG_CONF" << RON
-(
-    output: "all",
-    source: Path("$WALLPAPER_DIR"),
-    filter_by_theme: false,
-    rotation_frequency: 600,
-    filter_method: Lanczos,
-    scaling_mode: Zoom,
-    sampling_method: Random,
-)
-RON
-      [ ! -f "$COSMIC_BG_DIR/same-on-all" ] && echo "true" > "$COSMIC_BG_DIR/same-on-all"
-      echo "cosmic-bg: initialized background config at $COSMIC_BG_CONF"
-    fi
-  '';
-
-  # =========================================================================
-  # Wallpaper slideshow service
-  #
-  # Picks a random wallpaper and writes it as File("...") into COSMIC's
-  # background config. Two things happen as a result:
-  #   1. COSMIC detects the config change and displays the new wallpaper.
-  #   2. wallpaper-color-sync.path fires (file changed) → matugen runs.
-  #
-  # This keeps the displayed wallpaper and the color theme always in sync.
-  # Manual wallpaper changes in COSMIC settings are also caught by the
-  # path watcher — that path is the single source of truth for matugen.
-  # =========================================================================
-  systemd.user.services.wallpaper-slideshow = {
-    Unit = {
-      Description = "Wallpaper slideshow — rotate wallpaper and trigger color sync";
-      After       = [ "graphical-session.target" ];
-      Wants       = [ "graphical-session.target" ];
-    };
-
-    Service = {
-      Type      = "oneshot";
-      Environment = [
-        "SHELL=/bin/sh"
-        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin:/usr/bin:/bin"
-      ];
-      ExecStart = "${pkgs.writeShellScript "wallpaper-slideshow" ''
-        #!/usr/bin/env bash
-        set -euo pipefail
-
-        WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
-        COSMIC_BG_DIR="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
-        COSMIC_BG_CONF="$COSMIC_BG_DIR/all"
-        LOG="$HOME/.local/share/wallpaper-slideshow.log"
-
-        log() {
-          echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"
-        }
-
-        WALLPAPER=$(find -L "$WALLPAPER_DIR" \
-          -type f \
-          \( -iname "*.jpg" -o -iname "*.jpeg" \
-             -o -iname "*.png" -o -iname "*.webp" \) \
-          | shuf -n 1)
-
-        if [ -z "$WALLPAPER" ]; then
-          log "ERROR: No wallpapers found in $WALLPAPER_DIR"
-          exit 1
-        fi
-
-        log "Setting wallpaper: $WALLPAPER"
-
-        mkdir -p "$COSMIC_BG_DIR"
-        cat > "$COSMIC_BG_CONF" << RON
-(
-    output: "all",
-    source: File("$WALLPAPER"),
-    filter_by_theme: false,
-    rotation_frequency: 600,
-    filter_method: Lanczos,
-    scaling_mode: Zoom,
-    sampling_method: Random,
-)
-RON
-        [ ! -f "$COSMIC_BG_DIR/same-on-all" ] && echo "true" > "$COSMIC_BG_DIR/same-on-all"
-
-        # Restart cosmic-bg so it reads the new File("...") config.
-        # Direct file writes don't trigger COSMIC's internal config notification,
-        # so a restart is the reliable way to make the new wallpaper appear.
-        systemctl --user restart cosmic-bg.service || true
-        log "COSMIC config updated and cosmic-bg restarted"
-      ''}";
-    };
-
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
-  };
-
-  # =========================================================================
   # Wallpaper color sync service
   #
-  # Reads the currently active wallpaper from COSMIC's config and runs
-  # matugen to regenerate all color themes. Triggered by the path unit
-  # below whenever COSMIC's background config changes — this covers
-  # manual wallpaper changes made through COSMIC settings.
-  #
-  # matugen 4.x has a regression in its image reading path.
-  # Workaround: extract the dominant color with ImageMagick first,
-  # then feed the hex value to matugen color hex.
+  # Reads the current wallpaper from COSMIC's config and runs matugen.
+  # Triggered by the path unit below (COSMIC config changed) and by the
+  # timer below (on login / periodic catch-up for slideshow rotations).
   # =========================================================================
   systemd.user.services.wallpaper-color-sync = {
     Unit = {
       Description = "Sync matugen colors with current COSMIC wallpaper";
       After       = [ "graphical-session.target" ];
-      # Disable rate limiting — cosmic-settings appearance import triggers COSMIC to
-      # rewrite its config, which re-fires the path watcher. The service exits fast
-      # and cleanly so rapid retriggers are harmless.
       StartLimitIntervalSec = 0;
     };
 
     Service = {
       Type        = "oneshot";
-      # matugen uses $SHELL -c to run post_hooks. SHELL=fish breaks POSIX operators (||, &&).
-      # Force POSIX sh so hooks work correctly regardless of the user's login shell.
-      # Also include nix profile and system bins so post-hook tools (python3, etc.) are found.
       Environment = [
         "SHELL=/bin/sh"
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin:/usr/bin:/bin"
@@ -308,7 +153,7 @@ RON
         #!/usr/bin/env bash
         set -euo pipefail
 
-        COSMIC_BG_CONF="$HOME/.config/cosmic/com.system76.CosmicBackground/v1/all"
+        COSMIC_BG_DIR="$HOME/.config/cosmic/com.system76.CosmicBackground/v1"
         LOG="$HOME/.local/share/wallpaper-slideshow.log"
 
         log() {
@@ -316,18 +161,24 @@ RON
         }
 
         # ---------------------------------------------------------------
-        # Read current wallpaper from COSMIC config
-        # Handles both File("...") and Path("...") RON variants.
-        # If source is a directory (COSMIC slideshow mode), pick a
-        # random file from it — colors stay in sync with the collection.
+        # Read current wallpaper from COSMIC config.
+        # Checks per-output files (DP-3, HDMI-A-1, etc.) first,
+        # then falls back to the "all" file.
         # ---------------------------------------------------------------
+        COSMIC_BG_CONF=$(find "$COSMIC_BG_DIR" -maxdepth 1 -type f \
+          ! -name "same-on-all" ! -name "all" ! -name "backgrounds" | head -1)
+        if [ -z "$COSMIC_BG_CONF" ]; then
+          COSMIC_BG_CONF="$COSMIC_BG_DIR/all"
+        fi
+
         WALLPAPER=$(grep -oP '(?:File|Path)\("\K[^"]+' "$COSMIC_BG_CONF" | head -1)
 
         if [ -z "$WALLPAPER" ]; then
-          log "ERROR: Could not parse wallpaper source from $COSMIC_BG_CONF"
+          log "ERROR: Could not parse wallpaper from $COSMIC_BG_CONF"
           exit 1
         fi
 
+        # If source is a directory, pick a random image from it
         if [ -d "$WALLPAPER" ]; then
           WALLPAPER=$(find -L "$WALLPAPER" -type f \
             \( -iname "*.jpg" -o -iname "*.jpeg" \
@@ -340,16 +191,26 @@ RON
           exit 1
         fi
 
+        # Skip if wallpaper hasn't changed since last matugen run.
+        # Prevents a feedback loop: matugen → COSMIC theme update →
+        # cosmic-bg config rewrite (filter_by_theme) → path watcher fires → repeat.
+        LAST_FILE="$HOME/.local/share/last-matugen-wallpaper"
+        LAST=$(cat "$LAST_FILE" 2>/dev/null || echo "")
+        if [ "$WALLPAPER" = "$LAST" ]; then
+          exit 0
+        fi
+        echo "$WALLPAPER" > "$LAST_FILE"
+
         if ! command -v matugen &>/dev/null; then
-          log "WARNING: matugen not found, skipping theme generation"
+          log "WARNING: matugen not found, skipping"
           exit 0
         fi
 
-        log "Color sync triggered — wallpaper: $WALLPAPER"
+        log "Color sync — wallpaper: $WALLPAPER"
         DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1\! -format "%[hex:u]" info: 2>/dev/null)
 
         if [ -z "$DOMINANT_HEX" ]; then
-          log "WARNING: ImageMagick failed to extract color, skipping theme generation"
+          log "WARNING: ImageMagick failed, skipping"
           exit 0
         fi
 
@@ -361,11 +222,9 @@ RON
   };
 
   # =========================================================================
-  # Wallpaper color sync path unit
-  #
-  # Watches COSMIC's background config file for any change.
-  # Fires whether the change came from our slideshow service or from
-  # the user changing the wallpaper manually in COSMIC settings.
+  # Path watcher — fires color sync when COSMIC changes the wallpaper
+  # (covers both manual changes in COSMIC settings and slideshow rotations
+  #  that write a new File(...) to the config)
   # =========================================================================
   systemd.user.paths.wallpaper-color-sync = {
     Unit = {
@@ -373,7 +232,7 @@ RON
     };
 
     Path = {
-      PathChanged = "%h/.config/cosmic/com.system76.CosmicBackground/v1/all";
+      PathChanged = "%h/.config/cosmic/com.system76.CosmicBackground/v1";
     };
 
     Install = {
@@ -382,21 +241,22 @@ RON
   };
 
   # =========================================================================
-  # Wallpaper slideshow timer
+  # Timer — runs color sync on login and periodically
   #
-  # Fires every 10 minutes to run matugen on a random wallpaper.
-  # Persistent=true fires it on login if last run was >10min ago.
-  # No OnActiveSec=0 — avoids an immediate fire on every HM rebuild.
+  # Catches wallpaper changes that don't trigger a config file write
+  # (e.g. COSMIC's internal slideshow rotation using source: Path(dir)).
+  # Fires once on login, then every 10 minutes to stay in sync.
   # =========================================================================
-  systemd.user.timers.wallpaper-slideshow = {
+  systemd.user.timers.wallpaper-color-sync = {
     Unit = {
-      Description = "Wallpaper slideshow timer — every 10 minutes";
+      Description = "Periodic matugen color sync";
     };
 
     Timer = {
-      OnUnitActiveSec = "10min";
-      Persistent      = true;
-      Unit            = "wallpaper-slideshow.service";
+      OnBootSec        = "30s";
+      OnUnitActiveSec  = "10min";
+      Persistent       = true;
+      Unit             = "wallpaper-color-sync.service";
     };
 
     Install = {

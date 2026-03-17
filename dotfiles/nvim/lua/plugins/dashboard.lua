@@ -14,16 +14,16 @@
 local db = require("dashboard")
 
 -- ── OPTION B: ASCII art header (comment out to use image instead) ──────────
--- local ascii_header = {
---   "",
---   "  ███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗",
---   "  ████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║",
---   "  ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║",
---   "  ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
---   "  ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
---   "  ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
---   "",
--- }
+local ascii_header = {
+  "",
+  "  ███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗",
+  "  ████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║",
+  "  ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║",
+  "  ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
+  "  ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
+  "  ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
+  "",
+}
 
 -- Shared shortcuts for the center menu
 local center = {
@@ -75,8 +75,7 @@ local center = {
 db.setup({
   theme = "doom",
   config = {
-    -- header = ascii_header,   -- OPTION B: uncomment this line
-    header = { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" }, -- spacer for image
+    header = ascii_header,
     center  = center,
     footer  = function()
       local version = vim.version()
@@ -92,53 +91,44 @@ db.setup({
 })
 
 -- ── OPTION A: Render actual PNG image via image.nvim ───────────────────────
--- Comment out this entire block to switch to OPTION B (ASCII art).
-local _img_ok, image = pcall(require, "image")
-if _img_ok then
-  image.setup({
-    backend          = "kitty",
-    integrations     = {},
-    max_width        = nil,
-    max_height       = 14,
-    max_width_window_percentage  = nil,
-    max_height_window_percentage = 50,
-    kitty_method     = "normal",
-  })
-end
-
-vim.api.nvim_create_autocmd("FileType", {
-  pattern  = "dashboard",
-  once     = false,
-  callback = function()
-    local ok, image = pcall(require, "image")
-    if not ok then return end
-
-    local img_path = vim.g.naruto_image_path
-    if not img_path or vim.fn.filereadable(img_path) == 0 then return end
-
-    -- Defer until the window is fully drawn to avoid screenpos E966
-    vim.schedule(function()
-      local buf = vim.api.nvim_get_current_buf()
-      local win = vim.api.nvim_get_current_win()
-      if not vim.api.nvim_buf_is_valid(buf) then return end
-      if vim.bo[buf].filetype ~= "dashboard" then return end
-
-      local img_height = 14
-      local win_width  = vim.api.nvim_win_get_width(win)
-      -- Approximate rendered width: height × (img_w/img_h) / cell_aspect
-      -- naruto-chibi-3.png is 613×951; terminal cell ≈ 0.5 w:h
-      local img_width = math.floor(img_height * (613 / 951) / 0.5)
-      local x = math.max(0, math.floor((win_width - img_width) / 2))
-
-      local img = image.from_file(img_path, {
-        buffer               = buf,
-        window               = win,
-        with_virtual_padding = true,
-        x                    = x,
-        y                    = 0,
-        height               = img_height,
-      })
-      if img then img:render() end
-    end)
-  end,
-})
+-- Disabled — using OPTION B (ASCII art header) instead.
+-- To re-enable: uncomment this block and swap the header lines above.
+--
+-- local _img_ok, image = pcall(require, "image")
+-- if _img_ok then
+--   image.setup({
+--     backend          = "kitty",
+--     integrations     = {},
+--     max_width        = nil,
+--     max_height       = 14,
+--     max_width_window_percentage  = nil,
+--     max_height_window_percentage = 50,
+--     kitty_method     = "normal",
+--   })
+-- end
+--
+-- vim.api.nvim_create_autocmd("FileType", {
+--   pattern  = "dashboard",
+--   once     = false,
+--   callback = function()
+--     local ok, image = pcall(require, "image")
+--     if not ok then return end
+--     local img_path = vim.g.naruto_image_path
+--     if not img_path or vim.fn.filereadable(img_path) == 0 then return end
+--     vim.schedule(function()
+--       local buf = vim.api.nvim_get_current_buf()
+--       local win = vim.api.nvim_get_current_win()
+--       if not vim.api.nvim_buf_is_valid(buf) then return end
+--       if vim.bo[buf].filetype ~= "dashboard" then return end
+--       local img_height = 14
+--       local win_width  = vim.api.nvim_win_get_width(win)
+--       local img_width = math.floor(img_height * (613 / 951) / 0.5)
+--       local x = math.max(0, math.floor((win_width - img_width) / 2))
+--       local img = image.from_file(img_path, {
+--         buffer = buf, window = win, with_virtual_padding = true,
+--         x = x, y = 0, height = img_height,
+--       })
+--       if img then img:render() end
+--     end)
+--   end,
+-- })

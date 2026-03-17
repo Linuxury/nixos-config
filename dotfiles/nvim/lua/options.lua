@@ -18,7 +18,7 @@ opt.smartindent    = true
 -- Long line handling
 opt.wrap           = false
 opt.linebreak      = true        -- wrap at word boundary if wrap is on
-opt.colorcolumn    = "80"
+-- opt.colorcolumn    = "80"   -- disabled: vertical ruler removed
 
 -- Search
 opt.ignorecase     = true
@@ -69,9 +69,9 @@ opt.foldlevel      = 99
 -- Concealing (Markdown, JSON)
 opt.conceallevel   = 2
 
--- Popup blend
-opt.pumblend       = 10
-opt.winblend       = 10
+-- Popup blend (matches kitty background_opacity 0.85)
+opt.pumblend       = 15
+opt.winblend       = 15
 
 -- Disable netrw (using neo-tree)
 vim.g.loaded_netrw       = 1
