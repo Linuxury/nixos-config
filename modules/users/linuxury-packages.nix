@@ -31,6 +31,9 @@
     whois       # Domain registration lookup
     traceroute  # Trace network path to a host
 
+    # Notes
+    obsidian    # Markdown-based knowledge base / note-taking app
+
     # Communication
     thunderbird # Email client — personal use
 

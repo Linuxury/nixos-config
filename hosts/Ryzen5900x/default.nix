@@ -53,6 +53,7 @@ in
     ../../modules/base/auto-update.nix
     #../../modules/services/local-llm.nix
     ../../modules/users/linuxury-packages.nix
+    ../../modules/services/syncthing.nix
   ];
 
   # =========================================================================

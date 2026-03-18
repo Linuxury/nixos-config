@@ -58,6 +58,7 @@ in
     #../../modules/development/development.nix
     ../../modules/base/auto-update.nix
     ../../modules/users/linuxury-packages.nix
+    ../../modules/services/syncthing.nix
   ];
 
   # =========================================================================

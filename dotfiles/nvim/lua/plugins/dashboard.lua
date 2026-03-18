@@ -1,20 +1,7 @@
--- ============================================================
--- Dashboard — startup screen with Naruto chibi image
---
--- TWO OPTIONS — toggle by commenting/uncommenting:
---
---   OPTION A (default): Renders the actual PNG via image.nvim
---                       Requires kitty graphics protocol (works in ghostty)
---
---   OPTION B:           ASCII art text header (always works everywhere)
---                       Uncomment the `header` block below and
---                       comment out the image autocmd block.
--- ============================================================
+-- ── Header variants — uncomment the one you want ─────────────────────────────
 
-local db = require("dashboard")
-
--- ── OPTION B: ASCII art header (comment out to use image instead) ──────────
-local ascii_header = {
+-- Variant A: Large block — NEOVIM (active)
+local header = {
   "",
   "  ███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗",
   "  ████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║",
@@ -25,110 +12,88 @@ local ascii_header = {
   "",
 }
 
--- Shared shortcuts for the center menu
-local center = {
-  {
-    icon = "  ",
-    desc = "Find file",
-    key  = "f",
-    action = "Telescope find_files",
-  },
-  {
-    icon = "  ",
-    desc = "Recent files",
-    key  = "r",
-    action = "Telescope oldfiles",
-  },
-  {
-    icon = "  ",
-    desc = "Live grep",
-    key  = "g",
-    action = "Telescope live_grep",
-  },
-  {
-    icon = "  ",
-    desc = "File explorer",
-    key  = "e",
-    action = "Neotree toggle",
-  },
-  {
-    icon = "  ",
-    desc = "LazyGit",
-    key  = "G",
-    action = "LazyGit",
-  },
-  {
-    icon = "  ",
-    desc = "Keymaps",
-    key  = "k",
-    action = "Telescope keymaps",
-  },
-  {
-    icon = "  ",
-    desc = "Quit",
-    key  = "q",
-    action = "qa",
-  },
+-- Variant B: Thin outline — NEOVIM
+-- local header = {
+--   "",
+--   "  ╔╗╔╔═╗╔═╗╦  ╦╦╔╦╗",
+--   "  ║║║║╣ ║ ║╚╗╔╝║║║║",
+--   "  ╝╚╝╚═╝╚═╝ ╚╝ ╩╩ ╩",
+--   "",
+-- }
+
+-- Variant C: ASCII classic — NEOVIM
+-- local header = {
+--   "",
+--   "  _   _ ___  _____  _   __ ___ __  __",
+--   "  | \\ | | __||  _  || | / /|_ _||  \\/  |",
+--   "  |  \\| | _|  | | | || |/ /  | | | |\\/| |",
+--   "  | |\\  | |__ | |_| ||   /   | | | |  | |",
+--   "  |_| \\_|____||_____/|_|\\_\\  |___||_|  |_|",
+--   "",
+-- }
+
+-- Variant D: Slant — NEOVIM
+-- local header = {
+--   "",
+--   "   _  _____________ _    ________  ___",
+--   "  / |/ / __/ __ \\ \\/ /  /  _/ \\/  |/ /",
+--   " /    / _// /_/ /\\  /  _/ //    /    / ",
+--   "/_/|_/___/\\____/ /_/  /___/_/|_/_/|_/  ",
+--   "",
+-- }
+
+-- ── Keybind table — fixed-width columns so centering stays aligned ────────────
+-- Each row is exactly 76 chars so dashboard centers all lines identically.
+local function row(k1, d1, k2, d2)
+  return string.format("  %-10s %-26s  %-10s %-24s", k1, d1, k2, d2)
+end
+local function section(s1, s2)
+  return string.format("  %-36s  %-36s", s1, s2)
+end
+local sep = "  " .. string.rep("─", 72)
+
+local footer = {
+  "",
+  sep,
+  "  Keybindings",
+  sep,
+  "",
+  section("NAVIGATION", "LSP"),
+  row("SPC ff",  "Find file",             "gd",      "Go to definition"),
+  row("SPC fg",  "Live grep",             "gr",      "References"),
+  row("SPC fr",  "Recent files",          "K",       "Hover docs"),
+  row("SPC fb",  "Open buffers",          "SPC rn",  "Rename symbol"),
+  row("SPC /",   "Fuzzy in buffer",       "SPC ca",  "Code action"),
+  row("",        "",                      "[d  ]d",  "Prev / next diagnostic"),
+  "",
+  section("BUFFERS & SPLITS", "GIT"),
+  row("Shift-l", "Next buffer",           "]h  [h",  "Next / prev hunk"),
+  row("Shift-h", "Prev buffer",           "SPC gs",  "Stage hunk"),
+  row("SPC bd",  "Delete buffer",         "SPC gr",  "Reset hunk"),
+  row("SPC sv",  "Vertical split",        "SPC gb",  "Blame line"),
+  row("SPC sh",  "Horizontal split",      "SPC gB",  "Toggle line blame"),
+  row("SPC sc",  "Close split",           "SPC gx",  "Diff this"),
+  "",
+  section("LAYOUT", "MISC"),
+  row("SPC e",   "Explorer + Claude",     "SPC w",   "Save file"),
+  row("SPC cc",  "Toggle Claude Code",    "SPC q",   "Quit"),
+  row("SPC cs",  "Send selection",        "SPC tw",  "Toggle word wrap"),
+  row("C-h/j/k/l", "Navigate windows",   "SPC ts",  "Toggle spell check"),
+  "",
+  sep,
+  "",
 }
 
--- ── OPTION B setup (uncomment header line below + comment image block) ─────
-db.setup({
+require("dashboard").setup({
   theme = "doom",
   config = {
-    header = ascii_header,
-    center  = center,
-    footer  = function()
-      local version = vim.version()
-      return {
-        "",
-        string.format(
-          "  Neovim v%d.%d.%d  —  themed by matugen",
-          version.major, version.minor, version.patch
-        ),
-      }
-    end,
+    header = header,
+    center = {
+      { icon = "  ", key = "SPC e",  desc = "File Explorer",  action = "Neotree show" },
+      { icon = "  ", key = "SPC ff", desc = "Find File",      action = "Telescope find_files" },
+      { icon = "  ", key = "SPC fr", desc = "Recent Files",   action = "Telescope oldfiles" },
+      { icon = "  ", key = "SPC q",  desc = "Quit",           action = "qa" },
+    },
+    footer = footer,
   },
 })
-
--- ── OPTION A: Render actual PNG image via image.nvim ───────────────────────
--- Disabled — using OPTION B (ASCII art header) instead.
--- To re-enable: uncomment this block and swap the header lines above.
---
--- local _img_ok, image = pcall(require, "image")
--- if _img_ok then
---   image.setup({
---     backend          = "kitty",
---     integrations     = {},
---     max_width        = nil,
---     max_height       = 14,
---     max_width_window_percentage  = nil,
---     max_height_window_percentage = 50,
---     kitty_method     = "normal",
---   })
--- end
---
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern  = "dashboard",
---   once     = false,
---   callback = function()
---     local ok, image = pcall(require, "image")
---     if not ok then return end
---     local img_path = vim.g.naruto_image_path
---     if not img_path or vim.fn.filereadable(img_path) == 0 then return end
---     vim.schedule(function()
---       local buf = vim.api.nvim_get_current_buf()
---       local win = vim.api.nvim_get_current_win()
---       if not vim.api.nvim_buf_is_valid(buf) then return end
---       if vim.bo[buf].filetype ~= "dashboard" then return end
---       local img_height = 14
---       local win_width  = vim.api.nvim_win_get_width(win)
---       local img_width = math.floor(img_height * (613 / 951) / 0.5)
---       local x = math.max(0, math.floor((win_width - img_width) / 2))
---       local img = image.from_file(img_path, {
---         buffer = buf, window = win, with_virtual_padding = true,
---         x = x, y = 0, height = img_height,
---       })
---       if img then img:render() end
---     end)
---   end,
--- })
