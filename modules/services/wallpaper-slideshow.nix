@@ -63,14 +63,6 @@
   '';
 
   # =========================================================================
-  # Neovim matugen template
-  # =========================================================================
-  home.file.".config/matugen/neovim.lua" = {
-    source = ../../dotfiles/nvim/templates/matugen.lua;
-    force  = true;
-  };
-
-  # =========================================================================
   # matugen config.toml
   # =========================================================================
   home.file.".config/matugen/config.toml" = {
@@ -123,9 +115,6 @@
       input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
       output_path = "~/.config/zed/themes/matugen.json"
 
-      [templates.neovim]
-      input_path  = "~/.config/matugen/neovim.lua"
-      output_path = "~/.config/nvim/colors/matugen.lua"
     '';
   };
 

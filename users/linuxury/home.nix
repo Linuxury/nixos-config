@@ -293,6 +293,9 @@
         age-edit  = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -e";
         age-rekey = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -r";
 
+        # Obsidian notes
+        notes = "cd ~/Obsidian && nvim .";
+
         # Snapper snapshot management
         snaps  = "sudo snapper -c root list";
         snapsh = "sudo snapper -c home list";
@@ -555,6 +558,11 @@
   #
   # flatpak override is idempotent — safe to re-apply on every HM activation.
   # =========================================================================
+home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mkdir -p "$HOME/Obsidian/Daily"
+    mkdir -p "$HOME/Obsidian/Templates"
+  '';
+
 home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${pkgs.flatpak}/bin/flatpak override --user \
       --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
