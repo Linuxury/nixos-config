@@ -65,6 +65,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # -------------------------------------------------------------------------
+    # affinity-nix — Affinity v3 (Photo/Designer/Publisher) via Wine
+    #
+    # Affinity has no native Linux build. This flake wraps the free Windows
+    # app in ElementalWarrior's patched Wine fork so it runs on NixOS.
+    #
+    # Do NOT add nixpkgs.follows here — the flake pins its own nixpkgs commit
+    # for Wine build stability. Overriding it breaks the Wine build.
+    # -------------------------------------------------------------------------
+    affinity-nix.url = "github:mrshmllow/affinity-nix";
+
   };
 
   # ===========================================================================

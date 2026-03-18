@@ -186,11 +186,13 @@
         "https://cache.nixos.org"           # Official NixOS cache
         "https://nix-community.cachix.org"  # Community packages
         "https://cosmic.cachix.org"         # Pre-built COSMIC packages
+        "https://cache.garnix.io"           # affinity-nix pre-built Wine (avoids compiling Wine from source)
       ];
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "nix-community.cachix.org-1:L/J5ArMSr0xyNkTPoaFNiYmUoYMfdXZAo2MnGpvgDyU="
         "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85d/E="
+        "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       ];
 
       # Allow your user to manage the Nix store without sudo for some operations
