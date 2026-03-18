@@ -139,7 +139,7 @@ MANGOHUD=1 gamemoderun PROTON_USE_WAYLAND=1 PROTON_FSR4_UPGRADE=1 %command%
 Or use `PROTON_ADD_CONFIG` to combine Proton flags more cleanly:
 
 ```
-PROTON_ADD_CONFIG=wayland,fsr4 gamemoderun MANGOHUD=1 %command%
+PROTON_ADD_CONFIG=fsr4,fsr4rdna3,hdr,wayland,wow64 gamemoderun MANGOHUD=1 %command%
 ```
 
 Available `PROTON_ADD_CONFIG` values: `sdlinput`, `fsr4`, `fsr4rdna3`, `hdr`, `wayland`, `wow64`, `nontsync`
