@@ -16,6 +16,12 @@
 
 {
   # =========================================================================
+  # Inject hypr-matugen into every user's Home Manager config
+  # =========================================================================
+  home-manager.sharedModules = [
+    ../services/hypr-matugen.nix
+  ];
+  # =========================================================================
   # Hyprland — the compositor itself
   #
   # NixOS has a dedicated Hyprland module that handles all the Wayland
@@ -89,8 +95,7 @@
     cliphist        # Clipboard history manager
 
     # Screen locking
-    swaylock        # Screen locker for Wayland
-    swayidle        # Idle management (dims/locks after inactivity)
+    hyprlock        # Hyprland-native screen locker
 
     # Theming
     nwg-look        # GTK theme settings for Wayland compositors

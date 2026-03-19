@@ -1,0 +1,68 @@
+/* ===========================================================================
+ * wofi/style.css — App launcher styling
+ *
+ * Colors intentionally match waybar (same palette). Matugen does not
+ * template this file directly — update manually when colors.css changes,
+ * or add a dedicated template later.
+ * =========================================================================== */
+
+window {
+    margin:           0;
+    border-radius:    12px;
+    background-color: alpha(#1e1e2e, 0.96);
+    border:           1px solid alpha(#89b4fa, 0.3);
+    font-family:      "JetBrainsMono Nerd Font Propo", monospace;
+}
+
+#input {
+    margin:           8px 8px 4px;
+    padding:          8px 12px;
+    border-radius:    8px;
+    border:           1px solid alpha(#89b4fa, 0.3);
+    background:       alpha(#313244, 0.8);
+    color:            #cdd6f4;
+    font-size:        14px;
+    outline:          none;
+}
+
+#input:focus {
+    border-color: #89b4fa;
+}
+
+#inner-box {
+    margin: 0 8px 8px;
+}
+
+#outer-box {
+    padding: 4px;
+}
+
+#scroll {
+    margin: 0;
+    border: none;
+}
+
+#text {
+    padding:   4px;
+    color:     #cdd6f4;
+    font-size: 13px;
+}
+
+#text:selected {
+    color: #1e3a5f;
+}
+
+#entry {
+    padding:       4px 8px;
+    border-radius: 8px;
+    transition:    background 0.1s ease;
+}
+
+#entry:selected {
+    background: #89b4fa;
+}
+
+#entry arrow {
+    border: none;
+    color:  #89b4fa;
+}
