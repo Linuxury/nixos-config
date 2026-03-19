@@ -561,7 +561,6 @@ Remove the USB drive when the machine powers off. On the next boot:
 - **Without LUKS** — the system boots straight to the login screen
 - **With LUKS** — the system pauses before loading the OS and prompts for your passphrase
 
-→ [Continue to After First Boot](#after-first-boot)
 
 ---
 
