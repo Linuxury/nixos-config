@@ -257,27 +257,5 @@
   # =========================================================================
   services.ssh-agent.enable = true;
 
-  # =========================================================================
-  # COSMIC Files — sidebar favorites
-  #
-  # Path() display name = last path segment, so /mnt/Media-Server → "Media-Server".
-  # Missing paths are silently skipped (safe on laptops not on home LAN).
-  # =========================================================================
-  home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites" = {
-    force = true;
-    text = ''
-      [
-          Home,
-          Documents,
-          Downloads,
-          Music,
-          Pictures,
-          Videos,
-          Path("/mnt/Media-Server"),
-          Path("/mnt/MinisForum"),
-      ]
-    '';
-  };
-
   # Personal packages live in modules/users/alex-packages.nix
 }

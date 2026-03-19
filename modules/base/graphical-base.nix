@@ -115,4 +115,31 @@
     samba
 
   ];
+
+  # =========================================================================
+  # Fonts — Basic font set for a readable desktop experience
+  #
+  # These are system-wide fonts available to all graphical hosts,
+  # regardless of which DE/WM is running. Declared here so every host
+  # (COSMIC, Hyprland, KDE, Niri, etc.) gets the same font stack.
+  # Users can add more fonts in their own home.nix.
+  # =========================================================================
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      noto-fonts               # Wide unicode coverage, clean and readable
+      noto-fonts-cjk-sans      # Chinese, Japanese, Korean support
+      noto-fonts-color-emoji   # Emoji support
+      liberation_ttf           # Free replacements for Arial, Times New Roman etc
+      # JetBrainsMono Nerd Font — used by kitty, neovim, starship, and waybar
+      nerd-fonts.jetbrains-mono
+    ];
+    fontconfig = {
+      defaultFonts = {
+        serif     = [ "Noto Serif" ];
+        sansSerif = [ "Noto Sans" ];
+        monospace = [ "JetBrainsMono Nerd Font" ];
+      };
+    };
+  };
 }

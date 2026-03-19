@@ -410,60 +410,6 @@
   services.ssh-agent.enable = true;
 
   # =========================================================================
-  # GTK window button layout
-  #
-  # GTK reads this key to decide which window buttons to draw in CSD mode.
-  # Without it Firefox (native Wayland, GTK CSD) shows only a close button.
-  # Format: "left-buttons:right-buttons" — colon separates sides.
-  # Icon/cursor theme is set in modules/home/cosmic-theme.nix (shared).
-  # =========================================================================
-  gtk.gtk3.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
-  gtk.gtk4.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
-
-  # =========================================================================
-  # GTK window button layout via GSettings / dconf
-  #
-  # Firefox (native Wayland, GTK CSD) reads window button layout from the
-  # GSettings key org.gnome.desktop.wm.preferences:button-layout, NOT from
-  # settings.ini. Without this key being set, GTK defaults to close-only.
-  #
-  # gsettings-desktop-schemas must be installed (graphical-base.nix) for
-  # Firefox to find the schema. This dconf entry sets the actual value.
-  # =========================================================================
-  dconf.settings."org/gnome/desktop/wm/preferences" = {
-    button-layout = ":minimize,maximize,close";
-  };
-
-  # =========================================================================
-  # COSMIC Files — sidebar favorites
-  #
-  # COSMIC Files reads favorites from this RON file. Custom mount points
-  # use the Path() variant — the last path segment becomes the display name,
-  # so capitalized paths show as "Warehouse", "Games", "Media-Server", etc.
-  #
-  # Local XFS drives (Warehouse, Games) are intentionally omitted here —
-  # COSMIC Files already shows locally attached drives in the Devices section.
-  # Only network shares need explicit entries.
-  #
-  # Missing paths (e.g. Warehouse/Games on ThinkPad) are silently skipped.
-  # =========================================================================
-  home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites" = {
-    force = true;
-    text = ''
-      [
-          Home,
-          Documents,
-          Downloads,
-          Music,
-          Pictures,
-          Videos,
-          Path("/mnt/Media-Server"),
-          Path("/mnt/MinisForum"),
-      ]
-    '';
-  };
-
-  # =========================================================================
   # Hytale — automatic flatpak installation
   #
   # Hytale is not on Flathub yet. On first login the service tries to find
