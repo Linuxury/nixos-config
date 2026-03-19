@@ -70,15 +70,14 @@
 
     # Launchers
     wofi            # App launcher / dmenu replacement for Wayland
-    rofi-wayland    # Alternative launcher with more features
+    rofi            # Alternative launcher with more features (rofi-wayland merged into rofi)
 
     # Notifications
-    swayNotificationCenter  # Sway Notification Center — notification daemon + panel
+    swaynotificationcenter  # Sway Notification Center — notification daemon + panel
     libnotify               # notify-send — sends notifications from scripts/apps
 
     # Wallpaper
-    hyprpaper       # Hyprland's own wallpaper tool
-    swww            # Animated wallpaper alternative
+    swww            # Animated wallpaper daemon (swww-daemon + swww img)
 
     # Screenshots
     grim            # Screenshot tool for Wayland
@@ -95,7 +94,7 @@
 
     # Theming
     nwg-look        # GTK theme settings for Wayland compositors
-    qt6ct           # Qt6 theme settings outside of KDE/GNOME
+    qt6Packages.qt6ct  # Qt6 theme settings outside of KDE/GNOME
 
     # System tray / applets
     networkmanagerapplet  # WiFi tray icon
