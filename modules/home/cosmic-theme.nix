@@ -96,4 +96,51 @@ in
   home.file.".config/cosmic/com.system76.CosmicTk/v1/icon_theme".text   = ''"Tela-dark"'';
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_theme".text = ''"BreezeX-Light"'';
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size".text  = "24";
+
+  # =========================================================================
+  # GTK window button layout
+  #
+  # GTK apps read this to decide which window buttons to draw in CSD mode.
+  # Firefox (native Wayland, GTK CSD) reads button-layout from both the
+  # GTK settings.ini AND the GSettings key — both must be set.
+  # Without these, Firefox shows only a close button on COSMIC.
+  #
+  # Format: "left-buttons:right-buttons" — colon separates sides.
+  # Applies to all users on all COSMIC hosts via sharedModules.
+  # =========================================================================
+  gtk.gtk3.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
+  gtk.gtk4.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
+
+  dconf.settings."org/gnome/desktop/wm/preferences" = {
+    button-layout = ":minimize,maximize,close";
+  };
+
+  # =========================================================================
+  # COSMIC Files — sidebar favorites
+  #
+  # COSMIC Files reads favorites from this RON file. Custom mount points
+  # use the Path() variant — the last path segment becomes the display name,
+  # so capitalized paths show as "Media-Server", "MinisForum", etc.
+  #
+  # Local drives appear automatically in COSMIC's Devices section —
+  # only network shares need explicit entries here.
+  #
+  # Missing paths (e.g. on a laptop not on home LAN) are silently skipped.
+  # Applies to all users on all COSMIC hosts via sharedModules.
+  # =========================================================================
+  home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites" = {
+    force = true;
+    text = ''
+      [
+          Home,
+          Documents,
+          Downloads,
+          Music,
+          Pictures,
+          Videos,
+          Path("/mnt/Media-Server"),
+          Path("/mnt/MinisForum"),
+      ]
+    '';
+  };
 }

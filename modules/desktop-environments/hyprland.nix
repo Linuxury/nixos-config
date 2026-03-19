@@ -113,11 +113,34 @@
   services.blueman.enable = true;
 
   # =========================================================================
+  # Display Manager — greetd + tuigreet
+  #
+  # greetd is a minimal, flexible login manager designed for Wayland.
+  # tuigreet is a terminal-based greeter for greetd — no heavy UI,
+  # works well in TTY before the compositor starts.
+  #
+  # --time       → show clock on the login screen
+  # --remember   → pre-fills the last username
+  # --sessions   → lists all installed Wayland session .desktop files
+  #                (Hyprland installs one automatically via withUWSM)
+  # =========================================================================
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --sessions /run/current-system/sw/share/wayland-sessions";
+        user    = "greeter";
+      };
+    };
+  };
+
+  # =========================================================================
   # Keyring — Secret storage for apps
   #
   # Without a keyring, apps like browsers and SSH agents lose saved
   # passwords on every reboot. GNOME Keyring works fine outside of GNOME.
+  # greetd handles the PAM login so we enable the keyring unlock there.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
-  security.pam.services.login.enableGnomeKeyring = true;
+  security.pam.services.greetd.enableGnomeKeyring = true;
 }
