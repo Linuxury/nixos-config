@@ -14,15 +14,23 @@ Config details, keymaps, and usage notes for the key applications in this setup.
   - [Plugins](#plugins)
   - [Options](#options)
   - [Keymaps](#keymaps)
+    - [Editing](#editing)
+    - [Files & Windows](#files--windows)
+    - [Buffers](#buffers)
+    - [Telescope (Fuzzy Find)](#telescope-fuzzy-find)
+    - [Git](#git)
+    - [LSP](#lsp-buffer-local--active-when-lsp-is-attached)
+    - [Obsidian](#obsidian)
+    - [AI Tools](#ai-tools)
+    - [Misc](#misc)
   - [LSP Servers](#lsp-servers)
-  - [Formatters](#formatters)
-  - [Linters](#linters)
   - [Matugen Color Sync](#matugen-color-sync)
 - [Helix](#helix)
 - [Zed](#zed)
 - [Zsh](#zsh)
 - [Fastfetch](#fastfetch)
 - [Firefox](#firefox)
+- [Obsidian & Syncthing](#obsidian--syncthing)
 - [FreshRSS / Fluent Reader](#freshrss--fluent-reader)
 - [Thunderbird](#thunderbird)
 - [Gapless (G4Music)](#gapless-g4music)
@@ -109,7 +117,7 @@ systemctl --user restart wallpaper-color-sync    # force a color refresh
 
 [↑ Neovim](#neovim)
 
-When the first file opens in a session, the layout auto-configures itself via an autocmd in `autocmds.lua`:
+The three-column layout is manually triggered with `<leader>L`:
 
 ```
 ┌─────────────┬────────────────────────────┬──────────────────┐
@@ -117,12 +125,10 @@ When the first file opens in a session, the layout auto-configures itself via an
 │  Neo-tree   │         Editor             │   Claude Code    │
 │  (sidebar)  │         (center)           │   (right panel)  │
 │             │                            │                  │
-├─────────────┴────────────────────────────┴──────────────────┤
-│                    Terminal (on demand, Ctrl+\)              │
-└─────────────────────────────────────────────────────────────┘
+└─────────────┴────────────────────────────┴──────────────────┘
 ```
 
-The autocmd fires once per session on the first `BufReadPost` event — it opens Neo-tree, opens the Claude Code panel to the right, then returns focus to the editor. The terminal is not open by default; toggle it with `Ctrl+\`.
+`<leader>L` opens Neo-tree on the left and the Claude Code panel on the right, then returns focus to the editor. There is no automatic layout autocmd — the layout is set up on demand.
 
 ---
 
@@ -139,33 +145,16 @@ Plugins load in order from `init.lua`. The colorscheme loads first so all subseq
 | neo-tree | File explorer sidebar — pinned left, doesn't take a bufferline slot |
 | lualine | Status bar at the bottom |
 | bufferline | Tab bar at the top — one tab per open buffer |
-| noice | UI overhaul — replaces the cmdline, messages, and popups |
 | which-key | Popup showing available keybindings after a prefix key |
-| nvim-treesitter | Syntax highlighting, folding, and text objects (v0.10.x API) |
+| nvim-treesitter | Syntax highlighting, folding, and text objects |
 | nvim-lspconfig | Language server integration — completions, diagnostics, go-to-definition |
 | nvim-cmp | Autocompletion engine with LSP, buffer, and path sources |
+| luasnip + cmp_luasnip | Snippet engine and nvim-cmp source |
 | telescope | Fuzzy finder for files, grep, buffers, symbols, and more — uses `fd` backend |
 | gitsigns | Git status in the gutter + inline blame on demand |
-| diffview | Full git diff and file history viewer |
-| lazygit.nvim | LazyGit TUI inside Neovim (`<leader>gg`) |
 | claudecode-nvim | Claude Code side panel — syncs the file being edited |
-| opencode-nvim | Opencode side panel (same layout as Claude) |
-| toggleterm | Floating/horizontal terminal for quick shell work |
-| nvim-autopairs | Auto-close brackets and quotes using treesitter context |
-| Comment.nvim | Toggle line and block comments |
-| nvim-surround | Add, change, and delete surrounding characters |
-| nvim-ts-autotag | Auto-close and auto-rename HTML/JSX tags |
-| indent-blankline | Indent guide lines with scope highlighting |
-| flash.nvim | Jump to any position on screen in 2 keystrokes |
-| harpoon | Pin up to 4 files for instant switching across any project |
-| conform.nvim | Format on save — per-filetype formatter dispatch |
-| nvim-lint | Async linting on write/read/leave insert |
-| fidget | LSP progress spinner in the bottom-right corner |
-| trouble | Collapsible diagnostics panel |
-| todo-comments | Highlight and search TODO/FIXME/HACK/NOTE/WARN comments |
-| nvim-scrollbar | Scrollbar with git and diagnostic markers |
-| dressing.nvim | Prettier input and select UI dialogs |
-| image.nvim | Image preview inside the terminal |
+| obsidian-nvim | Obsidian vault integration — wiki links, daily notes, search, and more |
+| plenary-nvim / nui-nvim / nvim-web-devicons | Common dependencies for other plugins |
 
 ---
 
@@ -186,10 +175,9 @@ Set in `dotfiles/nvim/lua/options.lua`. Notable non-defaults:
 | `foldmethod` | expr (treesitter) | Folds defined by syntax, disabled by default — `zR` opens all |
 | `pumblend` / `winblend` | 15 | Popup transparency matches terminal opacity |
 | `laststatus` | 3 | One global status bar, not per-window |
-| `timeoutlen` | 300 ms | Which-key popup appears after 300 ms |
+| `timeoutlen` | 400 ms | Which-key popup appears after 400 ms |
 | `updatetime` | 250 ms | Faster CursorHold for gitsigns and LSP |
-
-Markdown, text, and gitcommit files automatically get `wrap`, `spell`, and `linebreak` via an autocmd. Go files switch to real tabs at 4 spaces.
+| `termguicolors` | false | Disabled — relies on terminal's 16-color palette for matugen theming |
 
 ---
 
@@ -204,17 +192,11 @@ Leader key is `Space`. LSP keymaps are buffer-local and only active when an LSP 
 | Key | Mode | Action |
 |-----|------|--------|
 | `jk` / `kj` | Insert | Escape to normal mode |
-| `gcc` | Normal | Toggle line comment |
-| `gc` | Normal/Visual | Toggle comment (motion or selection) |
-| `gbc` | Normal | Toggle block comment |
-| `ys{motion}{char}` | Normal | Add surrounding character |
-| `ds{char}` | Normal | Delete surrounding character |
-| `cs{old}{new}` | Normal | Change surrounding character |
-| `s` | Normal/Visual | Flash jump — type 2 chars, pick label |
-| `S` | Normal/Visual | Flash jump to treesitter node |
 | `J` / `K` | Visual | Move selection down/up |
 | `<` / `>` | Visual | Indent left/right (stays in visual mode) |
 | `p` | Visual | Paste without overwriting clipboard |
+| `<C-d>` / `<C-u>` | Normal | Scroll down/up (cursor centered) |
+| `n` / `N` | Normal | Next/prev search result (centered) |
 
 #### Files & Windows
 
@@ -225,7 +207,7 @@ Leader key is `Space`. LSP keymaps are buffer-local and only active when an LSP 
 | `<leader>q` / `<leader>Q` | Normal | Quit / Quit all (force) |
 | `<leader>e` | Normal | Toggle file explorer (Neo-tree) |
 | `<leader>E` | Normal | Reveal current file in explorer |
-| `Ctrl+H/J/K/L` | Normal | Navigate to left/lower/upper/right window |
+| `Ctrl+H/J/K/L` | Normal/Terminal | Navigate to left/lower/upper/right window |
 | `Ctrl+Arrows` | Normal | Resize current split |
 | `<leader>sv` | Normal | Vertical split |
 | `<leader>sh` | Normal | Horizontal split |
@@ -251,34 +233,24 @@ Leader key is `Space`. LSP keymaps are buffer-local and only active when an LSP 
 | `<leader>fr` | Recent files |
 | `<leader>/` | Fuzzy find in current buffer |
 | `<leader>fs` | Document symbols (LSP) |
-| `<leader>fS` | Workspace symbols (LSP) |
 | `<leader>fd` | Diagnostics |
-| `<leader>fc` | Commands |
 | `<leader>fk` | Keymaps |
-| `<leader>fG` | Git commits |
 | `<leader>fh` | Help tags |
 
 #### Git
 
+Git keymaps are buffer-local (gitsigns). They are active when the current file is tracked by git.
+
 | Key | Action |
 |-----|--------|
-| `<leader>gg` | Open LazyGit |
-| `<leader>gd` | Open diff view |
-| `<leader>gh` | File git history |
-| `<leader>gH` | Repo git history |
-| `<leader>gc` | Close diff view |
 | `]h` / `[h` | Jump to next / previous hunk |
 | `<leader>gs` | Stage hunk (or selection in visual) |
 | `<leader>gr` | Reset hunk (or selection in visual) |
-| `<leader>gS` | Stage entire buffer |
-| `<leader>gu` | Undo last stage |
-| `<leader>gR` | Reset entire buffer |
 | `<leader>gp` | Preview hunk in float |
 | `<leader>gb` | Blame current line (full popup) |
 | `<leader>gB` | Toggle inline line blame |
 | `<leader>gx` | Diff this file |
-| `<leader>gD` | Toggle deleted lines |
-| `ih` / `ah` | Text object — select hunk (visual/operator) |
+| `ih` | Text object — select hunk (visual/operator) |
 
 #### LSP (buffer-local — active when LSP is attached)
 
@@ -293,31 +265,28 @@ Leader key is `Space`. LSP keymaps are buffer-local and only active when an LSP 
 | `Ctrl+K` | Signature help |
 | `<leader>rn` | Rename symbol |
 | `<leader>ca` | Code actions |
-| `<leader>f` | Format file (conform, falls back to LSP) |
+| `<leader>f` | Format file (LSP format, async) |
 | `[d` / `]d` | Previous / next diagnostic |
 | `<leader>dl` | Open diagnostic in float |
-| `<leader>wa` | Add workspace folder |
-| `<leader>wr` | Remove workspace folder |
-| `<leader>wl` | List workspace folders |
 
-#### Diagnostics & Trouble
+#### Obsidian
 
-| Key | Action |
-|-----|--------|
-| `<leader>xx` | Toggle all diagnostics (Trouble) |
-| `<leader>xb` | Toggle buffer diagnostics |
-| `<leader>xs` | Toggle symbols panel |
-| `<leader>xl` | Toggle LSP panel |
-| `<leader>xL` | Toggle location list |
-| `<leader>xq` | Toggle quickfix list |
-
-#### Harpoon
+Requires a markdown file inside the `~/Obsidian` workspace to be active.
 
 | Key | Action |
 |-----|--------|
-| `<leader>ha` | Add current file to harpoon list |
-| `<leader>hh` | Open harpoon quick menu |
-| `<leader>h1–h4` | Jump directly to pinned file 1–4 |
+| `<leader>of` | Follow link under cursor |
+| `<leader>ob` | Smart action (follow link or toggle checkbox) |
+| `<leader>on` | New note |
+| `<leader>oo` | Open current note in Obsidian app |
+| `<leader>os` | Search notes (Telescope) |
+| `<leader>oq` | Quick switch note |
+| `<leader>od` | Open today's daily note |
+| `<leader>oy` | Open yesterday's daily note |
+| `<leader>ol` | List links in current note |
+| `<leader>oB` | Show backlinks |
+| `<leader>ot` | Search tags |
+| `<leader>oT` | Insert template |
 
 #### AI Tools
 
@@ -325,21 +294,12 @@ Leader key is `Space`. LSP keymaps are buffer-local and only active when an LSP 
 |-----|------|--------|
 | `<leader>cc` | Normal | Toggle Claude Code panel |
 | `<leader>cs` | Visual | Send selection to Claude |
-| `<leader>oc` | Normal | Toggle Opencode panel |
-
-#### Terminal
-
-| Key | Mode | Action |
-|-----|------|--------|
-| `Ctrl+\` | Normal | Toggle floating terminal |
-| `Esc` or `q` | Terminal | Exit terminal mode / close window |
-| `Ctrl+H/J/K/L` | Terminal | Navigate to adjacent window |
+| `<leader>L` | Normal | Open full 3-column layout (Neo-tree + Claude Code) |
 
 #### Misc
 
 | Key | Action |
 |-----|--------|
-| `<leader>td` | Search TODO/FIXME/NOTE comments (Telescope) |
 | `<leader>tw` | Toggle word wrap |
 | `<leader>ts` | Toggle spell check |
 | `<leader>tn` | Toggle relative line numbers |
@@ -353,59 +313,16 @@ Leader key is `Space`. LSP keymaps are buffer-local and only active when an LSP 
 
 All servers are installed via Nix — not Mason. Configured in `dotfiles/nvim/lua/plugins/lsp.lua` using the Neovim 0.11 `vim.lsp.config` / `vim.lsp.enable` API.
 
+Only two servers are currently configured and enabled:
+
 | Language | Server | Notes |
 |----------|--------|-------|
 | Lua | `lua_ls` | Knows about the `vim` global; configured for LuaJIT |
-| Nix | `nil_ls` | Formats with alejandra; auto-archives flake inputs |
-| Bash | `bashls` | |
-| TypeScript / JavaScript | `ts_ls` | Inlay hints enabled |
-| Python | `pyright` | Basic type checking, auto search paths |
-| Rust | `rust_analyzer` | Runs clippy on save; inlay hints enabled |
-| Markdown | `marksman` | |
-| YAML | `yamlls` | Schema store + validation |
-| TOML | `taplo` | |
-| C / C++ | `clangd` | Background index + missing include suggestions |
+| Nix | `nil_ls` | Nix language server; formatter packages (`alejandra`) in `home.packages` |
+
+Additional tools available in `home.packages` but not wired to LSP servers: `stylua` (Lua formatter), `alejandra` (Nix formatter), `fd`, `ripgrep`.
 
 All servers share the same `on_attach` (which sets the LSP keymaps) and cmp capabilities. Diagnostics appear inline as virtual text, suppressed while typing in insert mode.
-
----
-
-### Formatters
-
-[↑ Neovim](#neovim)
-
-Managed by conform.nvim (`dotfiles/nvim/lua/plugins/formatting.lua`). Format runs on every save — async and non-blocking. Skipped for `sql`/`java` and files over 10,000 lines.
-
-| Filetype | Formatter |
-|----------|-----------|
-| Lua | stylua |
-| Nix | alejandra |
-| Python | ruff_format → ruff_fix |
-| JavaScript / TypeScript | prettier |
-| JSON / JSONC / YAML / Markdown / HTML / CSS | prettier |
-| Bash / Sh / Zsh | shfmt |
-| TOML | taplo |
-| Rust | rustfmt |
-| Go | gofmt |
-| C / C++ | clang_format |
-| Everything else | trim trailing whitespace |
-
----
-
-### Linters
-
-[↑ Neovim](#neovim)
-
-Managed by nvim-lint. Runs on `BufWritePost`, `BufReadPost`, and `InsertLeave` — only for filetypes that have a linter configured.
-
-| Filetype | Linter |
-|----------|--------|
-| Python | ruff |
-| JavaScript / TypeScript | eslint_d |
-| Bash / Sh | shellcheck |
-| Nix | statix |
-| Markdown | markdownlint |
-| YAML | yamllint |
 
 ---
 
@@ -413,9 +330,7 @@ Managed by nvim-lint. Runs on `BufWritePost`, `BufReadPost`, and `InsertLeave` �
 
 [↑ Neovim](#neovim)
 
-When the wallpaper changes, the matugen pipeline regenerates `~/.config/nvim/colors/matugen.lua`. An autocmd in `autocmds.lua` watches this file's modification time on every `FocusGained` and `BufEnter` event, then reloads the colorscheme live — no restart needed and no visible flash.
-
-The colorscheme template lives at `dotfiles/nvim/templates/matugen.lua` — matugen fills in the colors and writes the output.
+When the wallpaper changes, the matugen pipeline regenerates `~/.config/nvim/colors/matugen.lua`. The colorscheme template lives at `dotfiles/nvim/templates/matugen.lua` — matugen fills in the colors and writes the output. Restart Neovim or manually `:colorscheme` to pick up the new colors after a wallpaper change.
 
 ---
 
@@ -523,6 +438,45 @@ A custom Naruto chibi image (`assets/Fastfetch/naruto-chibi-3b.png`) is displaye
 
 Firefox policies let you enforce things declaratively: default search engine, extension installation, privacy settings, homepage. Individual users can still change personal preferences on top of the policy baseline.
 
+→ [Continue to Obsidian & Syncthing](#obsidian--syncthing)
+
+---
+
+## 📓 Obsidian & Syncthing
+
+[↑ Back to Contents](#-contents)
+
+### Obsidian
+
+Obsidian is the note-taking app used by linuxury. The vault lives at `~/Obsidian/` and is synced across machines and phone via Syncthing (see below).
+
+**Neovim integration:** obsidian-nvim is installed and configured to use `~/Obsidian` as its workspace. It provides wiki-link completion via nvim-cmp, daily note creation, Telescope-based note search, and tag browsing — all accessible via `<leader>o*` keymaps (see [Obsidian keymaps](#obsidian) above).
+
+### Syncthing
+
+**Module:** `modules/services/syncthing.nix`
+
+**Enabled on:** ThinkPad and Ryzen5900x (linuxury's two machines)
+
+**Purpose:** Keeps `~/Obsidian` in sync across both NixOS machines and phone over Tailscale — no cloud relay, direct peer-to-peer sync.
+
+| Detail | Value |
+|--------|-------|
+| Web UI | `http://localhost:8384` |
+| Sync folder | `~/Obsidian` |
+| Device discovery | Manual pairing via web UI (`overrideDevices = false`, `overrideFolders = false`) |
+| Firewall ports | TCP 22000, UDP 22000 + 21027 |
+
+#### First-time pairing
+
+Syncthing devices must be paired manually after the first rebuild — the module does not auto-configure remote devices.
+
+1. After rebuilding, open `http://localhost:8384` on both machines.
+2. On machine A: **Actions → Show ID** — copy the device ID.
+3. On machine B: **Add Device** — paste machine A's ID. Repeat in reverse.
+4. On phone (Syncthing-Fork app): **Add Device** → paste one machine's ID; the other will auto-discover once both are connected.
+5. On each device, share the `~/Obsidian` folder with all paired devices.
+
 → [Continue to FreshRSS / Fluent Reader](#freshrss--fluent-reader)
 
 ---
@@ -613,11 +567,9 @@ Installed on all graphical machines via `graphical-base.nix`:
 | Problem | Fix |
 |---------|-----|
 | Telescope doesn't find hidden files | `fd` must be installed — it's in `home.packages`. Telescope is configured to use `fd` explicitly |
-| Image preview fails (E966 screenpos) | Image rendering is deferred to fix this — if it still fails, restart Neovim |
 | LSP not working after nixpkgs update | Check `dotfiles/nvim/lua/plugins/lsp.lua` — the lspconfig 0.11 API uses `vim.lsp.config` / `vim.lsp.enable`; older patterns are deprecated |
-| Colorscheme resets after rebuild | `~/.config/nvim/colors/matugen.lua` is written by matugen on the first wallpaper change — trigger a wallpaper cycle to regenerate it |
-| Formatter not running on save | Run `:ConformInfo` — confirm the formatter binary is in PATH (all formatters are Nix packages in `home.packages`) |
-| which-key popup too slow | `timeoutlen` is 300 ms in `options.lua` — lower it if needed |
+| Colorscheme resets after rebuild | `~/.config/nvim/colors/matugen.lua` is written by matugen on the first wallpaper change — trigger a wallpaper cycle to regenerate it, then restart Neovim |
+| which-key popup too slow | `timeoutlen` is 400 ms in `options.lua` — lower it if needed |
 
 ### Ghostty / Kitty
 
@@ -625,3 +577,10 @@ Installed on all graphical machines via `graphical-base.nix`:
 |---------|-----|
 | Colors look wrong after wallpaper change | Run `systemctl --user restart wallpaper-color-sync` to force a refresh. Check `~/.local/share/last-matugen-wallpaper` if it keeps reverting |
 | Ghostty shaders not loading | Confirm shader files exist in `dotfiles/ghostty/shaders/` and the symlink at `~/.config/ghostty/shaders/` is in place |
+
+### Syncthing
+
+| Problem | Fix |
+|---------|-----|
+| Devices not discovering each other | Both machines must be on Tailscale. Open `http://localhost:8384` and confirm the remote device ID is listed and connected |
+| Obsidian folder not syncing | Confirm the folder is shared with the target device in the Syncthing web UI on both sides |
