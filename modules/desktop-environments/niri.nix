@@ -73,7 +73,7 @@
     rofi-wayland       # Alternative if you prefer it from Hyprland
 
     # Notifications
-    swayNotificationCenter  # Sway Notification Center — notification daemon + panel
+    swaynotificationcenter  # Sway Notification Center — notification daemon + panel
     libnotify               # notify-send — sends notifications from scripts/apps
 
     # Wallpaper
@@ -97,7 +97,7 @@
 
     # Theming
     nwg-look
-    qt6ct
+    qt6Packages.qt6ct
 
     # System tray
     networkmanagerapplet
