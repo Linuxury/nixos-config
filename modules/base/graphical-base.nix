@@ -129,10 +129,11 @@
     packages = with pkgs; [
       noto-fonts               # Wide unicode coverage, clean and readable
       noto-fonts-cjk-sans      # Chinese, Japanese, Korean support
-      noto-fonts-color-emoji   # Emoji support
       liberation_ttf           # Free replacements for Arial, Times New Roman etc
-      # Nerd Fonts (all families) are already installed via common.nix —
-      # no need to list individual families here.
+      # noto-fonts-color-emoji intentionally omitted — it steals the
+      # private-use-area codepoints that Nerd Fonts uses for icons,
+      # breaking fastfetch and terminal icon rendering.
+      # Nerd Fonts (all families) are already installed via common.nix.
     ];
     fontconfig = {
       defaultFonts = {
