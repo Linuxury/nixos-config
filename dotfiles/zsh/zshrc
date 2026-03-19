@@ -32,8 +32,7 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # Rebuild and switch to the current flake config.
 nr() {
   sudo -v
-  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
-    nixos-rebuild switch --flake "$NIXOS_CONFIG" |& nom
+  sudo nixos-rebuild switch --flake "$NIXOS_CONFIG" |& nom
 }
 
 # Rebuild into boot (applies on next reboot, not immediately).
@@ -55,6 +54,5 @@ nru() {
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
   sudo -v
-  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
-    nixos-rebuild switch --flake "$NIXOS_CONFIG" |& nom
+  sudo nixos-rebuild switch --flake "$NIXOS_CONFIG" |& nom
 }
