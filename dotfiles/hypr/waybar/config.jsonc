@@ -1,9 +1,5 @@
 // ===========================================================================
 // waybar/config.jsonc — Waybar configuration for Hyprland
-//
-// Layout: workspaces + window title | clock | tray + system info
-// Colors come from colors.css (seed values; replaced by matugen on each
-// wallpaper change via set-wallpaper.sh).
 // ===========================================================================
 {
     "layer":        "top",
@@ -16,35 +12,29 @@
 
     "modules-left":   ["hyprland/workspaces", "hyprland/window"],
     "modules-center": ["clock"],
-    "modules-right":  ["tray", "wireplumber", "backlight", "battery", "network", "custom/notification"],
+    "modules-right":  ["tray", "separator", "wireplumber", "backlight", "network", "battery", "separator", "custom/notification"],
 
     // -----------------------------------------------------------------------
-    // Left modules
+    // Left
     // -----------------------------------------------------------------------
     "hyprland/workspaces": {
-        "format":         "{icon}",
+        "format":         "{id}",
         "all-outputs":    false,
         "on-scroll-up":   "hyprctl dispatch workspace e+1",
         "on-scroll-down": "hyprctl dispatch workspace e-1",
-        "format-icons": {
-            "active":  "",
-            "default": "○",
-            "urgent":  ""
+        "persistent-workspaces": {
+            "*": 5
         }
     },
 
     "hyprland/window": {
-        "format":           "{}",
-        "max-length":       60,
-        "separate-outputs": true,
-        "rewrite": {
-            "(.*) — Mozilla Firefox": "󰈹  $1",
-            "(.*)kitty":              "  kitty"
-        }
+        "format":           "  {}",
+        "max-length":       50,
+        "separate-outputs": true
     },
 
     // -----------------------------------------------------------------------
-    // Center modules
+    // Center
     // -----------------------------------------------------------------------
     "clock": {
         "format":         "  {:%H:%M}",
@@ -53,28 +43,41 @@
     },
 
     // -----------------------------------------------------------------------
-    // Right modules
+    // Right
     // -----------------------------------------------------------------------
+    "separator": {
+        "format": "|"
+    },
+
     "tray": {
         "icon-size": 16,
         "spacing":   8
     },
 
     "wireplumber": {
-        "format":        "{icon}  {volume}%",
-        "format-muted":  "󰝟  muted",
-        "on-click":      "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-        "format-icons":  ["󰕿", "󰖀", "󰕾"]
+        "format":       "{icon}  {volume}%",
+        "format-muted": "󰝟",
+        "on-click":     "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "format-icons": ["󰕿", "󰖀", "󰕾"]
     },
 
     "backlight": {
-        "format":          "{icon}  {percent}%",
-        "format-icons":    ["󰃞", "󰃟", "󰃠"],
-        "on-scroll-up":    "brightnessctl set +5%",
-        "on-scroll-down":  "brightnessctl set 5%-"
+        "format":         "{icon}  {percent}%",
+        "format-icons":   ["󰃞", "󰃟", "󰃠"],
+        "on-scroll-up":   "brightnessctl set +5%",
+        "on-scroll-down": "brightnessctl set 5%-"
+    },
+
+    "network": {
+        "format-wifi":         "󰖩  {signalStrength}%",
+        "format-ethernet":     "󰈀  {ipaddr}",
+        "format-disconnected": "󰖪  offline",
+        "tooltip-format-wifi": "{essid} — {signalStrength}%\n{ipAddr}",
+        "on-click":            "nm-connection-editor"
     },
 
     "battery": {
+        "bat": "BAT0",
         "states": {
             "warning":  30,
             "critical": 15
@@ -82,15 +85,9 @@
         "format":          "{icon}  {capacity}%",
         "format-charging": "󰂄  {capacity}%",
         "format-plugged":  "󰚥  {capacity}%",
-        "format-icons":    ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-    },
-
-    "network": {
-        "format-wifi":        "󰖩  {signalStrength}%",
-        "format-ethernet":    "󰈀  connected",
-        "format-disconnected": "󰖪  offline",
-        "tooltip-format-wifi": "{essid} — {signalStrength}%\n{ipAddr}",
-        "on-click": "nm-connection-editor"
+        "format-full":     "󰁹  Full",
+        "format-icons":    ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "tooltip-format":  "{timeTo} — {capacity}%"
     },
 
     "custom/notification": {
@@ -106,9 +103,9 @@
             "dnd-inhibited-notification": "󱅫",
             "dnd-inhibited-none":         "󰂛"
         },
-        "return-type":  "json",
-        "exec-if":      "which swaync-client",
-        "exec":         "swaync-client -swb",
+        "return-type":    "json",
+        "exec-if":        "which swaync-client",
+        "exec":           "swaync-client -swb",
         "on-click":       "swaync-client -t -sw",
         "on-click-right": "swaync-client -d -sw",
         "escape": true
