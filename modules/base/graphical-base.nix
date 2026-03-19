@@ -131,8 +131,8 @@
       noto-fonts-cjk-sans      # Chinese, Japanese, Korean support
       noto-fonts-color-emoji   # Emoji support
       liberation_ttf           # Free replacements for Arial, Times New Roman etc
-      # JetBrainsMono Nerd Font — used by kitty, neovim, starship, and waybar
-      nerd-fonts.jetbrains-mono
+      # Nerd Fonts (all families) are already installed via common.nix —
+      # no need to list individual families here.
     ];
     fontconfig = {
       defaultFonts = {
