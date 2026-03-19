@@ -20,6 +20,7 @@
   # =========================================================================
   home-manager.sharedModules = [
     ../services/hypr-matugen.nix
+    ../home/cosmic-theme.nix   # BreezeX-Light cursor + Tela-dark icons
   ];
   # =========================================================================
   # Hyprland — the compositor itself
