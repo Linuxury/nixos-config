@@ -139,6 +139,28 @@
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/dotfiles/hypr";
 
+    # Waybar — symlink config and style individually so matugen can write
+    # colors.css freely into ~/.config/waybar/ without polluting the repo.
+    ".config/waybar/config.jsonc".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/waybar/config.jsonc";
+    ".config/waybar/style.css".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/waybar/style.css";
+
+    # Wofi — full directory (no matugen writes here)
+    ".config/wofi".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/wofi";
+
+    # Swaync — symlink config and style individually (same reason as waybar)
+    ".config/swaync/config.json".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/swaync/config.json";
+    ".config/swaync/style.css".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/swaync/style.css";
+
     # Zed editor
     ".config/zed/settings.json".source = ../../dotfiles/zed/settings.json;
 
