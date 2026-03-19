@@ -258,6 +258,24 @@
   ];
 
   # =========================================================================
+  # POLKIT — allow wheel group to manage systemd units without interactive auth
+  #
+  # systemd 257+ requires polkit authorization for `systemd-run` transient
+  # unit creation even when called as root. nixos-rebuild passes
+  # --no-ask-password, which means polkit can't prompt — it just fails.
+  # This rule grants the wheel group implicit YES for systemd unit management
+  # so nixos-rebuild switch works without requiring a polkit agent session.
+  # =========================================================================
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (action.id.indexOf("org.freedesktop.systemd1.") === 0 &&
+          subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+
+  # =========================================================================
   # FWUPD — firmware update daemon
   #
   # Lets you update firmware (BIOS, SSD, peripherals) via LVFS directly
