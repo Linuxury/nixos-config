@@ -283,10 +283,11 @@ in
       CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
       CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
 
-      # Keep battery between 20-80% to preserve long term health.
+      # Keep battery between 75-95% — charges whenever plugged in and below
+      # 75%, stops at 95% so there's plenty of charge if you need to head out.
       # ThinkPads support this natively via the embedded controller.
-      START_CHARGE_THRESH_BAT0 = 20;
-      STOP_CHARGE_THRESH_BAT0 = 80;
+      START_CHARGE_THRESH_BAT0 = 75;
+      STOP_CHARGE_THRESH_BAT0 = 95;
 
       # PCIe power management
       PCIE_ASPM_ON_BAT = "powersupersave";
