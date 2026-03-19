@@ -100,6 +100,14 @@
     # System tray / applets
     networkmanagerapplet  # WiFi tray icon
     blueman               # Bluetooth manager with tray icon
+
+    # Polkit authentication agent
+    # Lets GUI apps request elevated permissions (mount drives, etc.)
+    # Autostarted via autostart.conf — must be in packages so the binary exists.
+    polkit_gnome
+
+    # Brightness control — required for laptop brightness keybinds
+    brightnessctl
   ];
 
   # =========================================================================

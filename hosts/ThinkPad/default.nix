@@ -8,9 +8,8 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - COSMIC (default DE)
-#   - Hyprland (experimentation)
-#   - Niri (experimentation)
+#   - Hyprland (active DE — greetd + tuigreet)
+#   - Niri (future — commented out)
 #   - Gaming
 #   - Development
 # ===========================================================================
@@ -51,8 +50,8 @@ in
     ../../modules/base/linuxury-ssh.nix
     ../../modules/base/linuxury-description.nix
     ../../modules/hardware/drivers.nix
-    ../../modules/desktop-environments/cosmic.nix
-    #../../modules/desktop-environments/hyprland.nix
+    #../../modules/desktop-environments/cosmic.nix
+    ../../modules/desktop-environments/hyprland.nix
     #../../modules/desktop-environments/niri.nix
     ../../modules/gaming/gaming.nix
     #../../modules/development/development.nix
