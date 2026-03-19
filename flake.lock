@@ -330,6 +330,22 @@
         "type": "github"
       }
     },
+    "normie-nvim": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1773529601,
+        "narHash": "sha256-Gk/4CTQl+M29OU4h9feuPjVbrJmB4uWG//AjxGrZBh8=",
+        "owner": "theblackdon",
+        "repo": "normie-nvim",
+        "rev": "3cf295f3cde777644e8115dfbae3c30ad71d7393",
+        "type": "gitlab"
+      },
+      "original": {
+        "owner": "theblackdon",
+        "repo": "normie-nvim",
+        "type": "gitlab"
+      }
+    },
     "on-linux": {
       "flake": false,
       "locked": {
@@ -364,7 +380,8 @@
         "agenix": "agenix",
         "home-manager": "home-manager_2",
         "nixos-hardware": "nixos-hardware",
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_4",
+        "normie-nvim": "normie-nvim"
       }
     },
     "systems": {
