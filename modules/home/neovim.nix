@@ -27,7 +27,10 @@
   # normie-nvim config — symlinked from the flake input (read-only Nix store).
   # lazy.nvim writes plugin data to ~/.local/share/nvim/lazy/ which is
   # writable, so plugin installs/updates work fine.
-  xdg.configFile."nvim".source = inputs.normie-nvim;
+  xdg.configFile."nvim" = {
+    source = inputs.normie-nvim;
+    force  = true;   # replaces the old HM-managed nvim/init.lua + nvim/lua symlinks
+  };
 
   # =========================================================================
   # LSP binaries — normie-nvim's lua/servers/ calls vim.lsp.enable() which
