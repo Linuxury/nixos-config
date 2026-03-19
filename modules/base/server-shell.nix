@@ -37,10 +37,9 @@
   # Fastfetch — system info on shell start
   environment.systemPackages = [ pkgs.fastfetch ];
 
-  # Fall back to xterm-256color for terminals the server doesn't have terminfo
-  # for (e.g. xterm-ghostty). Runs in /etc/zsh/zshenv — before NixOS's
-  # set-environment script — so it silences the "can't find terminal definition"
-  # errors that otherwise appear on every SSH login from ghostty.
+  # Fall back to xterm-256color for terminals the server doesn't have terminfo for.
+  # Runs in /etc/zsh/zshenv — before NixOS's set-environment script — so it
+  # silences "can't find terminal definition" errors on SSH login.
   programs.zsh.shellInit = ''
     if [ -n "$TERM" ] && ! infocmp "$TERM" >/dev/null 2>&1; then
       export TERM=xterm-256color
@@ -82,8 +81,8 @@
       path=(/run/wrappers/bin $path)
 
       # Default editor
-      export EDITOR=hx
-      export VISUAL=hx
+      export EDITOR=nvim
+      export VISUAL=nvim
 
       # Canonical path to the nixos-config repo
       export NIXOS_CONFIG=$HOME/nixos-config

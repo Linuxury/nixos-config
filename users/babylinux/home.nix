@@ -12,7 +12,7 @@
 # Notable:
 #   - Hytale installed from bundled flatpak in assets repo
 #   - Prism Launcher for Minecraft (Java Edition)
-#   - Shares terminal dotfiles with linuxury (ghostty + kitty)
+#   - Shares terminal dotfiles with linuxury (kitty)
 # ===========================================================================
 
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
@@ -102,9 +102,6 @@
   home.file = {
     # Starship prompt — shared config
     ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
-
-    # Ghostty — shared config
-    ".config/ghostty/config".source = ../../dotfiles/ghostty/config;
 
     # Fastfetch — shared config
     ".config/fastfetch".source = ../../dotfiles/fastfetch;

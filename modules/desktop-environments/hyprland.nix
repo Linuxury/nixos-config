@@ -73,8 +73,8 @@
     rofi-wayland    # Alternative launcher with more features
 
     # Notifications
-    dunst           # Lightweight notification daemon
-    libnotify       # Sends notifications (needed by many apps)
+    swayNotificationCenter  # Sway Notification Center — notification daemon + panel
+    libnotify               # notify-send — sends notifications from scripts/apps
 
     # Wallpaper
     hyprpaper       # Hyprland's own wallpaper tool

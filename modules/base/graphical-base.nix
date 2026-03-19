@@ -69,8 +69,7 @@
     # -----------------------------------------------------------------------
     # Terminals
     # -----------------------------------------------------------------------
-    ghostty     # Fast GPU-accelerated terminal — primary terminal for the family
-    kitty       # Alternative GPU-accelerated terminal
+    kitty       # Primary GPU-accelerated terminal
 
     # -----------------------------------------------------------------------
     # Media
