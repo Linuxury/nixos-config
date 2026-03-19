@@ -108,6 +108,9 @@
 
     # Brightness control — required for laptop brightness keybinds
     brightnessctl
+
+    # Media key control — playerctl play/pause/next/prev keybinds
+    playerctl
   ];
 
   # =========================================================================
