@@ -362,26 +362,8 @@
     };
   };
 
-  # =========================================================================
-  # Neovim — live config editing
-  #
-  # The shared module (modules/home/neovim.nix) links init.lua and lua/
-  # from the Nix store (read-only). linuxury overrides those with live
-  # symlinks into the nixos-config repo so edits take effect immediately
-  # without a rebuild — useful when iterating on the config.
-  #
-  # The colors/ directory is NOT overridden: matugen writes to it directly
-  # on each wallpaper change (managed by wallpaper-slideshow.nix).
-  # =========================================================================
-  xdg.configFile."nvim/init.lua" = lib.mkForce {
-    source = config.lib.file.mkOutOfStoreSymlink
-      "${config.home.homeDirectory}/nixos-config/dotfiles/nvim/init.lua";
-  };
-
-  xdg.configFile."nvim/lua" = lib.mkForce {
-    source = config.lib.file.mkOutOfStoreSymlink
-      "${config.home.homeDirectory}/nixos-config/dotfiles/nvim/lua";
-  };
+  # Neovim config is now managed by the normie-nvim activation script in
+  # modules/home/neovim.nix — no overrides needed here.
 
   # Desktop entry — opens Neovim in Kitty
   xdg.desktopEntries.nvim = {
