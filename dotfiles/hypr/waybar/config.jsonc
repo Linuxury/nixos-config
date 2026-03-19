@@ -1,113 +1,126 @@
-// ===========================================================================
-// waybar/config.jsonc — Waybar configuration for Hyprland
-// ===========================================================================
 {
-    "layer":        "top",
-    "position":     "top",
-    "height":       36,
-    "margin-top":   6,
-    "margin-left":  10,
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "margin-top": 6,
+    "margin-left": 10,
     "margin-right": 10,
-    "spacing":      0,
-
-    "modules-left":   ["hyprland/workspaces", "hyprland/window"],
-    "modules-center": ["clock"],
-    "modules-right":  ["tray", "separator", "wireplumber", "backlight", "network", "battery", "separator", "custom/notification"],
-
-    // -----------------------------------------------------------------------
-    // Left
-    // -----------------------------------------------------------------------
+    "spacing": 0,
+    "modules-left": [
+        "hyprland/workspaces",
+        "hyprland/window"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "tray",
+        "custom/sep",
+        "wireplumber",
+        "backlight",
+        "network",
+        "battery",
+        "custom/sep",
+        "custom/notification"
+    ],
     "hyprland/workspaces": {
-        "format":         "{id}",
-        "all-outputs":    false,
-        "on-scroll-up":   "hyprctl dispatch workspace e+1",
+        "format": "{id}",
+        "all-outputs": false,
+        "on-scroll-up": "hyprctl dispatch workspace e+1",
         "on-scroll-down": "hyprctl dispatch workspace e-1",
         "persistent-workspaces": {
             "*": 5
         }
     },
-
     "hyprland/window": {
-        "format":           "  {}",
-        "max-length":       50,
+        "format": "  {}",
+        "max-length": 50,
         "separate-outputs": true
     },
-
-    // -----------------------------------------------------------------------
-    // Center
-    // -----------------------------------------------------------------------
     "clock": {
-        "format":         "  {:%H:%M}",
-        "format-alt":     "  {:%A, %d %b %Y}",
+        "format": "  {:%H:%M}",
+        "format-alt": "  {:%A, %d %b %Y}",
         "tooltip-format": "<big>{:%B %Y}</big>\n<tt>{calendar}</tt>"
     },
-
-    // -----------------------------------------------------------------------
-    // Right
-    // -----------------------------------------------------------------------
-    "separator": {
-        "format": "|"
-    },
-
     "tray": {
         "icon-size": 16,
-        "spacing":   8
+        "spacing": 8
     },
-
     "wireplumber": {
-        "format":       "{icon}  {volume}%",
+        "format": "{icon}  {volume}%",
         "format-muted": "󰝟",
-        "on-click":     "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-        "format-icons": ["󰕿", "󰖀", "󰕾"]
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "format-icons": [
+            "󰕿",
+            "󰖀",
+            "󰕾"
+        ]
     },
-
     "backlight": {
-        "format":         "{icon}  {percent}%",
-        "format-icons":   ["󰃞", "󰃟", "󰃠"],
-        "on-scroll-up":   "brightnessctl set +5%",
+        "format": "{icon}  {percent}%",
+        "format-icons": [
+            "󰃞",
+            "󰃟",
+            "󰃠"
+        ],
+        "on-scroll-up": "brightnessctl set +5%",
         "on-scroll-down": "brightnessctl set 5%-"
     },
-
     "network": {
-        "format-wifi":         "󰖩  {signalStrength}%",
-        "format-ethernet":     "󰈀  {ipaddr}",
+        "format-wifi": "󰖩  {signalStrength}%",
+        "format-ethernet": "󰈀  ethernet",
         "format-disconnected": "󰖪  offline",
         "tooltip-format-wifi": "{essid} — {signalStrength}%\n{ipAddr}",
-        "on-click":            "nm-connection-editor"
+        "on-click": "nm-connection-editor",
+        "interface": "wlp*"
     },
-
     "battery": {
         "bat": "BAT0",
         "states": {
-            "warning":  30,
+            "warning": 30,
             "critical": 15
         },
-        "format":          "{icon}  {capacity}%",
+        "format": "{icon}  {capacity}%",
         "format-charging": "󰂄  {capacity}%",
-        "format-plugged":  "󰚥  {capacity}%",
-        "format-full":     "󰁹  Full",
-        "format-icons":    ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
-        "tooltip-format":  "{timeTo} — {capacity}%"
+        "format-plugged": "󰚥  {capacity}%",
+        "format-full": "󰁹  Full",
+        "format-icons": [
+            "󰁺",
+            "󰁻",
+            "󰁼",
+            "󰁽",
+            "󰁾",
+            "󰁿",
+            "󰂀",
+            "󰂁",
+            "󰂂",
+            "󰁹"
+        ],
+        "tooltip-format": "{timeTo} — {capacity}%"
     },
-
     "custom/notification": {
         "tooltip": false,
-        "format":  "{icon}",
+        "format": "{icon}",
         "format-icons": {
-            "notification":               "󱅫",
-            "none":                       "󰂚",
-            "dnd-notification":           "󱅫",
-            "dnd-none":                   "󰂛",
-            "inhibited-notification":     "󱅫",
-            "inhibited-none":             "󰂚",
+            "notification": "󱅫",
+            "none": "󰂚",
+            "dnd-notification": "󱅫",
+            "dnd-none": "󰂛",
+            "inhibited-notification": "󱅫",
+            "inhibited-none": "󰂚",
             "dnd-inhibited-notification": "󱅫",
-            "dnd-inhibited-none":         "󰂛"
+            "dnd-inhibited-none": "󰂛"
         },
-        "return-type":    "json",
-        "exec-if":        "which swaync-client",
-        "exec":           "swaync-client -swb",
-        "on-click":       "swaync-client -t -sw",
+        "return-type": "json",
+        "exec-if": "which swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
         "on-click-right": "swaync-client -d -sw",
         "escape": true
+    },
+    "custom/sep": {
+        "format": "|",
+        "interval": "once",
+        "tooltip": false
     }
 }
