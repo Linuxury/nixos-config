@@ -121,11 +121,6 @@
     # Starship prompt
     ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
 
-    # Ghostty — config + cursor trail shaders
-    ".config/ghostty/config".source  = ../../dotfiles/ghostty/config;
-    ".config/ghostty/shader".source  = ../../dotfiles/ghostty/shader;
-
-
     # Fastfetch
     ".config/fastfetch".source = ../../dotfiles/fastfetch;
 
@@ -329,7 +324,7 @@
       user.email = "linuxurypr@gmail.com";
       init.defaultBranch = "main";
       pull.rebase        = false;
-      core.editor        = "hx";
+      core.editor        = "nvim";
       alias = {
         st  = "status";
         co  = "checkout";
@@ -360,7 +355,7 @@
       "${config.home.homeDirectory}/nixos-config/dotfiles/nvim/lua";
   };
 
-  # Desktop entry — opens Neovim in Ghostty (same pattern as helix had)
+  # Desktop entry — opens Neovim in Kitty
   xdg.desktopEntries.nvim = {
     name        = "Neovim";
     genericName = "Text Editor";
@@ -413,15 +408,6 @@
   # SSH agent
   # =========================================================================
   services.ssh-agent.enable = true;
-
-  # =========================================================================
-  # Dunst — notification daemon for WM sessions
-  # Inactive in COSMIC — DE handles notifications natively
-  # Will activate automatically when Hyprland/Niri are enabled
-  # =========================================================================
-  services.dunst = {
-    enable = true;
-  };
 
   # =========================================================================
   # GTK window button layout

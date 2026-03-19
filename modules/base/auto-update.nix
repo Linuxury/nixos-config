@@ -9,7 +9,7 @@
 #   2. It checks when the last successful update happened
 #   3. If more than 7 days ago → runs flake update + nixos-rebuild
 #   4. notify-send reports status to whatever notification daemon
-#      is running (COSMIC, KDE, or dunst in WM sessions)
+#      is running (COSMIC, KDE, or swaync in WM sessions)
 #   5. If a reboot is required after a kernel update, a persistent
 #      notification appears — you decide when to reboot
 #

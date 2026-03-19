@@ -46,14 +46,6 @@
   # =========================================================================
   # Seed files — pre-create empty color files so apps don't fail on first boot
   # =========================================================================
-  home.activation.ghosttyColors = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    COLORS_FILE="$HOME/.config/ghostty/colors"
-    if [ ! -f "$COLORS_FILE" ]; then
-      mkdir -p "$(dirname "$COLORS_FILE")"
-      touch "$COLORS_FILE"
-    fi
-  '';
-
   home.activation.kittyColors = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     COLORS_FILE="$HOME/.config/kitty/colors.conf"
     if [ ! -f "$COLORS_FILE" ]; then
@@ -78,11 +70,6 @@
       mode = "dark"
       reload_apps = true
 
-      [templates.ghostty]
-      input_path  = "~/.config/matugen/templates/templates/ghostty"
-      output_path = "~/.config/ghostty/colors"
-      post_hook   = "pkill -SIGUSR2 ghostty || true"
-
       [templates.starship]
       input_path  = "~/.config/matugen/templates/templates/starship-colors.toml"
       output_path = "~/.config/starship-colors.toml"
@@ -95,11 +82,6 @@
       input_path  = "~/.config/matugen/templates/templates/cosmic_theme.ron"
       output_path = "~/.config/matugen/themes/matugen_cosmic.theme.ron"
       post_hook   = "python3 ~/.config/matugen/templates/templates/cosmic_postprocess.py ~/.config/matugen/themes/matugen_cosmic.theme.ron && sed -i 's/alpha: 0\\.6,/alpha: 0.85,/' ~/.config/matugen/themes/matugen_cosmic.theme.ron && cosmic-settings appearance import ~/.config/matugen/themes/matugen_cosmic.theme.ron || true"
-
-      [templates.dunst]
-      input_path  = "~/.config/matugen/templates/templates/dunstrc-colors"
-      output_path = "~/.config/dunst/dunstrc-colors"
-      post_hook   = "dunstctl reload || true"
 
       [templates.kitty]
       input_path  = "~/.config/matugen/templates/templates/kitty-colors.conf"

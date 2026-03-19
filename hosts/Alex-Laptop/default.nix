@@ -274,7 +274,7 @@
   # libreoffice, hunspell) are declared in users/alex/home.nix.
   # Gaming packages (prismlauncher, jdk17) are in
   # modules/gaming/gaming.nix (imported above).
-  # Graphical tools (ghostty, kitty, showtime, etc.) are in modules/base/graphical-base.nix.
+  # Graphical tools (kitty, showtime, etc.) are in modules/base/graphical-base.nix.
   # Shell tools (fastfetch, btop) are in modules/base/common.nix.
   # =========================================================================
 

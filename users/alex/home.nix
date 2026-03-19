@@ -109,9 +109,6 @@
     # Starship prompt — shared config
     ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
 
-    # Ghostty — shared config
-    ".config/ghostty/config".source = ../../dotfiles/ghostty/config;
-
     # Fastfetch — shared config
     ".config/fastfetch".source = ../../dotfiles/fastfetch;
 

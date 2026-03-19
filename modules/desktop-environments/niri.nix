@@ -73,8 +73,8 @@
     rofi-wayland       # Alternative if you prefer it from Hyprland
 
     # Notifications
-    dunst
-    libnotify
+    swayNotificationCenter  # Sway Notification Center — notification daemon + panel
+    libnotify               # notify-send — sends notifications from scripts/apps
 
     # Wallpaper
     swww               # Works well with Niri
