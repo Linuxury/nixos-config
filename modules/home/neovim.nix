@@ -80,6 +80,9 @@
     # Hyprland config
     hyprls                                   # hyprls
 
+    # Treesitter parser compilation
+    gcc
+
     # Telescope backends
     fd
     ripgrep
