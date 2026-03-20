@@ -34,8 +34,7 @@ let
   # are identical to a personal key already in linuxury-admins.
   # Replace placeholder keys with real host keys after first boot:
   #   ssh-keyscan -t ed25519 <hostname-or-ip> | awk '{print $2 " " $3}'
-  uniq = builtins.foldl'
-    (acc: x: if builtins.elem x acc then acc else acc ++ [ x ]) [];
+  uniq = builtins.foldl' (acc: x: if builtins.elem x acc then acc else acc ++ [ x ]) [ ];
 
   # --------------------------------------------------------------------------
   # PERSONAL SSH KEYS (per-machine — each can re-key secrets independently)
@@ -43,11 +42,16 @@ let
   # Add a new entry when setting up a new machine:
   #   cat ~/.ssh/id_ed25519.pub
   # --------------------------------------------------------------------------
-  linuxury-personal    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
-  thinkpad-personal    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILx6aZyKXvPNCP9q+Mv+5FLJ/G3O7IA8duJuTkxeB6Uz linuxury-thinkpad";
-  ryzen5900x-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ7VayUjJnywEEhyLOnc5E4Pqb5DxoNDmVVNLRpiV7dQ ryzen5900x-linuxury";
+  linuxury-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  thinkpad-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILx6aZyKXvPNCP9q+Mv+5FLJ/G3O7IA8duJuTkxeB6Uz linuxury-thinkpad";
+  ryzen5900x-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ7VayUjJnywEEhyLOnc5E4Pqb5DxoNDmVVNLRpiV7dQ ryzen5900x-linuxury";
 
-  linuxury-admins = [ linuxury-personal thinkpad-personal ryzen5900x-personal minisforum-personal ];
+  linuxury-admins = [
+    linuxury-personal
+    thinkpad-personal
+    ryzen5900x-personal
+    minisforum-personal
+  ];
 
   # --------------------------------------------------------------------------
   # HOST SSH HOST KEYS
@@ -57,26 +61,39 @@ let
   #
   # Format: "ssh-ed25519 <key-data>"
   # --------------------------------------------------------------------------
-  ThinkPad     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIT5rYiAs2ukQJtUmGWTD5nbxX74fh3vG3OyNxE1XfdJ root@ThinkPad";
-  Ryzen5900x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHyps7MacHDkQcGP1kr6ZOc6fR/JTMrj4my3Bg5ybyJo root@Ryzen5900x";
-  Ryzen5800x   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
-  Asus-A15     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  ThinkPad = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIT5rYiAs2ukQJtUmGWTD5nbxX74fh3vG3OyNxE1XfdJ root@ThinkPad";
+  Ryzen5900x = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHyps7MacHDkQcGP1kr6ZOc6fR/JTMrj4my3Bg5ybyJo root@Ryzen5900x";
+  Ryzen5800x = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Asus-A15 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
   Alex-Desktop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
-  Alex-Laptop  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILyHn+dSmJU01t4p81PfmhHb8yaRjUhoarvQwTDJQ69T root@Alex-Laptop";
-  MinisForum   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/HPvxQY35jS4VDZRy4viIfHIGjUqkCgFhRVNcIsZRG root@MinisForum";
-  Radxa-X4     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPBE88V1jx/3qtbt94uueOdch+E+NEyIZ0JqIFYFRaEz";
-  Media-Server          = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICY9WqgrApfNR85yBAilUncMSVwnaatj9obAkmG7jSm/ root@Media-Server";
-  media-server-personal  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYO2Wc9utl/dH/8y6CB6s6gfGIsOMGOq7DwFxcR4G1I Media-Server-linuxury";
-  minisforum-personal    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP9EOXj696mEgZ9Ke3wtOyNA2kH6t0uc820AVXcc+yEH MinisForum-linuxury";
+  Alex-Laptop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILyHn+dSmJU01t4p81PfmhHb8yaRjUhoarvQwTDJQ69T root@Alex-Laptop";
+  MinisForum = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/HPvxQY35jS4VDZRy4viIfHIGjUqkCgFhRVNcIsZRG root@MinisForum";
+  Radxa-X4 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPBE88V1jx/3qtbt94uueOdch+E+NEyIZ0JqIFYFRaEz";
+  Media-Server = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICY9WqgrApfNR85yBAilUncMSVwnaatj9obAkmG7jSm/ root@Media-Server";
+  media-server-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYO2Wc9utl/dH/8y6CB6s6gfGIsOMGOq7DwFxcR4G1I Media-Server-linuxury";
+  minisforum-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP9EOXj696mEgZ9Ke3wtOyNA2kH6t0uc820AVXcc+yEH MinisForum-linuxury";
 
   # --------------------------------------------------------------------------
   # Convenience groups
   # --------------------------------------------------------------------------
-  linuxury-machines = [ ThinkPad Ryzen5900x MinisForum Radxa-X4 Media-Server ];
-  babylinux-machines = [ Ryzen5800x Asus-A15 ];
-  alex-machines = [ Alex-Desktop Alex-Laptop ];
+  linuxury-machines = [
+    ThinkPad
+    Ryzen5900x
+    MinisForum
+    Radxa-X4
+    Media-Server
+  ];
+  babylinux-machines = [
+    Ryzen5800x
+    Asus-A15
+  ];
+  alex-machines = [
+    Alex-Desktop
+    Alex-Laptop
+  ];
 
-in {
+in
+{
 
   # --------------------------------------------------------------------------
   # linuxury's SSH authorized key
@@ -86,7 +103,8 @@ in {
   # Deployed to: all hosts where linuxury has a user account.
   # --------------------------------------------------------------------------
   "linuxury-authorized-key.age".publicKeys = uniq (
-    linuxury-admins ++ linuxury-machines ++ babylinux-machines ++ alex-machines);
+    linuxury-admins ++ linuxury-machines ++ babylinux-machines ++ alex-machines
+  );
 
   # --------------------------------------------------------------------------
   # WireGuard config for qBittorrent VPN killswitch
@@ -96,8 +114,7 @@ in {
   # Moved from babylinux machines to Radxa-X4 (dedicated torrent host).
   # After updating: nix run nixpkgs#agenix -- -r
   # --------------------------------------------------------------------------
-  "wireguard-vpnunlimited.age".publicKeys = uniq (
-    linuxury-admins ++ [ Radxa-X4 ]);
+  "wireguard-vpnunlimited.age".publicKeys = uniq (linuxury-admins ++ [ Radxa-X4 ]);
 
   # --------------------------------------------------------------------------
   # User display names (GECOS / full names)
@@ -109,13 +126,16 @@ in {
   # the corresponding module after real host keys are collected and re-keyed.
   # --------------------------------------------------------------------------
   "description-linuxury.age".publicKeys = uniq (
-    linuxury-admins ++ [ ThinkPad Ryzen5900x ]);
+    linuxury-admins
+    ++ [
+      ThinkPad
+      Ryzen5900x
+    ]
+  );
 
-  "description-babylinux.age".publicKeys = uniq (
-    linuxury-admins ++ babylinux-machines);
+  "description-babylinux.age".publicKeys = uniq (linuxury-admins ++ babylinux-machines);
 
-  "description-alex.age".publicKeys = uniq (
-    linuxury-admins ++ alex-machines);
+  "description-alex.age".publicKeys = uniq (linuxury-admins ++ alex-machines);
 
   # --------------------------------------------------------------------------
   # Samba credentials for mounting Media-Server share
@@ -126,7 +146,17 @@ in {
   #   nix run nixpkgs#agenix -- -r
   # --------------------------------------------------------------------------
   "smb-credentials.age".publicKeys = uniq (
-    linuxury-admins ++ [ ThinkPad Ryzen5900x Radxa-X4 MinisForum Media-Server ] ++ babylinux-machines ++ alex-machines);
+    linuxury-admins
+    ++ [
+      ThinkPad
+      Ryzen5900x
+      Radxa-X4
+      MinisForum
+      Media-Server
+    ]
+    ++ babylinux-machines
+    ++ alex-machines
+  );
 
   # --------------------------------------------------------------------------
   # FreshRSS admin password
@@ -135,7 +165,20 @@ in {
   # Migrated from Radxa-X4 to Media-Server.
   # After updating: nix run nixpkgs#agenix -- -r
   # --------------------------------------------------------------------------
-  "freshrss-admin-password.age".publicKeys = uniq (
-    linuxury-admins ++ [ Media-Server ]);
+  "freshrss-admin-password.age".publicKeys = uniq (linuxury-admins ++ [ Media-Server ]);
+
+  # --------------------------------------------------------------------------
+  # OpenRouter API key for opencode
+  #
+  # Used by the opencode() shell function to authenticate with OpenRouter.
+  # After updating: nix run nixpkgs#agenix -- -r
+  # --------------------------------------------------------------------------
+  "openrouter-api-key.age".publicKeys = uniq (
+    linuxury-admins
+    ++ [
+      ThinkPad
+      Ryzen5900x
+    ]
+  );
 
 }
