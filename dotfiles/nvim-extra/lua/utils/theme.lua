@@ -14,8 +14,13 @@ M.hyprland_theme = "matugen"
 function M.set_colorscheme(theme, rice_name)
   if theme == "matugen" then
     -- Load matugen colors and setup the colorscheme
-    local matugen = require("plugins.matugen")
-    matugen.setup()
+    local matugen_ok, matugen = pcall(require, "utils.matugen")
+    if matugen_ok then
+      matugen.setup()
+    else
+      -- Fallback to catppuccin if matugen colors not available
+      vim.cmd("colorscheme catppuccin")
+    end
   else
     vim.g.colors_name = theme
     vim.cmd("colorscheme " .. theme)
