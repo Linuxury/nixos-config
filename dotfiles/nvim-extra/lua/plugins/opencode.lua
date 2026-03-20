@@ -59,5 +59,11 @@ return {
     -- Scroll opencode panel without leaving buffer
     vim.keymap.set('n', '<leader>au', function() require('opencode').command('session.half.page.up') end, { desc = 'opencode: scroll up' })
     vim.keymap.set('n', '<leader>ad', function() require('opencode').command('session.half.page.down') end, { desc = 'opencode: scroll down' })
+
+    -- Disable trailing-space dots (listchars) in the opencode terminal panel
+    vim.api.nvim_create_autocmd('TermOpen', {
+      pattern = 'term://*opencode*',
+      callback = function() vim.wo.list = false end,
+    })
   end,
 }
