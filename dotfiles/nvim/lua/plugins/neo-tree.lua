@@ -27,18 +27,6 @@ vim.api.nvim_create_autocmd("WinClosed", {
   end,
 })
 
--- Auto-open Claude Code the first time the explorer opens
-vim.api.nvim_create_autocmd("FileType", {
-  pattern  = "neo-tree",
-  once     = true,
-  callback = function()
-    vim.schedule(function()
-      vim.cmd("ClaudeCode")
-      vim.g.layout_active = true
-    end)
-  end,
-})
-
 -- Auto-preview: show highlighted file in center column as cursor moves
 local _preview_timer = nil
 
