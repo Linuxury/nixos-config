@@ -10,6 +10,9 @@
 #          on first launch. Mason is present but not used for binary installs
 #          on NixOS — LSP binaries below go on PATH from Nix instead.
 #
+# Custom additions (e.g. opencode.lua) live in dotfiles/nvim-extra/ and
+# are overlaid after the normie-nvim rsync — they survive upstream updates.
+#
 # To update to TheBlackDon's latest:
 #   nru   (flake update + rebuild)
 # ===========================================================================
@@ -47,6 +50,11 @@
 
     ${pkgs.rsync}/bin/rsync -a --delete \
       "${inputs.normie-nvim}/" "$NVIM_DIR/"
+
+    # Overlay custom additions (dotfiles/nvim-extra/) on top of normie-nvim.
+    # No --delete here — only adds/updates, never removes normie-nvim files.
+    ${pkgs.rsync}/bin/rsync -a \
+      "${../..}/dotfiles/nvim-extra/" "$NVIM_DIR/"
   '';
 
   # =========================================================================
@@ -82,6 +90,9 @@
 
     # Treesitter parser compilation
     gcc
+
+    # AI coding agent
+    opencode                                 # opencode CLI (used by opencode-nvim)
 
     # Telescope backends
     fd
