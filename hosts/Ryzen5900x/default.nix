@@ -74,25 +74,27 @@ in
   # This dispatcher script disables WiFi as soon as ethernet connects, and
   # re-enables it if ethernet goes down (e.g. cable unplugged).
   # =========================================================================
-  networking.networkmanager.dispatcherScripts = [{
-    source = pkgs.writeText "wifi-ethernet-exclusive" ''
-      #!/bin/sh
-      IFACE="$1"
-      STATUS="$2"
+  networking.networkmanager.dispatcherScripts = [
+    {
+      source = pkgs.writeText "wifi-ethernet-exclusive" ''
+        #!/bin/sh
+        IFACE="$1"
+        STATUS="$2"
 
-      # Only act on ethernet interfaces (enp*, eth*, eno*)
-      case "$IFACE" in
-        en*|eth*|eno*)
-          if [ "$STATUS" = "up" ]; then
-            nmcli radio wifi off
-          elif [ "$STATUS" = "down" ]; then
-            nmcli radio wifi on
-          fi
-          ;;
-      esac
-    '';
-    type = "basic";
-  }];
+        # Only act on ethernet interfaces (enp*, eth*, eno*)
+        case "$IFACE" in
+          en*|eth*|eno*)
+            if [ "$STATUS" = "up" ]; then
+              nmcli radio wifi off
+            elif [ "$STATUS" = "down" ]; then
+              nmcli radio wifi on
+            fi
+            ;;
+        esac
+      '';
+      type = "basic";
+    }
+  ];
 
   # =========================================================================
   # GPU driver selection
@@ -302,6 +304,13 @@ in
     file = ../../secrets/smb-credentials.age;
     mode = "0400";
     owner = "root";
+  };
+
+  age.secrets.openrouter-api-key = {
+    file = ../../secrets/openrouter-api-key.age;
+    mode = "0440";
+    owner = "root";
+    group = "users";
   };
 
   # =========================================================================

@@ -193,13 +193,17 @@ in
     # Mount manually with: sudo mount /mnt/Media-Server
     # -----------------------------------------------------------------------
     "/mnt/Media-Server" = {
-      device  = "//10.0.0.3/Media-Server";
-      fsType  = "cifs";
+      device = "//10.0.0.3/Media-Server";
+      fsType = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
-        "uid=1000" "gid=100"
-        "nofail" "_netdev" "noauto"
-        "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "uid=1000"
+        "gid=100"
+        "nofail"
+        "_netdev"
+        "noauto"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=60"
         "x-systemd.mount-timeout=2s"
       ];
     };
@@ -211,13 +215,17 @@ in
     # Mount manually with: sudo mount /mnt/MinisForum
     # -----------------------------------------------------------------------
     "/mnt/MinisForum" = {
-      device  = "//10.0.0.7/GameServers";
-      fsType  = "cifs";
+      device = "//10.0.0.7/GameServers";
+      fsType = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
-        "uid=1000" "gid=100"
-        "nofail" "_netdev" "noauto"
-        "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "uid=1000"
+        "gid=100"
+        "nofail"
+        "_netdev"
+        "noauto"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=60"
         "x-systemd.mount-timeout=2s"
       ];
     };
@@ -243,9 +251,16 @@ in
   # Agenix secrets
   # =========================================================================
   age.secrets.smb-credentials = {
-    file  = ../../secrets/smb-credentials.age;
-    mode  = "0400";
+    file = ../../secrets/smb-credentials.age;
+    mode = "0400";
     owner = "root";
+  };
+
+  age.secrets.openrouter-api-key = {
+    file = ../../secrets/openrouter-api-key.age;
+    mode = "0440";
+    owner = "root";
+    group = "users";
   };
 
   # =========================================================================

@@ -58,10 +58,10 @@ nru() {
 }
 
 # ---------------------------------------------------------------------------
-# OpenCode — runs with OpenRouter API
+# OpenCode — runs with OpenRouter API (key from agenix)
 # ---------------------------------------------------------------------------
 opencode() {
-  ANTHROPIC_API_KEY="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" \
+  ANTHROPIC_API_KEY="$(cat /run/agenix/openrouter-api-key 2>/dev/null)" \
   ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
   command opencode "$@"
 }
