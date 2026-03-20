@@ -183,7 +183,7 @@ systemctl --user restart cosmic-session
 
 ### Terminal has no colors / all-black or all-white
 
-The matugen seed files (`~/.config/kitty/colors.conf`, `~/.config/ghostty/colors`) are missing or empty, and matugen hasn't run yet. Re-run Home Manager activation to recreate them, then force matugen:
+The matugen seed file (`~/.config/kitty/colors.conf`) is missing or empty, and matugen hasn't run yet. Re-run Home Manager activation to recreate it, then force matugen:
 
 ```bash
 home-manager switch --flake ~/nixos-config#linuxury   # recreate seed files
