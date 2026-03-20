@@ -49,7 +49,7 @@ in
     #../../modules/desktop-environments/hyprland.nix
     #../../modules/desktop-environments/niri.nix
     ../../modules/gaming/gaming.nix
-    ../../modules/development/development.nix
+    #../../modules/development/development.nix
     ../../modules/base/auto-update.nix
     #../../modules/services/local-llm.nix
     ../../modules/users/linuxury-packages.nix

@@ -17,14 +17,19 @@
 #   nru   (flake update + rebuild)
 # ===========================================================================
 
-{ inputs, pkgs, lib, ... }:
+{
+  inputs,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   programs.neovim = {
-    enable        = true;
+    enable = true;
     defaultEditor = true;
-    viAlias       = true;
-    vimAlias      = true;
+    viAlias = true;
+    vimAlias = true;
   };
 
   # =========================================================================
@@ -68,35 +73,38 @@
   # =========================================================================
   home.packages = with pkgs; [
     # Nix
-    nil                                      # nil_ls
-    alejandra                                # formatter (conform.lua)
+    nil # nil_ls
+    alejandra # formatter (conform.lua)
 
     # Lua
-    lua-language-server                      # lua_ls
-    stylua                                   # formatter (conform.lua)
+    lua-language-server # lua_ls
+    stylua # formatter (conform.lua)
 
     # Shell
-    bash-language-server                     # bashls
+    bash-language-server # bashls
 
     # Web
-    vscode-langservers-extracted             # cssls + htmlls
-    nodePackages.typescript-language-server  # ts_ls
-    tailwindcss-language-server              # tailwindcss
+    vscode-langservers-extracted # cssls + htmlls
+    nodePackages.typescript-language-server # ts_ls
+    tailwindcss-language-server # tailwindcss
 
     # Python
     pyright
 
     # C/C++
-    clang-tools                              # clangd
+    clang-tools # clangd
 
     # Hyprland config
-    hyprls                                   # hyprls
+    hyprls # hyprls
 
     # Treesitter parser compilation
     gcc
 
     # AI coding agent
-    opencode                                 # opencode CLI (used by opencode-nvim)
+    opencode # opencode CLI (used by opencode-nvim)
+    (pkgs.writeShellScriptBin "claude" ''
+      exec env SHELL=${pkgs.bash}/bin/bash ${pkgs.claude-code}/bin/claude "$@"
+    '')
 
     # Telescope backends
     fd

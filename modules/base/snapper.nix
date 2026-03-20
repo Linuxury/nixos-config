@@ -14,7 +14,7 @@
 # ALL hosts use BTRFS and mount /.snapshots from @snapshots, so this
 # works everywhere without host-specific configuration.
 #
-# USEFUL COMMANDS (see fish abbreviations too):
+# USEFUL COMMANDS:
 #   sudo snapper -c root list           # list system snapshots
 #   sudo snapper -c home list           # list home snapshots
 #   sudo snapper -c root create --description "before update"  # manual snapshot
@@ -26,7 +26,7 @@
 {
   services.snapper = {
     # How often to run the cleanup daemon (not the snapshot creation)
-    cleanupInterval  = "1d";
+    cleanupInterval = "1d";
     # How often to take new snapshots (the actual snapshot trigger interval)
     snapshotInterval = "hourly";
 
@@ -39,15 +39,15 @@
       # These are what you roll back when a rebuild breaks something.
       # -----------------------------------------------------------------------
       root = {
-        SUBVOLUME        = "/";
-        ALLOW_USERS      = [];           # root only
-        TIMELINE_CREATE  = true;         # take snapshots on the schedule
-        TIMELINE_CLEANUP = true;         # prune old ones automatically
-        TIMELINE_LIMIT_HOURLY  = "8";
-        TIMELINE_LIMIT_DAILY   = "7";
-        TIMELINE_LIMIT_WEEKLY  = "4";
-        TIMELINE_LIMIT_MONTHLY = "0";   # disabled — weekly is enough coverage
-        TIMELINE_LIMIT_YEARLY  = "0";
+        SUBVOLUME = "/";
+        ALLOW_USERS = [ ]; # root only
+        TIMELINE_CREATE = true; # take snapshots on the schedule
+        TIMELINE_CLEANUP = true; # prune old ones automatically
+        TIMELINE_LIMIT_HOURLY = "8";
+        TIMELINE_LIMIT_DAILY = "7";
+        TIMELINE_LIMIT_WEEKLY = "4";
+        TIMELINE_LIMIT_MONTHLY = "0"; # disabled — weekly is enough coverage
+        TIMELINE_LIMIT_YEARLY = "0";
       };
 
       # -----------------------------------------------------------------------
@@ -57,15 +57,15 @@
       # Useful for recovering accidentally deleted or overwritten files.
       # -----------------------------------------------------------------------
       home = {
-        SUBVOLUME        = "/home";
-        ALLOW_USERS      = [];
-        TIMELINE_CREATE  = true;
+        SUBVOLUME = "/home";
+        ALLOW_USERS = [ ];
+        TIMELINE_CREATE = true;
         TIMELINE_CLEANUP = true;
-        TIMELINE_LIMIT_HOURLY  = "8";
-        TIMELINE_LIMIT_DAILY   = "7";
-        TIMELINE_LIMIT_WEEKLY  = "4";
+        TIMELINE_LIMIT_HOURLY = "8";
+        TIMELINE_LIMIT_DAILY = "7";
+        TIMELINE_LIMIT_WEEKLY = "4";
         TIMELINE_LIMIT_MONTHLY = "0";
-        TIMELINE_LIMIT_YEARLY  = "0";
+        TIMELINE_LIMIT_YEARLY = "0";
       };
 
     };
@@ -82,9 +82,10 @@
   # Once a month is the standard recommendation.
   # ===========================================================================
   services.btrfs.autoScrub = {
-    enable      = true;
-    interval    = "monthly";
-    fileSystems = [ "/" ];  # scrubs the device backing /, which covers all
-                            # subvolumes on the same disk (home, nix, etc.)
+    enable = true;
+    interval = "monthly";
+    fileSystems = [ "/" ];
+    # scrubs the device backing /, which covers all
+    # subvolumes on the same disk (home, nix, etc.)
   };
 }

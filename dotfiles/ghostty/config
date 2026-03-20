@@ -21,7 +21,7 @@ custom-shader = shader/cursor_blaze_tapered.glsl
 custom-shader = shader/cursor_smear_fade.glsl
 
 # Shell integration
-shell-integration = fish
+shell-integration = zsh
 shell-integration-features = no-cursor
 
 # Behavior

@@ -387,7 +387,7 @@ When the wallpaper changes, the matugen pipeline regenerates `~/.config/nvim/col
 
 [↑ Back to Contents](#-contents)
 
-**Role:** Default shell for all users on all machines. Migrated from fish.
+**Role:** Default shell for all users on all machines.
 
 ### Configuration layers
 
