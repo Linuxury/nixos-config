@@ -16,7 +16,7 @@ return {
   config = function()
     require('claude-code').setup({
       window = {
-        position    = 'vertical',  -- right-side vertical split
+        position    = 'botright vertical',  -- full-height right panel
         split_ratio = 0.35,
         enter_insert   = true,
         hide_numbers   = true,
