@@ -16,11 +16,18 @@ return {
   config = function()
     require('claude-code').setup({
       window = {
-        position    = 'botright vertical',  -- full-height right panel
-        split_ratio = 0.35,
+        position    = 'float',
         enter_insert   = true,
         hide_numbers   = true,
         hide_signcolumn = true,
+        float = {
+          width    = '45%',
+          height   = '90%',
+          row      = 'center',
+          col      = '100%',   -- anchored to far right
+          relative = 'editor',
+          border   = 'rounded',
+        },
       },
       refresh = {
         enable             = true,
