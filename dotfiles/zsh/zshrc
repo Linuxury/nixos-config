@@ -56,3 +56,19 @@ nru() {
   sudo -v
   sudo nixos-rebuild switch --flake "$NIXOS_CONFIG" |& nom
 }
+
+# ---------------------------------------------------------------------------
+# OpenCode — runs with OpenRouter API
+# ---------------------------------------------------------------------------
+opencode() {
+  ANTHROPIC_API_KEY="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" \
+  ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+  command opencode "$@"
+}
+
+# ---------------------------------------------------------------------------
+# Local environment variables — loaded from ~/.env.local if it exists
+# Use this for API keys and secrets not tracked in git
+# Example: ANTHROPIC_API_KEY=sk-ant-...
+# ---------------------------------------------------------------------------
+[[ -f "$HOME/.env.local" ]] && source "$HOME/.env.local"
