@@ -39,23 +39,13 @@
   "load_direnv": "shell_hook",
 
   // -------------------------------------------------------------------------
-  // AI Assistant — local Ollama (llm-start must be running first)
+  // AI Assistant — Agent Panel (ACP) with Claude Code
   //
-  // Open the assistant panel with:  Ctrl+?  or  cmd palette → "assistant"
-  // The Ollama server must be running — use llm-start in terminal first.
-  // To change model: update "model" here and make sure it's been pulled.
+  // Open the agent panel with:  Ctrl+?  or  cmd palette → "agent panel"
+  // First time: run /login in a Claude thread to authenticate with your subscription
   // -------------------------------------------------------------------------
   "assistant": {
     "enabled": true,
-    "version": "2",
-    "default_model": {
-      "provider": "ollama",
-      "model": "qwen2.5:14b"
-    }
-  },
-  "language_model": {
-    "ollama": {
-      "api_url": "http://localhost:11434"
-    }
+    "version": "2"
   }
 }
