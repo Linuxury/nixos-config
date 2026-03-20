@@ -110,9 +110,11 @@ vim.api.nvim_create_autocmd("ColorScheme", {
     hl("BufferLineOffsetSeparator", { bg = "none" })
   end,
 })
--- Fire once on startup (no colorscheme loaded yet)
+-- Fire once on startup, deferred so it runs after all plugin VimEnter hooks
 vim.api.nvim_create_autocmd("VimEnter", {
   group = transparent,
-  callback = function() vim.cmd("doautocmd TransparentBG ColorScheme") end,
   once = true,
+  callback = function()
+    vim.schedule(function() vim.cmd("doautocmd TransparentBG ColorScheme") end)
+  end,
 })
