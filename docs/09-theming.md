@@ -37,8 +37,7 @@ matugen generates a full Material You color palette
         ↓
 Writes colors to template outputs:
   ~/.config/kitty/colors.conf       (Kitty terminal)
-  ~/.config/ghostty/colors          (Ghostty terminal)
-  ~/.config/nvim/colors/matugen.lua (Neovim colorscheme)
+  ~/.config/nvim/lua/utils/matugen-colors.lua (Neovim colorscheme)
   + any other configured templates
 ```
 
@@ -95,12 +94,11 @@ Home Manager auto-clones this directory if it's missing (via `home.activation.ma
 
 ### Seed files
 
-Two empty seed files are pre-created by Home Manager activation before matugen first runs:
+One empty seed file is pre-created by Home Manager activation before matugen first runs:
 
-- `~/.config/ghostty/colors`
 - `~/.config/kitty/colors.conf`
 
-These must exist before matugen runs — otherwise matugen errors trying to write to a nonexistent path. Home Manager creates them so the pipeline works from the first wallpaper change.
+This must exist before matugen runs — otherwise matugen errors trying to write to a nonexistent path. Home Manager creates it so the pipeline works from the first wallpaper change.
 
 ---
 
@@ -217,7 +215,6 @@ Then rebuild: `nr`
 | Don't | Why |
 |-------|-----|
 | Manually edit `~/.config/cosmic/com.system76.CosmicBackground/v1/*` | RON format is strict; any parse error causes `cosmic-session` exponential backoff restart loops |
-| Delete or corrupt `~/.config/ghostty/colors` | Ghostty loses its matugen colors until the service runs again — run `systemctl --user restart wallpaper-color-sync` to recover |
 | Run `matugen` directly with a wrong path | The feedback loop prevention file caches the wrong path, preventing future runs from picking up the real wallpaper |
 | Change the wallpaper by editing COSMIC config files | Set it through **COSMIC Settings → Desktop → Wallpaper** only |
 | Run `matugen` while the service is also running | Two concurrent runs can produce partially-written template files |

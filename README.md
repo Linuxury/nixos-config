@@ -66,7 +66,6 @@ nixos-config/
 │   └── alex/home.nix
 ├── dotfiles/                    # Config files symlinked by Home Manager
 │   ├── nvim/                    # Neovim — full IDE config
-│   ├── ghostty/                 # Ghostty terminal config + shaders
 │   ├── zsh/                     # Shared zsh init
 │   └── fastfetch/               # Fastfetch system info config
 ├── secrets/                     # age-encrypted secrets (safe to commit)
