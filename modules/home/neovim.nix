@@ -69,9 +69,16 @@
     # Web
     vscode-langservers-extracted             # cssls + htmlls
     nodePackages.typescript-language-server  # ts_ls
+    tailwindcss-language-server              # tailwindcss
 
     # Python
     pyright
+
+    # C/C++
+    clang-tools                              # clangd
+
+    # Hyprland config
+    hyprls                                   # hyprls
 
     # Telescope backends
     fd
