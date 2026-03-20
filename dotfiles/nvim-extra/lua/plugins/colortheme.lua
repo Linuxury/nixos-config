@@ -28,12 +28,6 @@ return {
       vim.api.nvim_create_autocmd("VimEnter", {
         once = true,
         callback = function()
-          -- Load matugen plugin first (for Hyprland)
-          local matugen_ok, _ = pcall(require, "plugins.matugen")
-          if matugen_ok then
-            -- matugen.lua is loaded, theme loader will use it
-          end
-          -- Then load the theme
           require('utils.theme').load_theme()
         end,
       })
