@@ -77,7 +77,10 @@ local transparent = vim.api.nvim_create_augroup("TransparentBG", { clear = true 
 vim.api.nvim_create_autocmd("ColorScheme", {
   group = transparent,
   callback = function()
-    local hl = function(name, val) vim.api.nvim_set_hl(0, name, val) end
+    local hl = function(name, val)
+      val.ctermbg = "NONE"
+      vim.api.nvim_set_hl(0, name, val)
+    end
     hl("Normal",        { bg = "none" })
     hl("NormalNC",      { bg = "none" })
     hl("NormalFloat",   { bg = "none" })
