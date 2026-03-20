@@ -3,7 +3,7 @@ require("which-key").setup({
   icons = { mappings = false },  -- no icons, cleaner with terminal colors
   win = {
     border = "single",
-    wo = { winblend = 0 },
+    wo = { winblend = 15 },
   },
 })
 

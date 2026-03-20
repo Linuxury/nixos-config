@@ -75,7 +75,17 @@ map("n", "<leader>fk",       "<cmd>Telescope keymaps<cr>",                  "Key
 map("n", "<leader>/",        "<cmd>Telescope current_buffer_fuzzy_find<cr>","Fuzzy find in buffer")
 
 -- ── File Explorer ─────────────────────────────────────────
-map("n", "<leader>e",  "<cmd>Neotree toggle<cr>",  "Toggle file explorer")
+map("n", "<leader>e", function()
+  if vim.g.layout_active then
+    vim.cmd("Neotree toggle")
+    vim.cmd("ClaudeCode")
+    vim.g.layout_active = false
+  else
+    vim.cmd("Neotree show")
+    vim.cmd("ClaudeCode")
+    vim.g.layout_active = true
+  end
+end, "Toggle 3-column layout")
 map("n", "<leader>E",  "<cmd>Neotree reveal<cr>",  "Reveal file in explorer")
 
 -- ── AI ────────────────────────────────────────────────────

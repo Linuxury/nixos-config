@@ -55,6 +55,10 @@
     # No --delete here — only adds/updates, never removes normie-nvim files.
     ${pkgs.rsync}/bin/rsync -a \
       "${../..}/dotfiles/nvim-extra/" "$NVIM_DIR/"
+
+    # Nix store files are read-only — make the whole config dir writable so
+    # lazy.nvim can update lazy-lock.json and plugins can write their state.
+    chmod -R u+w "$NVIM_DIR/"
   '';
 
   # =========================================================================

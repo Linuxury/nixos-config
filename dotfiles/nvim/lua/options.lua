@@ -71,3 +71,45 @@ opt.winblend = 15
 
 -- Hide end-of-buffer ~ markers
 opt.fillchars = { eob = " " }
+
+-- Terminal transparency: inherit background from any terminal (kitty, alacritty, wezterm, etc.)
+local transparent = vim.api.nvim_create_augroup("TransparentBG", { clear = true })
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = transparent,
+  callback = function()
+    local hl = function(name, val) vim.api.nvim_set_hl(0, name, val) end
+    hl("Normal",        { bg = "none" })
+    hl("NormalNC",      { bg = "none" })
+    hl("NormalFloat",   { bg = "none" })
+    hl("FloatBorder",   { bg = "none" })
+    hl("SignColumn",    { bg = "none" })
+    hl("LineNr",        { bg = "none" })
+    hl("CursorLineNr",  { bg = "none" })
+    hl("CursorLine",    { bg = "none" })
+    hl("StatusLine",    { bg = "none" })
+    hl("StatusLineNC",  { bg = "none" })
+    hl("VertSplit",     { bg = "none" })
+    hl("EndOfBuffer",   { bg = "none" })
+    hl("MsgArea",       { bg = "none" })
+    hl("TabLine",       { bg = "none" })
+    hl("TabLineFill",   { bg = "none" })
+    hl("TabLineSel",    { bg = "none" })
+    hl("WinSeparator",  { bg = "none" })
+    -- Bufferline transparency
+    hl("BufferLineFill",        { bg = "none" })
+    hl("BufferLineBackground",  { bg = "none" })
+    hl("BufferLineBufferVisible", { bg = "none" })
+    hl("BufferLineBufferSelected", { bg = "none" })
+    hl("BufferLineTab",         { bg = "none" })
+    hl("BufferLineTabSelected", { bg = "none" })
+    hl("BufferLineTabClose",    { bg = "none" })
+    hl("BufferLineSeparator",   { bg = "none" })
+    hl("BufferLineOffsetSeparator", { bg = "none" })
+  end,
+})
+-- Fire once on startup (no colorscheme loaded yet)
+vim.api.nvim_create_autocmd("VimEnter", {
+  group = transparent,
+  callback = function() vim.cmd("doautocmd TransparentBG ColorScheme") end,
+  once = true,
+})
