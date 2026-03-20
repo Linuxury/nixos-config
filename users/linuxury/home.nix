@@ -501,8 +501,7 @@
   # flatpak override is idempotent — safe to re-apply on every HM activation.
   # =========================================================================
 home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    mkdir -p "$HOME/Obsidian/Daily"
-    mkdir -p "$HOME/Obsidian/Templates"
+    mkdir -p "$HOME/Obsidian"
   '';
 
 home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
