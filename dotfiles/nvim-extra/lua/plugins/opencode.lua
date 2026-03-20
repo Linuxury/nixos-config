@@ -60,10 +60,20 @@ return {
     vim.keymap.set('n', '<leader>au', function() require('opencode').command('session.half.page.up') end, { desc = 'opencode: scroll up' })
     vim.keymap.set('n', '<leader>ad', function() require('opencode').command('session.half.page.down') end, { desc = 'opencode: scroll down' })
 
-    -- Disable trailing-space dots (listchars) in the opencode terminal panel
+    -- Optimize opencode terminal buffer for performance
     vim.api.nvim_create_autocmd('TermOpen', {
       pattern = 'term://*opencode*',
-      callback = function() vim.wo.list = false end,
+      callback = function()
+        vim.wo.list = false           -- no trailing-space dots
+        vim.wo.cursorline = false     -- no cursorline highlight (slow in terminal)
+        vim.wo.signcolumn = 'no'      -- no sign column (faster rendering)
+        vim.wo.conceallevel = 0       -- no conceal (faster)
+        vim.wo.foldenable = false     -- no folding in terminal
+        vim.wo.number = false         -- no line numbers
+        vim.wo.relativenumber = false -- no relative numbers
+        -- Disable treesitter for terminal buffer
+        pcall(vim.treesitter.stop, 0)
+      end,
     })
 
     -- Fix normie-nvim snacks.lua bug: Snacks.picker.close() doesn't exist
