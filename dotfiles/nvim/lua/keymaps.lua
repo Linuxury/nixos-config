@@ -77,16 +77,28 @@ map("n", "<leader>/",        "<cmd>Telescope current_buffer_fuzzy_find<cr>","Fuz
 -- ── File Explorer ─────────────────────────────────────────
 map("n", "<leader>e", function()
   if vim.g.layout_active then
-    vim.cmd("Neotree toggle")
-    vim.cmd("ClaudeCode")
     vim.g.layout_active = false
+    vim.cmd("Neotree close")
+    vim.cmd("ClaudeCode")
+    vim.cmd("Dashboard")
   else
+    vim.g.layout_active = true
     vim.cmd("Neotree show")
     vim.cmd("ClaudeCode")
-    vim.g.layout_active = true
   end
 end, "Toggle 3-column layout")
 map("n", "<leader>E",  "<cmd>Neotree reveal<cr>",  "Reveal file in explorer")
+
+-- Auto-open 3-column layout on startup
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    vim.schedule(function()
+      vim.g.layout_active = true
+      vim.cmd("Neotree show")
+      vim.cmd("ClaudeCode")
+    end)
+  end,
+})
 
 -- ── AI ────────────────────────────────────────────────────
 map("n", "<leader>cc", "<cmd>ClaudeCode<cr>",      "Toggle Claude Code")

@@ -25,32 +25,37 @@
     # -----------------------------------------------------------------------
     # Python — with commonly used packages bundled in
     # -----------------------------------------------------------------------
-    (python3.withPackages (ps: with ps; [
-      # Package management
-      pip           # Python package installer — you'll use this constantly
+    (python3.withPackages (
+      ps: with ps; [
+        # Package management
+        pip # Python package installer — you'll use this constantly
 
-      # Code quality
-      black         # Opinionated code formatter — auto-formats your code
-      pylint        # Code linter — catches errors and bad practices
-      mypy          # Static type checker — helps catch bugs before running
+        # Code quality
+        black # Opinionated code formatter — auto-formats your code
+        pylint # Code linter — catches errors and bad practices
+        mypy # Static type checker — helps catch bugs before running
 
-      # Useful standard libraries
-      requests      # HTTP requests — fetching web data, calling APIs
-      rich          # Beautiful terminal output — great for learning projects
-      pydantic      # Data validation — very useful once you get deeper
+        # Useful standard libraries
+        requests # HTTP requests — fetching web data, calling APIs
+        rich # Beautiful terminal output — great for learning projects
+        pydantic # Data validation — very useful once you get deeper
 
-      # Interactive development
-      ipython       # Enhanced Python shell with tab completion and history
-                    # Much nicer than the default python REPL for learning
-    ]))
+        # Interactive development
+        ipython
+        # Enhanced Python shell with tab completion and history
+        # Much nicer than the default python REPL for learning
+      ]
+    ))
 
     # -----------------------------------------------------------------------
     # Python tooling outside of the Python environment
     # -----------------------------------------------------------------------
-    poetry          # Modern Python project and dependency manager
-                    # Better than pip for managing real projects
-    ruff            # Extremely fast Python linter written in Rust
-                    # Use alongside pylint or as a replacement
+    poetry
+    # Modern Python project and dependency manager
+    # Better than pip for managing real projects
+    ruff
+    # Extremely fast Python linter written in Rust
+    # Use alongside pylint or as a replacement
 
     # -----------------------------------------------------------------------
     # Rust — via rustup
@@ -66,20 +71,30 @@
     # -----------------------------------------------------------------------
     # Rust companion tools
     # -----------------------------------------------------------------------
-    cargo-watch     # Re-runs cargo commands on file changes — great for learning
-                    # Usage: cargo watch -x run
-    cargo-edit      # Adds `cargo add`, `cargo rm` commands for managing
-                    # dependencies without manually editing Cargo.toml
-    cargo-expand    # Shows what Rust macros expand to — very useful for
-                    # understanding what's happening under the hood
+    cargo-watch
+    # Re-runs cargo commands on file changes — great for learning
+    # Usage: cargo watch -x run
+    cargo-edit
+    # Adds `cargo add`, `cargo rm` commands for managing
+    # dependencies without manually editing Cargo.toml
+    cargo-expand
+    # Shows what Rust macros expand to — very useful for
+    # understanding what's happening under the hood
+
+    # -----------------------------------------------------------------------
+    # Node.js — runtime for npm-based tools (OpenSpec, etc.)
+    # -----------------------------------------------------------------------
+    nodejs
 
     # -----------------------------------------------------------------------
     # Shared tools — useful for both languages
     # -----------------------------------------------------------------------
-    git             # Already in common.nix but called out here as essential
-                    # for any development workflow
-    just            # Command runner — like make but simpler and more readable
-                    # Great for project scripts in both Python and Rust
+    git
+    # Already in common.nix but called out here as essential
+    # for any development workflow
+    just
+    # Command runner — like make but simpler and more readable
+    # Great for project scripts in both Python and Rust
 
     # AI coding assistant
     (pkgs.writeShellScriptBin "claude" ''
@@ -87,23 +102,27 @@
     '')
 
     # Editors
-    zed-editor      # Fast, Wayland-native editor written in Rust
-                    # Built-in LSP support — nil + nixfmt-rfc-style wire up automatically
+    zed-editor
+    # Fast, Wayland-native editor written in Rust
+    # Built-in LSP support — nil + nixfmt-rfc-style wire up automatically
 
     # Language server + formatter support
-    nil             # Nix language server — gives you autocomplete and error
-                    # checking when editing your NixOS config files
+    nil
+    # Nix language server — gives you autocomplete and error
+    # checking when editing your NixOS config files
     nixfmt # Nix code formatter — keeps your config files tidy
 
     # -----------------------------------------------------------------------
     # Terminal and shell tools useful during development
     # -----------------------------------------------------------------------
-    jq              # Query and pretty-print JSON from the terminal
-                    # You'll use this constantly when working with APIs
-    httpie          # Friendlier alternative to curl for testing HTTP/APIs
-    fd              # Fast modern alternative to the `find` command
-    ripgrep         # Extremely fast code search (grep replacement)
-                    # Usage: rg "search term" — searches recursively
+    jq
+    # Query and pretty-print JSON from the terminal
+    # You'll use this constantly when working with APIs
+    httpie # Friendlier alternative to curl for testing HTTP/APIs
+    fd # Fast modern alternative to the `find` command
+    ripgrep
+    # Extremely fast code search (grep replacement)
+    # Usage: rg "search term" — searches recursively
   ];
 
   # =========================================================================
@@ -115,12 +134,15 @@
     # Tell rustup where to install toolchains.
     # Keeps Rust installations in a consistent, predictable location.
     RUSTUP_HOME = "$HOME/.rustup";
-    CARGO_HOME  = "$HOME/.cargo";
+    CARGO_HOME = "$HOME/.cargo";
 
     # Add cargo's bin directory to PATH so compiled tools are accessible.
     # After `rustup default stable`, commands like `rustc` and `cargo`
     # will be found automatically.
-    PATH = [ "$HOME/.cargo/bin" ];
+    PATH = [
+      "$HOME/.cargo/bin"
+      "$HOME/.npm-global/bin"
+    ];
   };
 
   # =========================================================================

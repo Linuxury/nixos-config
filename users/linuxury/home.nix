@@ -16,7 +16,14 @@
 # ===========================================================================
 
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
-{ config, pkgs, inputs, lib, wallpaperDir, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  lib,
+  wallpaperDir,
+  ...
+}:
 
 {
   imports = [
@@ -26,9 +33,9 @@
   # =========================================================================
   # Home Manager basics
   # =========================================================================
-  home.username      = "linuxury";
+  home.username = "linuxury";
   home.homeDirectory = "/home/linuxury";
-  home.stateVersion  = "24.11";
+  home.stateVersion = "24.11";
 
   programs.home-manager.enable = true;
 
@@ -58,17 +65,17 @@
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "audio/mpeg"       = "com.github.neithern.g4music.desktop";  # MP3
-      "audio/ogg"        = "com.github.neithern.g4music.desktop";  # OGG Vorbis
-      "audio/flac"       = "com.github.neithern.g4music.desktop";  # FLAC
-      "audio/x-flac"     = "com.github.neithern.g4music.desktop";
-      "audio/wav"        = "com.github.neithern.g4music.desktop";  # WAV
-      "audio/x-wav"      = "com.github.neithern.g4music.desktop";
-      "audio/mp4"        = "com.github.neithern.g4music.desktop";  # M4A / AAC
-      "audio/aac"        = "com.github.neithern.g4music.desktop";
-      "audio/x-m4a"      = "com.github.neithern.g4music.desktop";
-      "audio/opus"       = "com.github.neithern.g4music.desktop";  # Opus
-      "audio/webm"       = "com.github.neithern.g4music.desktop";
+      "audio/mpeg" = "com.github.neithern.g4music.desktop"; # MP3
+      "audio/ogg" = "com.github.neithern.g4music.desktop"; # OGG Vorbis
+      "audio/flac" = "com.github.neithern.g4music.desktop"; # FLAC
+      "audio/x-flac" = "com.github.neithern.g4music.desktop";
+      "audio/wav" = "com.github.neithern.g4music.desktop"; # WAV
+      "audio/x-wav" = "com.github.neithern.g4music.desktop";
+      "audio/mp4" = "com.github.neithern.g4music.desktop"; # M4A / AAC
+      "audio/aac" = "com.github.neithern.g4music.desktop";
+      "audio/x-m4a" = "com.github.neithern.g4music.desktop";
+      "audio/opus" = "com.github.neithern.g4music.desktop"; # Opus
+      "audio/webm" = "com.github.neithern.g4music.desktop";
     };
   };
 
@@ -80,16 +87,16 @@
   # XDG User Directories
   # =========================================================================
   xdg.userDirs = {
-    enable            = true;
+    enable = true;
     createDirectories = true;
 
-    desktop    = "${config.home.homeDirectory}/Desktop";
-    documents  = "${config.home.homeDirectory}/Documents";
-    download   = "${config.home.homeDirectory}/Downloads";
-    music      = "${config.home.homeDirectory}/Music";
-    pictures   = "${config.home.homeDirectory}/Pictures";
-    videos     = "${config.home.homeDirectory}/Videos";
-    templates  = "${config.home.homeDirectory}/Templates";
+    desktop = "${config.home.homeDirectory}/Desktop";
+    documents = "${config.home.homeDirectory}/Documents";
+    download = "${config.home.homeDirectory}/Downloads";
+    music = "${config.home.homeDirectory}/Music";
+    pictures = "${config.home.homeDirectory}/Pictures";
+    videos = "${config.home.homeDirectory}/Videos";
+    templates = "${config.home.homeDirectory}/Templates";
     publicShare = "${config.home.homeDirectory}/Public";
   };
 
@@ -136,30 +143,24 @@
     # Hyprland — full config directory (entry point + all modules)
     # Live symlink so edits in the repo take effect immediately via hyprctl reload
     ".config/hypr".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr";
 
     # Waybar — symlink config and style individually so matugen can write
     # colors.css freely into ~/.config/waybar/ without polluting the repo.
     ".config/waybar/config.jsonc".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/waybar/config.jsonc";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/waybar/config.jsonc";
     ".config/waybar/style.css".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/waybar/style.css";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/waybar/style.css";
 
     # Wofi — full directory (no matugen writes here)
     ".config/wofi".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/wofi";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/wofi";
 
     # Swaync — symlink config and style individually (same reason as waybar)
     ".config/swaync/config.json".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/swaync/config.json";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/swaync/config.json";
     ".config/swaync/style.css".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/swaync/style.css";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/swaync/style.css";
 
     # Zed editor
     ".config/zed/settings.json".source = ../../dotfiles/zed/settings.json;
@@ -183,8 +184,7 @@
     # Wallpapers live inside the repo so no separate clone is needed.
     # -----------------------------------------------------------------------
     "Pictures/Wallpapers".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
 
     # -----------------------------------------------------------------------
     # Picture assets — symlinked from nixos-config/assets/ into ~/Pictures/
@@ -195,23 +195,19 @@
 
     # ~/Pictures/Avatar → nixos-config/assets/Avatar (family profile photos)
     "Pictures/Avatar".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Avatar";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar";
 
     # ~/Pictures/Minecraft → nixos-config/assets/Minecraft (skins, packs art)
     "Pictures/Minecraft".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Minecraft";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Minecraft";
 
     # ~/Pictures/SteamGridDB → nixos-config/assets/SteamGridDB (Steam cover art)
     "Pictures/SteamGridDB".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/SteamGridDB";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/SteamGridDB";
 
     # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
     "Pictures/Fastfetch".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
 
     # SSH config — structure only, no keys
     ".ssh/config".text = ''
@@ -288,15 +284,15 @@
   # Zsh shell
   # =========================================================================
   programs.zsh = {
-    enable            = true;
+    enable = true;
     autosuggestion.enable = true;
-    enableCompletion  = true;
+    enableCompletion = true;
 
     # fast-syntax-highlighting — richer colors and faster than zsh-syntax-highlighting
     plugins = [
       {
         name = "fast-syntax-highlighting";
-        src  = pkgs.zsh-fast-syntax-highlighting;
+        src = pkgs.zsh-fast-syntax-highlighting;
         file = "share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh";
       }
     ];
@@ -308,21 +304,21 @@
       abbreviations = {
         # NixOS management
         # nr/nrb/nrt are shell functions in zshrc (run silently like nru)
-        nrr   = "sudo nixos-rebuild switch --rollback";
-        ngc   = "sudo nix-collect-garbage --delete-older-than 30d";
+        nrr = "sudo nixos-rebuild switch --rollback";
+        ngc = "sudo nix-collect-garbage --delete-older-than 30d";
         ngens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
 
         # agenix — run from secrets/ dir without changing shell's cwd
-        age-edit  = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -e";
+        age-edit = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -e";
         age-rekey = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -r";
 
         # Obsidian notes
         notes = "cd ~/Obsidian && nvim .";
 
         # Snapper snapshot management
-        snaps  = "sudo snapper -c root list";
+        snaps = "sudo snapper -c root list";
         snapsh = "sudo snapper -c home list";
-        snapc  = "sudo snapper -c root create --description";
+        snapc = "sudo snapper -c root create --description";
       };
     };
 
@@ -346,18 +342,18 @@
   # Git
   # =========================================================================
   programs.git = {
-    enable    = true;
+    enable = true;
     settings = {
-      user.name  = "Linuxury";
+      user.name = "Linuxury";
       user.email = "linuxurypr@gmail.com";
       init.defaultBranch = "main";
-      pull.rebase        = false;
-      core.editor        = "nvim";
+      pull.rebase = false;
+      core.editor = "nvim";
       alias = {
-        st  = "status";
-        co  = "checkout";
-        br  = "branch";
-        lg  = "log --oneline --graph --decorate";
+        st = "status";
+        co = "checkout";
+        br = "branch";
+        lg = "log --oneline --graph --decorate";
       };
     };
   };
@@ -367,14 +363,17 @@
 
   # Desktop entry — opens Neovim in Kitty
   xdg.desktopEntries.nvim = {
-    name        = "Neovim";
+    name = "Neovim";
     genericName = "Text Editor";
-    comment     = "Hyperextensible Vim-based text editor";
-    exec        = "kitty nvim %F";
-    terminal    = false;
-    categories  = [ "Utility" "TextEditor" ];
-    icon        = "nvim";
-    mimeType    = [
+    comment = "Hyperextensible Vim-based text editor";
+    exec = "kitty nvim %F";
+    terminal = false;
+    categories = [
+      "Utility"
+      "TextEditor"
+    ];
+    icon = "nvim";
+    mimeType = [
       "text/plain"
       "text/x-makefile"
       "text/x-script.python"
@@ -388,12 +387,11 @@
     ];
   };
 
-
   # =========================================================================
   # Zoxide — smarter cd
   # =========================================================================
   programs.zoxide = {
-    enable               = true;
+    enable = true;
     enableZshIntegration = true;
   };
 
@@ -401,7 +399,7 @@
   # FZF — fuzzy finder
   # =========================================================================
   programs.fzf = {
-    enable               = true;
+    enable = true;
     enableZshIntegration = true;
   };
 
@@ -409,9 +407,9 @@
   # Direnv — auto-loads .envrc on cd (nix develop shells, project env vars)
   # =========================================================================
   programs.direnv = {
-    enable               = true;
+    enable = true;
     enableZshIntegration = true;
-    nix-direnv.enable    = true;
+    nix-direnv.enable = true;
   };
 
   # =========================================================================
@@ -430,15 +428,21 @@
   # =========================================================================
   systemd.user.services.hytale-flatpak-install = {
     Unit = {
-      Description         = "Install Hytale launcher from flatpak";
-      After               = [ "graphical-session.target" "network-online.target" ];
-      Wants               = [ "graphical-session.target" "network-online.target" ];
+      Description = "Install Hytale launcher from flatpak";
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
+      Wants = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       ConditionPathExists = "!%h/.local/share/flatpak/app/com.hytale.Hytale";
     };
 
     Service = {
-      Type      = "oneshot";
-      Restart   = "no";
+      Type = "oneshot";
+      Restart = "no";
       ExecStart = "${pkgs.writeShellScript "install-hytale-linuxury" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
         CURL="${pkgs.curl}/bin/curl"
@@ -500,11 +504,11 @@
   #
   # flatpak override is idempotent — safe to re-apply on every HM activation.
   # =========================================================================
-home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p "$HOME/Obsidian"
   '';
 
-home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${pkgs.flatpak}/bin/flatpak override --user \
       --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
       com.hytale.Hytale 2>/dev/null || true
