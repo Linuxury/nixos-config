@@ -65,5 +65,25 @@ return {
       pattern = 'term://*opencode*',
       callback = function() vim.wo.list = false end,
     })
+
+    -- Fix normie-nvim snacks.lua bug: Snacks.picker.close() doesn't exist
+    -- Override <leader>e to use picker:close() on the active picker instance
+    vim.keymap.set('n', '<leader>e', function()
+      local picker = Snacks.picker.get()
+      local has_opencode = false
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_get_name(buf):match('term://.*opencode') then
+          has_opencode = true
+          break
+        end
+      end
+      if picker or has_opencode then
+        if picker then picker:close() end
+        if has_opencode then require('opencode').toggle() end
+      else
+        Snacks.explorer({ cwd = vim.g.snacks_explorer_cwd })
+        require('opencode').toggle()
+      end
+    end, { desc = 'File Explorer + opencode' })
   end,
 }
