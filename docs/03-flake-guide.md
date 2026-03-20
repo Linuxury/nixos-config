@@ -61,7 +61,6 @@ nixos-config/
 │       ├── wallpaper-slideshow.nix  ← Wallpaper + matugen theming
 │       └── *.nix              ← Other service modules
 ├── dotfiles/
-│   ├── ghostty/config         ← Ghostty terminal config (shared, symlinked)
 │   ├── zsh/zshrc              ← Shared zsh init file
 │   └── nvim/                  ← Neovim config (symlinked to ~/.config/nvim)
 ├── assets/
@@ -193,9 +192,6 @@ Home Manager manages everything inside the user's home directory: packages, dotf
 
   # Packages installed for this user only (not system-wide)
   home.packages = with pkgs; [ yazi eza bat lazygit ... ];
-
-  # Dotfiles symlinked declaratively from the repo
-  home.file.".config/ghostty/config".source = ../../dotfiles/ghostty/config;
 
   # Programs managed by Home Manager (generates config files automatically)
   programs.zsh.enable = true;
