@@ -122,7 +122,7 @@
         "exec-if": "curl -sf --max-time 2 ipinfo.io/city &>/dev/null"
     },
     "custom/updates": {
-        "format": "󰚰  {}",
+        "format": "{}",
         "return-type": "json",
         "tooltip": true,
         "interval": 3600,

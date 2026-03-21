@@ -18,13 +18,7 @@ LOCK_TIME=$(stat -c %Y "$LOCK_FILE" 2>/dev/null || echo 0)
 BUILD_TIME=$(stat -c %Y /run/current-system 2>/dev/null || echo 0)
 
 if [ "$LOCK_TIME" -gt "$BUILD_TIME" ]; then
-    TEXT="rebuild"
-    TOOLTIP="flake.lock is newer than running system — run: nr"
-    CLASS="pending"
+    printf '{"text":"󰚰  rebuild","tooltip":"flake.lock is newer than running system — run: nr","class":"pending"}\n'
 else
-    TEXT="up to date"
-    TOOLTIP="System matches flake.lock"
-    CLASS="ok"
+    printf '{"text":"","class":"ok"}\n'
 fi
-
-printf '{"text":"%s","tooltip":"%s","class":"%s"}\n' "$TEXT" "$TOOLTIP" "$CLASS"
