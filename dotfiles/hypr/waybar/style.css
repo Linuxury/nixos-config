@@ -104,6 +104,16 @@ window#waybar {
     padding: 0 8px;
 }
 
+#custom-power {
+    color:   @error;
+    padding: 0 10px;
+    font-size: 15px;
+}
+
+#custom-power:hover {
+    color: rgba(243, 139, 168, 0.7);
+}
+
 #custom-weather {
     color:   @on_surface_var;
     padding: 0 8px;

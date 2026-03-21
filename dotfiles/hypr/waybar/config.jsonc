@@ -23,7 +23,9 @@
         "battery",
         "custom/sep",
         "custom/updates",
-        "custom/notification"
+        "custom/notification",
+        "custom/sep",
+        "custom/power"
     ],
     "hyprland/workspaces": {
         "format": "{id}",
@@ -129,6 +131,11 @@
         "on-click": "swaync-client -t -sw",
         "on-click-right": "swaync-client -d -sw",
         "escape": true
+    },
+    "custom/power": {
+        "format": "⏻",
+        "tooltip": false,
+        "on-click": "~/.config/hypr/waybar/scripts/powermenu.sh"
     },
     "custom/sep": {
         "format": "|",
