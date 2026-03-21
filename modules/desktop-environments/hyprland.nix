@@ -119,6 +119,9 @@
     # Brightness control — required for laptop brightness keybinds
     brightnessctl
 
+    # File manager
+    yazi            # Terminal file manager with matugen theming
+
     # Media key control — playerctl play/pause/next/prev keybinds
     playerctl
   ];
