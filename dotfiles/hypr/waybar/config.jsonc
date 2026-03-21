@@ -18,9 +18,7 @@
         "custom/sep",
         "custom/weather",
         "custom/sep",
-        "cpu",
-        "memory",
-        "disk",
+        "custom/sysinfo",
         "temperature",
         "custom/sep",
         "wireplumber",
@@ -116,28 +114,21 @@
         "critical-threshold": 80,
         "tooltip-format": "CPU: {temperatureC}°C"
     },
-    "cpu": {
-        "format": "󰻠  {usage}%",
+    "custom/sysinfo": {
+        "format": "{}",
+        "return-type": "json",
         "interval": 2,
-        "tooltip-format": "CPU: {usage}%\nLoad: {load}"
-    },
-    "memory": {
-        "format": "󰍛  {percentage}%",
-        "tooltip-format": "{used:0.1f} GiB used / {total:0.1f} GiB total",
-        "interval": 5
-    },
-    "disk": {
-        "format": "󰋊  {percentage_used}%",
-        "path": "/",
-        "tooltip-format": "{used} / {total} used ({percentage_used}%)",
-        "interval": 30
+        "exec": "~/.config/hypr/waybar/scripts/sysinfo.sh",
+        "on-click": "~/.config/hypr/waybar/scripts/sysinfo-toggle.sh",
+        "signal": 8
     },
     "custom/weather": {
         "format": "{}",
-        "tooltip": false,
+        "return-type": "json",
+        "tooltip": true,
         "interval": 1800,
         "exec": "~/.config/hypr/waybar/scripts/weather.sh",
-        "exec-if": "ping -c1 -W2 wttr.in &>/dev/null"
+        "exec-if": "curl -sf --max-time 2 ipinfo.io/city &>/dev/null"
     },
     "custom/updates": {
         "format": "󰚰  {}",
