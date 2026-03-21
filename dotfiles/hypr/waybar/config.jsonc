@@ -43,7 +43,7 @@
         "separate-outputs": true
     },
     "clock": {
-        "format": "  {:%A, %d %b %Y   %-I:%M %p}",
+        "format": "  {:%A, %d %b %Y   %I:%M %p}",
         "tooltip-format": "<big>{:%B %Y}</big>\n<tt>{calendar}</tt>"
     },
     "tray": {
