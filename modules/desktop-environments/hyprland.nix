@@ -111,9 +111,6 @@
     # Autostarted via autostart.conf — must be in packages so the binary exists.
     polkit_gnome
 
-    # Calendar popup — triggered from waybar clock on-click
-    gsimplecal
-
     # Brightness control — required for laptop brightness keybinds
     brightnessctl
 
