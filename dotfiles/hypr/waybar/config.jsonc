@@ -22,7 +22,6 @@
         "custom/sep",
         "wireplumber",
         "backlight",
-        "network",
         "battery",
         "custom/sep",
         "custom/updates",
@@ -70,14 +69,6 @@
         ],
         "on-scroll-up": "brightnessctl set +5%",
         "on-scroll-down": "brightnessctl set 5%-"
-    },
-    "network": {
-        "format-wifi": "󰖩  {signalStrength}%",
-        "format-ethernet": "󰈀  ethernet",
-        "format-disconnected": "󰖪  offline",
-        "tooltip-format-wifi": "{essid} — {signalStrength}%\n{ipAddr}",
-        "on-click": "nm-connection-editor",
-        "interface": "wlp*"
     },
     "battery": {
         "bat": "BAT0",
