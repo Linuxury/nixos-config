@@ -77,6 +77,21 @@
     affinity-nix.url = "github:mrshmllow/affinity-nix";
 
     # -------------------------------------------------------------------------
+    # quickshell — Qt6/QML desktop shell toolkit
+    #
+    # Used to build a custom DE-like shell: bar, dock, launcher, notifications,
+    # OSD, lock screen, sidebar, workspace overview, and greetd login manager.
+    #
+    # IMPORTANT: nixpkgs.follows is mandatory on NixOS — if the Qt version
+    # used to build quickshell drifts from the system Qt, it crashes.
+    # This pins both to the same nixpkgs commit.
+    # -------------------------------------------------------------------------
+    quickshell = {
+      url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # -------------------------------------------------------------------------
     # normie-nvim — TheBlackDon's Neovim config
     #
     # Not a Nix flake (flake = false) — just the raw repo files.
