@@ -1,0 +1,11 @@
+/* Power menu style — larger font to match menu size */
+@import "style.css";
+
+#text {
+    font-size: 16px;
+    padding: 6px 8px;
+}
+
+#entry {
+    padding: 8px 12px;
+}
