@@ -13,10 +13,10 @@ SHUTDOWN="  Shut Down"
 
 CHOICE=$(printf '%s\n' "$LOCK" "$LOGOUT" "$RESTART" "$SHUTDOWN" \
     | wofi --dmenu \
-           --prompt "Power" \
            --width 200 \
            --height 194 \
            --no-actions \
+           --hide-search \
            --insensitive)
 
 case "$CHOICE" in
