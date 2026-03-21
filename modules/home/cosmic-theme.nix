@@ -118,7 +118,9 @@ in
   gtk.gtk4.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
 
   dconf.settings."org/gnome/desktop/interface" = {
-    color-scheme = "prefer-dark";   # Tells libadwaita/GTK4 apps to use dark mode
+    color-scheme  = "prefer-dark";   # Tells libadwaita/GTK4 apps to use dark mode
+    cursor-theme  = "BreezeX-Light"; # GTK apps read cursor shape mappings from this
+    cursor-size   = 24;
   };
 
   dconf.settings."org/gnome/desktop/wm/preferences" = {

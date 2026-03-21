@@ -38,9 +38,17 @@ if [ "$LAST" = "$WALLPAPER" ]; then
     exit 0
 fi
 
-# Run matugen to regenerate all color templates
-matugen image "$WALLPAPER"
-echo "$WALLPAPER" > "$LAST_FILE"
+# Extract dominant color — workaround for matugen 4.x "not a terminal" bug
+# matugen image fails, so we use imagemagick to get the dominant color
+DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1 txt:- 2>/dev/null \
+    | grep -oP '#[0-9a-fA-F]{6}' | head -1)
+
+if [ -n "$DOMINANT_HEX" ]; then
+    matugen color hex "$DOMINANT_HEX"
+    echo "$WALLPAPER" > "$LAST_FILE"
+else
+    echo "set-wallpaper: failed to extract dominant color" >&2
+fi
 
 # Reload waybar so it picks up the new colors.css
 pkill -USR2 waybar 2>/dev/null || true
