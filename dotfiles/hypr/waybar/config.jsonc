@@ -12,7 +12,7 @@
         "hyprland/window"
     ],
     "modules-center": [
-        "clock"
+        "custom/clock"
     ],
     "modules-right": [
         "tray",
@@ -42,9 +42,12 @@
         "max-length": 50,
         "separate-outputs": true
     },
-    "clock": {
-        "format": "  {:%A, %d %b %Y   %I:%M %p}",
-        "tooltip-format": "<big>{:%B %Y}</big>\n<tt>{calendar}</tt>"
+    "custom/clock": {
+        "format": "{}",
+        "return-type": "json",
+        "interval": 1,
+        "exec": "~/.config/hypr/waybar/scripts/clock.sh",
+        "tooltip": true
     },
     "tray": {
         "icon-size": 16,
