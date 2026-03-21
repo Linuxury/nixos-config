@@ -135,7 +135,6 @@
     brightnessctl
 
     # File managers
-    yazi            # Terminal file manager with matugen theming
     nemo            # GUI file manager — GTK3, Nautilus fork, uses gvfs for smb:// shares
                     # Nautilus 47+ broke on non-Mutter compositors (org.gnome.Mutter.ServiceChannel)
                     # Nemo is the closest alternative: same GVfs/SMB backend, dual pane, Hyprland-safe
