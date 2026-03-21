@@ -118,9 +118,7 @@
         "format": "{}",
         "return-type": "json",
         "interval": 2,
-        "exec": "~/.config/hypr/waybar/scripts/sysinfo.sh",
-        "on-click": "~/.config/hypr/waybar/scripts/sysinfo-toggle.sh",
-        "signal": 8
+        "exec": "~/.config/hypr/waybar/scripts/sysinfo.sh"
     },
     "custom/weather": {
         "format": "{}",
