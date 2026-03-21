@@ -13,12 +13,12 @@ SHUTDOWN="  Shut Down"
 
 CHOICE=$(printf '%s\n' "$LOCK" "$LOGOUT" "$RESTART" "$SHUTDOWN" \
     | wofi --dmenu \
+           --normal-window \
+           --class powermenu-small \
            --width 220 \
-           --height 260 \
            --no-actions \
-           --hide-search \
            --insensitive \
-           --style ~/.config/wofi/style.css)
+           --style ~/.config/wofi/powermenu-style.css)
 
 case "$CHOICE" in
     "$LOCK")     hyprlock ;;

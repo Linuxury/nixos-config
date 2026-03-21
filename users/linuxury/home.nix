@@ -140,6 +140,9 @@
     # Kitty terminal — base config; colors written by matugen at runtime
     ".config/kitty/kitty.conf".source = ../../dotfiles/kitty/kitty.conf;
 
+    # Swappy — screenshot annotation tool
+    ".config/swappy/config".source = ../../dotfiles/swappy/config;
+
     # Hyprland — full config directory (entry point + all modules)
     # Live symlink so edits in the repo take effect immediately via hyprctl reload
     ".config/hypr".source =
