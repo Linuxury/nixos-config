@@ -96,7 +96,9 @@ window#waybar {
 /* -----------------------------------------------------------------------
  * Right-side modules
  * ----------------------------------------------------------------------- */
-#custom-sysinfo,
+#cpu,
+#memory,
+#disk,
 #wireplumber,
 #backlight,
 #network,
