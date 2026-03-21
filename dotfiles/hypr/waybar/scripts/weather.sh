@@ -55,7 +55,7 @@ fi
 # Query Open-Meteo
 # ---------------------------------------------------------------------------
 DATA=$(curl -sf --max-time 5 \
-    "https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code&temperature_unit=celsius&timezone=auto" \
+    "https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto" \
     2>/dev/null)
 
 if [ -z "$DATA" ]; then
@@ -71,7 +71,7 @@ ICON_DESC=$(wmo_icon "$CODE")
 ICON=$(echo "$ICON_DESC" | awk '{print $1}')
 DESC=$(echo "$ICON_DESC" | cut -d' ' -f2-)
 
-TEXT="${ICON} ${TEMP_INT}°C"
-TOOLTIP="${DESC} in ${CITY}, ${REGION}\n${TEMP_INT}°C"
+TEXT="${ICON} ${TEMP_INT}°F"
+TOOLTIP="${DESC} in ${CITY}, ${REGION}\n${TEMP_INT}°F"
 
 printf '{"text":"%s","tooltip":"%s","class":"ok"}\n' "$TEXT" "$TOOLTIP"
