@@ -22,11 +22,11 @@ SHUTDOWN="󰐥  Shutdown"
 CHOICE=$(printf '%s\n' "$LOCK" "$LOGOUT" "$SUSPEND" "$REBOOT" "$SHUTDOWN" \
     | wofi \
         --dmenu \
+        --normal-window \
+        --class powermenu \
         --width  320 \
-        --height 330 \
         --location center \
-        --hide-search \
-        --style "$HOME/.config/wofi/style.css" \
+        --style "$HOME/.config/wofi/powermenu-style.css" \
         --no-actions \
         --insensitive)
 

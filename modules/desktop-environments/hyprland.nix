@@ -21,6 +21,11 @@
   home-manager.sharedModules = [
     ../services/hypr-matugen.nix
     ../home/cosmic-theme.nix   # BreezeX-Light cursor + Tela-dark icons
+    {
+      # Kitty — Hyprland handles transparency/blur, disable Kitty's own settings
+      home.file.".config/kitty/hyprland-overrides.conf".source =
+        ../../dotfiles/kitty/hyprland-overrides.conf;
+    }
   ];
   # =========================================================================
   # Hyprland — the compositor itself
@@ -94,6 +99,13 @@
     slurp           # Region selector (used with grim)
     swappy          # Screenshot annotation tool
 
+    # Screen recording
+    wf-recorder     # Wayland screen recorder (lightweight, keybind toggle)
+    wl-screenrec    # GPU-accelerated screen recorder (AMD/NVIDIA)
+
+    # Night light
+    wlsunset        # Wayland color temperature filter (auto sunset/sunrise)
+
     # Clipboard
     wl-clipboard    # Wayland clipboard (wl-copy / wl-paste commands)
     cliphist        # Clipboard history manager
@@ -102,6 +114,9 @@
     hyprlock        # Hyprland-native screen locker
     hypridle        # Idle management (dim, lock, suspend)
     wob             # Lightweight volume/brightness overlay bar
+
+    # Audio
+    pavucontrol     # PulseAudio volume mixer GUI
 
     # Theming
     nwg-look        # GTK theme settings for Wayland compositors
@@ -133,6 +148,15 @@
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true; # Bluetooth on automatically at startup
+    settings = {
+      General = {
+        FastConnectable = true;    # Quick reconnect to known devices
+        AutoEnable = true;         # Enable adapter on boot
+      };
+      Policy = {
+        AutoEnable = true;         # Auto-connect trusted devices
+      };
+    };
   };
   services.blueman.enable = true;
 
