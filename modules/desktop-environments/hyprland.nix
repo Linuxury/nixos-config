@@ -136,7 +136,9 @@
 
     # File managers
     yazi            # Terminal file manager with matugen theming
-    nautilus        # GUI file manager — GTK4/libadwaita, uses gvfs for smb:// shares
+    nemo            # GUI file manager — GTK3, Nautilus fork, uses gvfs for smb:// shares
+                    # Nautilus 47+ broke on non-Mutter compositors (org.gnome.Mutter.ServiceChannel)
+                    # Nemo is the closest alternative: same GVfs/SMB backend, dual pane, Hyprland-safe
                     # gvfs + samba already enabled in graphical-base.nix
 
     # Quickshell — Qt6/QML desktop shell toolkit
