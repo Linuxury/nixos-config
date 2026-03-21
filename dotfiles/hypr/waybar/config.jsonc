@@ -6,6 +6,7 @@
     "margin-left": 10,
     "margin-right": 10,
     "spacing": 0,
+    "fixed-center": true,
     "modules-left": [
         "hyprland/workspaces",
         "hyprland/window"
@@ -42,7 +43,7 @@
         "separate-outputs": true
     },
     "clock": {
-        "format": "  {:%H:%M}",
+        "format": "  {:%I:%M %p}",
         "format-alt": "  {:%A, %d %b %Y}",
         "tooltip-format": "<big>{:%B %Y}</big>\n<tt>{calendar}</tt>"
     },
