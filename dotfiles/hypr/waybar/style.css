@@ -96,13 +96,41 @@ window#waybar {
 /* -----------------------------------------------------------------------
  * Right-side modules
  * ----------------------------------------------------------------------- */
+#cpu,
+#memory,
+#disk,
 #wireplumber,
 #backlight,
 #network,
 #battery,
+#temperature,
 #custom-notification {
     color:   @on_surface;
     padding: 0 8px;
+}
+
+#custom-weather {
+    color:   @on_surface_var;
+    padding: 0 8px;
+}
+
+#custom-updates {
+    color:   @on_surface_var;
+    padding: 0 8px;
+}
+
+#custom-updates.pending {
+    color: @tertiary;
+}
+
+#cpu.warning,
+#memory.warning {
+    color: @tertiary;
+}
+
+#cpu.critical,
+#memory.critical {
+    color: @error;
 }
 
 /* -----------------------------------------------------------------------
@@ -115,6 +143,10 @@ window#waybar {
 #battery.critical {
     color:     @error;
     animation: blink 0.8s linear infinite alternate;
+}
+
+#temperature.critical {
+    color: @error;
 }
 
 @keyframes blink {

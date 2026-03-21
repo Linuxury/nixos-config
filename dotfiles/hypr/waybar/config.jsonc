@@ -16,11 +16,19 @@
     "modules-right": [
         "tray",
         "custom/sep",
+        "custom/weather",
+        "custom/sep",
+        "cpu",
+        "memory",
+        "disk",
+        "temperature",
+        "custom/sep",
         "wireplumber",
         "backlight",
         "network",
         "battery",
         "custom/sep",
+        "custom/updates",
         "custom/notification"
     ],
     "hyprland/workspaces": {
@@ -76,6 +84,7 @@
     },
     "battery": {
         "bat": "BAT0",
+        "adapter": "ADP0",
         "states": {
             "warning": 30,
             "critical": 15
@@ -84,6 +93,7 @@
         "format-charging": "󰂄  {capacity}%",
         "format-plugged": "󰚥  {capacity}%",
         "format-full": "󰁹  Full",
+        "format-not-present": "",
         "format-icons": [
             "󰁺",
             "󰁻",
@@ -96,7 +106,45 @@
             "󰂂",
             "󰁹"
         ],
-        "tooltip-format": "{timeTo} — {capacity}%"
+        "tooltip-format": "{timeTo} — {capacity}%",
+        "tooltip-format-not-present": ""
+    },
+    "temperature": {
+        "hwmon-path": "/sys/class/hwmon/hwmon3/temp1_input",
+        "format": "󰈐  {temperatureC}°C",
+        "format-critical": "󰈐  {temperatureC}°C",
+        "critical-threshold": 80,
+        "tooltip-format": "CPU: {temperatureC}°C"
+    },
+    "cpu": {
+        "format": "󰻠  {usage}%",
+        "interval": 2,
+        "tooltip-format": "CPU: {usage}%\nLoad: {load}"
+    },
+    "memory": {
+        "format": "󰍛  {percentage}%",
+        "tooltip-format": "{used:0.1f} GiB used / {total:0.1f} GiB total",
+        "interval": 5
+    },
+    "disk": {
+        "format": "󰋊  {percentage_used}%",
+        "path": "/",
+        "tooltip-format": "{used} / {total} used ({percentage_used}%)",
+        "interval": 30
+    },
+    "custom/weather": {
+        "format": "{}",
+        "tooltip": false,
+        "interval": 1800,
+        "exec": "~/.config/hypr/waybar/scripts/weather.sh",
+        "exec-if": "ping -c1 -W2 wttr.in &>/dev/null"
+    },
+    "custom/updates": {
+        "format": "󰚰  {}",
+        "return-type": "json",
+        "tooltip": true,
+        "interval": 3600,
+        "exec": "~/.config/hypr/waybar/scripts/updates.sh"
     },
     "custom/notification": {
         "tooltip": false,
