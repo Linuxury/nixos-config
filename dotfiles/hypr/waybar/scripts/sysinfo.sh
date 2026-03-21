@@ -31,7 +31,7 @@ read -r mem_pct mem_used mem_total < <(
 # Disk
 disk_pct=$(df / | awk 'NR==2 {printf "%.0f", $3/$2*100}')
 
-TEXT="󰻠 ${cpu_pct}%  󰍛 ${mem_pct}%  󰋊 ${disk_pct}%"
+TEXT="󰻠 ${cpu_pct}% · ${mem_pct}% · ${disk_pct}%"
 TOOLTIP="CPU: ${cpu_pct}%\nRAM: ${mem_used}/${mem_total} GiB (${mem_pct}%)\nDisk: ${disk_pct}%"
 
 printf '{"text":"%s","tooltip":"%s"}\n' "$TEXT" "$TOOLTIP"
