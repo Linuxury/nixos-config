@@ -26,7 +26,7 @@ CHOICE=$(printf '%s\n' "$LOCK" "$LOGOUT" "$SUSPEND" "$REBOOT" "$SHUTDOWN" \
         --width  320 \
         --height 290 \
         --location center \
-        --prompt "  Power" \
+        --hide-search \
         --style "$HOME/.config/wofi/powermenu.css" \
         --no-actions \
         --insensitive)
