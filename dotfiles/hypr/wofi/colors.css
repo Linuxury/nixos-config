@@ -1,0 +1,12 @@
+/*
+ * wofi-colors.css — Matugen generated colors
+ */
+@define-color primary         #dbb9f9;
+@define-color on_primary      #3e2458;
+@define-color surface         #151217;
+@define-color on_surface      #e8e0e8;
+@define-color on_surface_var  #ccc4ce;
+@define-color surface_variant #4a454e;
+@define-color tertiary        #f3b7bd;
+@define-color error           #ffb4ab;
+@define-color outline_var     #4a454e;

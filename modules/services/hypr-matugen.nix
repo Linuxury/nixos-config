@@ -117,6 +117,14 @@
       [templates.nvim]
       input_path  = "~/.config/matugen/templates/templates/nvim-colors.lua"
       output_path = "~/.config/nvim/lua/utils/matugen-colors.lua"
+
+      [templates.wofi]
+      input_path  = "~/nixos-config/dotfiles/hypr/wofi/style.css"
+      output_path = "~/.config/wofi/style.css"
+
+      [templates.hyprlock]
+      input_path  = "~/.config/matugen/templates/templates/hyprlock-colors.conf"
+      output_path = "~/.config/hypr/colors-hyprlock.conf"
     '';
   };
 }

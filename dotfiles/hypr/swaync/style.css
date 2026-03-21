@@ -13,6 +13,11 @@
 /* -----------------------------------------------------------------------
  * Control center panel
  * ----------------------------------------------------------------------- */
+window,
+.control-center-background {
+    background-color: alpha(#1e1e2e, 0.0);
+}
+
 .control-center {
     background-color: alpha(#1e1e2e, 0.95);
     border-radius:    12px 0 0 12px;

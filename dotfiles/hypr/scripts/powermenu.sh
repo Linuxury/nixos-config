@@ -10,8 +10,7 @@
 #   󰐥  Shutdown   — systemctl poweroff
 #
 # Triggered by SUPER+SHIFT+E (replaces bare `exit` binding).
-# Uses a separate powermenu.css so the window can be sized differently
-# from the regular app launcher without touching style.css.
+# Uses shared style.css — same theme as app launcher, dmenu, clipboard.
 # ===========================================================================
 
 LOCK="󰤄  Lock"
@@ -24,10 +23,10 @@ CHOICE=$(printf '%s\n' "$LOCK" "$LOGOUT" "$SUSPEND" "$REBOOT" "$SHUTDOWN" \
     | wofi \
         --dmenu \
         --width  320 \
-        --height 290 \
+        --height 330 \
         --location center \
         --hide-search \
-        --style "$HOME/.config/wofi/powermenu.css" \
+        --style "$HOME/.config/wofi/style.css" \
         --no-actions \
         --insensitive)
 
