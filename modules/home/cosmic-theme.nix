@@ -70,7 +70,11 @@ in
   # GTK3, GTK4, and libadwaita apps all get consistent theming.
   # =========================================================================
   gtk = {
-    enable    = true;
+    enable = true;
+    theme = {
+      name    = "adw-gtk3-dark";
+      package = pkgs.adw-gtk3;
+    };
     iconTheme = {
       name    = "Tela-dark";
       package = pkgs.tela-icon-theme;
@@ -80,6 +84,8 @@ in
       package = breezex-cursors;
       size    = 24;
     };
+    gtk3.extraConfig.gtk-application-prefer-dark-theme = 1;
+    gtk4.extraConfig.gtk-application-prefer-dark-theme = 1;
   };
 
   # =========================================================================
@@ -110,6 +116,10 @@ in
   # =========================================================================
   gtk.gtk3.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
   gtk.gtk4.extraConfig.gtk-decoration-layout = ":minimize,maximize,close";
+
+  dconf.settings."org/gnome/desktop/interface" = {
+    color-scheme = "prefer-dark";   # Tells libadwaita/GTK4 apps to use dark mode
+  };
 
   dconf.settings."org/gnome/desktop/wm/preferences" = {
     button-layout = ":minimize,maximize,close";
