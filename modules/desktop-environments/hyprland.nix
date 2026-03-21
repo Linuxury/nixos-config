@@ -134,8 +134,17 @@
     # Brightness control — required for laptop brightness keybinds
     brightnessctl
 
-    # File manager
+    # File managers
     yazi            # Terminal file manager with matugen theming
+    nautilus        # GUI file manager — GTK4/libadwaita, uses gvfs for smb:// shares
+                    # gvfs + samba already enabled in graphical-base.nix
+
+    # Quickshell — Qt6/QML desktop shell toolkit
+    # Used to build the custom shell: bar, dock, launcher, notifications, OSD,
+    # sidebar, workspace overview, lock screen, and greetd login manager.
+    # Flake input declared in flake.nix with nixpkgs.follows for Qt version safety.
+    inputs.quickshell.packages.${pkgs.system}.default
+    qt6Packages.qt5compat  # Qt5 compat layer — enables Gaussian blur effects in Quickshell
 
     # Media key control — playerctl play/pause/next/prev keybinds
     playerctl
