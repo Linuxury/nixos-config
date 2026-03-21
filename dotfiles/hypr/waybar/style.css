@@ -99,7 +99,6 @@ window#waybar {
 #wireplumber,
 #backlight,
 #battery,
-#temperature,
 #custom-notification {
     color:   @on_surface;
     padding: 0 8px;
@@ -130,10 +129,6 @@ window#waybar {
 #battery.critical {
     color:     @error;
     animation: blink 0.8s linear infinite alternate;
-}
-
-#temperature.critical {
-    color: @error;
 }
 
 @keyframes blink {
