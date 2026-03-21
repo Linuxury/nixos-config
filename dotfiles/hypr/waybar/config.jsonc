@@ -43,9 +43,9 @@
         "separate-outputs": true
     },
     "clock": {
-        "format": "  {:%I:%M %p}",
-        "format-alt": "  {:%A, %d %b %Y}",
-        "tooltip-format": "<big>{:%B %Y}</big>\n<tt>{calendar}</tt>"
+        "format": "  {:%A, %d %b %Y   %I:%M %p}",
+        "tooltip": false,
+        "on-click": "gsimplecal"
     },
     "tray": {
         "icon-size": 16,
