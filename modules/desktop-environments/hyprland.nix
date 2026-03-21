@@ -62,6 +62,9 @@
   # =========================================================================
   security.polkit.enable = true;
 
+  # PAM — hyprlock needs this to authenticate with user password
+  security.pam.services.hyprlock = {};
+
   # =========================================================================
   # Hyprland companion tools
   #
@@ -97,6 +100,8 @@
 
     # Screen locking
     hyprlock        # Hyprland-native screen locker
+    hypridle        # Idle management (dim, lock, suspend)
+    wob             # Lightweight volume/brightness overlay bar
 
     # Theming
     nwg-look        # GTK theme settings for Wayland compositors
