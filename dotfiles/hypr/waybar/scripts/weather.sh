@@ -69,9 +69,9 @@ TEMP_INT=$(printf "%.0f" "${TEMP:-0}")
 
 ICON_DESC=$(wmo_icon "$CODE")
 ICON=$(echo "$ICON_DESC" | awk '{print $1}')
-DESC=$(echo "$ICON_DESC" | cut -d' ' -f2-)
+DESC=$(echo "$ICON_DESC" | awk '{$1=""; sub(/^ +/,""); print}')
 
 TEXT="${ICON} ${TEMP_INT}°F"
-TOOLTIP="${DESC} in ${CITY}, ${REGION}\n${TEMP_INT}°F"
+TOOLTIP="${ICON} ${TEMP_INT}°F — ${DESC} in ${CITY}, ${REGION}"
 
 printf '{"text":"%s","tooltip":"%s","class":"ok"}\n' "$TEXT" "$TOOLTIP"
