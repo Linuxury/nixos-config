@@ -96,9 +96,7 @@ window#waybar {
 /* -----------------------------------------------------------------------
  * Right-side modules
  * ----------------------------------------------------------------------- */
-#cpu,
-#memory,
-#disk,
+#custom-sysinfo,
 #wireplumber,
 #backlight,
 #network,
@@ -123,15 +121,6 @@ window#waybar {
     color: @tertiary;
 }
 
-#cpu.warning,
-#memory.warning {
-    color: @tertiary;
-}
-
-#cpu.critical,
-#memory.critical {
-    color: @error;
-}
 
 /* -----------------------------------------------------------------------
  * Battery states
