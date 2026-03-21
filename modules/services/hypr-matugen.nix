@@ -125,6 +125,10 @@
       [templates.hyprlock]
       input_path  = "~/.config/matugen/templates/templates/hyprlock-colors.conf"
       output_path = "~/.config/hypr/colors-hyprlock.conf"
+
+      [templates.yazi]
+      input_path  = "~/.config/matugen/templates/templates/yazi-theme.toml"
+      output_path = "~/.config/yazi/theme.toml"
     '';
   };
 }
