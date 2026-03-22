@@ -28,3 +28,4 @@ secrets/*.pass
 # Temporary files
 *.tmp
 *.bak
+dotfiles/hypr/colors-hyprlock.conf
