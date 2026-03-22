@@ -22,6 +22,7 @@
   # =========================================================================
   home.packages = with pkgs; [
     matugen # Material You color generator
+    imagemagick # provides `convert` for dominant color extraction
     git # needed by matugenTemplates activation below
   ];
 
@@ -125,6 +126,10 @@
       [templates.hyprlock]
       input_path  = "~/.config/matugen/templates/templates/hyprlock-colors.conf"
       output_path = "~/.config/hypr/colors-hyprlock.conf"
+
+      [templates.regreet]
+      input_path  = "~/nixos-config/dotfiles/hypr/regreet/regreet-colors.css.template"
+      output_path = "~/.config/greetd/regreet-colors.css"
 
     '';
   };
