@@ -14,6 +14,26 @@
 
 { config, pkgs, inputs, ... }:
 
+let
+  # BreezeX cursor theme — same derivation as cosmic-theme.nix
+  # The greeter user has no home-manager, so we install it system-wide
+  breezex-cursors = pkgs.stdenv.mkDerivation {
+    pname   = "breezex-cursor-theme";
+    version = "2.0.1";
+    src = pkgs.fetchzip {
+      url       = "https://github.com/ful1e5/BreezeX_Cursor/releases/download/v2.0.1/BreezeX.tar.xz";
+      sha256    = "10fbvbls52cgp5kshlcxbh3nqarh2mwhpj0w5kkk4hrl3sdc1bcj";
+      stripRoot = false;
+    };
+    dontBuild     = true;
+    dontConfigure = true;
+    installPhase  = ''
+      mkdir -p $out/share/icons
+      cp -r . $out/share/icons/
+    '';
+  };
+in
+
 {
   # =========================================================================
   # Inject hypr-matugen into every user's Home Manager config
@@ -171,25 +191,56 @@
   services.blueman.enable = true;
 
   # =========================================================================
-  # Display Manager — greetd + tuigreet
+  # Display Manager — greetd + regreet
   #
-  # greetd is a minimal, flexible login manager designed for Wayland.
-  # tuigreet is a terminal-based greeter for greetd — no heavy UI,
-  # works well in TTY before the compositor starts.
+  # regreet is a GTK4 greeter that matches hyprlock's visual style:
+  # wallpaper background, Material You colors, centered layout with clock.
+  # Runs under cage (Wayland kiosk compositor) as the greeter user.
   #
-  # --time       → show clock on the login screen
-  # --remember   → pre-fills the last username
-  # --sessions   → lists all installed Wayland session .desktop files
-  #                (Hyprland installs one automatically via withUWSM)
+  # Colors are injected by set-wallpaper.sh via matugen into
+  # ~/.config/greetd/regreet-colors.css, then copied to /tmp/regreet-colors.css
+  # where cage can read them. The wallpaper is symlinked to /tmp/regreet-wallpaper.
   # =========================================================================
-  services.greetd = {
+
+  services.greetd.settings.default_session.user = "greeter";
+
+  programs.regreet = {
     enable = true;
+    theme = {
+      package = pkgs.adw-gtk3;
+      name    = "adw-gtk3-dark";
+    };
+    iconTheme = {
+      package = pkgs.tela-icon-theme;
+      name    = "Tela-dark";
+    };
+    cursorTheme = {
+      package = breezex-cursors;
+      name    = "BreezeX-Light";
+    };
+    font = {
+      package = pkgs.jetbrains-mono;
+      name    = "JetBrainsMono Nerd Font Propo";
+      size    = 16;
+    };
     settings = {
-      default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --sessions /run/current-system/sw/share/wayland-sessions";
-        user    = "greeter";
+      background = {
+        path = "/tmp/regreet-wallpaper";
+        fit  = "Cover";
+      };
+      appearance = {
+        greeting_msg = "Welcome back!";
+      };
+      widget.clock = {
+        format     = "%H:%M";
+        resolution = "500ms";
+      };
+      commands = {
+        reboot   = [ "systemctl" "reboot" ];
+        poweroff = [ "systemctl" "poweroff" ];
       };
     };
+    extraCss = builtins.readFile (../../dotfiles/hypr/regreet/regreet.css);
   };
 
   # =========================================================================

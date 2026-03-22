@@ -50,5 +50,19 @@ else
     echo "set-wallpaper: failed to extract dominant color" >&2
 fi
 
-# Reload waybar so it picks up the new colors.css
-pkill -USR2 waybar 2>/dev/null || true
+# ---------------------------------------------------------------------------
+# ReGreet greeter — update wallpaper and colors
+#
+# The greeter user runs under cage and can't access ~/Pictures or ~/.config.
+# We copy the current wallpaper and matugen colors to /tmp where cage can
+# read them. The regreet config references /tmp/regreet-wallpaper and
+# /tmp/regreet-colors.css.
+# ---------------------------------------------------------------------------
+ln -sf "$WALLPAPER" /tmp/regreet-wallpaper
+if [ -f "$HOME/.config/greetd/regreet-colors.css" ]; then
+    cp "$HOME/.config/greetd/regreet-colors.css" /tmp/regreet-colors.css
+fi
+
+# NOTE: waybar reload is handled by matugen's post_hook in config.toml
+# (pkill -USR2 waybar). Do NOT send a duplicate signal here — it causes
+# crashes when waybar receives USR2 while still reloading CSS.
