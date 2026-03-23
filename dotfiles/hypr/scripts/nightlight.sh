@@ -7,7 +7,7 @@
 #   off      — stop wlsunset
 #   toggle   — flip state (default)
 #
-# Schedule: 6:00 AM → 5500K (daytime), 8:00 PM → 3500K (nighttime)
+# Schedule: 6:00 AM → 6500K (daytime), 8:00 PM → 5000K (nighttime)
 # ===========================================================================
 
 PID_FILE="/tmp/wlsunset.pid"
@@ -18,9 +18,9 @@ case "${1:-toggle}" in
             notify-send -t 2000 "  Night Light" "Already running"
             exit 0
         fi
-        wlsunset -S 06:00 -s 20:00 -t 3500 &
+        wlsunset -S 06:00 -s 20:00 -t 5000 &
         echo $! > "$PID_FILE"
-        notify-send -t 2000 "  Night Light" "Enabled (warm at 8 PM)"
+        notify-send -t 2000 "  Night Light" "Enabled (5000K at 8 PM)"
         ;;
     off)
         if [ -f "$PID_FILE" ]; then
