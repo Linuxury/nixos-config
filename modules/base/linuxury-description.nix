@@ -27,7 +27,7 @@
     '';
   };
 
-  # SDDM user avatar — ~/.face.icon as fallback for themes that check it
+  # User avatar — ~/.face.icon as fallback for greeter themes
   home-manager.users.linuxury = {
     home.file.".face.icon".source = ../../assets/Avatar/linuxury.jpg;
   };
