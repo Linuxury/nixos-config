@@ -172,50 +172,6 @@ in
 
     # Media key control — playerctl play/pause/next/prev keybinds
     playerctl
-
-    # SDDM — pixie-sddm theme (Material Design 3 greeter)
-    # User avatar is injected as assets/avatar.jpg so the theme picks it up
-    # as the fallback without relying on AccountsService D-Bus at boot.
-    (let avatar = ../../assets/Avatar/linuxury.jpg;
-    in pkgs.stdenv.mkDerivation {
-      name = "pixie-sddm";
-      src = pkgs.fetchFromGitHub {
-        owner  = "xCaptaiN09";
-        repo   = "pixie-sddm";
-        rev    = "main";
-        sha256 = "sha256-lmE/49ySuAZDh5xLochWqfSw9qWrIV+fYaK5T2Ckck8=";
-      };
-      installPhase = ''
-        mkdir -p $out/share/sddm/themes/pixie
-        cp -r * $out/share/sddm/themes/pixie/
-        cp ${avatar} $out/share/sddm/themes/pixie/assets/avatar.jpg
-      '';
-    })
-    # SDDM wallpaper — packaged from assets so it's available in the Nix store
-    (let wallpaper = builtins.path {
-          path = ../../assets/Wallpapers/4k;
-          name = "sddm-wallpapers";
-        };
-    in pkgs.stdenvNoCC.mkDerivation {
-      name = "sddm-wallpaper";
-      src = wallpaper;
-      dontUnpack = false;
-      installPhase = ''
-        mkdir -p $out/share/sddm/wallpapers
-        cp "4k - 01.jpg" $out/share/sddm/wallpapers/background.jpg
-      '';
-    })
-    # theme.conf.user override for pixie-sddm — sets wallpaper + colors
-    (pkgs.writeTextDir "share/sddm/themes/pixie/theme.conf.user" ''
-      [General]
-      background=/run/current-system/sw/share/sddm/wallpapers/background.jpg
-      primaryColor=#E3E3DC
-      accentColor=#A9C78F
-      backgroundColor=#1A1C18
-      textColor=#E3E3DC
-    '')
-    kdePackages.qtdeclarative
-    kdePackages.qtsvg
   ];
 
   # =========================================================================
@@ -238,54 +194,20 @@ in
   services.blueman.enable = true;
 
   # =========================================================================
-  # Display Manager — SDDM + pixie-sddm theme
+  # Display Manager — COSMIC Greeter
   #
-  # Material Design 3 inspired greeter with stacked clock and dark UI.
-  # Qt6 native, supports wallpaper background.
+  # COSMIC's native login screen. Works well with Hyprland as the compositor
+  # — handles session selection and login, then launches Hyprland.
   # =========================================================================
-
-  services.displayManager.sddm = {
-    enable  = true;
-    theme   = "pixie";
-    package = pkgs.kdePackages.sddm;
-    wayland = {
-      enable = true;
-      compositor = "kwin";
-    };
-    extraPackages = with pkgs; [
-      kdePackages.layer-shell-qt  # Required for kwin greeter layer-shell support
-    ];
-    settings = {
-      General = {
-        GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell";
-      };
-      Theme = {
-        CursorTheme = "BreezeX-Light";
-        CursorSize  = 24;
-      };
-      Services = {
-        Enable = true;
-      };
-    };
-  };
-
-  # =========================================================================
-  # AccountsService — User avatar + metadata for SDDM greeter
-  #
-  # SDDM reads user icons from AccountsService. Without this daemon,
-  # the greeter shows a default silhouette instead of the real profile photo.
-  # The activation script in linuxury-description.nix copies the avatar and
-  # writes the user config file.
-  # =========================================================================
-  services.accounts-daemon.enable = true;
+  services.displayManager.cosmic-greeter.enable = true;
 
   # =========================================================================
   # Keyring — Secret storage for apps
   #
   # Without a keyring, apps like browsers and SSH agents lose saved
   # passwords on every reboot. GNOME Keyring works fine outside of GNOME.
-  # SDDM handles the PAM login so we enable the keyring unlock there.
+  # cosmic-greeter uses the login PAM service for keyring unlock.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
-  security.pam.services.sddm.enableGnomeKeyring = true;
+  security.pam.services.login.enableGnomeKeyring = true;
 }
