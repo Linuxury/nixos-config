@@ -100,6 +100,9 @@ in
   # Think of this as the toolkit. You decide how to use them.
   # =========================================================================
   environment.systemPackages = with pkgs; [
+    # Cursor theme — needed by SDDM greeter (no home-manager at login)
+    breezex-cursors
+
     # Status bar
     waybar          # Highly customizable Wayland bar
 
@@ -133,10 +136,10 @@ in
     # Screen locking
     hyprlock        # Hyprland-native screen locker
     hypridle        # Idle management (dim, lock, suspend)
-    wob             # Lightweight volume/brightness overlay bar
 
     # Audio
     pavucontrol     # PulseAudio volume mixer GUI
+    swayosd         # Center-bottom OSD layer-shell window for volume/brightness
 
     # Theming
     nwg-look        # GTK theme settings for Wayland compositors
@@ -162,13 +165,57 @@ in
 
     # Quickshell — Qt6/QML desktop shell toolkit
     # Used to build the custom shell: bar, dock, launcher, notifications, OSD,
-    # sidebar, workspace overview, lock screen, and greetd login manager.
+    # sidebar, workspace overview, and lock screen.
     # Flake input declared in flake.nix with nixpkgs.follows for Qt version safety.
     inputs.quickshell.packages.${pkgs.system}.default
     qt6Packages.qt5compat  # Qt5 compat layer — enables Gaussian blur effects in Quickshell
 
     # Media key control — playerctl play/pause/next/prev keybinds
     playerctl
+
+    # SDDM — pixie-sddm theme (Material Design 3 greeter)
+    # User avatar is injected as assets/avatar.jpg so the theme picks it up
+    # as the fallback without relying on AccountsService D-Bus at boot.
+    (let avatar = ../../assets/Avatar/linuxury.jpg;
+    in pkgs.stdenv.mkDerivation {
+      name = "pixie-sddm";
+      src = pkgs.fetchFromGitHub {
+        owner  = "xCaptaiN09";
+        repo   = "pixie-sddm";
+        rev    = "main";
+        sha256 = "sha256-lmE/49ySuAZDh5xLochWqfSw9qWrIV+fYaK5T2Ckck8=";
+      };
+      installPhase = ''
+        mkdir -p $out/share/sddm/themes/pixie
+        cp -r * $out/share/sddm/themes/pixie/
+        cp ${avatar} $out/share/sddm/themes/pixie/assets/avatar.jpg
+      '';
+    })
+    # SDDM wallpaper — packaged from assets so it's available in the Nix store
+    (let wallpaper = builtins.path {
+          path = ../../assets/Wallpapers/4k;
+          name = "sddm-wallpapers";
+        };
+    in pkgs.stdenvNoCC.mkDerivation {
+      name = "sddm-wallpaper";
+      src = wallpaper;
+      dontUnpack = false;
+      installPhase = ''
+        mkdir -p $out/share/sddm/wallpapers
+        cp "4k - 01.jpg" $out/share/sddm/wallpapers/background.jpg
+      '';
+    })
+    # theme.conf.user override for pixie-sddm — sets wallpaper + colors
+    (pkgs.writeTextDir "share/sddm/themes/pixie/theme.conf.user" ''
+      [General]
+      background=/run/current-system/sw/share/sddm/wallpapers/background.jpg
+      primaryColor=#E3E3DC
+      accentColor=#A9C78F
+      backgroundColor=#1A1C18
+      textColor=#E3E3DC
+    '')
+    kdePackages.qtdeclarative
+    kdePackages.qtsvg
   ];
 
   # =========================================================================
@@ -191,65 +238,54 @@ in
   services.blueman.enable = true;
 
   # =========================================================================
-  # Display Manager — greetd + regreet
+  # Display Manager — SDDM + pixie-sddm theme
   #
-  # regreet is a GTK4 greeter that matches hyprlock's visual style:
-  # wallpaper background, Material You colors, centered layout with clock.
-  # Runs under cage (Wayland kiosk compositor) as the greeter user.
-  #
-  # Colors are injected by set-wallpaper.sh via matugen into
-  # ~/.config/greetd/regreet-colors.css, then copied to /tmp/regreet-colors.css
-  # where cage can read them. The wallpaper is symlinked to /tmp/regreet-wallpaper.
+  # Material Design 3 inspired greeter with stacked clock and dark UI.
+  # Qt6 native, supports wallpaper background.
   # =========================================================================
 
-  services.greetd.settings.default_session.user = "greeter";
-
-  programs.regreet = {
-    enable = true;
-    theme = {
-      package = pkgs.adw-gtk3;
-      name    = "adw-gtk3-dark";
+  services.displayManager.sddm = {
+    enable  = true;
+    theme   = "pixie";
+    package = pkgs.kdePackages.sddm;
+    wayland = {
+      enable = true;
+      compositor = "kwin";
     };
-    iconTheme = {
-      package = pkgs.tela-icon-theme;
-      name    = "Tela-dark";
-    };
-    cursorTheme = {
-      package = breezex-cursors;
-      name    = "BreezeX-Light";
-    };
-    font = {
-      package = pkgs.jetbrains-mono;
-      name    = "JetBrainsMono Nerd Font Propo";
-      size    = 16;
-    };
+    extraPackages = with pkgs; [
+      kdePackages.layer-shell-qt  # Required for kwin greeter layer-shell support
+    ];
     settings = {
-      background = {
-        path = "/tmp/regreet-wallpaper";
-        fit  = "Cover";
+      General = {
+        GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell";
       };
-      appearance = {
-        greeting_msg = "Welcome back!";
+      Theme = {
+        CursorTheme = "BreezeX-Light";
+        CursorSize  = 24;
       };
-      widget.clock = {
-        format     = "%H:%M";
-        resolution = "500ms";
-      };
-      commands = {
-        reboot   = [ "systemctl" "reboot" ];
-        poweroff = [ "systemctl" "poweroff" ];
+      Services = {
+        Enable = true;
       };
     };
-    extraCss = builtins.readFile (../../dotfiles/hypr/regreet/regreet.css);
   };
+
+  # =========================================================================
+  # AccountsService — User avatar + metadata for SDDM greeter
+  #
+  # SDDM reads user icons from AccountsService. Without this daemon,
+  # the greeter shows a default silhouette instead of the real profile photo.
+  # The activation script in linuxury-description.nix copies the avatar and
+  # writes the user config file.
+  # =========================================================================
+  services.accounts-daemon.enable = true;
 
   # =========================================================================
   # Keyring — Secret storage for apps
   #
   # Without a keyring, apps like browsers and SSH agents lose saved
   # passwords on every reboot. GNOME Keyring works fine outside of GNOME.
-  # greetd handles the PAM login so we enable the keyring unlock there.
+  # SDDM handles the PAM login so we enable the keyring unlock there.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
-  security.pam.services.greetd.enableGnomeKeyring = true;
+  security.pam.services.sddm.enableGnomeKeyring = true;
 }
