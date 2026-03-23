@@ -80,7 +80,7 @@
     # quickshell — Qt6/QML desktop shell toolkit
     #
     # Used to build a custom DE-like shell: bar, dock, launcher, notifications,
-    # OSD, lock screen, sidebar, workspace overview, and greetd login manager.
+    # OSD, lock screen, sidebar, and workspace overview.
     #
     # IMPORTANT: nixpkgs.follows is mandatory on NixOS — if the Qt version
     # used to build quickshell drifts from the system Qt, it crashes.

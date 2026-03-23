@@ -244,6 +244,7 @@
     btop         # Modern resource monitor (prettier than htop)
     unzip        # Archive extraction
     tree         # Directory tree viewer
+    jq           # JSON processor — used by Claude Code hooks and shell scripts
 
     # Network tools
     iproute2     # ip command for network management
@@ -255,6 +256,9 @@
     nano         # Simple editor, always good to have available
     # Shell tools
     fastfetch    # System info display — useful on desktops AND servers via SSH
+
+    # Node.js — needed for MCP servers (npx) and Claude Code hooks
+    nodejs
   ];
 
   # =========================================================================
