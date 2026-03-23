@@ -8,9 +8,9 @@
 
 case "$HOSTNAME" in
     Ryzen5900x)
-        # OLED display — no blur (creates gray frosted layer), 85% opacity
-        # gives subtle wallpaper visibility without being distracting
-        hyprctl keyword windowrule "match:class kitty, opacity 0.85 override 0.75 override"
+        # OLED display — no blur (creates gray frosted layer), 90% opacity
+        # keeps terminal readable with bright wallpapers
+        hyprctl keyword windowrule "match:class kitty, opacity 0.9 override 0.8 override"
         hyprctl keyword windowrule "match:class kitty, no_blur on"
         ;;
     # ThinkPad — LCD with backlight bleed, default 0.75 looks good
