@@ -8,7 +8,7 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - Hyprland (active DE — SDDM + pixie-sddm)
+#   - Hyprland (active DE — cosmic-greeter)
 #   - Niri (future — commented out)
 #   - Gaming
 #   - Development
