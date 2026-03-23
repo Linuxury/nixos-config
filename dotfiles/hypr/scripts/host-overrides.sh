@@ -10,7 +10,10 @@ case "$HOSTNAME" in
     Ryzen5900x)
         # OLED display — pixels turn off for black, so transparency looks
         # subtle/minimal compared to LCD. Lower opacity to compensate.
-        hyprctl keyword windowrule "match:class kitty, opacity 0.55 override 0.45 override"
+        # Disable blur — on OLED, blur creates a gray frosted layer instead
+        # of showing the wallpaper through cleanly.
+        hyprctl keyword windowrule "match:class kitty, opacity 0.6 override 0.5 override"
+        hyprctl keyword windowrule "match:class kitty, no_blur on"
         ;;
     # ThinkPad — LCD with backlight bleed, default 0.75 looks good
     # No override needed
