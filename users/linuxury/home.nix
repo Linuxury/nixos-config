@@ -155,9 +155,14 @@
     ".config/waybar/style.css".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/waybar/style.css";
 
-    # Wofi — full directory (no matugen writes here)
-    ".config/wofi".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/wofi";
+    # Wofi — per-file symlinks so matugen can write colors.css freely into
+    # ~/.config/wofi/ without polluting the repo (same pattern as waybar).
+    ".config/wofi/config".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/wofi/config";
+    ".config/wofi/style.css".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/wofi/style.css";
+    ".config/wofi/powermenu-style.css".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/wofi/powermenu-style.css";
 
     # Swaync — symlink config and style individually (same reason as waybar)
     ".config/swaync/config.json".source =

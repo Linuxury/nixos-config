@@ -13,5 +13,5 @@ TIME=$(date +"%-I:%M %p")
 DATE=$(date +"%A, %d %b %Y")
 CAL=$(cal | sed 's/</\&lt;/g; s/>/\&gt;/g')
 
-printf '{"text":"  %s   %s","tooltip":"%s"}\n' \
+printf '{"text":"%s   %s","tooltip":"%s"}\n' \
     "$DATE" "$TIME" "$(echo "$CAL" | awk '{printf "%s\\n", $0}')"

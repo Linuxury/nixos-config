@@ -30,3 +30,4 @@ secrets/*.pass
 *.bak
 dotfiles/hypr/colors-hyprlock.conf
 dotfiles/hypr/colors.conf
+dotfiles/hypr/wofi/colors.css
