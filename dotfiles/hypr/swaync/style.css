@@ -10,6 +10,9 @@
     font-family: "JetBrainsMono Nerd Font Propo", monospace;
     font-size:   15px;
     font-weight: bold;
+    --noti-bg:       20, 18, 24;
+    --noti-bg-alpha:  0.5;
+    --cc-bg:         alpha(@surface, 0.75);
 }
 
 /* -----------------------------------------------------------------------
@@ -51,11 +54,11 @@ blankwindow,
     margin:        0;
     padding:       0;
     border:        1px solid alpha(@outline_var, 0.4);
-    background:    alpha(@surface, 0.75) !important;
+    background:    alpha(@surface, 0.5);
 }
 
 .notification-background {
-    background: alpha(@surface, 0.75) !important;
+    background: alpha(@surface, 0.5);
 }
 
 .notification-content {
