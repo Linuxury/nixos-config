@@ -57,7 +57,7 @@ in
     #../../modules/development/development.nix
     ../../modules/base/auto-update.nix
     ../../modules/users/linuxury-packages.nix
-    ../../modules/services/syncthing.nix
+    # ../../modules/services/syncthing.nix — removed: vault on Media-Server Samba share
   ];
 
   # =========================================================================
