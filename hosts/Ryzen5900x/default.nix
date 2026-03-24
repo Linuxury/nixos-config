@@ -53,7 +53,7 @@ in
     ../../modules/base/auto-update.nix
     #../../modules/services/local-llm.nix
     ../../modules/users/linuxury-packages.nix
-    ../../modules/services/syncthing.nix
+    # ../../modules/services/syncthing.nix — removed: vault on Media-Server Samba share
   ];
 
   # =========================================================================
