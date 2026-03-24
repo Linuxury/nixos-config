@@ -8,15 +8,17 @@
 #   1. A systemd service runs after the graphical session starts
 #   2. It checks when the last successful update happened
 #   3. If more than 7 days ago → runs flake update + nixos-rebuild
-#   4. notify-send reports status to whatever notification daemon
-#      is running (COSMIC, KDE, or swaync in WM sessions)
+#   4. notify-update-result.sh handles all notifications:
+#      - Obsidian vault entries (success + failure)
+#      - Desktop toast (success + failure)
+#      - Email via msmtp (failure only)
 #   5. If a reboot is required after a kernel update, a persistent
 #      notification appears — you decide when to reboot
 #
-# Scheduled updates:
-#   - Weekly via system.autoUpgrade (catches machines that are always on)
-#   - On session start via systemd service (catches missed updates if
-#     machine was off on the scheduled day)
+# Weekly schedule (system.autoUpgrade):
+#   - Saturday 3am via systemd timer
+#   - onFailure/onSuccess hooks trigger notify-update-result.sh
+#   - Missed runs (machine was off) caught on next boot via session service
 #
 # To disable on a specific host:
 #   services.nixos-auto-update.enable = lib.mkForce false;
@@ -24,7 +26,49 @@
 
 { config, pkgs, lib, ... }:
 
+let
+  # ---------------------------------------------------------------------------
+  # Notification script — shared handler for all update notifications
+  # Writes Obsidian entries, sends toast, emails on failure
+  # ---------------------------------------------------------------------------
+  notifyScript = ./scripts/notify-update-result.sh;
+in
+
 {
+  # =========================================================================
+  # Email — msmtp (lightweight SMTP client, no daemon)
+  #
+  # Used by notify-update-result.sh to send failure emails.
+  # Only invoked when an update fails — zero overhead otherwise.
+  #
+  # Requires agenix secret: smtp-app-password
+  # Generate Gmail app password at: https://myaccount.google.com/apppasswords
+  # =========================================================================
+  programs.msmtp = {
+    enable = true;
+    setSendmail = true;
+    defaults = {
+      aliases = "/etc/aliases";
+      port = 587;
+      tls = true;
+      tls_starttls = true;
+    };
+    accounts.default = {
+      host = "smtp.gmail.com";
+      auth = true;
+      user = "linuxurypr@gmail.com";
+      passwordeval = "cat /run/agenix/smtp-app-password";
+      from = "linuxurypr@gmail.com";
+    };
+  };
+
+  # SMTP password via agenix — only hosts that import this module need it
+  age.secrets.smtp-app-password = {
+    file = ../../secrets/smtp-app-password.age;
+    mode = "0400";
+    owner = "root";
+  };
+
   # =========================================================================
   # Scheduled weekly update
   #
@@ -44,6 +88,32 @@
   };
 
   # =========================================================================
+  # Weekly schedule notification hooks
+  #
+  # system.autoUpgrade has no built-in hooks. These systemd overrides
+  # trigger our notification handler when the weekly update succeeds or fails.
+  # =========================================================================
+  systemd.services.notify-upgrade-success = {
+    description = "Notify on weekly NixOS upgrade success";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash ${notifyScript} success /var/log/nixos-auto-update.log";
+    };
+  };
+
+  systemd.services.notify-upgrade-failure = {
+    description = "Notify on weekly NixOS upgrade failure";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash ${notifyScript} failure /var/log/nixos-auto-update.log";
+    };
+  };
+
+  # Wire to nixos-upgrade.service (created by system.autoUpgrade)
+  systemd.services.nixos-upgrade.onSuccess = [ "notify-upgrade-success.service" ];
+  systemd.services.nixos-upgrade.onFailure = [ "notify-upgrade-failure.service" ];
+
+  # =========================================================================
   # Last update timestamp tracking
   #
   # Every time a successful update runs we write the current timestamp
@@ -56,12 +126,14 @@
   # Update script
   #
   # This script does the actual work:
-  #   1. Sends a start notification
-  #   2. Updates flake inputs
-  #   3. Rebuilds the system
-  #   4. Records the timestamp
-  #   5. Notifies success or failure
-  #   6. Checks if a reboot is needed and notifies persistently
+  #   1. Checks if update is needed (> 7 days since last)
+  #   2. Runs dry-build first (catches eval errors without applying)
+  #   3. Updates flake inputs
+  #   4. Rebuilds the system
+  #   5. On transient errors (timeout/network), retries once after 5min
+  #   6. Records the timestamp
+  #   7. Notifies via shared handler (Obsidian + toast + email)
+  #   8. Checks if a reboot is needed and notifies persistently
   # =========================================================================
   environment.systemPackages = [
     (pkgs.writeShellScriptBin "nixos-auto-update" ''
@@ -76,6 +148,7 @@
       FLAKE="github:linuxury/nixos-config"
       HOSTNAME=$(hostname)
       LOG_FILE="/var/log/nixos-auto-update.log"
+      NOTIFY="${notifyScript}"
 
       # -----------------------------------------------------------------------
       # Logging helper
@@ -124,6 +197,13 @@
       }
 
       # -----------------------------------------------------------------------
+      # Check if error is transient (timeout, network)
+      # -----------------------------------------------------------------------
+      is_transient_error() {
+        grep -qiE "timed out|timeout|connection refused|couldn't connect|network" "$LOG_FILE" 2>/dev/null
+      }
+
+      # -----------------------------------------------------------------------
       # Main update logic
       # -----------------------------------------------------------------------
       if ! needs_update; then
@@ -138,34 +218,72 @@
         --icon "system-software-update" \
         --urgency normal \
         "NixOS Update Starting" \
-        "Updating flake inputs and rebuilding system in the background..."
+        "Updating flake inputs and rebuilding system in the background..." 2>/dev/null || true
 
+      # -----------------------------------------------------------------------
+      # Dry-build first — catches eval errors without applying anything
+      # -----------------------------------------------------------------------
+      log "Running dry-build to validate configuration..."
+      if ! sudo nixos-rebuild dry-build --flake "$FLAKE#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
+        log "ERROR: dry-build failed — configuration has errors"
+        bash "$NOTIFY" failure "$LOG_FILE"
+        exit 1
+      fi
+      log "Dry-build passed — proceeding with update"
+
+      # -----------------------------------------------------------------------
       # Update flake inputs
+      # -----------------------------------------------------------------------
       log "Updating flake inputs..."
       if ! sudo nix flake update "$FLAKE" >> "$LOG_FILE" 2>&1; then
         log "ERROR: flake update failed"
-        notify-send \
-          --app-name "NixOS Update" \
-          --icon "dialog-error" \
-          --urgency critical \
-          "NixOS Update Failed" \
-          "Flake update failed. Check /var/log/nixos-auto-update.log for details."
-        exit 1
+
+        # Retry on transient errors
+        if is_transient_error; then
+          log "Transient error detected — retrying flake update in 5 minutes..."
+          sleep 300
+          log "Retrying flake update..."
+          if sudo nix flake update "$FLAKE" >> "$LOG_FILE" 2>&1; then
+            log "Flake update succeeded on retry"
+          else
+            log "ERROR: flake update failed again after retry"
+            bash "$NOTIFY" failure "$LOG_FILE"
+            exit 1
+          fi
+        else
+          bash "$NOTIFY" failure "$LOG_FILE"
+          exit 1
+        fi
       fi
 
+      # -----------------------------------------------------------------------
       # Rebuild system
+      # -----------------------------------------------------------------------
       log "Running nixos-rebuild switch..."
       if ! sudo nixos-rebuild switch --flake "$FLAKE#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
         log "ERROR: nixos-rebuild failed"
-        notify-send \
-          --app-name "NixOS Update" \
-          --icon "dialog-error" \
-          --urgency critical \
-          "NixOS Update Failed" \
-          "System rebuild failed. Check /var/log/nixos-auto-update.log for details."
-        exit 1
+
+        # Retry on transient errors
+        if is_transient_error; then
+          log "Transient error detected — retrying rebuild in 5 minutes..."
+          sleep 300
+          log "Retrying nixos-rebuild switch..."
+          if sudo nixos-rebuild switch --flake "$FLAKE#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
+            log "Rebuild succeeded on retry"
+          else
+            log "ERROR: rebuild failed again after retry"
+            bash "$NOTIFY" failure "$LOG_FILE"
+            exit 1
+          fi
+        else
+          bash "$NOTIFY" failure "$LOG_FILE"
+          exit 1
+        fi
       fi
 
+      # -----------------------------------------------------------------------
+      # Success path
+      # -----------------------------------------------------------------------
       # Record successful update timestamp
       date +%s | sudo tee "$TIMESTAMP_FILE" > /dev/null
       log "Update completed successfully"
@@ -183,26 +301,20 @@
         log "fwupdmgr refresh failed — skipping firmware update"
       fi
 
-      # Notify success
-      notify-send \
-        --app-name "NixOS Update" \
-        --icon "system-software-update" \
-        --urgency normal \
-        "NixOS Update Complete" \
-        "System successfully updated. $(date '+%A, %B %d at %H:%M')"
+      # Notify success via shared handler
+      bash "$NOTIFY" success "$LOG_FILE"
 
       # Check if reboot is required
       if reboot_required; then
         log "Kernel update detected — reboot required"
         # Persistent notification — stays until dismissed
-        # urgency=critical means it won't auto-dismiss in most DEs
         notify-send \
           --app-name "NixOS Update" \
           --icon "system-reboot" \
           --urgency critical \
           --expire-time 0 \
           "Reboot Required" \
-          "A kernel update was applied. Please reboot when convenient to complete the update."
+          "A kernel update was applied. Please reboot when convenient to complete the update." 2>/dev/null || true
       fi
 
       log "Done."
