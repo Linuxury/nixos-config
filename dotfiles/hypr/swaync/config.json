@@ -30,6 +30,7 @@
   "transition-time":         100,
   "hide-on-clear":           true,
   "hide-on-action":          true,
+  "notification-grouping":   false,
   "script-fail-notify":      true,
   "widgets": [
     "title",

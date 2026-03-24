@@ -51,7 +51,11 @@ blankwindow,
     margin:        0;
     padding:       0;
     border:        1px solid alpha(@outline_var, 0.4);
-    background:    alpha(@surface, 0.75);
+    background:    alpha(@surface, 0.75) !important;
+}
+
+.notification-background {
+    background: alpha(@surface, 0.75) !important;
 }
 
 .notification-content {
