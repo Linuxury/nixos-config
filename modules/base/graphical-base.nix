@@ -50,6 +50,22 @@
   services.gvfs.enable = true;
 
   # =========================================================================
+  # Flatpak — App distribution for packages not in nixpkgs
+  #
+  # Required by user-level services like hytale-flatpak-install.
+  # Available on all graphical hosts regardless of DE.
+  # The activation script adds Flathub at system scope on first boot.
+  # =========================================================================
+  services.flatpak.enable = true;
+  system.activationScripts.flatpak-flathub = {
+    text = ''
+      ${pkgs.flatpak}/bin/flatpak remote-add --system --if-not-exists flathub \
+        https://dl.flathub.org/repo/flathub.flatpakrepo || true
+    '';
+    deps = [ "specialfs" ];
+  };
+
+  # =========================================================================
   # KDE Connect — Phone/desktop integration
   #
   # Lets your phone and desktop share clipboard, notifications, files,
@@ -79,9 +95,10 @@
     loupe       # GNOME image viewer — thumbnails, zoom, EXIF
 
     # -----------------------------------------------------------------------
-    # Documents & disks
+    # Documents & office
     # -----------------------------------------------------------------------
-    papers             # GNOME document viewer — PDFs and more (GTK4, modern)
+    papers                   # GNOME document viewer — PDFs and more (GTK4, modern)
+    onlyoffice-desktopeditors # Word/Excel/PowerPoint compatible office suite
     # -----------------------------------------------------------------------
     # System monitoring
     # -----------------------------------------------------------------------

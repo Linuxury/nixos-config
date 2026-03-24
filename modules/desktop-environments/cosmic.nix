@@ -85,19 +85,6 @@
   ];
 
   # =========================================================================
-  # Flatpak — Optional app distribution format
-  #
-  # COSMIC Store uses Flatpak as its backend.
-  # Useful for apps not in nixpkgs or that need sandboxing.
-  #
-  # The activation script adds Flathub at system scope on first boot.
-  # This is required for COSMIC Store to browse and display apps —
-  # user-level remotes are not visible to the system Flatpak installation
-  # that COSMIC Store queries.
-  # =========================================================================
-  services.flatpak.enable = true;
-
-  # =========================================================================
   # PackageKit — D-Bus package management abstraction
   #
   # COSMIC Store queries PackageKit for the "Installed" and "Updates" views.
@@ -106,14 +93,6 @@
   # manage Nix packages, but the daemon must be present for Store to function.
   # =========================================================================
   services.packagekit.enable = true;
-
-  system.activationScripts.flatpak-flathub = {
-    text = ''
-      ${pkgs.flatpak}/bin/flatpak remote-add --system --if-not-exists flathub \
-        https://dl.flathub.org/repo/flathub.flatpakrepo || true
-    '';
-    deps = [ "specialfs" ];
-  };
 
   # =========================================================================
   # Wallpaper slideshow + matugen theming — injected into every HM user
