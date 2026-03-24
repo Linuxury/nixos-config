@@ -9,9 +9,6 @@
 {
   environment.systemPackages = with pkgs; [
 
-    # Office
-    onlyoffice-desktopeditors  # Word/Excel/PowerPoint compatible office suite
-
     # Communication
     zoom-us         # Video conferencing
   ];

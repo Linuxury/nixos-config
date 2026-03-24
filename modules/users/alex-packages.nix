@@ -16,7 +16,6 @@
     krita           # Digital painting and drawing
 
     # Office / School
-    onlyoffice-desktopeditors  # Word/Excel/PowerPoint compatible office suite
     hunspell                   # Spell checker
     hunspellDicts.en-us        # English (US) dictionary
 

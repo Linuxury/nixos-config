@@ -9,9 +9,6 @@
 {
   environment.systemPackages = with pkgs; [
 
-    # Office
-    onlyoffice-desktopeditors  # Word/Excel/PowerPoint compatible office suite
-
     # Shell tools
     topgrade    # One-command updater — Nix, cargo, flatpaks, etc.
 
