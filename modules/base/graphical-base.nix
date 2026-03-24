@@ -65,6 +65,13 @@
     deps = [ "specialfs" ];
   };
 
+  # Ensure flatpak desktop files/icons are discoverable by launchers
+  environment.sessionVariables.XDG_DATA_DIRS = [
+    "/var/lib/flatpak/exports/share"
+    "$HOME/.local/share/flatpak/exports/share"
+    "$XDG_DATA_DIRS"
+  ];
+
   # =========================================================================
   # KDE Connect — Phone/desktop integration
   #
