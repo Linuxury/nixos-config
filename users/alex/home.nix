@@ -215,7 +215,7 @@
       Description         = "Install Hytale launcher from bundled flatpak";
       After               = [ "graphical-session.target" ];
       Wants               = [ "graphical-session.target" ];
-      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hytale.Hytale";
+      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hypixel.HytaleLauncher";
     };
 
     Service = {
@@ -225,7 +225,7 @@
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
         FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
 
-        if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
+        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
           echo "Hytale already installed, skipping."
           exit 0
         fi
