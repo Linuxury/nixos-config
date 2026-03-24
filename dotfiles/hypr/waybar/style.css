@@ -1,7 +1,7 @@
 /* ===========================================================================
  * waybar/style.css — Visual design for Waybar
  * =========================================================================== */
-@import "colors.css";
+@import "/home/linuxury/.config/waybar/colors.css";
 
 /* ============================================================
  * GLOBAL FONT — change here to update the entire bar
