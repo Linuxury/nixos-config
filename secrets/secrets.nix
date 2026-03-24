@@ -181,4 +181,19 @@ in
     ]
   );
 
+  # --------------------------------------------------------------------------
+  # SMTP app password for update failure emails
+  #
+  # Gmail app password (16-char) for msmtp to send failure notifications.
+  # Deployed to all hosts that run auto-update.nix.
+  # Generate at: https://myaccount.google.com/apppasswords
+  # After updating: nix run nixpkgs#agenix -- -r
+  # --------------------------------------------------------------------------
+  "smtp-app-password.age".publicKeys = uniq (
+    linuxury-admins
+    ++ linuxury-machines
+    ++ babylinux-machines
+    ++ alex-machines
+  );
+
 }

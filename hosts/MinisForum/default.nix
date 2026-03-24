@@ -180,6 +180,7 @@
     # File management
     rsync         # Fast file sync and backup tool
     rclone        # Cloud storage sync (useful for backups)
+    cifs-utils    # Required for CIFS/Samba mounts
 
     # Utilities
     tmux          # Terminal multiplexer — keep sessions alive over SSH
@@ -194,12 +195,41 @@
   ];
 
   # =========================================================================
+  # Agenix secrets
+  # =========================================================================
+  age.secrets.smb-credentials = {
+    file = ../../secrets/smb-credentials.age;
+    mode = "0400";
+    owner = "root";
+  };
+
+  # =========================================================================
+  # Media-Server Samba share — for Obsidian vault and shared files
+  # Automounts on first access, disconnects after 60s idle.
+  # =========================================================================
+  fileSystems."/mnt/Media-Server" = {
+    device = "//10.0.0.3/Media-Server";
+    fsType = "cifs";
+    options = [
+      "credentials=/run/agenix/smb-credentials"
+      "uid=1000"
+      "gid=100"
+      "nofail"
+      "_netdev"
+      "x-systemd.automount"
+      "x-systemd.idle-timeout=60"
+      "x-systemd.mount-timeout=2s"
+    ];
+  };
+
+  # =========================================================================
   # Game server directories
   #
   # Crafty owns everything under crafty/ — Docker mounts these as volumes.
   # Hytale runs directly under hytale/Server/ (downloaded via hytale-downloader).
   # =========================================================================
   systemd.tmpfiles.rules = [
+    "d /mnt/Media-Server                    0755 linuxury users -"
     "d /data                                  0755 root     users -"
     "d /data/gameservers                      0775 linuxury users -"
     "d /data/gameservers/crafty               0775 linuxury users -"
