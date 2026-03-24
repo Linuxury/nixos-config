@@ -2,8 +2,9 @@
  * swaync/style.css — Notification center styling
  *
  * Pill-style notification toasts + compact control center panel.
- * Catppuccin Mocha palette.
+ * Colors from matugen via colors.css.
  * =========================================================================== */
+@import "colors.css";
 
 * {
     font-family: "JetBrainsMono Nerd Font Propo", monospace;
@@ -29,9 +30,9 @@ blankwindow,
 }
 
 .control-center {
-    background-color: alpha(#1e1e2e, 0.95);
+    background-color: alpha(@surface, 0.80);
     border-radius:    12px 0 0 12px;
-    border:           1px solid alpha(#45475a, 0.6);
+    border:           1px solid alpha(@outline_var, 0.4);
     padding:          8px;
 }
 
@@ -48,15 +49,15 @@ blankwindow,
     border-radius: 12px;
     margin:        0;
     padding:       0;
-    border:        1px solid alpha(#45475a, 0.6);
-    background:    alpha(#1e1e2e, 0.95);
+    border:        1px solid alpha(@outline_var, 0.4);
+    background:    alpha(@surface, 0.80);
 }
 
 .notification-content {
     background-color: transparent;
     border-radius:    12px;
     padding:          10px 14px;
-    color:            #cdd6f4;
+    color:            @on_surface;
 }
 
 /* Compact icon + text layout */
@@ -72,24 +73,24 @@ blankwindow,
 /* Title — slightly bolder */
 .summary {
     font-weight: bold;
-    color:       #cdd6f4;
+    color:       @on_surface;
     font-size:   13px;
 }
 
 .body {
-    color:     #a6adc8;
+    color:     @on_surface_var;
     font-size: 12px;
 }
 
 /* Timestamp */
 .time {
-    color:     #6c7086;
+    color:     alpha(@on_surface_var, 0.5);
     font-size: 11px;
 }
 
 /* Close button — small circle */
 .close-button {
-    background-color: alpha(#45475a, 0.6);
+    background-color: alpha(@surface_variant, 0.6);
     border-radius:    50%;
     border:           none;
     min-width:        24px;
@@ -99,7 +100,7 @@ blankwindow,
 }
 
 .close-button:hover {
-    background-color: alpha(#f38ba8, 0.6);
+    background-color: alpha(@error, 0.6);
 }
 
 /* Action buttons */
@@ -107,26 +108,26 @@ blankwindow,
 .notification-action {
     padding:          4px 12px;
     border-radius:    8px;
-    color:            #cdd6f4;
-    background-color: alpha(#313244, 0.8);
+    color:            @on_surface;
+    background-color: alpha(@surface_variant, 0.8);
     border:           none;
     margin:           2px;
 }
 
 .notification-default-action:hover,
 .notification-action:hover {
-    background-color: alpha(#89b4fa, 0.2);
-    color:            #89b4fa;
+    background-color: alpha(@primary, 0.2);
+    color:            @primary;
 }
 
 /* -----------------------------------------------------------------------
  * Urgency colors — left accent bar
  * ----------------------------------------------------------------------- */
-.low     { border-left: 3px solid #a6adc8; }
-.normal  { border-left: 3px solid #89b4fa; }
+.low     { border-left: 3px solid @on_surface_var; }
+.normal  { border-left: 3px solid @primary; }
 .critical {
-    border-left: 3px solid #f38ba8;
-    background:  alpha(#f38ba8, 0.08);
+    border-left: 3px solid @error;
+    background:  alpha(@error, 0.08);
 }
 
 /* -----------------------------------------------------------------------
@@ -134,7 +135,7 @@ blankwindow,
  * ----------------------------------------------------------------------- */
 .top-action-title,
 .title {
-    color:       #cdd6f4;
+    color:       @on_surface;
     font-weight: bold;
     font-size:   14px;
     padding:     4px 8px;
@@ -144,37 +145,37 @@ blankwindow,
  * Clear-all button
  * ----------------------------------------------------------------------- */
 .clear-all-button {
-    background-color: alpha(#313244, 0.8);
-    color:            #a6adc8;
+    background-color: alpha(@surface_variant, 0.8);
+    color:            @on_surface_var;
     border-radius:    8px;
     border:           none;
     padding:          4px 12px;
 }
 
 .clear-all-button:hover {
-    background-color: alpha(#f38ba8, 0.2);
-    color:            #f38ba8;
+    background-color: alpha(@error, 0.2);
+    color:            @error;
 }
 
 /* -----------------------------------------------------------------------
  * DND toggle
  * ----------------------------------------------------------------------- */
 .toggle-button {
-    background-color: alpha(#313244, 0.8);
-    color:            #a6adc8;
+    background-color: alpha(@surface_variant, 0.8);
+    color:            @on_surface_var;
     border-radius:    8px;
     border:           none;
     padding:          6px 12px;
 }
 
 .toggle-button:hover {
-    background-color: alpha(#89b4fa, 0.15);
-    color:            #89b4fa;
+    background-color: alpha(@primary, 0.15);
+    color:            @primary;
 }
 
 .toggle-button:checked {
-    background-color: alpha(#89b4fa, 0.3);
-    color:            #89b4fa;
+    background-color: alpha(@primary, 0.3);
+    color:            @primary;
 }
 
 /* -----------------------------------------------------------------------
@@ -184,14 +185,14 @@ blankwindow,
     border-radius: 8px;
     border:        none;
     background:    transparent;
-    color:         #cdd6f4;
+    color:         @on_surface;
 }
 
 /* -----------------------------------------------------------------------
  * MPRIS widget
  * ----------------------------------------------------------------------- */
 .mpris-player {
-    background-color: alpha(#313244, 0.7);
+    background-color: alpha(@surface_variant, 0.7);
     border-radius:    10px;
     padding:          8px;
     margin:           4px 0;
@@ -199,11 +200,11 @@ blankwindow,
 
 .mpris-title {
     font-weight: bold;
-    color:       #cdd6f4;
+    color:       @on_surface;
 }
 
 .mpris-subtitle {
-    color: #a6adc8;
+    color: @on_surface_var;
 }
 
 /* -----------------------------------------------------------------------
@@ -214,13 +215,13 @@ scrollbar {
 }
 
 slider {
-    background:  alpha(#45475a, 0.6);
+    background:    alpha(@surface_variant, 0.6);
     border-radius: 4px;
-    min-width:   4px;
+    min-width:     4px;
 }
 
  trough {
-    background:  alpha(#313244, 0.4);
+    background:    alpha(@surface_variant, 0.4);
     border-radius: 4px;
-    min-width:   4px;
+    min-width:     4px;
 }
