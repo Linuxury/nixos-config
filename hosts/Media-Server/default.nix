@@ -218,7 +218,7 @@
     # Shared workspace — accessible to all family via Samba
     "d /data/shared                       0775 root media        -"
 
-# Service config directories — persistent app data
+    # Service config directories — persistent app data
     "d /data/config                       0755 root         root         -"
     "d /data/config/plex                  0755 plex         media        -"
     "d /data/config/immich                0755 immich       immich       -"
@@ -229,6 +229,9 @@
     "d /data/config/arr-services/bazarr   0755 bazarr       arr-services -"
     "d /data/config/arr-services/readarr  0755 readarr      arr-services -"
     "d /data/config/arr-services/lidarr   0755 lidarr       arr-services -"
+
+    # Obsidian vault — central location for all hosts + phone sync
+    "d /data/obsidian                     0755 linuxury     users        -"
   ];
 
   # =========================================================================
@@ -359,17 +362,38 @@
   systemd.services.immich-microservices.serviceConfig.UMask = lib.mkForce "0022";
 
   # =========================================================================
+  # Syncthing — Obsidian vault sync for phone
+  #
+  # The vault lives at /data/obsidian/ and is synced to the phone via Syncthing.
+  # Desktop machines write to the vault via Samba share (/mnt/Media-Server/obsidian/).
+  # Media-Server is always on, so the phone always has a sync partner.
+  #
+  # After first boot:
+  #   1. Open Syncthing web UI at http://Media-Server:8384
+  #   2. On phone (Syncthing app): Add Device → pair with Media-Server
+  #   3. Share /data/obsidian folder with the phone device
+  # =========================================================================
+  services.syncthing = {
+    enable    = true;
+    user      = "linuxury";
+    dataDir   = "/home/linuxury/.config/syncthing";
+    configDir = "/home/linuxury/.config/syncthing";
+    openDefaultPorts = true;  # 22000/tcp, 22000/udp, 21027/udp
+  };
+
+  # =========================================================================
   # Open firewall ports for all services
   # =========================================================================
   networking.firewall.allowedTCPPorts = [
-    32400  # Plex
-    8989   # Sonarr
-    7878   # Radarr
-    9696   # Prowlarr
-    8686   # Lidarr
-    8787   # Readarr
-    6767   # Bazarr
-    2283   # Immich
+    32400 # Plex
+    8989  # Sonarr
+    7878  # Radarr
+    9696  # Prowlarr
+    8686  # Lidarr
+    8787  # Readarr
+    6767  # Bazarr
+    2283  # Immich
+    8384  # Syncthing GUI
   ];
 
   # =========================================================================

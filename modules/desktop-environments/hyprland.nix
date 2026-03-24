@@ -41,6 +41,7 @@ in
   home-manager.sharedModules = [
     ../services/hypr-matugen.nix
     ../home/cosmic-theme.nix   # BreezeX-Light cursor + Tela-dark icons
+    ../home/nemo-bookmarks.nix # GTK3 bookmarks for Nemo (Samba shares)
     {
       # Kitty — Hyprland handles transparency/blur, disable Kitty's own settings
       home.file.".config/kitty/hyprland-overrides.conf".source =
