@@ -98,7 +98,7 @@
     "custom/media-prev": {
         "format": "{}",
         "return-type": "json",
-        "exec": "echo '{\"text\":\"⏴\",\"tooltip\":\"Previous\"}'",
+        "exec": "echo '{\"text\":\"󰒮\",\"tooltip\":\"Previous\"}'",
         "exec-if": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused'",
         "on-click": "playerctl previous",
         "interval": 2
@@ -106,7 +106,7 @@
     "custom/media-play": {
         "format": "{}",
         "return-type": "json",
-        "exec": "playerctl status 2>/dev/null | grep -q Playing && echo '{\"text\":\"⏸\",\"tooltip\":\"Pause\"}' || echo '{\"text\":\"▶\",\"tooltip\":\"Play\"}'",
+        "exec": "playerctl status 2>/dev/null | grep -q Playing && echo '{\"text\":\"󰏤\",\"tooltip\":\"Pause\"}' || echo '{\"text\":\"󰐊\",\"tooltip\":\"Play\"}'",
         "exec-if": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused'",
         "on-click": "playerctl play-pause",
         "interval": 2
@@ -114,7 +114,7 @@
     "custom/media-next": {
         "format": "{}",
         "return-type": "json",
-        "exec": "echo '{\"text\":\"⏵\",\"tooltip\":\"Next\"}'",
+        "exec": "echo '{\"text\":\"󰒭\",\"tooltip\":\"Next\"}'",
         "exec-if": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused'",
         "on-click": "playerctl next",
         "interval": 2
@@ -212,9 +212,9 @@
         "escape": true
     },
     "custom/power": {
-        "format": "⏻",
+        "format": "󰐥",
         "tooltip": false,
-        "on-click": "~/.config/hypr/waybar/scripts/powermenu.sh"
+        "on-click": "~/.config/hypr/scripts/powermenu.sh"
     },
     "custom/sep": {
         "format": "|",
@@ -240,8 +240,8 @@
     "custom/layout": {
         "format": "{}",
         "return-type": "json",
-        "exec": "layout=$(hyprctl getoption general:layout 2>/dev/null | awk 'NR==1{print $NF}'); [ \"$layout\" = 'master' ] && echo '{\"text\":\"MAST\",\"tooltip\":\"Click \\u2192 Dwindle\"}' || echo '{\"text\":\"DWIN\",\"tooltip\":\"Click \\u2192 Master\"}'",
-        "on-click": "layout=$(hyprctl getoption general:layout 2>/dev/null | awk 'NR==1{print $NF}'); if [ \"$layout\" = 'master' ]; then hyprctl keyword general:layout dwindle; else hyprctl keyword general:layout master; fi",
+        "exec": "~/.config/hypr/waybar/scripts/layout.sh",
+        "on-click": "~/.config/hypr/waybar/scripts/layout.sh cycle",
         "interval": 2,
         "tooltip": true
     }

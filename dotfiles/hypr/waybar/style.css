@@ -196,11 +196,9 @@ window#waybar {
 }
 
 #custom-layout {
-    color:          @on_surface_var;
-    padding:        0 6px;
-    font-size:      13px;
-    font-weight:    bold;
-    letter-spacing: 0.5px;
+    color:     @on_surface_var;
+    padding:   0 6px;
+    font-size: 18px;
 }
 
 #custom-layout:hover {
