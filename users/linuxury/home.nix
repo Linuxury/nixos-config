@@ -468,7 +468,7 @@
         "graphical-session.target"
         "network-online.target"
       ];
-      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hytale.Hytale";
+      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hypixel.HytaleLauncher";
     };
 
     Service = {
@@ -480,7 +480,7 @@
         FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
         HYTALE_URL="https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak"
 
-        if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
+        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
           echo "Hytale already installed, skipping."
           exit 0
         fi
@@ -511,7 +511,7 @@
 
         # Verify the app is actually present — covers fresh install and the
         # edge case where flatpak returns non-zero because it was already installed.
-        if $FLATPAK info --user com.hytale.Hytale &>/dev/null; then
+        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
           echo "Hytale installed successfully."
         else
           echo "ERROR: Hytale install failed. Check journalctl --user -u hytale-flatpak-install"
@@ -542,7 +542,7 @@
   home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${pkgs.flatpak}/bin/flatpak override --user \
       --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
-      com.hytale.Hytale 2>/dev/null || true
+      com.hypixel.HytaleLauncher 2>/dev/null || true
   '';
 
   # Personal packages live in modules/users/linuxury-packages.nix

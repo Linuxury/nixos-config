@@ -240,7 +240,7 @@ Hytale is not on Flathub. A one-shot systemd user service installs it from a pre
 **Condition:** The service only runs if the app is not already installed:
 
 ```
-ConditionPathExists = !%h/.local/share/flatpak/app/com.hytale.Hytale
+ConditionPathExists = !%h/.local/share/flatpak/app/com.hypixel.HytaleLauncher
 ```
 
 **Per-user behavior:**
@@ -254,7 +254,7 @@ ConditionPathExists = !%h/.local/share/flatpak/app/com.hytale.Hytale
 **linuxury Wayland fix:** The Hytale Electron launcher renders blank on COSMIC because it attempts native Wayland GPU rendering. A Home Manager activation script forces it to use XWayland instead:
 
 ```bash
-flatpak override --user --env=ELECTRON_OZONE_PLATFORM_HINT=x11 com.hytale.Hytale
+flatpak override --user --env=ELECTRON_OZONE_PLATFORM_HINT=x11 com.hypixel.HytaleLauncher
 ```
 
 This runs idempotently on every HM activation — it will always be correct after a rebuild.
@@ -323,11 +323,11 @@ COSMIC stores display settings per-monitor by EDID. Open **COSMIC Settings → D
 The Wayland fix (`ELECTRON_OZONE_PLATFORM_HINT=x11`) should have been applied by HM activation. Verify it's in place and re-apply if needed:
 
 ```bash
-flatpak info --show-permissions --user com.hytale.Hytale | grep ELECTRON
+flatpak info --show-permissions --user com.hypixel.HytaleLauncher | grep ELECTRON
 # Should show: ELECTRON_OZONE_PLATFORM_HINT=x11
 
 # Re-apply if missing:
-flatpak override --user --env=ELECTRON_OZONE_PLATFORM_HINT=x11 com.hytale.Hytale
+flatpak override --user --env=ELECTRON_OZONE_PLATFORM_HINT=x11 com.hypixel.HytaleLauncher
 ```
 
 ---

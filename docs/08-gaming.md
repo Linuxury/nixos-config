@@ -254,7 +254,7 @@ The assets repo must be cloned first — see [02-first-boot.md](02-first-boot.md
 The service only runs if the app is not already installed:
 
 ```
-ConditionPathExists = !%h/.local/share/flatpak/app/com.hytale.Hytale
+ConditionPathExists = !%h/.local/share/flatpak/app/com.hypixel.HytaleLauncher
 ```
 
 Check install status:
