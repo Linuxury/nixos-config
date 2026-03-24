@@ -4,7 +4,7 @@
  * Pill-style notification toasts + compact control center panel.
  * Colors from matugen via colors.css.
  * =========================================================================== */
-@import "colors.css";
+@import "/home/linuxury/.config/swaync/colors.css";
 
 * {
     font-family: "JetBrainsMono Nerd Font Propo", monospace;
@@ -215,7 +215,7 @@ scrollbar {
 }
 
 slider {
-    background:    alpha(@surface_variant, 0.6);
+    background:    @primary;
     border-radius: 4px;
     min-width:     4px;
 }
