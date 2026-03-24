@@ -161,7 +161,7 @@
       [templates.waybar]
       input_path  = "~/nixos-config/dotfiles/hypr/waybar/colors.css.template"
       output_path = "~/.config/waybar/colors.css"
-      post_hook   = "pkill -USR2 waybar || true"
+      post_hook   = "[[ $(hyprctl -j activeworkspace 2>/dev/null | jq -r '.hasfullscreen') != \"true\" ]] && pkill -USR2 waybar || true"
 
       [templates.nvim]
       input_path  = "~/.config/matugen/templates/templates/nvim-colors.lua"
@@ -182,7 +182,7 @@
       [templates.hyprland]
       input_path  = "~/.config/matugen/templates/templates/hyprland-colors.conf"
       output_path = "~/.config/hypr/colors.conf"
-      post_hook   = "hyprctl reload || true"
+      post_hook   = "[[ $(hyprctl -j activeworkspace 2>/dev/null | jq -r '.hasfullscreen') != \"true\" ]] && hyprctl reload || true"
 
     '';
   };
