@@ -67,6 +67,12 @@ in
   networking.hostName = "Ryzen5900x";
 
   # =========================================================================
+  # Default session — use UWSM-managed Hyprland so graphical-session.target
+  # starts properly (required for waybar, swaync, etc.)
+  # =========================================================================
+  services.displayManager.defaultSession = "hyprland-uwsm";
+
+  # =========================================================================
   # Network — prefer ethernet, auto-disable WiFi when ethernet is up
   #
   # Having both interfaces active on the same subnet causes duplicate packets
