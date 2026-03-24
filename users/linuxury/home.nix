@@ -429,6 +429,29 @@
   #
   # Source: https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak
   # =========================================================================
+  # =========================================================================
+  # Waybar — systemd user service with auto-restart on crash
+  #
+  # Using a systemd service instead of exec-once in autostart.conf gives us
+  # Restart=on-failure — waybar comes back automatically if it crashes.
+  # PartOf=graphical-session.target ensures it stops cleanly on logout.
+  # =========================================================================
+  systemd.user.services.waybar = {
+    Unit = {
+      Description = "Waybar — Wayland status bar";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.waybar}/bin/waybar";
+      Restart = "on-failure";
+      RestartSec = "2";
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   systemd.user.services.hytale-flatpak-install = {
     Unit = {
       Description = "Install Hytale launcher from flatpak";
