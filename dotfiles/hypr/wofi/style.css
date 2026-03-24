@@ -6,7 +6,7 @@
 
 window {
     margin:           0;
-    background-color: alpha(@surface, 0.96);
+    background-color: alpha(@surface, 0.75);
     border:           1px solid alpha(@outline_var, 0.4);
     border-radius:    12px;
     font-family:      "JetBrainsMono Nerd Font Propo", monospace;
