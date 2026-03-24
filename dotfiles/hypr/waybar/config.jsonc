@@ -1,15 +1,25 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 36,
+    "height": 44,
     "margin-top": 6,
     "margin-left": 10,
     "margin-right": 10,
     "spacing": 0,
     "fixed-center": true,
     "modules-left": [
+        "custom/launcher",
         "hyprland/workspaces",
-        "hyprland/window"
+        "custom/browser",
+        "custom/terminal",
+        "custom/files",
+        "custom/window-sep",
+        "hyprland/window",
+        "custom/media-sep",
+        "custom/media-prev",
+        "custom/media-play",
+        "custom/media-next",
+        "custom/media-scroll"
     ],
     "modules-center": [
         "custom/clock"
@@ -19,12 +29,14 @@
         "custom/sep",
         "custom/weather",
         "custom/sep",
-        "wireplumber",
+        "custom/volume",
         "backlight",
         "battery",
         "custom/sep",
         "custom/updates",
         "custom/notification",
+        "custom/sep",
+        "custom/layout",
         "custom/sep",
         "custom/power"
     ],
@@ -34,9 +46,9 @@
         "on-scroll-up": "hyprctl dispatch workspace e+1",
         "on-scroll-down": "hyprctl dispatch workspace e-1",
         "format-icons": {
-            "1": "󰕰",
-            "2": "󰊓",
-            "3": "󰓓"
+            "1": "1",
+            "2": "2",
+            "3": "3"
         },
         "persistent-workspaces": {
             "DP-3": [1, 2, 3],
@@ -44,9 +56,68 @@
         }
     },
     "hyprland/window": {
-        "format": "  {}",
-        "max-length": 50,
+        "format": "{}",
+        "max-length": 25,
         "separate-outputs": true
+    },
+    "custom/launcher": {
+        "format": "{}",
+        "tooltip": false,
+        "on-click": "wofi --show drun",
+        "return-type": "json",
+        "exec": "echo '{\"text\":\"󰍜\"}'"
+    },
+    "custom/browser": {
+        "format": "{}",
+        "on-click": "firefox",
+        "return-type": "json",
+        "exec": "echo '{\"text\":\"󰖟\",\"tooltip\":\"Firefox\"}'"
+    },
+    "custom/terminal": {
+        "format": "{}",
+        "on-click": "kitty",
+        "return-type": "json",
+        "exec": "echo '{\"text\":\"󰆍\",\"tooltip\":\"Kitty\"}'"
+    },
+    "custom/files": {
+        "format": "{}",
+        "on-click": "nemo",
+        "return-type": "json",
+        "exec": "echo '{\"text\":\"󰉋\",\"tooltip\":\"Nemo\"}'"
+    },
+    "custom/media-scroll": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "~/.config/hypr/waybar/scripts/media-scroll.sh",
+        "interval": 1,
+        "exec-if": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused'",
+        "tooltip": false,
+        "on-scroll-up": "playerctl previous",
+        "on-scroll-down": "playerctl next"
+    },
+    "custom/media-prev": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "echo '{\"text\":\"⏴\",\"tooltip\":\"Previous\"}'",
+        "exec-if": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused'",
+        "on-click": "playerctl previous",
+        "interval": 2
+    },
+    "custom/media-play": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "playerctl status 2>/dev/null | grep -q Playing && echo '{\"text\":\"⏸\",\"tooltip\":\"Pause\"}' || echo '{\"text\":\"▶\",\"tooltip\":\"Play\"}'",
+        "exec-if": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused'",
+        "on-click": "playerctl play-pause",
+        "interval": 2
+    },
+    "custom/media-next": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "echo '{\"text\":\"⏵\",\"tooltip\":\"Next\"}'",
+        "exec-if": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused'",
+        "on-click": "playerctl next",
+        "interval": 2
     },
     "custom/clock": {
         "format": "{}",
@@ -59,15 +130,14 @@
         "icon-size": 16,
         "spacing": 8
     },
-    "wireplumber": {
-        "format": "{icon}  {volume}%",
-        "format-muted": "󰝟",
+    "custom/volume": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "~/.config/hypr/waybar/scripts/volume.sh",
+        "interval": 2,
         "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-        "format-icons": [
-            "󰕿",
-            "󰖀",
-            "󰕾"
-        ]
+        "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+",
+        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
     },
     "backlight": {
         "format": "{icon}  {percent}%",
@@ -150,5 +220,29 @@
         "format": "|",
         "interval": "once",
         "tooltip": false
+    },
+    "custom/window-sep": {
+        "format": " | ",
+        "return-type": "json",
+        "exec": "echo '{\"text\":\" | \"}'",
+        "exec-if": "hyprctl activewindow 2>/dev/null | grep -q 'class:'",
+        "interval": 2,
+        "tooltip": false
+    },
+    "custom/media-sep": {
+        "format": " | ",
+        "return-type": "json",
+        "exec": "echo '{\"text\":\" | \"}'",
+        "exec-if": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused'",
+        "interval": 2,
+        "tooltip": false
+    },
+    "custom/layout": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "layout=$(hyprctl getoption general:layout 2>/dev/null | awk 'NR==1{print $NF}'); [ \"$layout\" = 'master' ] && echo '{\"text\":\"MAST\",\"tooltip\":\"Click \\u2192 Dwindle\"}' || echo '{\"text\":\"DWIN\",\"tooltip\":\"Click \\u2192 Master\"}'",
+        "on-click": "layout=$(hyprctl getoption general:layout 2>/dev/null | awk 'NR==1{print $NF}'); if [ \"$layout\" = 'master' ]; then hyprctl keyword general:layout dwindle; else hyprctl keyword general:layout master; fi",
+        "interval": 2,
+        "tooltip": true
     }
 }
