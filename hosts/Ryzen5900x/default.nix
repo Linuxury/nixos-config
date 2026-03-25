@@ -346,6 +346,13 @@ in
     "amdgpu.ppfeaturemask=0xffffffff" # Unlocks all power management features
     # Required for full fan curve and
     # overclock control via corectrl
+
+    # Suppress kernel/udev/systemd messages on the console (TTY)
+    "quiet"
+    "loglevel=3"
+    "rd.udev.log_level=3"
+    "udev.log_priority=3"
+    "rd.systemd.show_status=false"
   ];
 
   # =========================================================================
