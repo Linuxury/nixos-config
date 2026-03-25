@@ -53,7 +53,8 @@ in
     ];
 
     extraOptions = [
-      "--health-cmd=curl -f http://localhost:5984/_up || exit 1"
+      # Accept 200 (no auth) or 401 (auth required = configured correctly)
+      "--health-cmd=/bin/sh -c 'curl -sf http://localhost:5984/_up -o /dev/null -w \"%{http_code}\" | grep -qE \"200|401\"'"
       "--health-interval=30s"
       "--health-timeout=5s"
       "--health-retries=3"
