@@ -53,11 +53,12 @@ in
     ];
 
     extraOptions = [
-      # Accept 200 (no auth) or 401 (auth required = configured correctly)
-      "--health-cmd=/bin/sh -c 'curl -sf http://localhost:5984/_up -o /dev/null -w \"%{http_code}\" | grep -qE \"200|401\"'"
+      # curl without -f succeeds on any HTTP response (200 or 401) — just checks CouchDB is up
+      "--health-cmd=curl -s http://localhost:5984/_up"
       "--health-interval=30s"
       "--health-timeout=5s"
       "--health-retries=3"
+      "--health-start-period=30s"
     ];
   };
 
