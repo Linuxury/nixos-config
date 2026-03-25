@@ -359,10 +359,11 @@ case "$OUTCOME" in
 
     # Desktop notification
     send_desktop_notification \
-      "NixOS Update Complete" \
-      "Generation ${GENERATION} — ${HOSTNAME}\n${DATETIME}" \
+      "Update Complete" \
+      "Host: ${HOSTNAME} | Generation ${GENERATION}\n${DATETIME}" \
       "system-software-update" \
-      "normal"
+      "normal" \
+      "--expire-time=20000"
     ;;
 
   failure)
@@ -377,11 +378,11 @@ case "$OUTCOME" in
 
     # Desktop notification
     send_desktop_notification \
-      "NixOS Update Failed — ${HOSTNAME}" \
-      "${local_error_type}: ${local_error_summary}" \
+      "Update Failed" \
+      "Host: ${HOSTNAME} | ${local_error_type}\n${local_error_summary}" \
       "dialog-error" \
       "critical" \
-      "--expire-time=0"
+      "--expire-time=20000"
 
     # Email
     send_email \
