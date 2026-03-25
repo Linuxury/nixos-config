@@ -196,4 +196,15 @@ in
     ++ alex-machines
   );
 
+  # --------------------------------------------------------------------------
+  # CouchDB admin password for Obsidian LiveSync
+  #
+  # Stored as env-file format: COUCHDB_PASSWORD=<secret>
+  # Deployed only to Media-Server.
+  # After updating: nix run nixpkgs#agenix -- -r
+  # --------------------------------------------------------------------------
+  "couchdb-admin-password.age".publicKeys = uniq (
+    linuxury-admins ++ [ Media-Server ]
+  );
+
 }
