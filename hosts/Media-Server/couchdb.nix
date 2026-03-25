@@ -13,6 +13,12 @@ let
 in
 {
   # --------------------------------------------------------------------------
+  # Podman — container runtime for CouchDB
+  # --------------------------------------------------------------------------
+  virtualisation.podman.enable = true;
+  virtualisation.oci-containers.backend = "podman";
+
+  # --------------------------------------------------------------------------
   # Agenix secret — CouchDB admin password
   # --------------------------------------------------------------------------
   age.secrets.couchdb-admin-password = {
