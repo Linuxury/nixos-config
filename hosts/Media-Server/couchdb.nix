@@ -72,24 +72,23 @@ in
       set -euo pipefail
 
       # Read password from agenix secret
-      COUCHDB_PASS=$(grep COUCHDB_PASSWORD= ${config.age.secrets.couchdb-admin-password.path} | cut -d= -f2)
-      AUTH="admin:''${COUCHDB_PASS}"
+      COUCHDB_PASS=$(grep COUCHDB_PASSWORD= ${config.age.secrets.couchdb-admin-password.path} | cut -d= -f2-)
 
       echo "Waiting for CouchDB to be ready..."
-      until curl -sf http://''${AUTH}@localhost:5984/_up > /dev/null 2>&1; do
+      until curl -sf -u admin:"$COUCHDB_PASS" http://localhost:5984/_up > /dev/null 2>&1; do
         sleep 2
       done
       echo "CouchDB is up."
 
       # Check if already initialized (idempotent)
-      SETUP_STATUS=$(curl -sf http://''${AUTH}@localhost:5984/_cluster_setup 2>/dev/null || echo '{"state":""}')
+      SETUP_STATUS=$(curl -sf -u admin:"$COUCHDB_PASS" http://localhost:5984/_cluster_setup 2>/dev/null || echo '{"state":""}')
       STATE=$(echo "$SETUP_STATUS" | ${pkgs.jq}/bin/jq -r '.state // empty')
 
       if [ "$STATE" = "cluster_finished" ] || [ "$STATE" = "single_node_enabled" ]; then
         echo "CouchDB already initialized (state: $STATE). Skipping setup."
       else
         echo "Setting up single-node cluster..."
-        curl -s -X POST http://''${AUTH}@localhost:5984/_cluster_setup \
+        curl -s -X POST -u admin:"$COUCHDB_PASS" http://localhost:5984/_cluster_setup \
           -H 'Content-Type: application/json' \
           -d '{"action":"enable_single_node","username":"admin","password":"'"$COUCHDB_PASS"'","bind_address":"0.0.0.0","port":5984,"singlenode":true}'
         echo ""
@@ -115,7 +114,7 @@ in
         IFS='/' read -r section param <<< "$key"
         value="''${SETTINGS[$key]}"
         echo "  Setting $section/$param = $value"
-        curl -s -X PUT "http://''${AUTH}@localhost:5984/_node/_local/_config/$section/$param" \
+        curl -s -X PUT -u admin:"$COUCHDB_PASS" http://localhost:5984/_node/_local/_config/$section/$param \
           -H 'Content-Type: application/json' \
           -d "\"$value\"" > /dev/null
       done
