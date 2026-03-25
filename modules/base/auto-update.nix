@@ -141,6 +141,21 @@ in
       set -euo pipefail
 
       # -----------------------------------------------------------------------
+      # Arguments
+      # -----------------------------------------------------------------------
+      FORCE=false
+      case "''${1:-}" in
+        --force|-f) FORCE=true ;;
+        --help|-h)
+          echo "Usage: nixos-auto-update [--force]"
+          echo ""
+          echo "  --force, -f   Bypass 7-day check, update immediately"
+          echo "  --help, -h    Show this help"
+          exit 0
+          ;;
+      esac
+
+      # -----------------------------------------------------------------------
       # Configuration
       # -----------------------------------------------------------------------
       TIMESTAMP_FILE="/etc/nixos-last-update-time"
@@ -206,7 +221,9 @@ in
       # -----------------------------------------------------------------------
       # Main update logic
       # -----------------------------------------------------------------------
-      if ! needs_update; then
+      if [ "$FORCE" = true ]; then
+        log "Force flag set — bypassing 7-day check"
+      elif ! needs_update; then
         exit 0
       fi
 
