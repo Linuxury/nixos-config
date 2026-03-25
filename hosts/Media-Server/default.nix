@@ -28,6 +28,7 @@
     ../../modules/hardware/drivers.nix
     ../../modules/services/samba.nix
     ./freshrss.nix
+    ./couchdb.nix
   ];
 
   # =========================================================================
@@ -232,6 +233,10 @@
 
     # Obsidian vault — central location for all hosts + phone sync
     "d /data/obsidian                     0755 linuxury     users        -"
+
+    # CouchDB — Obsidian LiveSync backend
+    "d /data/couchdb                      0755 linuxury     users        -"
+    "d /data/couchdb-config               0755 linuxury     users        -"
   ];
 
   # =========================================================================
