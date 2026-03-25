@@ -27,13 +27,16 @@ SLUG_DATE=$(date '+%Y%m%d')
 
 # ---------------------------------------------------------------------------
 # Obsidian vault path
-# Media-Server writes locally, everything else goes through Samba
+# Media-Server writes locally; desktops use local vault (LiveSync); servers use Samba
 # ---------------------------------------------------------------------------
-if [ "$HOSTNAME" = "Media-Server" ]; then
-  VAULT="/data/obsidian"
-else
-  VAULT="/mnt/Media-Server/obsidian"
-fi
+case "$HOSTNAME" in
+  Media-Server)
+    VAULT="/data/obsidian" ;;
+  Ryzen5900x|ThinkPad)
+    VAULT="/home/linuxury/Obsidian" ;;
+  *)
+    VAULT="/mnt/Media-Server/obsidian" ;;
+esac
 
 # Ensure vault directory exists
 mkdir -p "$VAULT/04 ⏳ Pending" "$VAULT/05 📋 Activity Log" 2>/dev/null || true
