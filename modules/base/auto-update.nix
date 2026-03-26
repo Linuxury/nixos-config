@@ -88,30 +88,37 @@ in
   };
 
   # =========================================================================
+  # Vault notification service — writes to Obsidian vault as linuxury
+  #
+  # This system service always runs as the linuxury user, regardless of who
+  # triggered the update (root via weekly timer, or babylinux/alex via
+  # session start). This ensures vault writes land in /home/linuxury/Obsidian
+  # with correct ownership for Syncthing to sync.
+  #
+  # Called via: systemctl start notify-vault@success.service
+  #             systemctl start notify-vault@failure.service
+  # =========================================================================
+  systemd.services."notify-vault@" = {
+    description = "Write update notification to Obsidian vault (%i)";
+    serviceConfig = {
+      Type      = "oneshot";
+      User      = "linuxury";
+      Group     = "users";
+      ExecStart = "${pkgs.bash}/bin/bash ${notifyScript} %i /var/log/nixos-auto-update.log";
+      # Desktop notification needs runtime dir for notify-send
+      Environment = [ "XDG_RUNTIME_DIR=/run/user/1000" ];
+    };
+  };
+
+  # =========================================================================
   # Weekly schedule notification hooks
   #
   # system.autoUpgrade has no built-in hooks. These systemd overrides
-  # trigger our notification handler when the weekly update succeeds or fails.
+  # trigger notify-vault@.service (which runs as linuxury) when the
+  # weekly update succeeds or fails.
   # =========================================================================
-  systemd.services.notify-upgrade-success = {
-    description = "Notify on weekly NixOS upgrade success";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.bash}/bin/bash ${notifyScript} success /var/log/nixos-auto-update.log";
-    };
-  };
-
-  systemd.services.notify-upgrade-failure = {
-    description = "Notify on weekly NixOS upgrade failure";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.bash}/bin/bash ${notifyScript} failure /var/log/nixos-auto-update.log";
-    };
-  };
-
-  # Wire to nixos-upgrade.service (created by system.autoUpgrade)
-  systemd.services.nixos-upgrade.onSuccess = [ "notify-upgrade-success.service" ];
-  systemd.services.nixos-upgrade.onFailure = [ "notify-upgrade-failure.service" ];
+  systemd.services.nixos-upgrade.onSuccess = [ "notify-vault@success.service" ];
+  systemd.services.nixos-upgrade.onFailure = [ "notify-vault@failure.service" ];
 
   # =========================================================================
   # Last update timestamp tracking
@@ -163,7 +170,6 @@ in
       FLAKE="github:linuxury/nixos-config"
       HOSTNAME=$(hostname)
       LOG_FILE="/var/log/nixos-auto-update.log"
-      NOTIFY="${notifyScript}"
 
       # -----------------------------------------------------------------------
       # Logging helper
@@ -243,7 +249,6 @@ in
       log "Running dry-build to validate configuration..."
       if ! sudo nixos-rebuild dry-build --flake "$FLAKE#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
         log "ERROR: dry-build failed — configuration has errors"
-        bash "$NOTIFY" failure "$LOG_FILE"
         exit 1
       fi
       log "Dry-build passed — proceeding with update"
@@ -264,11 +269,9 @@ in
             log "Flake update succeeded on retry"
           else
             log "ERROR: flake update failed again after retry"
-            bash "$NOTIFY" failure "$LOG_FILE"
             exit 1
           fi
         else
-          bash "$NOTIFY" failure "$LOG_FILE"
           exit 1
         fi
       fi
@@ -289,11 +292,9 @@ in
             log "Rebuild succeeded on retry"
           else
             log "ERROR: rebuild failed again after retry"
-            bash "$NOTIFY" failure "$LOG_FILE"
             exit 1
           fi
         else
-          bash "$NOTIFY" failure "$LOG_FILE"
           exit 1
         fi
       fi
@@ -318,9 +319,7 @@ in
         log "fwupdmgr refresh failed — skipping firmware update"
       fi
 
-      # Notify success via shared handler
-      bash "$NOTIFY" success "$LOG_FILE"
-
+      # Notify success — handled by systemd service wrappers
       # Check if reboot is required
       if reboot_required; then
         log "Kernel update detected — reboot required"
@@ -362,7 +361,9 @@ in
       # Wait 2 minutes after session start before checking
       # Gives the DE time to fully load and settle
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 120";
-      ExecStart    = "${pkgs.bash}/bin/bash -c 'nixos-auto-update'";
+      # Run update, then route notification through notify-vault@ service
+      # (runs as linuxury regardless of which user is logged in)
+      ExecStart = "${pkgs.bash}/bin/bash -c 'nixos-auto-update; OUTCOME=$?; if [ $OUTCOME -eq 0 ]; then sudo systemctl start notify-vault@success.service; else sudo systemctl start notify-vault@failure.service; fi'";
 
       # Don't restart if it fails — wait for next session
       Restart     = "no";
@@ -393,11 +394,12 @@ in
   };
 
   # =========================================================================
-  # Sudo rules for update script
+  # Sudo rules for update script and vault notifications
   #
   # The update script needs sudo for nixos-rebuild and nix-collect-garbage.
-  # These specific rules allow the script to run those commands without
-  # prompting for a password during the automated update.
+  # All users also need sudo for notify-vault@ so the session-start user
+  # service (running as babylinux/alex) can trigger vault notifications
+  # that run as linuxury.
   # =========================================================================
   security.sudo.extraRules = [
     {
@@ -424,6 +426,16 @@ in
         }
         {
           command  = "${pkgs.fwupd}/bin/fwupdmgr";
+          options  = [ "NOPASSWD" ];
+        }
+        {
+          # Allow starting notify-vault@ success/failure services
+          # (system service that runs as linuxury, writes to vault)
+          command  = "${pkgs.systemd}/bin/systemctl start notify-vault@success.service";
+          options  = [ "NOPASSWD" ];
+        }
+        {
+          command  = "${pkgs.systemd}/bin/systemctl start notify-vault@failure.service";
           options  = [ "NOPASSWD" ];
         }
       ];

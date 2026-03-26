@@ -27,16 +27,10 @@ SLUG_DATE=$(date '+%Y%m%d')
 
 # ---------------------------------------------------------------------------
 # Obsidian vault path
-# Media-Server writes locally; desktops use local vault (LiveSync); servers use Samba
+# Syncthing syncs ~/Obsidian across all hosts. The notify-vault service
+# always runs as linuxury, so this path is consistent everywhere.
 # ---------------------------------------------------------------------------
-case "$HOSTNAME" in
-  Media-Server)
-    VAULT="/data/obsidian" ;;
-  Ryzen5900x|ThinkPad)
-    VAULT="/home/linuxury/Obsidian" ;;
-  *)
-    VAULT="/mnt/Media-Server/obsidian" ;;
-esac
+VAULT="/home/linuxury/Obsidian"
 
 # Ensure vault directory exists
 mkdir -p "$VAULT/04 ⏳ Pending" "$VAULT/05 📋 Activity Log" 2>/dev/null || true
