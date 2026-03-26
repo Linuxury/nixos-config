@@ -29,6 +29,7 @@
     ../../modules/hardware/drivers.nix
     ../../modules/services/samba.nix
     ../../modules/services/vpn-qbittorrent.nix
+    ../../modules/base/syncthing.nix
   ];
 
   # =========================================================================
