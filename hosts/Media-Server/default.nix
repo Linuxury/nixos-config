@@ -28,7 +28,7 @@
     ../../modules/hardware/drivers.nix
     ../../modules/services/samba.nix
     ./freshrss.nix
-    ./couchdb.nix
+    ../../modules/base/syncthing.nix
   ];
 
   # =========================================================================
@@ -367,27 +367,9 @@
   systemd.services.immich-microservices.serviceConfig.UMask = lib.mkForce "0022";
 
   # =========================================================================
-  # Syncthing — Obsidian vault sync for phone
-  #
-  # The vault lives at /data/obsidian/ and is synced to the phone via Syncthing.
-  # Desktop machines write to the vault via Samba share (/mnt/Media-Server/obsidian/).
-  # Media-Server is always on, so the phone always has a sync partner.
-  #
-  # After first boot:
-  #   1. Open Syncthing web UI at http://Media-Server:8384
-  #   2. On phone (Syncthing app): Add Device → pair with Media-Server
-  #   3. Share /data/obsidian folder with the phone device
-  # =========================================================================
-  services.syncthing = {
-    enable    = true;
-    user      = "linuxury";
-    dataDir   = "/home/linuxury/.config/syncthing";
-    configDir = "/home/linuxury/.config/syncthing";
-    openDefaultPorts = true;  # 22000/tcp, 22000/udp, 21027/udp
-  };
-
-  # =========================================================================
   # Open firewall ports for all services
+  #
+  # Syncthing (22000/tcp+udp, 21027/udp) is handled by the base syncthing module.
   # =========================================================================
   networking.firewall.allowedTCPPorts = [
     32400 # Plex
@@ -398,8 +380,6 @@
     8787  # Readarr
     6767  # Bazarr
     2283  # Immich
-    8384  # Syncthing GUI
-    5984  # CouchDB (Obsidian LiveSync)
   ];
 
   # =========================================================================

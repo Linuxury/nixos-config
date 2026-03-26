@@ -32,6 +32,7 @@
     ../../modules/base/auto-update.nix
     ../../modules/base/linuxury-ssh.nix
     ../../modules/users/alex-packages.nix
+    ../../modules/base/syncthing.nix
   ];
 
   # =========================================================================
@@ -280,6 +281,14 @@
       "gamemode"
     ];
     shell = pkgs.zsh;
+  };
+
+  # linuxury user — needed for Syncthing (vault sync) and auto-update notifications
+  users.users.linuxury = {
+    isNormalUser = true;
+    home         = "/home/linuxury";
+    createHome   = true;
+    group        = "users";
   };
 
   programs.zsh.enable = true;
