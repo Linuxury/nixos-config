@@ -19,6 +19,7 @@
     environment.systemPackages = with pkgs; [
       ffmpeg              # Media processing for faster-whisper
       python3             # Python runtime for MCP servers
+      uv                  # uv/uvx for running MCP servers (faster-whisper, nixos)
       openssh             # SSH access
       git                 # Git operations
       gh                  # GitHub CLI
