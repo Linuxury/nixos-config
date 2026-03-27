@@ -30,6 +30,7 @@
     ../../modules/services/samba.nix
     ../../modules/services/vpn-qbittorrent.nix
     ../../modules/base/syncthing.nix
+    ../../modules/base/ai-tools.nix
   ];
 
   # =========================================================================

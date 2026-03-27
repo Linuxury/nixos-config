@@ -261,6 +261,14 @@
     nodejs
   ];
 
+  # ===========================================================================
+  # Environment variables for AI tools
+  # ===========================================================================
+  environment.sessionVariables = {
+    # Enable Exa web search in OpenCode
+    OPENCODE_ENABLE_EXA = "true";
+  };
+
   # =========================================================================
   # POLKIT — allow wheel group to manage systemd units without interactive auth
   #
