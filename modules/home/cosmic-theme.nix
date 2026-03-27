@@ -10,7 +10,7 @@
 #   - BreezeX-Light as the cursor theme (GTK + COSMIC + X11/Wayland env)
 # ===========================================================================
 
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 let
   # =========================================================================
@@ -85,7 +85,10 @@ in
       size    = 24;
     };
     gtk3.extraConfig.gtk-application-prefer-dark-theme = 1;
-    gtk4.extraConfig.gtk-application-prefer-dark-theme = 1;
+    gtk4 = {
+      theme = config.gtk.theme; # Silence HM 26.05 default change warning
+      extraConfig.gtk-application-prefer-dark-theme = 1;
+    };
   };
 
   # =========================================================================

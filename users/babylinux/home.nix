@@ -63,6 +63,7 @@
   xdg.userDirs = {
     enable            = true;
     createDirectories = true;
+    setSessionVariables = true; # Silence HM 26.05 default change warning
 
     desktop    = "${config.home.homeDirectory}/Desktop";
     documents  = "${config.home.homeDirectory}/Documents";
@@ -217,6 +218,7 @@
   # =========================================================================
   programs.git = {
     enable    = true;
+    signing.format = null; # Silence HM 25.05 default change warning
     settings = {
       user.name  = "babylinux";
       user.email = "her@email.com"; # Replace with her actual email
