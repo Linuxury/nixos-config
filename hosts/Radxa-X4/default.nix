@@ -222,6 +222,32 @@
   # =========================================================================
   services.tailscale.enable = true;
 
+  # Tailscale watchdog — restarts tailscaled if it loses connectivity
+  # Runs every 5 minutes. Uses 'tailscale ping' to verify the tunnel is
+  # actually working, not just that the daemon is running.
+  systemd.services.tailscale-watchdog = {
+    description = "Restart tailscaled if Tailscale connectivity is lost";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "tailscale-watchdog" ''
+        if ! ${pkgs.tailscale}/bin/tailscale ping --timeout=10s --c=1 ${config.networking.hostName} &>/dev/null; then
+          echo "Tailscale connectivity lost, restarting tailscaled..."
+          systemctl restart tailscaled
+        fi
+      '';
+    };
+  };
+
+  systemd.timers.tailscale-watchdog = {
+    description = "Tailscale connectivity watchdog timer";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec  = "2min";
+      OnUnitActiveSec = "5min";
+      Unit = "tailscale-watchdog.service";
+    };
+  };
+
   # =========================================================================
   # qBittorrent with WireGuard killswitch
   #
