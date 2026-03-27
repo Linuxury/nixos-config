@@ -54,6 +54,7 @@ in
     #../../modules/services/local-llm.nix
     ../../modules/users/linuxury-packages.nix
     ../../modules/base/syncthing.nix
+    ../../modules/base/ai-tools.nix
   ];
 
   # =========================================================================
