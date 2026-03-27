@@ -159,10 +159,13 @@ in
     brightnessctl
 
     # File managers
-    nemo            # GUI file manager — GTK3, Nautilus fork, uses gvfs for smb:// shares
-                    # Nautilus 47+ broke on non-Mutter compositors (org.gnome.Mutter.ServiceChannel)
-                    # Nemo is the closest alternative: same GVfs/SMB backend, dual pane, Hyprland-safe
-                    # gvfs + samba already enabled in graphical-base.nix
+    nemo            # GUI file manager — GTK3, Nautilus fork, dual-pane, gvfs/SMB support
+    nautilus        # GNOME Files — works on Hyprland (Mutter.ServiceChannel warning is non-fatal)
+                    # Requires local .desktop override to strip DBusActivatable=true — otherwise
+                    # wofi/rofi launch it in --gapplication-service mode which fails silently
+    thunar          # XFCE file manager — lightweight, comparing with Nemo
+    tinysparql      # Tracker3 / TinySPARQL — provides org.freedesktop.Tracker3 for Nautilus search
+    localsearch     # Tracker miners (filesystem crawler, formerly tracker-miners)
 
     # Quickshell — Qt6/QML desktop shell toolkit
     # Used to build the custom shell: bar, dock, launcher, notifications, OSD,
@@ -211,4 +214,14 @@ in
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.login.enableGnomeKeyring = true;
+
+  # =========================================================================
+  # Tracker — file indexer for Nautilus search
+  #
+  # Provides org.freedesktop.Tracker3.Miner.Files so Nautilus can index
+  # and search files. Mutter.ServiceChannel is still unavailable (hard no
+  # on Hyprland — requires gnome-shell), but that warning is non-fatal.
+  # =========================================================================
+  services.gnome.tinysparql.enable = true;
+  services.gnome.localsearch.enable = true;
 }
