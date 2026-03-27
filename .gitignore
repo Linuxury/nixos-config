@@ -28,6 +28,10 @@ secrets/*.pass
 # Temporary files
 *.tmp
 *.bak
-dotfiles/hypr/colors-hyprlock.conf
+
+# Matugen-generated color files (change on every wallpaper switch — not part of config)
 dotfiles/hypr/colors.conf
+dotfiles/hypr/colors-hyprlock.conf
+dotfiles/hypr/waybar/colors.css
 dotfiles/hypr/wofi/colors.css
+dotfiles/hypr/swaync/colors.css
