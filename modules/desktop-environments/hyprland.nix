@@ -171,7 +171,7 @@ in
     # Used to build the custom shell: bar, dock, launcher, notifications, OSD,
     # sidebar, workspace overview, and lock screen.
     # Flake input declared in flake.nix with nixpkgs.follows for Qt version safety.
-    inputs.quickshell.packages.${pkgs.system}.default
+    inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default
     qt6Packages.qt5compat  # Qt5 compat layer — enables Gaussian blur effects in Quickshell
 
     # Media key control — playerctl play/pause/next/prev keybinds

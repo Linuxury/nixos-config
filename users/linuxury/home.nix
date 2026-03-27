@@ -89,6 +89,7 @@
   xdg.userDirs = {
     enable = true;
     createDirectories = true;
+    setSessionVariables = true; # Silence HM 26.05 default change warning
 
     desktop = "${config.home.homeDirectory}/Desktop";
     documents = "${config.home.homeDirectory}/Documents";
@@ -361,6 +362,7 @@
   # =========================================================================
   programs.git = {
     enable = true;
+    signing.format = null; # Silence HM 25.05 default change warning (no signing configured)
     settings = {
       user.name = "Linuxury";
       user.email = "linuxurypr@gmail.com";
