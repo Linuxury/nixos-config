@@ -29,6 +29,7 @@
     ../../modules/services/samba.nix
     ./freshrss.nix
     ../../modules/base/syncthing.nix
+    ../../modules/base/ai-tools.nix
   ];
 
   # =========================================================================
@@ -41,6 +42,17 @@
   # AMD RX 480 — used for VAAPI hardware transcoding via Plex
   # =========================================================================
   hardware.gpu = "amd";
+
+  # =========================================================================
+  # PostgreSQL with pgvector — for AI Memory database
+  # =========================================================================
+  services.postgresql = {
+    enable = true;
+    package = pkgs.postgresql_16;
+    settings = {
+      shared_preload_libraries = "vector";
+    };
+  };
 
   # =========================================================================
   # Filesystem — NVMe OS drive with BTRFS subvolumes

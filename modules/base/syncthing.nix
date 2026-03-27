@@ -46,7 +46,7 @@
         };
 
         "ThinkPad" = {
-          id = "FILL-IN-THINKPAD-DEVICE-ID";
+          id = "INWQLVH-KBFFJLJ-YAPK7JQ-BLUEJNL-GMHVIMO-YX3G5JZ-PO2FMHS-MROBVAU";
           addresses = [ "tcp://100.125.106.128:22000" ];
         };
 
@@ -101,12 +101,12 @@
           path  = "/home/linuxury/Obsidian";
           devices = [
             "Ryzen5900x"
+            "ThinkPad"
             "Media-Server"
             "MinisForum"
             "Radxa-X4"
             "Pixel-Pro-8"
             # Add these when device IDs are ready:
-            # "ThinkPad"
             # "Alex-Desktop"
             # "Alex-Laptop"
             # "Asus-A15"

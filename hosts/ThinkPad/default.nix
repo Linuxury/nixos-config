@@ -58,6 +58,7 @@ in
     ../../modules/base/auto-update.nix
     ../../modules/users/linuxury-packages.nix
     ../../modules/base/syncthing.nix
+    ../../modules/base/ai-tools.nix
   ];
 
   # =========================================================================
@@ -376,9 +377,9 @@ in
   # Lid and power button behavior
   # =========================================================================
   services.logind = {
-    lidSwitch = "suspend"; # Suspend when lid closes
-    lidSwitchExternalPower = "suspend"; # Even on AC — saves energy
     settings.Login = {
+      HandleLidSwitch = "suspend"; # Suspend when lid closes
+      HandleLidSwitchExternalPower = "suspend"; # Even on AC — saves energy
       HandlePowerKey = "suspend";
       IdleAction = "suspend";
       IdleActionSec = "20min";

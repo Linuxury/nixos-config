@@ -41,6 +41,7 @@
     ../../modules/hardware/drivers.nix
     ../../modules/services/samba.nix
     ../../modules/base/syncthing.nix
+    ../../modules/base/ai-tools.nix
   ];
 
   # =========================================================================

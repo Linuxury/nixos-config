@@ -30,6 +30,7 @@
     ../../modules/base/linuxury-ssh.nix
     ../../modules/users/alex-packages.nix
     ../../modules/base/syncthing.nix
+    ../../modules/base/ai-tools.nix
   ];
 
   # =========================================================================

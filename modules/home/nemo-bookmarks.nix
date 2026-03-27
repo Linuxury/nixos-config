@@ -20,5 +20,6 @@
     file:///home/linuxury/Videos Videos
     smb://Media-Server/Media-Server Media-Server
     smb://Media-Server/Downloads Downloads
+    smb://MinisForum/GameServers MinisForum
   '';
 }
