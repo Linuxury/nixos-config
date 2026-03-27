@@ -254,6 +254,16 @@
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
 
+      Host radxa-local
+        HostName     10.0.0.5
+        User         linuxury
+        IdentityFile ~/.ssh/id_ed25519
+
+      Host minisforum-local
+        HostName     10.0.0.7
+        User         linuxury
+        IdentityFile ~/.ssh/id_ed25519
+
       Host ryzen5800x
         HostName     Ryzen5800x
         User         linuxury
