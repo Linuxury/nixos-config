@@ -109,6 +109,13 @@ in
   hardware.gpu = "amd";
 
   # =========================================================================
+  # SwayNC Control Panel — hardware capabilities
+  # Desktop: WiFi + BT present, no display/KB backlight
+  # =========================================================================
+  myModules.swaync.hasWifi      = true;
+  myModules.swaync.hasBluetooth = true;
+
+  # =========================================================================
   # Filesystem — BTRFS with subvolumes
   #
   # Desktop has no LUKS — BTRFS sits directly on the partition.

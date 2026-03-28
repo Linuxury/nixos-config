@@ -74,9 +74,16 @@ blankwindow,
     min-width: 0;
 }
 
+/* Notification icon — transparent box, top-left aligned when body is tall */
 .notification-content image {
-    min-width:  32px;
-    min-height: 32px;
+    min-width:     40px;
+    min-height:    40px;
+    -gtk-icon-size: 40px;
+    background:    transparent;
+    box-shadow:    none;
+    border-radius: 6px;
+    margin-top:    0;
+    margin-bottom: auto;   /* push icon to top when notification body is taller */
 }
 
 /* Title — slightly bolder */
@@ -196,27 +203,34 @@ blankwindow,
 }
 
 /* -----------------------------------------------------------------------
- * Volume widget
+ * Volume widget — master + per-app
  * ----------------------------------------------------------------------- */
-.volume-button {
-    border-radius: 8px;
-    border:        none;
-    background:    transparent;
-    color:         @on_surface;
+.widget-volume {
+    margin:  4px 0;
+    padding: 4px 0;
 }
 
-.volume-box scale trough {
-    background:    alpha(@surface_variant, 0.6);
-    border-radius: 6px;
-    min-height:    6px;
-    min-width:     6px;
+/* Per-app volume icon */
+.widget-volume row image {
+    background: transparent;
+    min-width:  24px;
+    min-height: 24px;
 }
 
-.volume-box scale slider {
-    background:    @primary;
-    border-radius: 6px;
-    min-height:    6px;
-    min-width:     6px;
+/* Expand/collapse per-app button */
+.widget-volume > box > button {
+    background-color: alpha(@surface_variant, 0.6);
+    color:            @on_surface_var;
+    border-radius:    8px;
+    border:           none;
+    padding:          2px 10px;
+    font-size:        12px;
+    margin-top:       4px;
+}
+
+.widget-volume > box > button:hover {
+    background-color: alpha(@primary, 0.15);
+    color:            @primary;
 }
 
 /* -----------------------------------------------------------------------
@@ -245,16 +259,92 @@ scrollbar {
     background: transparent;
 }
 
-slider {
-    background:    @primary;
+scrollbar slider {
+    background:    alpha(@on_surface, 0.3);
     border-radius: 6px;
     min-height:    6px;
     min-width:     6px;
 }
 
- trough {
-    background:    alpha(@surface_variant, 0.6);
+scrollbar trough {
+    background:    transparent;
     border-radius: 6px;
     min-height:    6px;
     min-width:     6px;
+}
+
+/* -----------------------------------------------------------------------
+ * Sliders — volume, backlight, and custom sliders
+ * All use matugen @primary so colors follow the wallpaper palette.
+ * ----------------------------------------------------------------------- */
+
+/* Track background */
+.widget-volume scale trough,
+.widget-backlight scale trough,
+.widget-slider scale trough {
+    background:    alpha(@surface_variant, 0.5);
+    border-radius: 8px;
+    min-height:    4px;
+    min-width:     4px;
+}
+
+/* Filled (progress) portion — the colored part */
+.widget-volume scale trough highlight,
+.widget-backlight scale trough highlight,
+.widget-slider scale trough highlight {
+    background:    @primary;
+    border-radius: 8px;
+    min-height:    4px;
+}
+
+/* Drag handle */
+.widget-volume scale slider,
+.widget-backlight scale slider,
+.widget-slider scale slider {
+    background:    @primary;
+    border-radius: 50%;
+    min-width:     14px;
+    min-height:    14px;
+    box-shadow:    none;
+    border:        none;
+}
+
+/* Per-app volume sliders — slightly dimmed */
+.per-app-volume scale trough highlight {
+    background: alpha(@primary, 0.7);
+}
+
+.per-app-volume scale slider {
+    background:  alpha(@primary, 0.85);
+    min-width:   12px;
+    min-height:  12px;
+    box-shadow:  none;
+}
+
+/* -----------------------------------------------------------------------
+ * Buttons grid — WiFi, BT, and any future toggles
+ * ----------------------------------------------------------------------- */
+.widget-buttons-grid {
+    padding: 4px 0;
+}
+
+.widget-buttons-grid flowboxchild > button {
+    background-color: alpha(@surface_variant, 0.8);
+    color:            @on_surface;
+    border-radius:    8px;
+    border:           none;
+    padding:          8px 6px;
+    font-size:        12px;
+    min-width:        80px;
+    margin:           2px;
+}
+
+.widget-buttons-grid flowboxchild > button:hover {
+    background-color: alpha(@primary, 0.2);
+    color:            @primary;
+}
+
+.widget-buttons-grid flowboxchild > button.toggle:checked {
+    background-color: alpha(@primary, 0.3);
+    color:            @primary;
 }
