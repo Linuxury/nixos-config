@@ -36,4 +36,4 @@ else
     TOOLTIP="Battle.net — Click to focus, Right-click to close"
 fi
 
-echo "{\"text\":\"󰖵\",\"tooltip\":\"$TOOLTIP\"}"
+echo "{\"text\":\"\",\"tooltip\":\"$TOOLTIP\"}"
