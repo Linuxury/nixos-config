@@ -12,7 +12,7 @@
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
 
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 let
   # BreezeX cursor theme — same derivation as cosmic-theme.nix
@@ -36,12 +36,60 @@ in
 
 {
   # =========================================================================
+  # Per-host hardware options for the SwayNC Control Panel
+  #
+  # Set these in your host's default.nix to enable hardware-specific widgets.
+  # Defaults are safe for desktop hosts (no backlight/battery).
+  #
+  # Example (ThinkPad):
+  #   myModules.swaync.hasBacklight      = true;
+  #   myModules.swaync.backlightDevice   = "amdgpu_bl1";
+  #   myModules.swaync.hasKbBacklight    = true;
+  #   myModules.swaync.kbBacklightDevice = "tpacpi::kbd_backlight";
+  # =========================================================================
+  options.myModules.swaync = {
+    hasBacklight = lib.mkOption {
+      type        = lib.types.bool;
+      default     = false;
+      description = "Display backlight present (laptop). Adds brightness slider.";
+    };
+    backlightDevice = lib.mkOption {
+      type        = lib.types.str;
+      default     = "";
+      description = "Device name under /sys/class/backlight (e.g. amdgpu_bl1).";
+    };
+    hasKbBacklight = lib.mkOption {
+      type        = lib.types.bool;
+      default     = false;
+      description = "Keyboard backlight present (laptop). Adds KB brightness slider.";
+    };
+    kbBacklightDevice = lib.mkOption {
+      type        = lib.types.str;
+      default     = "";
+      description = "Device name under /sys/class/leds (e.g. tpacpi::kbd_backlight).";
+    };
+    hasWifi = lib.mkOption {
+      type        = lib.types.bool;
+      default     = true;
+      description = "WiFi present. Adds WiFi toggle to buttons grid.";
+    };
+    hasBluetooth = lib.mkOption {
+      type        = lib.types.bool;
+      default     = true;
+      description = "Bluetooth present. Adds BT toggle to buttons grid.";
+    };
+  };
+
+  config = {
+
+  # =========================================================================
   # Inject hypr-matugen into every user's Home Manager config
   # =========================================================================
   home-manager.sharedModules = [
     ../services/hypr-matugen.nix
-    ../home/cosmic-theme.nix   # BreezeX-Light cursor + Tela-dark icons
-    ../home/nautilus-bookmarks.nix # GTK3 bookmarks + scripts for Nautilus
+    ../home/cosmic-theme.nix         # BreezeX-Light cursor + Tela-dark icons
+    ../home/nautilus-bookmarks.nix   # GTK3 bookmarks + scripts for Nautilus
+    ../home/swaync.nix               # Control Panel — host-aware config.json
     {
       # Kitty — Hyprland handles transparency/blur, disable Kitty's own settings
       home.file.".config/kitty/hyprland-overrides.conf".source =
@@ -225,4 +273,6 @@ in
   # =========================================================================
   services.gnome.tinysparql.enable = true;
   services.gnome.localsearch.enable = true;
+
+  }; # end config
 }

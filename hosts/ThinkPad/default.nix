@@ -77,6 +77,21 @@ in
   hardware.gpu = "amd";
 
   # =========================================================================
+  # SwayNC Control Panel — hardware capabilities
+  # Laptop: backlight + KB backlight + WiFi + BT
+  #
+  # Verify device names on first boot:
+  #   ls /sys/class/backlight/   → confirm backlightDevice
+  #   ls /sys/class/leds/ | grep kbd → confirm kbBacklightDevice
+  # =========================================================================
+  myModules.swaync.hasBacklight      = true;
+  myModules.swaync.backlightDevice   = "amdgpu_bl1";  # typical AMD ThinkPad T14s
+  myModules.swaync.hasKbBacklight    = true;
+  myModules.swaync.kbBacklightDevice = "tpacpi::kbd_backlight";
+  myModules.swaync.hasWifi           = true;
+  myModules.swaync.hasBluetooth      = true;
+
+  # =========================================================================
   # LUKS — Full disk encryption
   #
   # The BTRFS partition sits inside a LUKS container.
