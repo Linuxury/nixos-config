@@ -147,6 +147,7 @@ in
     qt6Packages.qt6ct  # Qt6 theme settings outside of KDE/GNOME
 
     # System tray / applets
+    snixembed             # Proxy XEmbed tray icons (Wine/Proton) → SNI for Waybar
     networkmanagerapplet  # WiFi tray icon
     blueman               # Bluetooth manager with tray icon
 
