@@ -18,8 +18,8 @@
 #   Display*:       label#display → backlight#display → backlight#kbd
 #   Do Not Disturb: label#dnd → buttons-grid#dnd-timers (30m | 1h | 2h | Off)
 #   Volume:         label#volume → volume (+ expandable per-app)
-#   Media Player:   label#media → mpris
-#   Notifications:  label#notifications → notifications
+#   Media Player:   mpris (autohide=true — hidden when nothing plays; no label needed)
+#   Notifications:  notifications (no label — cards are self-evident)
 #   *laptop only
 # ===========================================================================
 
@@ -43,8 +43,8 @@ let
     ++ lib.optionals cfg.hasKbBacklight [ "backlight#kbd" ]
     ++ [ "label#dnd" "buttons-grid#dnd-timers" ]
     ++ [ "label#volume" "volume" ]
-    ++ [ "label#media" "mpris" ]
-    ++ [ "label#notifications" "notifications" ];
+    ++ [ "mpris" ]
+    ++ [ "notifications" ];
 
   # Toggle button actions — only include the hardware that exists
   buttonActions =
@@ -72,8 +72,6 @@ let
       "label#display"       = { text = "── Display ────────────────────────────────";  max-lines = 1; };
       "label#dnd"           = { text = "── Do Not Disturb ─────────────────────────";  max-lines = 1; };
       "label#volume"        = { text = "── Volume ─────────────────────────────────";  max-lines = 1; };
-      "label#media"         = { text = "── Media Player ───────────────────────────"; max-lines = 1; };
-      "label#notifications" = { text = "── Notifications ──────────────────────────"; max-lines = 1; };
 
       # DND timer options — the buttons are the only controls (no toggle widget).
       # Each time button enables DND immediately then sets a systemd one-shot timer
@@ -112,7 +110,7 @@ let
       mpris = {
         image-size   = 80;
         image-radius = 8;
-        autohide     = false;  # always visible so the "Media Player" label isn't orphaned
+        autohide     = true;  # hides when no player; no orphaned label (label removed from widget list)
       };
     }
     // lib.optionalAttrs hasButtons {
