@@ -13,8 +13,10 @@
 #   myModules.swaync.hasBluetooth      = true;   # default true
 #
 # Widget layout (panel top → bottom):
-#   title → dnd → backlight#display (laptop) → backlight#kbd (laptop)
-#   → volume (+ expandable per-app) → buttons-grid (WiFi, BT) → mpris → notifications
+#   title → buttons-grid (WiFi, BT) → backlight#display* → backlight#kbd*
+#   → dnd (pill toggle) → buttons-grid#dnd-timers (30m/1h/2h/Off)
+#   → volume (+ expandable per-app) → mpris → notifications
+#   *laptop only
 # ===========================================================================
 
 { config, pkgs, lib, osConfig, ... }:
@@ -27,12 +29,12 @@ let
 
   # Dynamic widget list — host-capability-aware
   widgets =
-    [ "title" "dnd" ]
+    [ "title" ]
+    ++ lib.optionals hasButtons        [ "buttons-grid" ]       # WiFi/BT at top
     ++ lib.optionals cfg.hasBacklight  [ "backlight#display" ]
     ++ lib.optionals cfg.hasKbBacklight [ "backlight#kbd" ]
-    ++ [ "volume" ]
-    ++ lib.optionals hasButtons [ "buttons-grid" ]
-    ++ [ "mpris" "notifications" ];
+    ++ [ "dnd" "buttons-grid#dnd-timers" ]                      # DND pill + timer options
+    ++ [ "volume" "mpris" "notifications" ];
 
   # Toggle button actions — only include the hardware that exists
   buttonActions =
@@ -55,6 +57,31 @@ let
       };
       dnd = {
         text = "Do Not Disturb";
+      };
+      # Timer options below the DND pill.
+      # systemd-run --user creates a one-shot transient timer that survives swaync restarts.
+      # Clicking a timer also enables DND immediately.
+      # "Off" cancels any running timer and disables DND.
+      "buttons-grid#dnd-timers" = {
+        buttons-per-row = 4;
+        actions = [
+          {
+            label   = "30m";
+            command = "sh -c 'swaync-client --dnd-on; systemd-run --user --on-active=1800 swaync-client --dnd-off'";
+          }
+          {
+            label   = "1h";
+            command = "sh -c 'swaync-client --dnd-on; systemd-run --user --on-active=3600 swaync-client --dnd-off'";
+          }
+          {
+            label   = "2h";
+            command = "sh -c 'swaync-client --dnd-on; systemd-run --user --on-active=7200 swaync-client --dnd-off'";
+          }
+          {
+            label   = "Off";
+            command = "swaync-client --dnd-off";
+          }
+        ];
       };
       volume = {
         label                  = "󰕾";
