@@ -41,7 +41,7 @@ in
   home-manager.sharedModules = [
     ../services/hypr-matugen.nix
     ../home/cosmic-theme.nix   # BreezeX-Light cursor + Tela-dark icons
-    ../home/nemo-bookmarks.nix # GTK3 bookmarks for Nemo (Samba shares)
+    ../home/nautilus-bookmarks.nix # GTK3 bookmarks + scripts for Nautilus
     {
       # Kitty — Hyprland handles transparency/blur, disable Kitty's own settings
       home.file.".config/kitty/hyprland-overrides.conf".source =
@@ -158,12 +158,13 @@ in
     # Brightness control — required for laptop brightness keybinds
     brightnessctl
 
-    # File managers
-    nemo            # GUI file manager — GTK3, Nautilus fork, dual-pane, gvfs/SMB support
-    nautilus        # GNOME Files — works on Hyprland (Mutter.ServiceChannel warning is non-fatal)
-                    # Requires local .desktop override to strip DBusActivatable=true — otherwise
-                    # wofi/rofi launch it in --gapplication-service mode which fails silently
-    thunar          # XFCE file manager — lightweight, comparing with Nemo
+    # File manager — Nautilus (GNOME Files)
+    # Works on Hyprland; Mutter.ServiceChannel warning is non-fatal.
+    # Requires local .desktop override to strip DBusActivatable=true — otherwise
+    # wofi/rofi launch it in --gapplication-service mode which fails silently.
+    nautilus
+    sushi              # Quick file preview — press Space on any file (package name in nixpkgs is "sushi", not gnome-sushi)
+    # nautilus-admin not in nixpkgs — "Open as Administrator" handled via the shell script in nautilus-bookmarks.nix
     tinysparql      # Tracker3 / TinySPARQL — provides org.freedesktop.Tracker3 for Nautilus search
     localsearch     # Tracker miners (filesystem crawler, formerly tracker-miners)
 
