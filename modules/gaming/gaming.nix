@@ -140,6 +140,8 @@
     goverlay        # GUI configurator for MangoHud and vkBasalt overlays
                     # Makes tweaking your overlay much easier than editing
                     # the dotfile directly
+    sgdboop         # SteamGridDB asset manager — apply custom banners/icons
+                    # to Steam games from SteamGridDB with one click
 
     vulkan-tools    # vulkaninfo — useful for checking Vulkan is working
     mesa-demos      # glxinfo, glxgears — check OpenGL info and verify drivers
