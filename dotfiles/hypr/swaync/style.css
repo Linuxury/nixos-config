@@ -58,7 +58,7 @@ blankwindow,
 }
 
 .notification-background {
-    background: alpha(@surface, 0.5);
+    background: transparent;
 }
 
 .notification-content {
