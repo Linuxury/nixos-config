@@ -25,6 +25,7 @@
         "custom/clock"
     ],
     "modules-right": [
+        "custom/battlenet",
         "tray",
         "custom/sep",
         "custom/weather",
@@ -129,6 +130,15 @@
     "tray": {
         "icon-size": 16,
         "spacing": 8
+    },
+    "custom/battlenet": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "~/.config/hypr/waybar/scripts/battlenet.sh",
+        "exec-if": "pgrep -f 'Battle.net.exe' >/dev/null 2>&1",
+        "interval": 3,
+        "on-click": "hyprctl dispatch focuswindow class:steam_app_0",
+        "on-click-right": "~/.config/hypr/waybar/scripts/battlenet.sh close"
     },
     "custom/volume": {
         "format": "{}",
