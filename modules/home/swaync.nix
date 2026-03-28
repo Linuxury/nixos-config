@@ -13,9 +13,13 @@
 #   myModules.swaync.hasBluetooth      = true;   # default true
 #
 # Widget layout (panel top → bottom):
-#   title → buttons-grid (WiFi, BT) → backlight#display* → backlight#kbd*
-#   → dnd (pill toggle) → buttons-grid#dnd-timers (30m/1h/2h/Off)
-#   → volume (+ expandable per-app) → mpris → notifications
+#   title
+#   Network:        label#network → buttons-grid (WiFi | BT — 2 per row, 50% each)
+#   Display*:       label#display → backlight#display → backlight#kbd
+#   Do Not Disturb: label#dnd → buttons-grid#dnd-timers (30m | 1h | 2h | Off)
+#   Volume:         label#volume → volume (+ expandable per-app)
+#   Media Player:   label#media → mpris
+#   Notifications:  label#notifications → notifications
 #   *laptop only
 # ===========================================================================
 
@@ -27,14 +31,20 @@ let
   # Whether there are any buttons to show in the grid
   hasButtons = cfg.hasWifi || cfg.hasBluetooth;
 
+  # Whether this host has any laptop display hardware
+  hasDisplay = cfg.hasBacklight || cfg.hasKbBacklight;
+
   # Dynamic widget list — host-capability-aware
   widgets =
     [ "title" ]
-    ++ lib.optionals hasButtons        [ "buttons-grid" ]       # WiFi/BT at top
-    ++ lib.optionals cfg.hasBacklight  [ "backlight#display" ]
+    ++ lib.optionals hasButtons  [ "label#network" "buttons-grid" ]
+    ++ lib.optionals hasDisplay  [ "label#display" ]
+    ++ lib.optionals cfg.hasBacklight   [ "backlight#display" ]
     ++ lib.optionals cfg.hasKbBacklight [ "backlight#kbd" ]
-    ++ [ "dnd" "buttons-grid#dnd-timers" ]                      # DND pill + timer options
-    ++ [ "volume" "mpris" "notifications" ];
+    ++ [ "label#dnd" "buttons-grid#dnd-timers" ]
+    ++ [ "label#volume" "volume" ]
+    ++ [ "label#media" "mpris" ]
+    ++ [ "label#notifications" "notifications" ];
 
   # Toggle button actions — only include the hardware that exists
   buttonActions =
@@ -55,13 +65,18 @@ let
         clear-all-button = true;
         button-text      = "Clear All";
       };
-      dnd = {
-        text = "Do Not Disturb";
-      };
-      # Timer options below the DND pill.
-      # systemd-run --user creates a one-shot transient timer that survives swaync restarts.
-      # Clicking a timer also enables DND immediately.
-      # "Off" cancels any running timer and disables DND.
+
+      # Section labels — styled as subtle category headers via .widget-label CSS
+      "label#network"       = { text = "Network";       max-lines = 1; };
+      "label#display"       = { text = "Display";       max-lines = 1; };
+      "label#dnd"           = { text = "Do Not Disturb"; max-lines = 1; };
+      "label#volume"        = { text = "Volume";        max-lines = 1; };
+      "label#media"         = { text = "Media Player";  max-lines = 1; };
+      "label#notifications" = { text = "Notifications"; max-lines = 1; };
+
+      # DND timer options — the buttons are the only controls (no toggle widget).
+      # Each time button enables DND immediately then sets a systemd one-shot timer
+      # to disable it after the chosen duration. "Off" disables DND immediately.
       "buttons-grid#dnd-timers" = {
         buttons-per-row = 4;
         actions = [
@@ -83,23 +98,25 @@ let
           }
         ];
       };
+
       volume = {
-        label                  = "󰕾";
-        show-per-app           = true;
-        expand-per-app         = false;             # collapsed by default
-        empty-list-label       = "No active apps";
-        expand-button-label    = "󰐕  Apps";
-        collapse-button-label  = "󰐊  Collapse";
+        label                 = "󰕾";
+        show-per-app          = true;
+        expand-per-app        = false;
+        empty-list-label      = "No active apps";
+        expand-button-label   = "󰐕  Apps";
+        collapse-button-label = "󰐊  Collapse";
       };
+
       mpris = {
         image-size   = 80;
         image-radius = 8;
-        autohide     = true;   # hide when no media is playing
+        autohide     = false;  # always visible so the "Media Player" label isn't orphaned
       };
     }
     // lib.optionalAttrs hasButtons {
       "buttons-grid" = {
-        buttons-per-row = 4;
+        buttons-per-row = 2;    # two columns → each button ~50% panel width
         actions         = buttonActions;
       };
     }
