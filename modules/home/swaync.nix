@@ -67,12 +67,13 @@ let
       };
 
       # Section labels — styled as subtle category headers via .widget-label CSS
-      "label#network"       = { text = "Network";       max-lines = 1; };
-      "label#display"       = { text = "Display";       max-lines = 1; };
-      "label#dnd"           = { text = "Do Not Disturb"; max-lines = 1; };
-      "label#volume"        = { text = "Volume";        max-lines = 1; };
-      "label#media"         = { text = "Media Player";  max-lines = 1; };
-      "label#notifications" = { text = "Notifications"; max-lines = 1; };
+      # Format: ── TEXT ─(right)─  all labels end at ~50 chars
+      "label#network"       = { text = "── Network ────────────────────────────────";  max-lines = 1; };
+      "label#display"       = { text = "── Display ────────────────────────────────";  max-lines = 1; };
+      "label#dnd"           = { text = "── Do Not Disturb ─────────────────────────";  max-lines = 1; };
+      "label#volume"        = { text = "── Volume ─────────────────────────────────";  max-lines = 1; };
+      "label#media"         = { text = "── Media Player ───────────────────────────"; max-lines = 1; };
+      "label#notifications" = { text = "── Notifications ──────────────────────────"; max-lines = 1; };
 
       # DND timer options — the buttons are the only controls (no toggle widget).
       # Each time button enables DND immediately then sets a systemd one-shot timer

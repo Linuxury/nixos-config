@@ -44,7 +44,12 @@ blankwindow,
  * Notifications — shared (both toast and panel)
  * ----------------------------------------------------------------------- */
 .notification-background {
-    background: transparent;
+    background:       transparent;
+    background-color: transparent;
+    padding:          0;
+    margin:           0;
+    border:           none;
+    box-shadow:       none;
 }
 
 /* Urgency accent bars — same in both contexts */
@@ -266,11 +271,11 @@ blankwindow,
  * Section labels — subtle category headers between widget groups
  * ----------------------------------------------------------------------- */
 .widget-label {
-    color:         alpha(@on_surface_var, 0.65);
+    color:         alpha(@on_surface_var, 0.5);
     font-size:     11px;
-    font-weight:   bold;
+    font-weight:   normal;
     padding:       0 4px 1px 4px;
-    margin-top:    6px;
+    margin-top:    8px;
     margin-bottom: 0;
 }
 
