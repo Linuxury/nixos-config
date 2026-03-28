@@ -129,6 +129,19 @@
       ];
     };
 
+    "/mnt/Torrents" = {
+      device  = "//10.0.0.3/Downloads";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=alex" "gid=users"
+        "ro"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "x-systemd.mount-timeout=2s"
+      ];
+    };
+
   };
 
   # =========================================================================
@@ -137,6 +150,7 @@
   systemd.tmpfiles.rules = [
     "d /mnt/Media-Server 0755 alex users -"
     "d /mnt/MinisForum   0755 alex users -"
+    "d /mnt/Torrents     0755 alex users -"
   ];
 
   environment.systemPackages = with pkgs; [

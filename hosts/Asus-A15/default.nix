@@ -182,6 +182,18 @@ in
       ];
     };
 
+    "/mnt/Torrents" = {
+      device  = "//10.0.0.3/Downloads";
+      fsType  = "cifs";
+      options = [
+        "credentials=/run/agenix/smb-credentials"
+        "uid=babylinux" "gid=users"
+        "nofail" "_netdev" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "x-systemd.mount-timeout=2s"
+      ];
+    };
+
   };
 
   # =========================================================================
@@ -190,6 +202,7 @@ in
   systemd.tmpfiles.rules = [
     "d /mnt/Media-Server 0755 babylinux users -"
     "d /mnt/MinisForum   0755 babylinux users -"
+    "d /mnt/Torrents     0755 babylinux users -"
   ];
 
   environment.systemPackages = with pkgs; [
