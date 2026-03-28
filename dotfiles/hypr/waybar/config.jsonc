@@ -82,9 +82,9 @@
     },
     "custom/files": {
         "format": "{}",
-        "on-click": "nemo",
+        "on-click": "nautilus",
         "return-type": "json",
-        "exec": "echo '{\"text\":\"󰉋\",\"tooltip\":\"Nemo\"}'"
+        "exec": "echo '{\"text\":\"󰉋\",\"tooltip\":\"Nautilus\"}'"
     },
     "custom/media-scroll": {
         "format": "{}",
