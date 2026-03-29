@@ -92,6 +92,16 @@
     };
 
     # -------------------------------------------------------------------------
+    # awww — Animated wallpaper daemon for Wayland
+    #
+    # Replaces swww with more transition effects and random animation support.
+    # -------------------------------------------------------------------------
+    awww = {
+      url = "git+https://codeberg.org/LGFae/awww";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # -------------------------------------------------------------------------
     # normie-nvim — TheBlackDon's Neovim config
     #
     # Not a Nix flake (flake = false) — just the raw repo files.
@@ -113,7 +123,7 @@
   # The outputs function receives all inputs and returns your configurations.
   # `@inputs` captures the whole inputs set so we can pass it around easily.
   # ===========================================================================
-  outputs = { self, nixpkgs, home-manager, nixos-hardware, agenix, ... } @ inputs:
+  outputs = { self, nixpkgs, home-manager, nixos-hardware, agenix, awww, ... } @ inputs:
 
     # -------------------------------------------------------------------------
     # let...in — Nix's way of defining local variables

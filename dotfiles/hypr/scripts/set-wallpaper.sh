@@ -25,10 +25,12 @@ fi
 [ -z "$WALLPAPER" ] && { echo "set-wallpaper: no wallpaper found in $WALLPAPER_DIR" >&2; exit 1; }
 [ -f "$WALLPAPER" ] || { echo "set-wallpaper: file not found: $WALLPAPER" >&2; exit 1; }
 
-# Set wallpaper via swww
+# Set wallpaper via swww with random transition
+TRANSITIONS=(grow fade center outer left right top bottom wipe any random)
+TRANSITION=$(shuf -n1 -e "${TRANSITIONS[@]}")
+
 swww img "$WALLPAPER" \
-    --transition-type  grow \
-    --transition-pos   center \
+    --transition-type  "$TRANSITION" \
     --transition-fps   60 \
     --transition-duration 0.8
 
