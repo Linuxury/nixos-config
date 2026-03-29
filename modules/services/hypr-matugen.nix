@@ -234,7 +234,7 @@
       [templates.hyprland]
       input_path  = "~/.config/matugen/templates/templates/hyprland-colors.conf"
       output_path = "~/.config/hypr/colors.conf"
-      post_hook   = "PRIMARY=$(grep '^\$primary' ~/.config/hypr/colors.conf | awk '{print $3}') && TERTIARY=$(grep '^\$tertiary' ~/.config/hypr/colors.conf | awk '{print $3}') && OUTLINE=$(grep '^\$outline_variant' ~/.config/hypr/colors.conf | awk '{print $3}') && hyprctl keyword general:col.active_border \"$PRIMARY $TERTIARY 45deg\" && hyprctl keyword general:col.inactive_border \"$OUTLINE\" || true"
+      post_hook   = "PRIMARY=$(grep '^\\$primary' ~/.config/hypr/colors.conf | awk '{print $3}') && TERTIARY=$(grep '^\\$tertiary' ~/.config/hypr/colors.conf | awk '{print $3}') && OUTLINE=$(grep '^\\$outline_variant' ~/.config/hypr/colors.conf | awk '{print $3}') && hyprctl keyword general:col.active_border \"$PRIMARY $TERTIARY 45deg\" && hyprctl keyword general:col.inactive_border \"$OUTLINE\" || true"
 
       [templates.opencode]
       input_path  = "~/.config/matugen/templates/templates/opencode-colors.json"
