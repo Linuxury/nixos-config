@@ -20,4 +20,4 @@ else
     icon="󰝝"   # volume_plus (100%)
 fi
 
-echo "{\"text\":\"${icon}  ${pct}%\",\"tooltip\":\"Volume: ${pct}%\",\"percentage\":${pct}}"
+echo "{\"text\":\"${icon} ${pct}\",\"tooltip\":\"Volume: ${pct}%\",\"percentage\":${pct}}"
