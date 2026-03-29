@@ -6,10 +6,14 @@
 # Fully declarative Syncthing config — devices and folders hardcoded.
 # No web UI setup needed after rebuild. Syncthing auto-pairs and syncs.
 #
-# The shared folder is ~/Obsidian — the vault that tracks host updates,
-# research, activity logs, and project history. Syncthing keeps it in
-# sync across all machines. Git backup runs on Ryzen5900x only.
+# Shared folders:
+#   ~/Obsidian  — vault: host updates, research, activity logs, projects
+#   ~/.ai       — AI config: AGENTS.md, CLAUDE.md, Claude/OpenCode settings,
+#                 MCP config, and mcp-servers/ source code.
+#                 Runtime artifacts excluded via ~/.ai/.stignore:
+#                   memory/, backups/, .venv, __pycache__, *.egg-info
 #
+# Git backup of Obsidian runs on Ryzen5900x only.
 # Device IDs generated fresh 2026-03-25 — no legacy config carried over.
 # Phone (Pixel Pro 8) ID obtained from Syncthing-Fork app.
 # ===========================================================================
@@ -109,6 +113,25 @@
             # Add these when device IDs are ready:
             # "Alex-Desktop"
             # "Alex-Laptop"
+            # "Asus-A15"
+            # "Ryzen5800x"
+          ];
+          fsWatcherEnabled = true;
+          fsWatcherDelayS  = 10;
+          rescanIntervalS  = 60;
+          ignorePerms      = false;
+        };
+
+        "ai-config" = {
+          id    = "ai-config";
+          label = "AI Config";
+          path  = "/home/linuxury/.ai";
+          devices = [
+            "Ryzen5900x"
+            "ThinkPad"
+            "MinisForum"
+            "Radxa-X4"
+            # Add these when device IDs are ready:
             # "Asus-A15"
             # "Ryzen5800x"
           ];
