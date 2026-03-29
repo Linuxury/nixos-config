@@ -1,245 +1,61 @@
 # ===========================================================================
-# modules/services/hypr-matugen.nix — matugen color sync for Hyprland
+# hypr-matugen.nix — matugen color sync for Hyprland
 #
-# Parallel to wallpaper-slideshow.nix (which handles COSMIC).
 # For Hyprland, the trigger is set-wallpaper.sh (called from autostart.conf
-# and any manual wallpaper change). That script calls `matugen image` directly
-# after setting the wallpaper via swww.
+# and any manual wallpaper change). That script calls `matugen color hex`
+# after setting the wallpaper via awww.
 #
-# This module handles the static setup: packages, config.toml, seed files.
+# This module handles the static setup: packages and config.toml.
 # ===========================================================================
+{ config, pkgs, lib, ... }:
 
 {
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+  imports = [];
 
-{
-  # =========================================================================
-  # Required packages
-  # =========================================================================
   home.packages = with pkgs; [
-    matugen # Material You color generator
-    imagemagick # provides `convert` for dominant color extraction
-    git # needed by matugenTemplates activation below
+    matugen
+    imagemagick
   ];
 
-  # =========================================================================
-  # GTK4 — import matugen colors
-  #
-  # matugen writes @define-color variables to ~/.config/gtk-4.0/colors.css
-  # but GTK4 only reads gtk.css. This import wires them together so all
-  # GTK4/libadwaita apps (Nautilus, etc.) pick up matugen colors.
-  # Must come after the theme import so matugen variables take precedence.
-  # =========================================================================
-  gtk.gtk4.extraCss = ''
-    @import url("file://${config.home.homeDirectory}/.config/gtk-4.0/colors.css");
-    @import url("file://${config.home.homeDirectory}/.config/gtk-4.0/libadwaita-matugen.css");
+  home.file.".config/matugen/config.toml".text = ''
+    [config]
+    mode = "dark"
+    reload_apps = false
+
+    [templates.waybar]
+    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/waybar/colors.css.template"
+    output_path = "/home/linuxury/.config/waybar/colors.css"
+    post_hook = "pkill -USR2 waybar || true"
+
+    [templates.swaync]
+    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/swaync/colors.css.template"
+    output_path = "/home/linuxury/.config/swaync/colors.css"
+    post_hook = "pkill swaync || true; swaync"
+
+    [templates.hyprland]
+    input_path = "/home/linuxury/.config/matugen/templates/templates/hyprland-colors.conf"
+    output_path = "/home/linuxury/.config/hypr/colors.conf"
+    post_hook = "PRIMARY=$(grep '^\\$primary ' /home/linuxury/.config/hypr/colors.conf | awk '{print $3}') && TERTIARY=$(grep '^\\$tertiary ' /home/linuxury/.config/hypr/colors.conf | awk '{print $3}') && OUTLINE=$(grep '^\\$outline_variant ' /home/linuxury/.config/hypr/colors.conf | awk '{print $3}') && hyprctl keyword general:col.active_border \"$PRIMARY $TERTIARY 45deg\" && hyprctl keyword general:col.inactive_border \"$OUTLINE\" || true"
+
+    [templates.kitty]
+    input_path = "/home/linuxury/.config/matugen/templates/templates/kitty-colors.conf"
+    output_path = "/home/linuxury/.config/kitty/colors.conf"
+    post_hook = "pkill -USR1 kitty || true"
+
+    [templates.gtk]
+    input_path = "/home/linuxury/.config/matugen/templates/templates/gtk-colors.css"
+    output_path = "/home/linuxury/.config/gtk-4.0/colors.css"
+
+    [templates.gtk-libadwaita]
+    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/gtk-libadwaita.css.template"
+    output_path = "/home/linuxury/.config/gtk-4.0/libadwaita-matugen.css"
+
+    [templates.rofi-window]
+    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/rofi/window.rasi.template"
+    output_path = "/home/linuxury/.config/rofi/window.rasi"
+
+    [templates.wofi]
+    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/wofi/colors.css.template"
+    output_path = "/home/linuxury/.config/wofi/colors.css"
   '';
-
-  # =========================================================================
-  # matugen templates — clone from InioX/matugen-themes if not present
-  # =========================================================================
-  home.activation.matugenTemplates = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    TEMPLATES_DIR="$HOME/.config/matugen/templates"
-    if [ ! -d "$TEMPLATES_DIR" ]; then
-      echo "matugen: cloning templates from InioX/matugen-themes…"
-      ${pkgs.git}/bin/git clone --depth=1 \
-        https://github.com/InioX/matugen-themes.git \
-        "$TEMPLATES_DIR" \
-        && echo "matugen: templates ready at $TEMPLATES_DIR" \
-        || echo "matugen: WARNING — template clone failed (no internet?). Run manually:"$'\n'"  git clone https://github.com/InioX/matugen-themes ~/.config/matugen/templates"
-    fi
-  '';
-
-  # =========================================================================
-  # Seed files — pre-create so apps don't fail before first matugen run
-  # =========================================================================
-  home.activation.hyprMatugenSeeds = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        # kitty colors
-        KITTY_COLORS="$HOME/.config/kitty/colors.conf"
-        if [ ! -f "$KITTY_COLORS" ]; then
-          mkdir -p "$(dirname "$KITTY_COLORS")"
-          touch "$KITTY_COLORS"
-        fi
-
-        # hyprland colors — seed with placeholder variables
-        HYPR_COLORS="$HOME/.config/hypr/colors.conf"
-        if [ ! -f "$HYPR_COLORS" ]; then
-          mkdir -p "$(dirname "$HYPR_COLORS")"
-          cat > "$HYPR_COLORS" << 'EOF'
-    # Generated by matugen — do not edit manually.
-    # Seed values replaced on first wallpaper set.
-    $primary = rgba(89b4faff)
-    $on_primary = rgba(1e3a5fff)
-    $surface = rgba(1e1e2eff)
-    $on_surface = rgba(cdd6f4ff)
-    $on_surface_variant = rgba(a6adc8ff)
-    $surface_variant = rgba(45475aff)
-    $tertiary = rgba(fab387ff)
-    $error = rgba(f38ba8ff)
-    $outline_variant = rgba(45475aff)
-    EOF
-        fi
-
-        # rofi window theme — seed only if not already generated
-        ROFI_THEME="$HOME/.config/rofi/window.rasi"
-        if [ ! -f "$ROFI_THEME" ]; then
-          mkdir -p "$(dirname "$ROFI_THEME")"
-          cat > "$ROFI_THEME" << 'EOF'
-    /* Generated by matugen — do not edit manually. Seed values. */
-    * { bg: #1e1e2e; bg-alt: #45475a; fg: #cdd6f4; fg-dim: #a6adc8; primary: #89b4fa; border-col: #45475a; sel-bg: #89b4fa20; sel-border: #89b4fa60; background-color: transparent; text-color: @fg; font: "JetBrainsMono Nerd Font Propo 12"; }
-    EOF
-        fi
-
-        # wofi colors — seed only if not already generated (preserve matugen output)
-        WOFI_COLORS="$HOME/.config/wofi/colors.css"
-        if [ ! -f "$WOFI_COLORS" ]; then
-          mkdir -p "$(dirname "$WOFI_COLORS")"
-          cat > "$WOFI_COLORS" << 'EOF'
-    /* Generated by matugen — do not edit manually.
-     * Seed values: Catppuccin Mocha (replaced on first wallpaper set). */
-    @define-color primary         #89b4fa;
-    @define-color on_primary      #1e3a5f;
-    @define-color surface         #1e1e2e;
-    @define-color on_surface      #cdd6f4;
-    @define-color on_surface_var  #a6adc8;
-    @define-color surface_variant #45475a;
-    @define-color tertiary        #fab387;
-    @define-color error           #f38ba8;
-    @define-color outline_var     #45475a;
-    EOF
-        fi
-
-        # waybar colors — seed only if not already generated (preserve matugen output)
-        WAYBAR_COLORS="$HOME/.config/waybar/colors.css"
-        if [ ! -f "$WAYBAR_COLORS" ]; then
-          mkdir -p "$(dirname "$WAYBAR_COLORS")"
-          cat > "$WAYBAR_COLORS" << 'EOF'
-    /* Generated by matugen — do not edit manually.
-     * Seed values: Catppuccin Mocha (replaced on first wallpaper set). */
-    @define-color primary         #89b4fa;
-    @define-color on_primary      #1e3a5f;
-    @define-color surface         #1e1e2e;
-    @define-color on_surface      #cdd6f4;
-    @define-color on_surface_var  #a6adc8;
-    @define-color tertiary        #fab387;
-    @define-color error           #f38ba8;
-    @define-color outline_var     #45475a;
-    EOF
-        fi
-
-        # swaync colors — seed only if not already generated (preserve matugen output)
-        SWAYNC_COLORS="$HOME/.config/swaync/colors.css"
-        if [ ! -f "$SWAYNC_COLORS" ]; then
-          mkdir -p "$(dirname "$SWAYNC_COLORS")"
-          cat > "$SWAYNC_COLORS" << 'EOF'
-    /* Generated by matugen — do not edit manually.
-     * Seed values: Catppuccin Mocha (replaced on first wallpaper set). */
-    @define-color primary         #89b4fa;
-    @define-color on_primary      #1e3a5f;
-    @define-color surface         #1e1e2e;
-    @define-color on_surface      #cdd6f4;
-    @define-color on_surface_var  #a6adc8;
-    @define-color surface_variant #45475a;
-    @define-color tertiary        #fab387;
-    @define-color error           #f38ba8;
-    @define-color outline_var     #45475a;
-    EOF
-        fi
-
-        # libadwaita CSS rules — seed only if not already generated
-        LIBADW_CSS="$HOME/.config/gtk-4.0/libadwaita-matugen.css"
-        if [ ! -f "$LIBADW_CSS" ]; then
-          mkdir -p "$(dirname "$LIBADW_CSS")"
-          cat > "$LIBADW_CSS" << 'EOF'
-    /* Generated by matugen — do not edit manually. Seed values. */
-    window.background, .background { background-color: #1e1e2e; color: #cdd6f4; }
-    headerbar, .titlebar { background-color: #1e1e2e; color: #cdd6f4; }
-    EOF
-        fi
-  '';
-
-  # =========================================================================
-  # matugen config.toml
-  # =========================================================================
-  home.file.".config/matugen/config.toml" = {
-    force = true;
-    text = ''
-      # ===========================================================
-      # matugen configuration — Hyprland
-      # Generates Material You color themes from wallpaper images.
-      # Triggered by ~/.config/hypr/scripts/set-wallpaper.sh.
-      # Templates from: https://github.com/InioX/matugen-themes
-      # ===========================================================
-
-      [config]
-      mode        = "dark"
-      reload_apps = false
-
-      [templates.starship]
-      input_path  = "~/.config/matugen/templates/templates/starship-colors.toml"
-      output_path = "~/.config/starship-colors.toml"
-
-      [templates.gtk]
-      input_path  = "~/.config/matugen/templates/templates/gtk-colors.css"
-      output_path = "~/.config/gtk-4.0/colors.css"
-
-      [templates.gtk-libadwaita]
-      input_path  = "~/nixos-config/dotfiles/hypr/gtk-libadwaita.css.template"
-      output_path = "~/.config/gtk-4.0/libadwaita-matugen.css"
-
-      [templates.kitty]
-      input_path  = "~/.config/matugen/templates/templates/kitty-colors.conf"
-      output_path = "~/.config/kitty/colors.conf"
-      post_hook   = "pkill -USR1 kitty || true"
-
-      [templates.btop]
-      input_path  = "~/.config/matugen/templates/templates/btop.theme"
-      output_path = "~/.config/btop/themes/matugen.theme"
-      post_hook   = "mkdir -p ~/.config/btop/themes && sed -i 's/^color_theme = .*/color_theme = \"matugen\"/' ~/.config/btop/btop.conf 2>/dev/null || true"
-
-      [templates.zed]
-      input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
-      output_path = "~/.config/zed/themes/matugen.json"
-
-      [templates.waybar]
-      input_path  = "~/nixos-config/dotfiles/hypr/waybar/colors.css.template"
-      output_path = "~/.config/waybar/colors.css"
-      post_hook   = "[[ $(hyprctl -j activeworkspace 2>/dev/null | jq -r '.hasfullscreen') != \"true\" ]] && pkill -USR2 waybar || true"
-
-      [templates.nvim]
-      input_path  = "~/.config/matugen/templates/templates/nvim-colors.lua"
-      output_path = "~/.config/nvim/lua/utils/matugen-colors.lua"
-
-      [templates.wofi]
-      input_path  = "~/nixos-config/dotfiles/hypr/wofi/colors.css.template"
-      output_path = "~/.config/wofi/colors.css"
-
-      [templates.rofi-window]
-      input_path  = "~/nixos-config/dotfiles/hypr/rofi/window.rasi.template"
-      output_path = "~/.config/rofi/window.rasi"
-
-      [templates.hyprlock]
-      input_path  = "~/.config/matugen/templates/templates/hyprlock-colors.conf"
-      output_path = "~/.config/hypr/colors-hyprlock.conf"
-
-      [templates.swaync]
-      input_path  = "~/nixos-config/dotfiles/hypr/swaync/colors.css.template"
-      output_path = "~/.config/swaync/colors.css"
-      post_hook   = "pkill -USR2 swaync || true"
-
-      [templates.hyprland]
-      input_path  = "~/.config/matugen/templates/templates/hyprland-colors.conf"
-      output_path = "~/.config/hypr/colors.conf"
-      post_hook   = "PRIMARY=$(grep '^\\$primary ' ~/.config/hypr/colors.conf | awk '{print $3}') && TERTIARY=$(grep '^\\$tertiary ' ~/.config/hypr/colors.conf | awk '{print $3}') && OUTLINE=$(grep '^\\$outline_variant ' ~/.config/hypr/colors.conf | awk '{print $3}') && hyprctl keyword general:col.active_border \"$PRIMARY $TERTIARY 45deg\" && hyprctl keyword general:col.inactive_border \"$OUTLINE\" || true"
-
-      [templates.opencode]
-      input_path  = "~/.config/matugen/templates/templates/opencode-colors.json"
-      output_path = "~/.config/opencode/themes/matugen.json"
-
-    '';
-  };
 }
