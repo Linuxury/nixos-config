@@ -246,9 +246,6 @@
     # Obsidian vault — central location for all hosts + phone sync
     "d /data/obsidian                     0755 linuxury     users        -"
 
-    # CouchDB — Obsidian LiveSync backend
-    "d /data/couchdb                      0755 linuxury     users        -"
-    "d /data/couchdb-config               0755 linuxury     users        -"
   ];
 
   # =========================================================================
