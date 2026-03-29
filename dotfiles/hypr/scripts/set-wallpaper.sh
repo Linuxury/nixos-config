@@ -44,22 +44,14 @@ DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1 txt:- 2>/dev/null \
     | grep -oP '#[0-9a-fA-F]{6}' | head -1)
 
 if [ -n "$DOMINANT_HEX" ]; then
-    # Kill Nautilus before matugen writes new GTK CSS — GTK4's inotify watcher
-    # crashes Nautilus mid-reload if the file changes while it's running.
-    # Check for visible Nautilus windows via Hyprland — process may run as
-    # a background daemon with no windows, so pidof is not reliable here.
-    NAUTILUS_WAS_OPEN=false
-    hyprctl clients | grep -q "org.gnome.Nautilus" && NAUTILUS_WAS_OPEN=true
-    pkill nautilus 2>/dev/null || true
+    # Remove GTK4 colors.css before matugen runs — prevents Nautilus crash.
+    # GTK4's inotify watcher reloads CSS mid-write and crashes on partial
+    # content. Removing the file means Nautilus holds the old inode and
+    # doesn't see the new write. New colors apply on next Nautilus launch.
+    rm -f "$HOME/.config/gtk-4.0/colors.css" 2>/dev/null || true
 
     matugen color hex "$DOMINANT_HEX"
     echo "$WALLPAPER" > "$LAST_FILE"
-
-    # Reopen Nautilus if it was running before the wallpaper change
-    if [ "$NAUTILUS_WAS_OPEN" = "true" ]; then
-        sleep 0.3
-        nautilus &
-    fi
 else
     echo "set-wallpaper: failed to extract dominant color" >&2
 fi
