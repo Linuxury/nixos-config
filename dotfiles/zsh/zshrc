@@ -32,19 +32,19 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # Rebuild and switch to the current flake config.
 nr() {
   sudo -v
-  sudo nixos-rebuild switch --flake "$NIXOS_CONFIG" |& nom
+  sudo nixos-rebuild switch --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
 
 # Rebuild into boot (applies on next reboot, not immediately).
 nrb() {
   sudo -v
-  sudo nixos-rebuild boot --flake "$NIXOS_CONFIG" |& nom
+  sudo nixos-rebuild boot --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
 
 # Test rebuild — activates without touching the boot entry.
 nrt() {
   sudo -v
-  sudo nixos-rebuild test --flake "$NIXOS_CONFIG" |& nom
+  sudo nixos-rebuild test --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
 
 # Rebuild + pull latest nixpkgs before switching.
@@ -54,7 +54,7 @@ nru() {
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
   sudo -v
-  sudo nixos-rebuild switch --flake "$NIXOS_CONFIG" |& nom
+  sudo nixos-rebuild switch --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
 
 # ---------------------------------------------------------------------------
