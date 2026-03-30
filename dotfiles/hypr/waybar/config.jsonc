@@ -31,10 +31,11 @@
         "custom/weather",
         "custom/sep",
         "custom/volume",
-        "custom/sep",
+        "custom/sep-battery",
         "battery",
-        "custom/sep",
+        "custom/sep-battery",
         "custom/updates",
+        "custom/sep",
         "custom/notification",
         "custom/sep",
         "custom/layout",
@@ -146,7 +147,7 @@
         "exec": "~/.config/hypr/waybar/scripts/volume.sh",
         "interval": 2,
         "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-        "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+",
+        "on-scroll-up": "wpctl set-volume --limit 1.0 @DEFAULT_AUDIO_SINK@ 5%+",
         "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
     },
     "battery": {
@@ -218,6 +219,13 @@
     },
     "custom/sep": {
         "format": "|",
+        "interval": "once",
+        "tooltip": false
+    },
+    "custom/sep-battery": {
+        "format": "{}",
+        "exec": "echo '|'",
+        "exec-if": "test -d /sys/class/power_supply/BAT0 || test -d /sys/class/power_supply/BAT1",
         "interval": "once",
         "tooltip": false
     },

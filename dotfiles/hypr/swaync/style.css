@@ -295,8 +295,20 @@ blankwindow,
  * Volume widget — master + per-app
  * ----------------------------------------------------------------------- */
 .widget-volume {
-    margin:  4px 0;
+    margin:  4px 2px;
     padding: 4px 0;
+}
+
+/* Constrain inner box so the scale matches the visual width of other modules */
+.widget-volume > box {
+    padding-left:  16px;
+    padding-right: 16px;
+}
+
+/* Reset GTK4 default scale margins */
+.widget-volume scale {
+    margin:    0;
+    min-width: 0;
 }
 
 /* Per-app volume icon */
@@ -315,6 +327,7 @@ blankwindow,
     padding:          2px 10px;
     font-size:        12px;
     margin-top:       4px;
+    min-width:        80px;
 }
 
 .widget-volume > box > button:hover {
