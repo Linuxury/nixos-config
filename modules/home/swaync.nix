@@ -104,7 +104,7 @@ let
         expand-per-app        = false;
         empty-list-label      = "No active apps";
         expand-button-label   = "󰐕  Apps";
-        collapse-button-label = "󰐊  Collapse";
+        collapse-button-label = "󰐊  Done";
       };
 
       mpris = {
