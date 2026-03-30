@@ -18,6 +18,9 @@
 { pkgs, lib, ... }:
 
 {
+  # SSH agent — system-level, sets SSH_AUTH_SOCK via PAM for all login shells
+  programs.ssh.startAgent = true;
+
   # Starship — cross-shell prompt (system-level, all users)
   programs.starship.enable = true;
 
