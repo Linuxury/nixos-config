@@ -105,11 +105,12 @@
   # Extra directories
   # =========================================================================
   systemd.user.tmpfiles.rules = [
-    # ~/.ai runtime dirs — created locally, not synced (excluded via .stignore)
-    "d ${config.home.homeDirectory}/.ai                  0755 linuxury users -"
-    "d ${config.home.homeDirectory}/.ai/memory           0755 linuxury users -"
-    "d ${config.home.homeDirectory}/.ai/backups          0755 linuxury users -"
-    "d ${config.home.homeDirectory}/.ai/mcp-servers      0755 linuxury users -"
+    # ~/.agents runtime dirs — created locally, not synced (excluded via .stignore)
+    "d ${config.home.homeDirectory}/.agents                0755 linuxury users -"
+    "d ${config.home.homeDirectory}/.agents/memory         0755 linuxury users -"
+    "d ${config.home.homeDirectory}/.agents/backups        0755 linuxury users -"
+    "d ${config.home.homeDirectory}/.agents/mcp-servers    0755 linuxury users -"
+    "d ${config.home.homeDirectory}/.agents/skills         0755 linuxury users -"
 
     # Development workspace
     "d ${config.home.homeDirectory}/Projects              0755 linuxury users -"
@@ -182,20 +183,20 @@
     ".config/opencode/tui.json".source = ../../dotfiles/opencode/tui.json;
 
     # -----------------------------------------------------------------------
-    # AI config symlinks — source files live in ~/.ai, synced via Syncthing.
+    # AI config symlinks — source files live in ~/.agents, synced via Syncthing.
     # home-manager only creates the outbound symlinks; it never owns the files.
-    # On a fresh host: rebuild creates the symlinks, Syncthing populates ~/.ai.
+    # On a fresh host: rebuild creates the symlinks, Syncthing populates ~/.agents.
     # -----------------------------------------------------------------------
     "AGENTS.md".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.ai/AGENTS.md";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/AGENTS.md";
     "CLAUDE.md".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.ai/CLAUDE.md";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/CLAUDE.md";
     ".claude/settings.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.ai/claude-settings.json";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/claude-settings.json";
     ".claude/settings.local.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.ai/claude-settings.local.json";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/claude-settings.local.json";
     ".config/opencode/opencode.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.ai/opencode-settings.json";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/opencode-settings.json";
 
     # Nano — for quick root edits
     ".nanorc".source = ../../dotfiles/nano/.nanorc;

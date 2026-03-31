@@ -8,9 +8,9 @@
 #
 # Shared folders:
 #   ~/Obsidian  — vault: host updates, research, activity logs, projects
-#   ~/.ai       — AI config: AGENTS.md, CLAUDE.md, Claude/OpenCode settings,
+#   ~/.agents   — AI config: AGENTS.md, CLAUDE.md, Claude/OpenCode settings,
 #                 MCP config, and mcp-servers/ source code.
-#                 Runtime artifacts excluded via ~/.ai/.stignore:
+#                 Runtime artifacts excluded via ~/.agents/.stignore:
 #                   memory/, backups/, .venv, __pycache__, *.egg-info
 #
 # Git backup of Obsidian runs on Ryzen5900x only.
@@ -125,7 +125,7 @@
         "ai-config" = {
           id    = "ai-config";
           label = "AI Config";
-          path  = "/home/linuxury/.ai";
+          path  = "/home/linuxury/.agents";
           devices = [
             "Ryzen5900x"
             "ThinkPad"
