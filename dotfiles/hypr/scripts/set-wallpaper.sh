@@ -15,9 +15,29 @@ set -euo pipefail
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 LAST_FILE="$HOME/.local/share/last-matugen-wallpaper"
 
+# Parse flags — --force overrides the fullscreen game check
+FORCE=false
+WALLPAPER_PATH=""
+for arg in "$@"; do
+    case "$arg" in
+        --force) FORCE=true ;;
+        *)       WALLPAPER_PATH="$arg" ;;
+    esac
+done
+
+# Skip if fullscreen game is focused — swww transitions can steal focus
+# and cause games to minimize. Use --force flag to override.
+if [ "$FORCE" != true ]; then
+    FOCUSED=$(hyprctl activewindow -j 2>/dev/null || true)
+    if echo "$FOCUSED" | grep -q '"fullscreen": true'; then
+        echo "set-wallpaper: skipping — fullscreen window active (use --force to override)" >&2
+        exit 0
+    fi
+fi
+
 # Resolve wallpaper path
-if [ -n "${1-}" ]; then
-    WALLPAPER="$1"
+if [ -n "$WALLPAPER_PATH" ]; then
+    WALLPAPER="$WALLPAPER_PATH"
 else
     WALLPAPER=$(ls "$WALLPAPER_DIR"/*.{jpg,jpeg,png,webp} 2>/dev/null | shuf -n1 || true)
 fi
