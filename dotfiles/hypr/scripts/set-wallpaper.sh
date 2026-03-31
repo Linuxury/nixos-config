@@ -74,6 +74,11 @@ if [ -n "$DOMINANT_HEX" ]; then
 
     matugen color hex "$DOMINANT_HEX"
     echo "$WALLPAPER" > "$LAST_FILE"
+
+    # Expose current wallpaper to cosmic-greeter (can't read ~/Pictures/).
+    # Hardlink avoids copying data; falls back to cp if cross-filesystem.
+    ln -f "$WALLPAPER" /var/lib/wallpapers/current.jpg 2>/dev/null || \
+        cp -f "$WALLPAPER" /var/lib/wallpapers/current.jpg 2>/dev/null || true
 else
     echo "set-wallpaper: failed to extract dominant color" >&2
 fi
