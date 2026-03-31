@@ -225,6 +225,9 @@ in
 
     # Media key control — playerctl play/pause/next/prev keybinds
     playerctl
+
+    # IPC event listener — used by col-width-auto.sh to watch Hyprland socket events
+    socat
   ];
 
   # =========================================================================

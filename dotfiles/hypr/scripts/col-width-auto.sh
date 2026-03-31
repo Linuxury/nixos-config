@@ -12,7 +12,7 @@ set_col_width() {
 
     local layout ws_id
     layout=$(printf '%s' "$ws_json" | grep -oP '"tiledLayout":\s*"\K[^"]+')
-    ws_id=$(printf '%s'  "$ws_json" | grep -oP '"id":\K\d+' | head -1)
+    ws_id=$(printf '%s'  "$ws_json" | grep -oP '"id":\s*\K\d+' | head -1)
 
     [[ "$layout" != "scrolling" ]] && return
 
@@ -21,11 +21,32 @@ set_col_width() {
         jq --arg ws "$ws_id" \
            '[.[] | select(.workspace.id == ($ws|tonumber)) | select(.floating == false)] | length')
 
+    local ratio
     if [[ "$count" -le 1 ]]; then
-        hyprctl dispatch layoutmsg "colresize 0.67" >/dev/null 2>&1
+        ratio="0.67"
     else
-        hyprctl dispatch layoutmsg "colresize 0.50" >/dev/null 2>&1
+        ratio="0.50"
     fi
+
+    # Resize every tiled window on this workspace to the target ratio.
+    # colresize only affects the focused window, so we cycle focus through
+    # all tiled windows, resize each, then restore the original focus.
+    local focused_addr
+    focused_addr=$(hyprctl activewindow -j 2>/dev/null | grep -oP '"address":\s*"\K[^"]+')
+
+    local addresses
+    addresses=$(hyprctl clients -j 2>/dev/null | \
+        jq -r --arg ws "$ws_id" \
+           '[.[] | select(.workspace.id == ($ws|tonumber)) | select(.floating == false)] | .[].address')
+
+    while IFS= read -r addr; do
+        [[ -z "$addr" ]] && continue
+        hyprctl dispatch focuswindow "address:$addr" >/dev/null 2>&1
+        hyprctl dispatch layoutmsg "colresize $ratio" >/dev/null 2>&1
+    done <<< "$addresses"
+
+    # Restore original focus
+    [[ -n "$focused_addr" ]] && hyprctl dispatch focuswindow "address:$focused_addr" >/dev/null 2>&1
 }
 
 socat -U - "UNIX-CONNECT:${XDG_RUNTIME_DIR}/hypr/${HYPRLAND_INSTANCE_SIGNATURE}/.socket2.sock" | \
