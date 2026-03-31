@@ -277,5 +277,44 @@ in
   services.gnome.tinysparql.enable = true;
   services.gnome.localsearch.enable = true;
 
+  # =========================================================================
+  # Greeter wallpaper sync
+  #
+  # Problem: cosmic-greeter runs as its own user and can't read files under
+  # /home/linuxury/, so it always shows a stale/hardcoded wallpaper.
+  #
+  # Solution:
+  #   1. set-wallpaper.sh hardlinks the chosen wallpaper to
+  #      /var/lib/wallpapers/current.jpg (world-readable, no sudo needed
+  #      since linuxury owns the directory).
+  #   2. A systemd path unit detects the change.
+  #   3. A root service writes the COSMIC RON config into the greeter's
+  #      home, so it displays the same wallpaper at the login screen.
+  # =========================================================================
+  systemd.tmpfiles.rules = [
+    "d /var/lib/wallpapers 0755 linuxury users -"
+  ];
+
+  systemd.paths.sync-greeter-wallpaper = {
+    description = "Watch current wallpaper and sync to cosmic-greeter";
+    wantedBy    = [ "multi-user.target" ];
+    pathConfig.PathChanged = "/var/lib/wallpapers/current.jpg";
+  };
+
+  systemd.services.sync-greeter-wallpaper = {
+    description = "Sync cosmic-greeter background to current wallpaper";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      WALLPAPER="/var/lib/wallpapers/current.jpg"
+      GREETER_BG_DIR="/var/lib/cosmic-greeter/.config/cosmic/com.system76.CosmicBackground/v1"
+      [ -f "$WALLPAPER" ] || exit 0
+      mkdir -p "$GREETER_BG_DIR"
+      printf 'true' > "$GREETER_BG_DIR/same-on-all"
+      printf '(\n    output: "all",\n    source: Path("%s"),\n    filter_by_theme: false,\n    rotation_frequency: 0,\n    filter_method: Lanczos,\n    scaling_mode: Zoom,\n    sampling_method: Alphanumeric,\n)\n' \
+        "$WALLPAPER" > "$GREETER_BG_DIR/all"
+      chown -R cosmic-greeter:cosmic-greeter "$GREETER_BG_DIR"
+    '';
+  };
+
   }; # end config
 }
