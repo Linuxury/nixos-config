@@ -57,5 +57,9 @@
     [templates.wofi]
     input_path = "/home/linuxury/nixos-config/dotfiles/hypr/wofi/colors.css.template"
     output_path = "/home/linuxury/.config/wofi/colors.css"
+
+    [templates.hyprlock]
+    input_path = "/home/linuxury/.config/matugen/templates/templates/hyprlock-colors.conf"
+    output_path = "/home/linuxury/.config/hypr/colors-hyprlock.conf"
   '';
 }

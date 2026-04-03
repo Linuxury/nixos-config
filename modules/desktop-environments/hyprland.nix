@@ -303,16 +303,20 @@ in
 
   systemd.services.sync-greeter-wallpaper = {
     description = "Sync cosmic-greeter background to current wallpaper";
-    serviceConfig.Type = "oneshot";
+    wantedBy    = [ "multi-user.target" ];
+    after       = [ "systemd-tmpfiles-setup.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ConditionPathExists = "/var/lib/wallpapers/current.jpg";
+    };
     script = ''
       WALLPAPER="/var/lib/wallpapers/current.jpg"
       GREETER_BG_DIR="/var/lib/cosmic-greeter/.config/cosmic/com.system76.CosmicBackground/v1"
-      [ -f "$WALLPAPER" ] || exit 0
       mkdir -p "$GREETER_BG_DIR"
       printf 'true' > "$GREETER_BG_DIR/same-on-all"
       printf '(\n    output: "all",\n    source: Path("%s"),\n    filter_by_theme: false,\n    rotation_frequency: 0,\n    filter_method: Lanczos,\n    scaling_mode: Zoom,\n    sampling_method: Alphanumeric,\n)\n' \
         "$WALLPAPER" > "$GREETER_BG_DIR/all"
-      chown -R cosmic-greeter:cosmic-greeter "$GREETER_BG_DIR"
+      chown -R cosmic-greeter:cosmic-greeter /var/lib/cosmic-greeter/.config
     '';
   };
 

@@ -66,7 +66,7 @@ in
   age.secrets.smtp-app-password = {
     file = ../../secrets/smtp-app-password.age;
     mode = "0400";
-    owner = "root";
+    owner = "linuxury"; # notify-vault@ runs as linuxury — must be able to read this
   };
 
   # =========================================================================
@@ -100,13 +100,20 @@ in
   # =========================================================================
   systemd.services."notify-vault@" = {
     description = "Write update notification to Obsidian vault (%i)";
+    # These packages are not in the minimal system service PATH — must be explicit
+    path = with pkgs; [ hostname coreutils gnugrep gnused gawk nix msmtp libnotify curl ];
     serviceConfig = {
       Type      = "oneshot";
       User      = "linuxury";
       Group     = "users";
       ExecStart = "${pkgs.bash}/bin/bash ${notifyScript} %i /var/log/nixos-auto-update.log";
-      # Desktop notification needs runtime dir for notify-send
-      Environment = [ "XDG_RUNTIME_DIR=/run/user/1000" ];
+      # notify-send needs XDG_RUNTIME_DIR + D-Bus session socket
+      # msmtp needs HOME to find its config (set by agenix owner change)
+      Environment = [
+        "XDG_RUNTIME_DIR=/run/user/1000"
+        "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
+        "HOME=/home/linuxury"
+      ];
     };
   };
 
@@ -121,13 +128,14 @@ in
   systemd.services.nixos-upgrade.onFailure = [ "notify-vault@failure.service" ];
 
   # =========================================================================
-  # Last update timestamp tracking
+  # Update log file — pre-created with linuxury ownership
   #
-  # Every time a successful update runs we write the current timestamp
-  # to this file. The session-start service reads it to decide whether
-  # an update is needed.
+  # The auto-update script runs as linuxury (user service) and writes to this
+  # log. /var/log/ is root-owned so we use tmpfiles to create it up front.
   # =========================================================================
-  environment.etc."nixos-last-update".text = "";
+  systemd.tmpfiles.rules = [
+    "f /var/log/nixos-auto-update.log 0640 linuxury users -"
+  ];
 
   # =========================================================================
   # Update script
@@ -230,18 +238,26 @@ in
       if [ "$FORCE" = true ]; then
         log "Force flag set — bypassing 7-day check"
       elif ! needs_update; then
-        exit 0
+        exit 2  # 2 = no update needed (not an error, not a success)
       fi
 
       log "Starting NixOS system update..."
 
-      # Notify user that update is starting
+      # Push notification — "starting" (low priority, no wake-up)
+      curl -s --max-time 10 \
+        -H "Title: Update Starting — $HOSTNAME" \
+        -H "Priority: low" \
+        -H "Tags: arrows_counterclockwise" \
+        -d "Fetching latest config and rebuilding... $(date '+%H:%M')" \
+        "http://media-server:2586/nixos-updates" 2>/dev/null || true
+
+      # Local desktop toast — update starting
       notify-send \
         --app-name "NixOS Update" \
         --icon "system-software-update" \
         --urgency normal \
         "NixOS Update Starting" \
-        "Updating flake inputs and rebuilding system in the background..." 2>/dev/null || true
+        "Rebuilding system in the background..." 2>/dev/null || true
 
       # -----------------------------------------------------------------------
       # Dry-build first — catches eval errors without applying anything
@@ -254,30 +270,9 @@ in
       log "Dry-build passed — proceeding with update"
 
       # -----------------------------------------------------------------------
-      # Update flake inputs
-      # -----------------------------------------------------------------------
-      log "Updating flake inputs..."
-      if ! sudo nix flake update "$FLAKE" >> "$LOG_FILE" 2>&1; then
-        log "ERROR: flake update failed"
-
-        # Retry on transient errors
-        if is_transient_error; then
-          log "Transient error detected — retrying flake update in 5 minutes..."
-          sleep 300
-          log "Retrying flake update..."
-          if sudo nix flake update "$FLAKE" >> "$LOG_FILE" 2>&1; then
-            log "Flake update succeeded on retry"
-          else
-            log "ERROR: flake update failed again after retry"
-            exit 1
-          fi
-        else
-          exit 1
-        fi
-      fi
-
-      # -----------------------------------------------------------------------
       # Rebuild system
+      # (nixos-rebuild switch --flake github:... fetches the latest commit
+      # automatically — no separate flake update step needed for remote flakes)
       # -----------------------------------------------------------------------
       log "Running nixos-rebuild switch..."
       if ! sudo nixos-rebuild switch --flake "$FLAKE#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
@@ -363,13 +358,19 @@ in
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 120";
       # Run update, then route notification through notify-vault@ service
       # (runs as linuxury regardless of which user is logged in)
-      ExecStart = "${pkgs.bash}/bin/bash -c 'nixos-auto-update; OUTCOME=$?; if [ $OUTCOME -eq 0 ]; then sudo systemctl start notify-vault@success.service; else sudo systemctl start notify-vault@failure.service; fi'";
+      # Exit codes: 0=updated, 1=failed, 2=no update needed (skip notification)
+      ExecStart = "${pkgs.bash}/bin/bash -c 'nixos-auto-update; OUTCOME=$?; if [ $OUTCOME -eq 0 ]; then sudo systemctl start notify-vault@success.service; elif [ $OUTCOME -eq 1 ]; then sudo systemctl start notify-vault@failure.service; fi'";
 
       # Don't restart if it fails — wait for next session
       Restart     = "no";
 
       # Give it enough time to complete a full update
       TimeoutStartSec = "1h";
+
+      # /run/wrappers/bin is where NixOS puts the setuid sudo wrapper.
+      # /run/current-system/sw/bin has everything in systemPackages (incl. curl).
+      # User systemd services do not get these by default — must be explicit.
+      Environment = [ "PATH=/run/wrappers/bin:/run/current-system/sw/bin" ];
     };
 
     # Only run once per session, not on every restart

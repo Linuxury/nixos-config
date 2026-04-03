@@ -27,6 +27,7 @@
     ../../modules/base/server-shell.nix
     ../../modules/hardware/drivers.nix
     ../../modules/services/samba.nix
+    ../../modules/services/ntfy.nix
     ./freshrss.nix
     ../../modules/base/syncthing.nix
     ../../modules/base/ai-tools.nix
