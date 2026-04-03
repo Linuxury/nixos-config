@@ -39,7 +39,9 @@ mkdir -p "$VAULT/04 ⏳ Pending" "$VAULT/05 📋 Activity Log" 2>/dev/null || tr
 # NixOS generation info
 # ---------------------------------------------------------------------------
 get_generation() {
-  nixos-rebuild list-generations 2>/dev/null | tail -1 | awk '{print $1}' || echo "unknown"
+  # Read the active system profile symlink directly — reliable, no parsing needed.
+  # /nix/var/nix/profiles/system -> system-285-link  →  extracts "285"
+  readlink /nix/var/nix/profiles/system 2>/dev/null | grep -oP 'system-\K\d+' || echo "unknown"
 }
 
 get_previous_generation() {
@@ -68,7 +70,8 @@ get_diff_summary() {
   local curr_profile="/run/current-system"
 
   if [ -e "$prev_profile" ] && [ -e "$curr_profile" ]; then
-    nix store diff-closures "$prev_profile" "$curr_profile" 2>/dev/null | tail -20 || echo "diff unavailable"
+    nix store diff-closures "$prev_profile" "$curr_profile" 2>/dev/null | \
+      tail -20 | sed 's/\x1b\[[0-9;]*m//g' || echo "diff unavailable"
   else
     echo "N/A"
   fi
@@ -144,6 +147,60 @@ parse_error() {
     echo ""
     echo "$log_content" | tail -10
   fi
+}
+
+# ---------------------------------------------------------------------------
+# Parse rename/deprecation warnings from rebuild output
+# NixOS emits these when an option or package has been renamed upstream.
+# They appear even on successful rebuilds — catch them on both paths.
+# ---------------------------------------------------------------------------
+parse_rename_warnings() {
+  grep -iE \
+    "warning:.*has been renamed|warning:.*renamed to|warning:.*deprecated|warning:.*no longer supported|warning:.*has been removed" \
+    "$LOG_FILE" 2>/dev/null || true
+}
+
+# ---------------------------------------------------------------------------
+# Write Obsidian pending item for rename/deprecation warnings
+# The AI will see this at next session start and fix the option names.
+# ---------------------------------------------------------------------------
+write_obsidian_rename_warning() {
+  local warnings="$1"
+  local pending_file="$VAULT/04 ⏳ Pending/nixos-rename-warning-${HOSTNAME}-${DATE}.md"
+
+  cat > "$pending_file" << EOF
+---
+type: pending
+date: ${DATE}
+status: pending
+priority: medium
+tags: [pending, nixos-config, rename-warning]
+project: NixOS-Config
+---
+
+# NixOS Option Rename Warning — ${HOSTNAME} — ${DATE}
+
+One or more option or package rename warnings were detected during rebuild on **${HOSTNAME}**.
+The nixos-config must be updated to use the new names before the old ones are removed upstream.
+
+## Warnings detected
+
+\`\`\`
+${warnings}
+\`\`\`
+
+## What to do
+- [ ] Find each affected option in \`~/nixos-config/\`
+- [ ] Rename to the new option name shown in the warning
+- [ ] Run \`nixos-rebuild dry-build --flake .#${HOSTNAME}\` to verify no errors
+- [ ] Commit and push so all hosts pick up the fix on next update
+
+## Context
+- **Host:** ${HOSTNAME}
+- **Date:** ${DATE}
+- **Rebuild outcome:** ${OUTCOME}
+- **Project:** \`07 🚀 Projects/NixOS-Config.md\`
+EOF
 }
 
 # ---------------------------------------------------------------------------
@@ -285,6 +342,36 @@ send_desktop_notification() {
 }
 
 # ---------------------------------------------------------------------------
+# Push notification via self-hosted ntfy (media-server:2586)
+#
+# All hosts send to the same topic — subscribe once on phone/desktop.
+# Phone: install ntfy app → set server to http://<media-server-tailscale-ip>:2586
+#        → subscribe to topic: nixos-updates
+# Desktop: http://media-server:2586 → subscribe to nixos-updates
+#
+# Priority levels: min low default high urgent
+# Tag names: https://docs.ntfy.sh/emojis/
+# ---------------------------------------------------------------------------
+NTFY_URL="http://media-server:2586/nixos-updates"
+
+send_ntfy() {
+  local title="$1"
+  local message="$2"
+  local priority="${3:-default}"
+  local tags="${4:-}"
+
+  local curl_args=(
+    -s --max-time 10
+    -H "Title: ${title}"
+    -H "Priority: ${priority}"
+    -d "${message}"
+  )
+  [ -n "$tags" ] && curl_args+=( -H "Tags: ${tags}" )
+
+  curl "${curl_args[@]}" "$NTFY_URL" 2>/dev/null || true
+}
+
+# ---------------------------------------------------------------------------
 # Email notification (msmtp — failure only)
 # ---------------------------------------------------------------------------
 send_email() {
@@ -354,7 +441,21 @@ case "$OUTCOME" in
     # Obsidian log
     write_obsidian_log "success" 2>/dev/null || echo "WARNING: Failed to write Obsidian log" >&2
 
-    # Desktop notification
+    # Rename warnings — appear even on successful rebuilds
+    RENAME_WARNINGS=$(parse_rename_warnings)
+    if [ -n "$RENAME_WARNINGS" ]; then
+      write_obsidian_rename_warning "$RENAME_WARNINGS" 2>/dev/null || \
+        echo "WARNING: Failed to write rename warning pending" >&2
+    fi
+
+    # Push notification (all hosts — reaches phone + desktop)
+    send_ntfy \
+      "Update Complete — ${HOSTNAME}" \
+      "Generation ${GENERATION} (was ${PREV_GENERATION}) | ${DATETIME}" \
+      "default" \
+      "white_check_mark"
+
+    # Desktop notification (local machine only)
     send_desktop_notification \
       "Update Complete" \
       "Host: ${HOSTNAME} | Generation ${GENERATION}\n${DATETIME}" \
@@ -368,12 +469,26 @@ case "$OUTCOME" in
     write_obsidian_log "failed" 2>/dev/null || echo "WARNING: Failed to write Obsidian log" >&2
     write_obsidian_pending 2>/dev/null || echo "WARNING: Failed to write Obsidian pending" >&2
 
+    # Rename warnings — may appear even on failures (partial eval before error)
+    RENAME_WARNINGS=$(parse_rename_warnings)
+    if [ -n "$RENAME_WARNINGS" ]; then
+      write_obsidian_rename_warning "$RENAME_WARNINGS" 2>/dev/null || \
+        echo "WARNING: Failed to write rename warning pending" >&2
+    fi
+
     # Parse error for notification
     local_error_info=$(parse_error)
     local_error_type=$(echo "$local_error_info" | head -1)
     local_error_summary=$(echo "$local_error_info" | sed -n '2p')
 
-    # Desktop notification
+    # Push notification (urgent — reaches phone + desktop from any host)
+    send_ntfy \
+      "Update FAILED — ${HOSTNAME}" \
+      "${local_error_type}: ${local_error_summary} | ${DATETIME}" \
+      "urgent" \
+      "x,warning"
+
+    # Desktop notification (local machine only)
     send_desktop_notification \
       "Update Failed" \
       "Host: ${HOSTNAME} | ${local_error_type}\n${local_error_summary}" \
