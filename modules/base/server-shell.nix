@@ -108,7 +108,7 @@
             -H "Title: Reboot Required — $(hostname)" \
             -H "Priority: high" \
             -H "Tags: warning,arrows_counterclockwise" \
-            -d "Kernel updated (${installed_kernel}). Reboot when convenient." \
+            -d "Kernel updated (''${installed_kernel}). Reboot when convenient." \
             "http://media-server:2586/nixos-updates" 2>/dev/null || true
           echo "⚠ Reboot required — kernel updated to $installed_kernel"
         fi
