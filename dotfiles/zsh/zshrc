@@ -51,6 +51,7 @@ nrt() {
 # Pulls latest git changes first so the build always reflects what's in the repo.
 nru() {
   echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+  git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
   sudo -v
