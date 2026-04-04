@@ -96,6 +96,7 @@
       # Rebuild + update nixpkgs flake input before switching
       nru() {
         echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+        git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
         git -C "$NIXOS_CONFIG" pull || return 1
         sudo nixos-rebuild switch --flake "$NIXOS_CONFIG" --update-input nixpkgs --print-build-logs
       }
