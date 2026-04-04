@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-# set-wallpaper.sh — Set wallpaper with swww and trigger matugen theming
+# set-wallpaper.sh — Set wallpaper with awww and trigger matugen theming
 #
 # Usage:
 #   set-wallpaper.sh [path]   — set specific wallpaper
@@ -25,7 +25,7 @@ for arg in "$@"; do
     esac
 done
 
-# Skip if fullscreen game is focused — swww transitions can steal focus
+# Skip if fullscreen game is focused — awww transitions can steal focus
 # and cause games to minimize. Use --force flag to override.
 if [ "$FORCE" != true ]; then
     FOCUSED=$(hyprctl activewindow -j 2>/dev/null || true)
@@ -45,11 +45,11 @@ fi
 [ -z "$WALLPAPER" ] && { echo "set-wallpaper: no wallpaper found in $WALLPAPER_DIR" >&2; exit 1; }
 [ -f "$WALLPAPER" ] || { echo "set-wallpaper: file not found: $WALLPAPER" >&2; exit 1; }
 
-# Set wallpaper via swww with random transition
+# Set wallpaper via awww with random transition
 TRANSITIONS=(grow fade center outer left right top bottom wipe any random)
 TRANSITION=$(shuf -n1 -e "${TRANSITIONS[@]}")
 
-swww img "$WALLPAPER" \
+awww img "$WALLPAPER" \
     --transition-type  "$TRANSITION" \
     --transition-fps   60 \
     --transition-duration 0.8
