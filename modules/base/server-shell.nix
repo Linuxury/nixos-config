@@ -99,6 +99,19 @@
         git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
         git -C "$NIXOS_CONFIG" pull || return 1
         sudo nixos-rebuild switch --flake "$NIXOS_CONFIG" --update-input nixpkgs --print-build-logs
+        # Notify if a kernel update requires a reboot
+        local current_kernel installed_kernel
+        current_kernel=$(uname -r)
+        installed_kernel=$(ls /run/current-system/kernel-modules/lib/modules/ 2>/dev/null | head -1)
+        if [[ -n "$installed_kernel" && "$current_kernel" != "$installed_kernel" ]]; then
+          curl -s --max-time 10 \
+            -H "Title: Reboot Required — $(hostname)" \
+            -H "Priority: high" \
+            -H "Tags: warning,arrows_counterclockwise" \
+            -d "Kernel updated (${installed_kernel}). Reboot when convenient." \
+            "http://media-server:2586/nixos-updates" 2>/dev/null || true
+          echo "⚠ Reboot required — kernel updated to $installed_kernel"
+        fi
       }
     '';
   };
