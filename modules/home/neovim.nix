@@ -85,7 +85,7 @@
 
     # Web
     vscode-langservers-extracted # cssls + htmlls
-    nodePackages.typescript-language-server # ts_ls
+    typescript-language-server # ts_ls
     tailwindcss-language-server # tailwindcss
 
     # Python

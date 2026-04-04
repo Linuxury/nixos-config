@@ -184,6 +184,17 @@
             # runs as part of nixos-rebuild, keeping everything in sync
             home-manager.nixosModules.home-manager
 
+            # Pin claude-code to 2.1.86 — 2.1.88 was pushed to nixpkgs-unstable but
+            # removed from npm (404). Remove this overlay once nixpkgs carries a
+            # version that downloads successfully.
+            {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  claude-code = prev.callPackage ./pkgs/claude-code/package.nix {};
+                })
+              ];
+            }
+
             # Home Manager settings that apply to all hosts
             {
               home-manager = {
