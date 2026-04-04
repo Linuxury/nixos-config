@@ -318,7 +318,14 @@ in
       # Check if reboot is required
       if reboot_required; then
         log "Kernel update detected — reboot required"
-        # Persistent notification — stays until dismissed
+        # Push notification (reaches phone + all subscribers)
+        curl -s --max-time 10 \
+          -H "Title: Reboot Required — $HOSTNAME" \
+          -H "Priority: high" \
+          -H "Tags: warning,arrows_counterclockwise" \
+          -d "Kernel updated. Reboot when convenient. $(date '+%H:%M')" \
+          "http://media-server:2586/nixos-updates" 2>/dev/null || true
+        # Persistent local toast — stays until dismissed
         notify-send \
           --app-name "NixOS Update" \
           --icon "system-reboot" \
