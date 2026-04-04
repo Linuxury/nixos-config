@@ -164,7 +164,7 @@ in
     libnotify               # notify-send — sends notifications from scripts/apps
 
     # Wallpaper
-    swww            # Animated wallpaper daemon (swww-daemon + swww img)
+    awww            # Animated wallpaper daemon (awww-daemon + awww img) — formerly swww
 
     # Screenshots
     grim            # Screenshot tool for Wayland
@@ -305,10 +305,8 @@ in
     description = "Sync cosmic-greeter background to current wallpaper";
     wantedBy    = [ "multi-user.target" ];
     after       = [ "systemd-tmpfiles-setup.service" ];
-    serviceConfig = {
-      Type = "oneshot";
-      ConditionPathExists = "/var/lib/wallpapers/current.jpg";
-    };
+    unitConfig.ConditionPathExists = "/var/lib/wallpapers/current.jpg";
+    serviceConfig.Type = "oneshot";
     script = ''
       WALLPAPER="/var/lib/wallpapers/current.jpg"
       GREETER_BG_DIR="/var/lib/cosmic-greeter/.config/cosmic/com.system76.CosmicBackground/v1"
@@ -317,6 +315,9 @@ in
       printf '(\n    output: "all",\n    source: Path("%s"),\n    filter_by_theme: false,\n    rotation_frequency: 0,\n    filter_method: Lanczos,\n    scaling_mode: Zoom,\n    sampling_method: Alphanumeric,\n)\n' \
         "$WALLPAPER" > "$GREETER_BG_DIR/all"
       chown -R cosmic-greeter:cosmic-greeter /var/lib/cosmic-greeter/.config
+      # Restart daemon so it picks up the new wallpaper immediately
+      # (daemon reads config once at boot — restart makes it re-read)
+      systemctl restart cosmic-greeter-daemon.service
     '';
   };
 

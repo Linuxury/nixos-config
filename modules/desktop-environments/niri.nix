@@ -77,7 +77,7 @@
     libnotify               # notify-send — sends notifications from scripts/apps
 
     # Wallpaper
-    swww               # Works well with Niri
+    awww               # Works well with Niri — formerly swww
 
     # Screenshots
     grim
