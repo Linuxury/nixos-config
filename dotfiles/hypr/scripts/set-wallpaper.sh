@@ -66,12 +66,6 @@ DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1 txt:- 2>/dev/null \
     | grep -oP '#[0-9a-fA-F]{6}' | head -1)
 
 if [ -n "$DOMINANT_HEX" ]; then
-    # Remove GTK4 colors.css before matugen runs — prevents Nautilus crash.
-    # GTK4's inotify watcher reloads CSS mid-write and crashes on partial
-    # content. Removing the file means Nautilus holds the old inode and
-    # doesn't see the new write. New colors apply on next Nautilus launch.
-    rm -f "$HOME/.config/gtk-4.0/colors.css" 2>/dev/null || true
-
     matugen color hex "$DOMINANT_HEX"
     echo "$WALLPAPER" > "$LAST_FILE"
 

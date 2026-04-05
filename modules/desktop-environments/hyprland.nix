@@ -315,9 +315,6 @@ in
       printf '(\n    output: "all",\n    source: Path("%s"),\n    filter_by_theme: false,\n    rotation_frequency: 0,\n    filter_method: Lanczos,\n    scaling_mode: Zoom,\n    sampling_method: Alphanumeric,\n)\n' \
         "$WALLPAPER" > "$GREETER_BG_DIR/all"
       chown -R cosmic-greeter:cosmic-greeter /var/lib/cosmic-greeter/.config
-      # Restart daemon so it picks up the new wallpaper immediately
-      # (daemon reads config once at boot — restart makes it re-read)
-      systemctl restart cosmic-greeter-daemon.service
     '';
   };
 

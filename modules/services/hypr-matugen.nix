@@ -44,11 +44,13 @@
 
     [templates.gtk]
     input_path = "/home/linuxury/.config/matugen/templates/templates/gtk-colors.css"
-    output_path = "/home/linuxury/.config/gtk-4.0/colors.css"
+    output_path = "/home/linuxury/.config/gtk-4.0/colors.css.new"
+    post_hook = "mv -f /home/linuxury/.config/gtk-4.0/colors.css.new /home/linuxury/.config/gtk-4.0/colors.css"
 
     [templates.gtk-libadwaita]
     input_path = "/home/linuxury/nixos-config/dotfiles/hypr/gtk-libadwaita.css.template"
-    output_path = "/home/linuxury/.config/gtk-4.0/libadwaita-matugen.css"
+    output_path = "/home/linuxury/.config/gtk-4.0/libadwaita-matugen.css.new"
+    post_hook = "mv -f /home/linuxury/.config/gtk-4.0/libadwaita-matugen.css.new /home/linuxury/.config/gtk-4.0/libadwaita-matugen.css"
 
     [templates.rofi-window]
     input_path = "/home/linuxury/nixos-config/dotfiles/hypr/rofi/window.rasi.template"
