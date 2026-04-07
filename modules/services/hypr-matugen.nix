@@ -30,7 +30,7 @@
     [templates.swaync]
     input_path = "/home/linuxury/nixos-config/dotfiles/hypr/swaync/colors.css.template"
     output_path = "/home/linuxury/.config/swaync/colors.css"
-    post_hook = "pkill swaync || true; swaync"
+    post_hook = "swaync-client --reload-css || true"
 
     [templates.hyprland]
     input_path = "/home/linuxury/.config/matugen/templates/templates/hyprland-colors.conf"

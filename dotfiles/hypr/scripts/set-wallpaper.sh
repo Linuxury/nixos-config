@@ -14,6 +14,9 @@ set -euo pipefail
 
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 LAST_FILE="$HOME/.local/share/last-matugen-wallpaper"
+LOG="$HOME/.local/share/wallpaper-rotate.log"
+
+log() { echo "[$(date '+%H:%M:%S')] $*" >> "$LOG"; }
 
 # Parse flags — --force overrides the fullscreen game check
 FORCE=false
@@ -25,12 +28,12 @@ for arg in "$@"; do
     esac
 done
 
-# Skip if fullscreen game is focused — awww transitions can steal focus
-# and cause games to minimize. Use --force flag to override.
+# Skip if ANY window is fullscreen — awww transitions can steal GPU/focus
+# and cause games or apps to close. Use --force flag to override.
+# Note: Hyprland reports fullscreen as an integer (0/1/2), not a boolean.
 if [ "$FORCE" != true ]; then
-    FOCUSED=$(hyprctl activewindow -j 2>/dev/null || true)
-    if echo "$FOCUSED" | grep -q '"fullscreen": true'; then
-        echo "set-wallpaper: skipping — fullscreen window active (use --force to override)" >&2
+    if hyprctl clients -j 2>/dev/null | grep -qP '"fullscreen":\s*[1-9]'; then
+        log "SKIP fullscreen active"
         exit 0
     fi
 fi
@@ -54,27 +57,43 @@ awww img "$WALLPAPER" \
     --transition-fps   60 \
     --transition-duration 0.8
 
-# Skip matugen if same wallpaper was already processed
+# Skip matugen if same wallpaper was already processed.
+# Compare by inode (not path) — ~/Pictures/Wallpapers is a symlink to
+# ~/nixos-config/assets/Wallpapers/<dir>, so awww may report a different
+# path than what we passed in, even for the same file.
 LAST=$(cat "$LAST_FILE" 2>/dev/null || true)
-if [ "$LAST" = "$WALLPAPER" ]; then
+same_file() {
+    [ -f "$1" ] && [ -f "$2" ] && \
+    [ "$(stat -c '%d:%i' "$1" 2>/dev/null)" = "$(stat -c '%d:%i' "$2" 2>/dev/null)" ]
+}
+if same_file "$WALLPAPER" "$LAST"; then
+    log "SKIP same file: $(basename "$WALLPAPER")"
     exit 0
 fi
+log "RUN matugen: $(basename "$WALLPAPER") (last: $(basename "$LAST"))"
 
 # Extract dominant color — workaround for matugen 4.x "not a terminal" bug
-# matugen image fails, so we use imagemagick to get the dominant color
+# matugen image fails, so we use imagemagick to get the dominant color.
+# The || DOMINANT_HEX="" prevents set -e from exiting when grep finds no
+# match (pipefail causes a non-zero exit even though convert succeeded).
 DOMINANT_HEX=$(convert "$WALLPAPER" -resize 1x1 txt:- 2>/dev/null \
-    | grep -oP '#[0-9a-fA-F]{6}' | head -1)
+    | grep -oP '#[0-9a-fA-F]{6}' | head -1) || DOMINANT_HEX=""
 
 if [ -n "$DOMINANT_HEX" ]; then
-    matugen color hex "$DOMINANT_HEX"
+    log "COLOR #$DOMINANT_HEX"
+    # Record wallpaper before running matugen so that if matugen fails,
+    # set -e doesn't leave LAST_FILE pointing at a previous wallpaper and
+    # cause every subsequent rotation to re-attempt (and fail) forever.
     echo "$WALLPAPER" > "$LAST_FILE"
+    matugen color hex "$DOMINANT_HEX" || log "WARN matugen failed"
 
     # Expose current wallpaper to cosmic-greeter (can't read ~/Pictures/).
     # Hardlink avoids copying data; falls back to cp if cross-filesystem.
     ln -f "$WALLPAPER" /var/lib/wallpapers/current.jpg 2>/dev/null || \
         cp -f "$WALLPAPER" /var/lib/wallpapers/current.jpg 2>/dev/null || true
+    log "DONE"
 else
-    echo "set-wallpaper: failed to extract dominant color" >&2
+    log "WARN no dominant color extracted from $WALLPAPER"
 fi
 
 # NOTE: waybar reload is handled by matugen's post_hook in config.toml
