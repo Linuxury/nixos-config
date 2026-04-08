@@ -228,6 +228,14 @@ in
 
     # IPC event listener — used by col-width-auto.sh to watch Hyprland socket events
     socat
+
+    # AGS — wallpaper rotation daemon (wallpaper-service.ts)
+    # Replaces the bash wallpaper-rotate.sh + startup set-wallpaper.sh call.
+    # astal.hyprland: native Hyprland IPC for fullscreen window detection.
+    # astal.io: core Astal I/O library (subprocess, file watching).
+    (pkgs.ags.override {
+      extraPackages = with pkgs.astal; [ io hyprland ];
+    })
   ];
 
   # =========================================================================

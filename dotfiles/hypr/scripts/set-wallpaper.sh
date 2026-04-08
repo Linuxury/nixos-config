@@ -49,7 +49,7 @@ fi
 [ -f "$WALLPAPER" ] || { echo "set-wallpaper: file not found: $WALLPAPER" >&2; exit 1; }
 
 # Set wallpaper via awww with random transition
-TRANSITIONS=(grow fade center outer left right top bottom wipe any random)
+TRANSITIONS=(fade left right top bottom wipe)
 TRANSITION=$(shuf -n1 -e "${TRANSITIONS[@]}")
 
 awww img "$WALLPAPER" \
