@@ -14,7 +14,7 @@ set -euo pipefail
 
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 LAST_FILE="$HOME/.local/share/last-matugen-wallpaper"
-LOG="$HOME/.local/share/wallpaper-rotate.log"
+LOG="$HOME/.local/share/wallpaper-service.log"
 
 log() { echo "[$(date '+%H:%M:%S')] $*" >> "$LOG"; }
 

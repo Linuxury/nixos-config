@@ -230,7 +230,6 @@ in
     socat
 
     # AGS — wallpaper rotation daemon (wallpaper-service.ts)
-    # Replaces the bash wallpaper-rotate.sh + startup set-wallpaper.sh call.
     # astal.hyprland: native Hyprland IPC for fullscreen window detection.
     # astal.io: core Astal I/O library (subprocess, file watching).
     (pkgs.ags.override {

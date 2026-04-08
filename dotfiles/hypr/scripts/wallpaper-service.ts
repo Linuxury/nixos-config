@@ -1,7 +1,6 @@
 // =============================================================================
 // wallpaper-service.ts — AGS wallpaper rotation + matugen daemon
 //
-// Replaces wallpaper-rotate.sh and the startup set-wallpaper.sh call.
 // Uses native astal-hyprland for fullscreen detection instead of parsing JSON.
 // Uses only gentle transitions — grow/outer/center caused GPU spikes that
 // crashed apps (Steam, games, Firefox).
