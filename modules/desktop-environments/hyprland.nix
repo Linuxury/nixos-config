@@ -230,10 +230,11 @@ in
     socat
 
     # AGS — wallpaper rotation daemon (wallpaper-service.ts)
+    # gtk4: typelib must be explicit — ags wrapper only exposes listed packages.
     # astal.hyprland: native Hyprland IPC for fullscreen window detection.
     # astal.io: core Astal I/O library (subprocess, file watching).
     (pkgs.ags.override {
-      extraPackages = with pkgs.astal; [ io hyprland ];
+      extraPackages = [ pkgs.gtk4 ] ++ (with pkgs.astal; [ io hyprland ]);
     })
   ];
 
