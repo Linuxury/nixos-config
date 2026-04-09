@@ -15,7 +15,6 @@
 {
   config,
   pkgs,
-  lib,
   ...
 }: {
   # =========================================================================
@@ -172,27 +171,12 @@
     # Set up each user's Mojang account in Prism after first boot
     jdk17 # Java 17 runtime — required for Minecraft 1.17 and newer
     # Prism manages older Java versions internally for legacy versions
-    # Bedrock Edition launcher — pinned to 1.7.3-qt6 (nixpkgs has 1.6.4 which
-    # crashes with Bedrock 1.26.1+ due to pairipcore/DRM incompatibility).
-    # dont_download_glfw_client.patch context changed in 1.7.3 (new archive URL)
-    # so we drop it and apply the equivalent fix inline via postPatch instead.
-    (mcpelauncher-ui-qt.override {
-      mcpelauncher-client = mcpelauncher-client.overrideAttrs (old: {
-        version = "1.7.3-qt6";
-        src = old.src.override {
-          tag = "v1.7.3-qt6";
-          hash = "sha256-RkbsgYSDvG9boBfG5+FYXNY2MuQjTH2nZCYE5z0gpJ8=";
-        };
-        patches = lib.filter
-          (p: !(lib.hasSuffix "dont_download_glfw_client.patch"
-                  (builtins.baseNameOf (builtins.toString p))))
-          old.patches;
-        postPatch = old.postPatch + ''
-          printf 'find_package(glfw3 REQUIRED)\nadd_library(glfw3 ALIAS glfw)\n' \
-            > ext/glfw.cmake
-        '';
-      });
-    })
+
+    # Bedrock Edition — managed via Flatpak (io.mrarm.mcpelauncher)
+    # The nix package is incompatible with Bedrock 1.26.x on NixOS due to
+    # a fundamental conflict between the Android linker and NixOS's non-FHS
+    # library paths. The Flatpak version bundles its own libs and works correctly.
+    # Install with: flatpak install flathub io.mrarm.mcpelauncher
   ];
 
   # =========================================================================
