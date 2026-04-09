@@ -172,8 +172,17 @@
     # Set up each user's Mojang account in Prism after first boot
     jdk17 # Java 17 runtime — required for Minecraft 1.17 and newer
     # Prism manages older Java versions internally for legacy versions
-    mcpelauncher-ui-qt # Bedrock Edition launcher (GUI) — cross-play with
-    # consoles and mobile; sign in with Microsoft account
+    # Bedrock Edition launcher — pinned to 1.7.3-qt6 (nixpkgs has 1.6.4 which
+    # crashes with Bedrock 1.26.1+ due to pairipcore/DRM incompatibility)
+    (mcpelauncher-ui-qt.override {
+      mcpelauncher-client = mcpelauncher-client.overrideAttrs (old: {
+        version = "1.7.3-qt6";
+        src = old.src.override {
+          tag = "v1.7.3-qt6";
+          hash = "sha256-RkbsgYSDvG9boBfG5+FYXNY2MuQjTH2nZCYE5z0gpJ8=";
+        };
+      });
+    })
   ];
 
   # =========================================================================
