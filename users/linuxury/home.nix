@@ -112,13 +112,6 @@
     "d ${config.home.homeDirectory}/.agents/mcp-servers    0755 linuxury users -"
     "d ${config.home.homeDirectory}/.agents/skills         0755 linuxury users -"
 
-    # Development workspace
-    "d ${config.home.homeDirectory}/Projects              0755 linuxury users -"
-    "d ${config.home.homeDirectory}/Projects/Python       0755 linuxury users -"
-    "d ${config.home.homeDirectory}/Projects/Rust         0755 linuxury users -"
-    "d ${config.home.homeDirectory}/Projects/Nix          0755 linuxury users -"
-    "d ${config.home.homeDirectory}/Projects/Scripts      0755 linuxury users -"
-
     # Hytale flatpak bundle storage (moved out of ~/assets into ~/Documents)
     # linuxury's Hytale service reads the bundle from here before falling
     # back to the CDN download. Move the file here if you pre-downloaded it.
@@ -197,6 +190,8 @@
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/claude-settings.local.json";
     ".config/opencode/opencode.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/opencode-settings.json";
+    ".claude.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/claude-state.json";
 
     # Nano — for quick root edits
     ".nanorc".source = ../../dotfiles/nano/.nanorc;
@@ -312,7 +307,8 @@
       "$HOME/CLAUDE.md" \
       "$HOME/.claude/settings.json" \
       "$HOME/.claude/settings.local.json" \
-      "$HOME/.config/opencode/opencode.json"; do
+      "$HOME/.config/opencode/opencode.json" \
+      "$HOME/.claude.json"; do
       if [ -L "$f" ] || [ -f "$f" ]; then
         rm -f "$f"
       fi

@@ -12,10 +12,12 @@
 #
 # Servers never need this.
 # ===========================================================================
-
-{ config, pkgs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   # =========================================================================
   # Steam
   #
@@ -35,18 +37,22 @@
     # Adds a compatibility layer so Steam's own runtime libraries
     # work correctly on NixOS's non-standard filesystem layout
     package = pkgs.steam.override {
-      extraPkgs = steamPkgs: with steamPkgs; [
-        libxcursor
-        libxi
-        libxinerama
-        libxscrnsaver
-        libpng
-        libpulseaudio
-        libvorbis
-        stdenv.cc.cc.lib
-        libkrb5
-        keyutils
-      ];
+      extraPkgs = steamPkgs:
+        with steamPkgs; [
+          alsa-lib
+          libxcursor
+          libxi
+          libxinerama
+          libxscrnsaver
+          libpng
+          libpulseaudio
+          libvorbis
+          libglvnd
+          stdenv.cc.cc.lib
+          libkrb5
+          keyutils
+          SDL2
+        ];
     };
   };
 
@@ -67,19 +73,19 @@
     enable = true;
     settings = {
       general = {
-        renice = 10;          # Boost game process priority
+        renice = 10; # Boost game process priority
         softrealtime = "auto"; # Enable soft realtime scheduling if possible
       };
       gpu = {
         apply_gpu_optimisations = "accept-responsibility";
-        gpu_device = 0;       # Primary GPU (change to 1 for secondary)
+        gpu_device = 0; # Primary GPU (change to 1 for secondary)
         amd_performance_level = "high"; # AMD GPU performance mode during gaming
       };
       custom = {
         # Commands to run when GameMode starts and stops
         # Useful for disabling notifications while gaming
         start = "${pkgs.libnotify}/bin/notify-send 'GameMode' 'Optimizations applied'";
-        end   = "${pkgs.libnotify}/bin/notify-send 'GameMode' 'Optimizations removed'";
+        end = "${pkgs.libnotify}/bin/notify-send 'GameMode' 'Optimizations removed'";
       };
     };
   };
@@ -101,24 +107,23 @@
   # Gaming packages
   # =========================================================================
   environment.systemPackages = with pkgs; [
-
     # -----------------------------------------------------------------------
     # Launchers — for games outside of Steam
     # -----------------------------------------------------------------------
-    lutris          # Universal game launcher, supports many sources
-                    # and has community install scripts for tricky games
+    lutris # Universal game launcher, supports many sources
+    # and has community install scripts for tricky games
     faugus-launcher # Lightweight launcher for Windows games via UMU/Proton
 
     # -----------------------------------------------------------------------
     # Proton / Wine — Windows game compatibility layers
     # -----------------------------------------------------------------------
-    protonplus      # Manage Proton-GE and other compatibility tools
-                    # Run after first boot to install latest Proton-GE
+    protonplus # Manage Proton-GE and other compatibility tools
+    # Run after first boot to install latest Proton-GE
 
-    wine-staging    # Latest Wine with extra patches for better compatibility
-    winetricks      # Installs Windows libraries/runtimes needed by some games
-    protontricks    # Winetricks wrapper for Steam/Proton — handles the Proton
-                    # runtime paths automatically so you don't have to
+    wine-staging # Latest Wine with extra patches for better compatibility
+    winetricks # Installs Windows libraries/runtimes needed by some games
+    protontricks # Winetricks wrapper for Steam/Proton — handles the Proton
+    # runtime paths automatically so you don't have to
 
     # -----------------------------------------------------------------------
     # Gamescope — Valve's gaming microcompositor
@@ -135,38 +140,40 @@
     # -----------------------------------------------------------------------
     # Utilities
     # -----------------------------------------------------------------------
-    gamemode        # CLI access to GameMode (already enabled above)
-    mangohud        # CLI access to MangoHud (already enabled above)
-    goverlay        # GUI configurator for MangoHud and vkBasalt overlays
-                    # Makes tweaking your overlay much easier than editing
-                    # the dotfile directly
-    sgdboop         # SteamGridDB asset manager — apply custom banners/icons
-                    # to Steam games from SteamGridDB with one click
+    gamemode # CLI access to GameMode (already enabled above)
+    mangohud # CLI access to MangoHud (already enabled above)
+    goverlay # GUI configurator for MangoHud and vkBasalt overlays
+    # Makes tweaking your overlay much easier than editing
+    # the dotfile directly
+    sgdboop # SteamGridDB asset manager — apply custom banners/icons
+    # to Steam games from SteamGridDB with one click
 
-    vulkan-tools    # vulkaninfo — useful for checking Vulkan is working
-    mesa-demos      # glxinfo, glxgears — check OpenGL info and verify drivers
+    vulkan-tools # vulkaninfo — useful for checking Vulkan is working
+    mesa-demos # glxinfo, glxgears — check OpenGL info and verify drivers
 
     # Controller support
-    antimicrox      # Map controller buttons to keyboard/mouse
-                    # Useful for games with no controller support
+    antimicrox # Map controller buttons to keyboard/mouse
+    # Useful for games with no controller support
 
     # -----------------------------------------------------------------------
     # Communication
     # -----------------------------------------------------------------------
     # XMPP — primary messaging client (self-hosted server coming)
-    gajim           # Full-featured XMPP client — OMEMO encryption, groupchat,
-                    # file transfer. Will replace Discord once server is set up.
+    gajim # Full-featured XMPP client — OMEMO encryption, groupchat,
+    # file transfer. Will replace Discord once server is set up.
 
     # TODO: Remove discord once XMPP server is set up
-    discord         # Temporary — kept for gaming coordination during transition
+    discord # Temporary — kept for gaming coordination during transition
 
     # -----------------------------------------------------------------------
     # Minecraft — all three family members play
     # -----------------------------------------------------------------------
-    prismlauncher       # Java Minecraft launcher — manages its own Java runtimes
-                        # Set up each user's Mojang account in Prism after first boot
-    jdk17               # Java 17 runtime — required for Minecraft 1.17 and newer
-                        # Prism manages older Java versions internally for legacy versions
+    prismlauncher # Java Minecraft launcher — manages its own Java runtimes
+    # Set up each user's Mojang account in Prism after first boot
+    jdk17 # Java 17 runtime — required for Minecraft 1.17 and newer
+    # Prism manages older Java versions internally for legacy versions
+    mcpelauncher-ui-qt # Bedrock Edition launcher (GUI) — cross-play with
+    # consoles and mobile; sign in with Microsoft account
   ];
 
   # =========================================================================
@@ -177,7 +184,7 @@
   # CPU overhead on synchronization-heavy Windows games.
   # No Steam launch option needed — Wine/Proton auto-detects it.
   # =========================================================================
-  boot.kernelModules = [ "ntsync" ];
+  boot.kernelModules = ["ntsync"];
   services.udev.extraRules = ''
     KERNEL=="ntsync", TAG+="uaccess"
   '';
