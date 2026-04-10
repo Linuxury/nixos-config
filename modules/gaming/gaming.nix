@@ -176,7 +176,8 @@
     # The nix package is incompatible with Bedrock 1.26.x on NixOS due to
     # a fundamental conflict between the Android linker and NixOS's non-FHS
     # library paths. The Flatpak version bundles its own libs and works correctly.
-    # Install with: flatpak install flathub io.mrarm.mcpelauncher
+    # Flathub is already configured via graphical-base.nix activation script.
+    # Users can install with: flatpak install flathub io.mrarm.mcpelauncher
   ];
 
   # =========================================================================

@@ -48,14 +48,8 @@ fi
 [ -z "$WALLPAPER" ] && { echo "set-wallpaper: no wallpaper found in $WALLPAPER_DIR" >&2; exit 1; }
 [ -f "$WALLPAPER" ] || { echo "set-wallpaper: file not found: $WALLPAPER" >&2; exit 1; }
 
-# Set wallpaper via awww with random transition
-TRANSITIONS=(fade left right top bottom wipe)
-TRANSITION=$(shuf -n1 -e "${TRANSITIONS[@]}")
-
-awww img "$WALLPAPER" \
-    --transition-type  "$TRANSITION" \
-    --transition-fps   60 \
-    --transition-duration 0.8
+# No transitions - they cause apps to close (Steam, games, Firefox)
+awww img "$WALLPAPER" --transition-type none
 
 # Skip matugen if same wallpaper was already processed.
 # Compare by inode (not path) — ~/Pictures/Wallpapers is a symlink to

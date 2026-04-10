@@ -105,7 +105,7 @@
     # Documents & office
     # -----------------------------------------------------------------------
     papers                   # GNOME document viewer — PDFs and more (GTK4, modern)
-    onlyoffice-desktopeditors # Word/Excel/PowerPoint compatible office suite
+    libreoffice-fresh # Full office suite — word processor, spreadsheet, presentations, draw
     # -----------------------------------------------------------------------
     # System monitoring
     # -----------------------------------------------------------------------

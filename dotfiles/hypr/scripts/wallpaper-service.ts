@@ -135,14 +135,10 @@ function currentAwwwWallpaper(): string {
 // ─── Core: set wallpaper + run matugen ───────────────────────────────────────
 
 function apply(wallpaper: string): void {
-    const transition = pickRandom([...TRANSITIONS]) ?? "fade"
-
-    // Set via awww
+    // No transitions - they cause apps to close (Steam, games, Firefox)
     const awww = run([
         "awww", "img", wallpaper,
-        "--transition-type",     transition,
-        "--transition-fps",      "60",
-        "--transition-duration", "0.8",
+        "--transition-type",     "none",
     ])
     if (!awww.ok) log(`WARN awww: ${awww.stderr}`)
 
@@ -210,7 +206,7 @@ function syncOnStart(): void {
 }
 
 // ─── Rotation timer ───────────────────────────────────────────────────────────
-// Rotate at :00 and :30 of each hour (same schedule as the old bash daemon).
+// Re-enabled rotation - user wants greeter to sync with desktop wallpaper
 
 function secondsToNextSlot(): number {
     const now  = GLib.DateTime.new_now_local()!
@@ -240,6 +236,6 @@ App.start({
 
         log("=== wallpaper-service started ===")
         syncOnStart()
-        scheduleNext()
+        scheduleNext() // ENABLED - rotate every 30 mins to keep greeter in sync
     },
 })

@@ -301,11 +301,17 @@ in
   # =========================================================================
   systemd.tmpfiles.rules = [
     "d /var/lib/wallpapers 0755 linuxury users -"
+    "d /var/lib/cosmic-greeter 0755 cosmic-greeter cosmic-greeter -"
+    "d /var/lib/cosmic-greeter/.config 0755 cosmic-greeter cosmic-greeter -"
+    "d /var/lib/cosmic-greeter/.config/cosmic 0755 cosmic-greeter cosmic-greeter -"
+    "d /var/lib/cosmic-greeter/.config/cosmic/com.system76.CosmicBackground 0755 cosmic-greeter cosmic-greeter -"
+    "d /var/lib/cosmic-greeter/.config/cosmic/com.system76.CosmicBackground/v1 0755 cosmic-greeter cosmic-greeter -"
   ];
 
   systemd.paths.sync-greeter-wallpaper = {
     description = "Watch current wallpaper and sync to cosmic-greeter";
     wantedBy    = [ "multi-user.target" ];
+    requires    = [ "systemd-tmpfiles-setup.service" ];
     pathConfig.PathChanged = "/var/lib/wallpapers/current.jpg";
   };
 
