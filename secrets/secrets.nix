@@ -117,6 +117,14 @@ in
   "wireguard-vpnunlimited.age".publicKeys = uniq (linuxury-admins ++ [ Radxa-X4 ]);
 
   # --------------------------------------------------------------------------
+  # Tailscale auth key for Radxa-X4
+  # Reusable key — used by tailscaled-autoconnect to auth on boot without URL.
+  # Generate a new key at: https://login.tailscale.com/admin/settings/keys
+  # After updating: nix run nixpkgs#agenix -- -r
+  # --------------------------------------------------------------------------
+  "tailscale-auth-radxa.age".publicKeys = uniq (linuxury-admins ++ [ Radxa-X4 ]);
+
+  # --------------------------------------------------------------------------
   # User display names (GECOS / full names)
   #
   # These secrets are set via activation scripts so nixos-rebuild does not

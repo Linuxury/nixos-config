@@ -218,9 +218,18 @@
 
   # =========================================================================
   # Tailscale — management access via Ethernet
-  # After first boot: sudo tailscale up
+  # Auth key stored in agenix — no manual "tailscale up" or URL needed.
   # =========================================================================
-  services.tailscale.enable = true;
+  age.secrets.tailscale-auth-radxa = {
+    file = ../../secrets/tailscale-auth-radxa.age;
+    mode = "0400";
+  };
+
+  services.tailscale = {
+    enable = true;
+    authKeyFile = config.age.secrets.tailscale-auth-radxa.path;
+    extraSetFlags = [ "--ssh=false" ];
+  };
 
   # Tailscale watchdog — restarts tailscaled if it loses connectivity
   # Runs every 5 minutes. Uses 'tailscale ping' to verify the tunnel is
