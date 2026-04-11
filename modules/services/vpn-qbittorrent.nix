@@ -419,8 +419,11 @@ in {
     systemd.services.qbittorrent-vpn-proxy = {
       description = "Proxy qBittorrent web UI from host to VPN namespace";
 
-      after    = [ "qbittorrent-vpn.service" ];
-      requires = [ "qbittorrent-vpn.service" ];
+      # partOf: if qbittorrent-vpn stops/restarts, proxy follows.
+      # But proxy crashing does NOT propagate back to qbittorrent-vpn.
+      # (requires would kill qbittorrent-vpn when socat exits — wrong)
+      after  = [ "qbittorrent-vpn.service" ];
+      partOf = [ "qbittorrent-vpn.service" ];
       wantedBy = [ "multi-user.target" ];
 
       serviceConfig = {
