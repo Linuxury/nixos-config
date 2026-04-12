@@ -91,6 +91,10 @@
           "app-grid-wizard@mirzadeh.pro"
         ];
       };
+
+      dconf.settings."org/gnome/shell/extensions/app-grid-wizard" = {
+        enabled = true;
+      };
     })
   ];
 
