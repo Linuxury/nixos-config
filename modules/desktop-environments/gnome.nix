@@ -55,6 +55,44 @@
   };
 
   # =========================================================================
+  # Home Manager — inject GNOME theme and extensions for all users
+  #
+  # Applies BreezeX-Light cursor, Tela-dark icons, dark GTK theme, and
+  # GNOME dconf cursor settings to every user managed by Home Manager on
+  # this host. Without this, GNOME has no cursor theme and renders a
+  # white box placeholder.
+  #
+  # Extensions are installed as packages and enabled via dconf so they
+  # load automatically on login without any manual toggling.
+  # =========================================================================
+  home-manager.sharedModules = [
+    ../home/gnome-theme.nix
+    ({ pkgs, ... }: {
+      home.packages = with pkgs.gnomeExtensions; [
+        dash-to-dock
+        blur-my-shell
+        user-themes
+        appindicator
+        caffeine
+        user-themes-x
+        wallpaper-slideshow
+      ];
+
+      dconf.settings."org/gnome/shell" = {
+        enabled-extensions = [
+          "dash-to-dock@micxgx.gmail.com"
+          "blur-my-shell@aunetx"
+          "user-theme@gnome-shell-extensions.gcampax.github.com"
+          "appindicatorsupport@rgcjonas.gmail.com"
+          "caffeine@patapon.info"
+          "user-theme-x@tuberry.github.io"
+          "azwallpaper@azwallpaper.gitlab.com"
+        ];
+      };
+    })
+  ];
+
+  # =========================================================================
   # GNOME-specific packages
   #
   # Core GNOME apps are pulled in automatically by the desktopManager option.
