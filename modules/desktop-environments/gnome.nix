@@ -76,6 +76,7 @@
         caffeine
         user-themes-x
         wallpaper-slideshow
+        app-grid-wizard
       ];
 
       dconf.settings."org/gnome/shell" = {
@@ -87,6 +88,7 @@
           "caffeine@patapon.info"
           "user-theme-x@tuberry.github.io"
           "azwallpaper@azwallpaper.gitlab.com"
+          "app-grid-wizard@mirzadeh.pro"
         ];
       };
     })
