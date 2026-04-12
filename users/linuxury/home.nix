@@ -198,6 +198,8 @@
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/OpenCode/settings.json";
     ".claude.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude/state.json";
+    ".claude/projects/-home-linuxury/memory".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/memory";
 
     # Nano — for quick root edits
     ".nanorc".source = ../../dotfiles/nano/.nanorc;
@@ -319,6 +321,12 @@
         rm -f "$f"
       fi
     done
+    # Claude memory dir → now a symlink to ~/.agents/memory
+    # May be a plain dir (fresh machine) or symlink (already migrated)
+    mem="$HOME/.claude/projects/-home-linuxury/memory"
+    if [ -L "$mem" ]; then rm -f "$mem"
+    elif [ -d "$mem" ]; then rmdir "$mem" 2>/dev/null || true
+    fi
     # Remove old flat-layout stale files if Syncthing left them behind
     for f in \
       "$HOME/.agents/AGENTS.md" \
