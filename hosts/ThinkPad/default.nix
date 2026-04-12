@@ -9,7 +9,7 @@
 # Enabled modules:
 #   - AMD drivers
 #   - Hyprland (active DE — cosmic-greeter)
-#   - Niri (future — commented out)
+#   - Niri / GNOME / KDE (available — commented out, one at a time)
 #   - Gaming
 #   - Development
 # ===========================================================================
@@ -51,8 +51,11 @@ in
     ../../modules/base/linuxury-description.nix
     ../../modules/hardware/drivers.nix
     #../../modules/desktop-environments/cosmic.nix
-    ../../modules/desktop-environments/hyprland.nix
+    #../../modules/desktop-environments/hyprland.nix
     #../../modules/desktop-environments/niri.nix
+    # To test a full DE — comment out hyprland.nix above and uncomment one:
+    ../../modules/desktop-environments/gnome.nix
+    #../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     #../../modules/development/development.nix
     ../../modules/base/auto-update.nix
@@ -77,19 +80,19 @@ in
   hardware.gpu = "amd";
 
   # =========================================================================
-  # SwayNC Control Panel — hardware capabilities
-  # Laptop: backlight + KB backlight + WiFi + BT
+  # SwayNC Control Panel — hardware capabilities (Hyprland only)
+  # Uncomment when hyprland.nix is active.
   #
   # Verify device names on first boot:
   #   ls /sys/class/backlight/   → confirm backlightDevice
   #   ls /sys/class/leds/ | grep kbd → confirm kbBacklightDevice
   # =========================================================================
-  myModules.swaync.hasBacklight      = true;
-  myModules.swaync.backlightDevice   = "amdgpu_bl1";  # typical AMD ThinkPad T14s
-  myModules.swaync.hasKbBacklight    = true;
-  myModules.swaync.kbBacklightDevice = "tpacpi::kbd_backlight";
-  myModules.swaync.hasWifi           = true;
-  myModules.swaync.hasBluetooth      = true;
+  # myModules.swaync.hasBacklight      = true;
+  # myModules.swaync.backlightDevice   = "amdgpu_bl1";  # typical AMD ThinkPad T14s
+  # myModules.swaync.hasKbBacklight    = true;
+  # myModules.swaync.kbBacklightDevice = "tpacpi::kbd_backlight";
+  # myModules.swaync.hasWifi           = true;
+  # myModules.swaync.hasBluetooth      = true;
 
   # =========================================================================
   # LUKS — Full disk encryption
@@ -375,9 +378,10 @@ in
   # =========================================================================
   services.fprintd.enable = true;
 
-  # Allow PAM (authentication system) to use fingerprint as an auth method
+  # Allow PAM (authentication system) to use fingerprint as an auth method.
+  # mkForce needed: GDM sets login.fprintAuth = false by default.
   security.pam.services = {
-    login.fprintAuth = true;
+    login.fprintAuth = lib.mkForce true;
     sudo.fprintAuth = true;
     polkit-1.fprintAuth = true;
   };

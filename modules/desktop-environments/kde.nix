@@ -63,12 +63,4 @@
     kdePackages.plasma-browser-integration  # Browser integration for KDE
   ];
 
-  # =========================================================================
-  # KDE Connect — Phone/desktop integration
-  #
-  # Lets KDE pair with Android phones for notifications, file sharing,
-  # clipboard sync, and more. Very useful quality of life feature.
-  # Opens the required firewall ports automatically.
-  # =========================================================================
-  programs.kdeconnect.enable = true;
 }
