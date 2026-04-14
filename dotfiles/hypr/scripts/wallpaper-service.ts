@@ -1,13 +1,16 @@
 // =============================================================================
 // wallpaper-service.ts — AGS wallpaper rotation + matugen daemon
 //
-// Uses native astal-hyprland for fullscreen detection instead of parsing JSON.
-// Uses only gentle transitions — grow/outer/center caused GPU spikes that
-// crashed apps (Steam, games, Firefox).
+// Single source of truth for all wallpaper changes:
+//   - Auto-rotates every 30 min (aligned to :00 and :30)
+//   - Fullscreen detection via native astal-hyprland IPC
+//   - Gentle transitions (fade/wipe/directional — no grow/outer/center)
+//
+// On-demand rotation via AGS IPC (replaces the old set-wallpaper.sh):
+//   ags request wallpaper-service rotate        — skip if fullscreen
+//   ags request wallpaper-service force-rotate  — always rotate
 //
 // Run with:  ags run ~/.config/hypr/scripts/wallpaper-service.ts
-// Keybinds still call set-wallpaper.sh directly (SUPER+W / SUPER+SHIFT+W).
-// Both share the LAST_FILE so state stays consistent.
 // =============================================================================
 
 import App from "astal/gtk4/app"
@@ -17,15 +20,15 @@ import Gio from "gi://Gio"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const HOME         = GLib.get_home_dir()!
+const HOME          = GLib.get_home_dir()!
 const WALLPAPER_DIR = `${HOME}/Pictures/Wallpapers`
-const LAST_FILE    = `${HOME}/.local/share/last-matugen-wallpaper`
-const LOG_FILE     = `${HOME}/.local/share/wallpaper-service.log`
-const GREETER_FILE = "/var/lib/wallpapers/current.jpg"
+const LAST_FILE     = `${HOME}/.local/share/last-matugen-wallpaper`
+const LOG_FILE      = `${HOME}/.local/share/wallpaper-service.log`
+const GREETER_FILE  = "/var/lib/wallpapers/current.jpg"
 
 // Gentle transitions only.
-// Removed: grow, outer, center, any, random
-// — those create full-screen circular GPU animations that can crash apps.
+// Excluded: grow, outer, center, any, random
+// — those create full-screen circular GPU animations that spike GPU load.
 const TRANSITIONS = ["fade", "wipe", "left", "right", "top", "bottom"] as const
 
 // ─── Logging ──────────────────────────────────────────────────────────────────
@@ -134,11 +137,16 @@ function currentAwwwWallpaper(): string {
 
 // ─── Core: set wallpaper + run matugen ───────────────────────────────────────
 
-function apply(wallpaper: string): void {
-    // No transitions - they cause apps to close (Steam, games, Firefox)
+function apply(wallpaper: string, skipTransition = false): void {
+    const transition = skipTransition
+        ? "none"
+        : pickRandom([...TRANSITIONS])!
+
     const awww = run([
         "awww", "img", wallpaper,
-        "--transition-type",     "none",
+        "--transition-type",     transition,
+        "--transition-duration", "1",
+        "--transition-fps",      "60",
     ])
     if (!awww.ok) log(`WARN awww: ${awww.stderr}`)
 
@@ -199,14 +207,13 @@ function syncOnStart(): void {
     const last = readText(LAST_FILE)
     if (!last || !sameFile(current, last)) {
         log(`STARTUP SYNC: ${current.split("/").at(-1)}`)
-        apply(current)   // resync matugen without visually changing wallpaper
+        apply(current, true)   // resync matugen — no visual transition at startup
     } else {
         log("STARTUP OK: in sync")
     }
 }
 
 // ─── Rotation timer ───────────────────────────────────────────────────────────
-// Re-enabled rotation - user wants greeter to sync with desktop wallpaper
 
 function secondsToNextSlot(): number {
     const now  = GLib.DateTime.new_now_local()!
@@ -230,12 +237,19 @@ function scheduleNext(): void {
 
 App.start({
     instanceName: "wallpaper-service",
+    requestHandler(request: string, res: (response: string) => void) {
+        switch (request) {
+            case "rotate":        rotate(false); res("ok"); break
+            case "force-rotate":  rotate(true);  res("ok"); break
+            default:              res(`unknown: ${request}`)
+        }
+    },
     main() {
         // Prevent GTK from exiting when there are no windows
         App.hold()
 
         log("=== wallpaper-service started ===")
         syncOnStart()
-        scheduleNext() // ENABLED - rotate every 30 mins to keep greeter in sync
+        scheduleNext()
     },
 })

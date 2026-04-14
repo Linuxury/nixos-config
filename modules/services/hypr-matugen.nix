@@ -40,7 +40,9 @@
     [templates.kitty]
     input_path = "/home/linuxury/.config/matugen/templates/templates/kitty-colors.conf"
     output_path = "/home/linuxury/.config/kitty/colors.conf"
-    post_hook = "pkill -USR1 kitty || true"
+    # post_hook removed: pkill -USR1 kitty was crashing open terminals on every
+    # wallpaper switch. Colors.conf is still written so new windows pick up the
+    # palette; existing windows keep the previous colors until reopened.
 
     [templates.gtk]
     input_path = "/home/linuxury/.config/matugen/templates/templates/gtk-colors.css"

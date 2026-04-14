@@ -101,7 +101,8 @@
     gcc
 
     # AI coding agent
-    opencode # opencode CLI (used by opencode-nvim)
+    opencode              # opencode CLI (used by opencode-nvim)
+    opencode-claude-auth  # plugin: reuse Claude Code OAuth creds in opencode
     (pkgs.writeShellScriptBin "claude" ''
       exec env SHELL=${pkgs.bash}/bin/bash ${pkgs.claude-code}/bin/claude "$@"
     '')

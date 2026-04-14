@@ -301,6 +301,16 @@
         HostName     Asus-A15
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
+
+      Host thinkpad
+        HostName     ThinkPad
+        User         linuxury
+        IdentityFile ~/.ssh/id_ed25519
+
+      Host ryzen5900x
+        HostName     Ryzen5900x
+        User         linuxury
+        IdentityFile ~/.ssh/id_ed25519
     '';
   };
 
