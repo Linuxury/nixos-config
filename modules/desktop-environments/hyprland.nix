@@ -54,6 +54,12 @@ in
       };
     }
 
+    # DankSearch — indexed filesystem search for the DMS launcher
+    inputs.danksearch.homeModules.default
+    {
+      programs.dsearch.enable = true;
+    }
+
     ../home/cosmic-theme.nix         # BreezeX-Light cursor + Tela-dark icons
     ../home/nautilus-bookmarks.nix   # GTK3 bookmarks + scripts for Nautilus
     {

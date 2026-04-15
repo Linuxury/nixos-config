@@ -92,6 +92,18 @@
     };
 
     # -------------------------------------------------------------------------
+    # danksearch — Indexed filesystem search service
+    #
+    # Powers the file search feature in the DMS launcher (Spotlight-style).
+    # Runs as a user systemd service, indexes configured paths, and exposes
+    # a local REST API that DMS queries for file results.
+    # -------------------------------------------------------------------------
+    danksearch = {
+      url = "github:AvengeMedia/danksearch";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # -------------------------------------------------------------------------
     # normie-nvim — TheBlackDon's Neovim config
     #
     # Not a Nix flake (flake = false) — just the raw repo files.
