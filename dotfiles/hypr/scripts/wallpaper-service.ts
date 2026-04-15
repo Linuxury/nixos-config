@@ -135,7 +135,12 @@ function currentAwwwWallpaper(): string {
     } catch { return "" }
 }
 
-// ─── Core: set wallpaper + run matugen ───────────────────────────────────────
+// ─── Core: set wallpaper ─────────────────────────────────────────────────────
+// Matugen is intentionally NOT called here.
+// Writing LAST_FILE triggers hypr-matugen.path → hypr-matugen.service, which
+// runs imagemagick + matugen in a separate process with deduplication.
+// This mirrors the COSMIC approach (wallpaper-color-sync.service) and prevents
+// rapid double-runs from crashing GTK4 apps via simultaneous CSS reloads.
 
 function apply(wallpaper: string, skipTransition = false): void {
     const transition = skipTransition
@@ -150,18 +155,8 @@ function apply(wallpaper: string, skipTransition = false): void {
     ])
     if (!awww.ok) log(`WARN awww: ${awww.stderr}`)
 
-    // Extract dominant color via imagemagick
-    const conv = run(["convert", wallpaper, "-resize", "1x1", "txt:-"])
-    const hex  = conv.stdout.match(/#[0-9a-fA-F]{6}/)?.[0] ?? null
-    if (!hex) { log(`WARN no color: ${wallpaper.split("/").at(-1)}`); return }
-
-    log(`COLOR ${hex}`)
-
-    // Write LAST before matugen so a failed matugen doesn't cause infinite retry
+    // Write LAST — triggers hypr-matugen.path to run matugen in the background
     try { GLib.file_set_contents(LAST_FILE, wallpaper) } catch { /* ignore */ }
-
-    const mat = run(["matugen", "color", "hex", hex])
-    if (!mat.ok) log(`WARN matugen: ${mat.stderr}`)
 
     // Sync to cosmic-greeter (can't read ~/Pictures/, so we use /var/lib/wallpapers/)
     run(["cp", "-f", wallpaper, GREETER_FILE])

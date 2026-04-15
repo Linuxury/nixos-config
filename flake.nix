@@ -77,27 +77,17 @@
     affinity-nix.url = "github:mrshmllow/affinity-nix";
 
     # -------------------------------------------------------------------------
-    # quickshell — Qt6/QML desktop shell toolkit
+    # dms — DankMaterialShell
     #
-    # Used to build a custom DE-like shell: bar, dock, launcher, notifications,
-    # OSD, lock screen, sidebar, and workspace overview.
+    # Full Quickshell-based shell layer for Hyprland: bar, launcher,
+    # notifications, OSD, sidebar, dynamic matugen theming, wallpaper
+    # management, and dms-greeter login screen.
     #
-    # IMPORTANT: nixpkgs.follows is mandatory on NixOS — if the Qt version
-    # used to build quickshell drifts from the system Qt, it crashes.
-    # This pins both to the same nixpkgs commit.
+    # nixpkgs.follows pins DMS and its bundled Quickshell to the same
+    # Qt version as the rest of the system — prevents Qt version mismatch crashes.
     # -------------------------------------------------------------------------
-    quickshell = {
-      url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # -------------------------------------------------------------------------
-    # awww — Animated wallpaper daemon for Wayland
-    #
-    # Replaces swww with more transition effects and random animation support.
-    # -------------------------------------------------------------------------
-    awww = {
-      url = "git+https://codeberg.org/LGFae/awww";
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell/stable";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -123,7 +113,7 @@
   # The outputs function receives all inputs and returns your configurations.
   # `@inputs` captures the whole inputs set so we can pass it around easily.
   # ===========================================================================
-  outputs = { self, nixpkgs, home-manager, nixos-hardware, agenix, awww, ... } @ inputs:
+  outputs = { self, nixpkgs, home-manager, nixos-hardware, agenix, ... } @ inputs:
 
     # -------------------------------------------------------------------------
     # let...in — Nix's way of defining local variables

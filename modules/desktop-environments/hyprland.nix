@@ -2,12 +2,11 @@
 # modules/desktop-environments/hyprland.nix — Hyprland Wayland Compositor
 #
 # Hyprland is a dynamic tiling Wayland compositor with smooth animations
-# and a lot of customization potential. It's not a full DE like COSMIC or
-# KDE — it's just a window manager, so you build the rest of the experience
-# yourself (bar, launcher, notifications, etc).
+# and a lot of customization potential.
 #
-# This module is ONLY enabled on your machines (linuxury).
-# It's a learning/experimentation environment, not a daily driver yet.
+# DankMaterialShell (DMS) provides the shell layer: bar, launcher,
+# notifications, OSD, sidebar, dynamic matugen theming, and wallpaper
+# management. dms-greeter replaces cosmic-greeter for the login screen.
 #
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
@@ -15,8 +14,8 @@
 { config, pkgs, lib, inputs, ... }:
 
 let
-  # BreezeX cursor theme — same derivation as cosmic-theme.nix
-  # The greeter user has no home-manager, so we install it system-wide
+  # BreezeX cursor theme — installed system-wide so dms-greeter (no
+  # home-manager at login time) can use it on the login screen.
   breezex-cursors = pkgs.stdenv.mkDerivation {
     pname   = "breezex-cursor-theme";
     version = "2.0.1";
@@ -35,104 +34,61 @@ let
 in
 
 {
-  # =========================================================================
-  # Per-host hardware options for the SwayNC Control Panel
-  #
-  # Set these in your host's default.nix to enable hardware-specific widgets.
-  # Defaults are safe for desktop hosts (no backlight/battery).
-  #
-  # Example (ThinkPad):
-  #   myModules.swaync.hasBacklight      = true;
-  #   myModules.swaync.backlightDevice   = "amdgpu_bl1";
-  #   myModules.swaync.hasKbBacklight    = true;
-  #   myModules.swaync.kbBacklightDevice = "tpacpi::kbd_backlight";
-  # =========================================================================
-  options.myModules.swaync = {
-    hasBacklight = lib.mkOption {
-      type        = lib.types.bool;
-      default     = false;
-      description = "Display backlight present (laptop). Adds brightness slider.";
-    };
-    backlightDevice = lib.mkOption {
-      type        = lib.types.str;
-      default     = "";
-      description = "Device name under /sys/class/backlight (e.g. amdgpu_bl1).";
-    };
-    hasKbBacklight = lib.mkOption {
-      type        = lib.types.bool;
-      default     = false;
-      description = "Keyboard backlight present (laptop). Adds KB brightness slider.";
-    };
-    kbBacklightDevice = lib.mkOption {
-      type        = lib.types.str;
-      default     = "";
-      description = "Device name under /sys/class/leds (e.g. tpacpi::kbd_backlight).";
-    };
-    hasWifi = lib.mkOption {
-      type        = lib.types.bool;
-      default     = true;
-      description = "WiFi present. Adds WiFi toggle to buttons grid.";
-    };
-    hasBluetooth = lib.mkOption {
-      type        = lib.types.bool;
-      default     = true;
-      description = "Bluetooth present. Adds BT toggle to buttons grid.";
-    };
-  };
-
-  config = {
+  imports = [
+    # dms-greeter — NixOS-only module (cannot be in home-manager)
+    inputs.dms.nixosModules.greeter
+  ];
 
   # =========================================================================
-  # Inject hypr-matugen into every user's Home Manager config
+  # Inject DMS and supporting modules into every user's Home Manager config
   # =========================================================================
   home-manager.sharedModules = [
-    ../services/hypr-matugen.nix
+    # DankMaterialShell shell layer — bar, launcher, notifications, OSD,
+    # sidebar, dynamic theming, wallpaper management
+    inputs.dms.homeModules.dank-material-shell
+    {
+      programs.dank-material-shell = {
+        enable = true;
+        systemd.enable = true;       # Auto-start with graphical session
+        enableDynamicTheming = true; # Matugen wallpaper-based color theming
+      };
+    }
+
     ../home/cosmic-theme.nix         # BreezeX-Light cursor + Tela-dark icons
     ../home/nautilus-bookmarks.nix   # GTK3 bookmarks + scripts for Nautilus
-    ../home/swaync.nix               # Control Panel — host-aware config.json
     {
       # Kitty — Hyprland handles transparency/blur, disable Kitty's own settings
       home.file.".config/kitty/hyprland-overrides.conf".source =
         ../../dotfiles/kitty/hyprland-overrides.conf;
     }
   ];
+
   # =========================================================================
   # Hyprland — the compositor itself
   #
-  # NixOS has a dedicated Hyprland module that handles all the Wayland
-  # plumbing automatically. We just enable it.
-  #
   # withUWSM wraps Hyprland in the Universal Wayland Session Manager,
-  # which handles systemd session integration properly — recommended
-  # for NixOS specifically.
+  # which handles systemd session integration properly.
   # =========================================================================
   programs.hyprland = {
     enable = true;
-    withUWSM = true;   # Proper systemd session integration
-    xwayland.enable = true; # Allows running X11 apps inside Hyprland
+    withUWSM = true;
+    xwayland.enable = true;
   };
 
   # =========================================================================
   # XDG Portal for Hyprland
-  #
-  # Hyprland uses xdg-desktop-portal-hyprland for screen sharing,
-  # file pickers, and other desktop integration features.
   # =========================================================================
   xdg.portal = {
     enable = true;
     extraPortals = [
       pkgs.xdg-desktop-portal-hyprland
-      pkgs.xdg-desktop-portal-gtk  # Fallback for GTK apps
+      pkgs.xdg-desktop-portal-gtk
     ];
     config.common.default = "hyprland";
   };
 
   # =========================================================================
   # Polkit — Authentication agent
-  #
-  # Without a polkit agent, GUI apps can't ask for your password when
-  # they need elevated permissions (e.g. mounting drives, system settings).
-  # Hyprland doesn't include one by default unlike full DEs.
   # =========================================================================
   security.polkit.enable = true;
 
@@ -142,29 +98,12 @@ in
   # =========================================================================
   # Hyprland companion tools
   #
-  # Since Hyprland is just a compositor, you need to bring your own
-  # tools for everything else. These are the building blocks —
-  # actual configuration of each lives in your dotfiles.
-  #
-  # Think of this as the toolkit. You decide how to use them.
+  # DMS replaces: waybar, wofi/rofi, swaync, swayosd, awww.
+  # These are the remaining tools DMS does not provide.
   # =========================================================================
   environment.systemPackages = with pkgs; [
-    # Cursor theme — needed by SDDM greeter (no home-manager at login)
+    # Cursor theme — needed by dms-greeter (runs before home-manager)
     breezex-cursors
-
-    # Status bar
-    waybar          # Highly customizable Wayland bar
-
-    # Launchers
-    wofi            # App launcher / dmenu replacement for Wayland
-    rofi            # Alternative launcher with more features (rofi-wayland merged into rofi)
-
-    # Notifications
-    swaynotificationcenter  # Sway Notification Center — notification daemon + panel
-    libnotify               # notify-send — sends notifications from scripts/apps
-
-    # Wallpaper
-    awww            # Animated wallpaper daemon (awww-daemon + awww img) — formerly swww
 
     # Screenshots
     grim            # Screenshot tool for Wayland
@@ -188,10 +127,12 @@ in
 
     # Audio
     pavucontrol     # PulseAudio volume mixer GUI
-    swayosd         # Center-bottom OSD layer-shell window for volume/brightness
+
+    # Notifications (for scripts/apps that call notify-send)
+    libnotify
 
     # Theming
-    nwg-look        # GTK theme settings for Wayland compositors
+    nwg-look           # GTK theme settings for Wayland compositors
     qt6Packages.qt6ct  # Qt6 theme settings outside of KDE/GNOME
 
     # System tray / applets
@@ -199,138 +140,67 @@ in
     blueman               # Bluetooth manager with tray icon
 
     # Polkit authentication agent
-    # Lets GUI apps request elevated permissions (mount drives, etc.)
-    # Autostarted via autostart.conf — must be in packages so the binary exists.
     polkit_gnome
 
     # Brightness control — required for laptop brightness keybinds
     brightnessctl
 
     # File manager — Nautilus (GNOME Files)
-    # Works on Hyprland; Mutter.ServiceChannel warning is non-fatal.
-    # Requires local .desktop override to strip DBusActivatable=true — otherwise
-    # wofi/rofi launch it in --gapplication-service mode which fails silently.
+    # Requires local .desktop override to strip DBusActivatable=true
     nautilus
-    sushi              # Quick file preview — press Space on any file (package name in nixpkgs is "sushi", not gnome-sushi)
-    # nautilus-admin not in nixpkgs — "Open as Administrator" handled via the shell script in nautilus-bookmarks.nix
-    tinysparql      # Tracker3 / TinySPARQL — provides org.freedesktop.Tracker3 for Nautilus search
-    localsearch     # Tracker miners (filesystem crawler, formerly tracker-miners)
-
-    # Quickshell — Qt6/QML desktop shell toolkit
-    # Used to build the custom shell: bar, dock, launcher, notifications, OSD,
-    # sidebar, workspace overview, and lock screen.
-    # Flake input declared in flake.nix with nixpkgs.follows for Qt version safety.
-    inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default
-    qt6Packages.qt5compat  # Qt5 compat layer — enables Gaussian blur effects in Quickshell
+    sushi           # Quick file preview — press Space on any file
+    tinysparql      # Tracker3 — provides org.freedesktop.Tracker3 for Nautilus search
+    localsearch     # Tracker miners (filesystem crawler)
 
     # Media key control — playerctl play/pause/next/prev keybinds
     playerctl
 
-    # IPC event listener — used by col-width-auto.sh to watch Hyprland socket events
+    # IPC event listener — used by scripts watching Hyprland socket events
     socat
-
-    # AGS — wallpaper rotation daemon (wallpaper-service.ts)
-    # gtk4: typelib must be explicit — ags wrapper only exposes listed packages.
-    # astal.hyprland: native Hyprland IPC for fullscreen window detection.
-    # astal.io: core Astal I/O library (subprocess, file watching).
-    (pkgs.ags.override {
-      extraPackages = [ pkgs.gtk4 ] ++ (with pkgs.astal; [ io hyprland ]);
-    })
   ];
 
   # =========================================================================
-  # Bluetooth — enabled here because Hyprland needs blueman for tray control
-  # On COSMIC and KDE this is handled by the DE itself.
+  # Bluetooth — blueman for tray control
   # =========================================================================
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true; # Bluetooth on automatically at startup
+    powerOnBoot = true;
     settings = {
       General = {
-        FastConnectable = true;    # Quick reconnect to known devices
-        AutoEnable = true;         # Enable adapter on boot
+        FastConnectable = true;
+        AutoEnable = true;
       };
       Policy = {
-        AutoEnable = true;         # Auto-connect trusted devices
+        AutoEnable = true;
       };
     };
   };
   services.blueman.enable = true;
 
   # =========================================================================
-  # Display Manager — COSMIC Greeter
+  # Display Manager — dms-greeter (greetd backend)
   #
-  # COSMIC's native login screen. Works well with Hyprland as the compositor
-  # — handles session selection and login, then launches Hyprland.
+  # DankMaterialShell's native login screen. Automatically shares theme
+  # and wallpaper with the desktop session.
   # =========================================================================
-  services.displayManager.cosmic-greeter.enable = true;
+  programs.dank-material-shell.greeter = {
+    enable = true;
+    compositor.name = "hyprland";
+  };
 
   # =========================================================================
   # Keyring — Secret storage for apps
   #
-  # Without a keyring, apps like browsers and SSH agents lose saved
-  # passwords on every reboot. GNOME Keyring works fine outside of GNOME.
-  # cosmic-greeter uses the login PAM service for keyring unlock.
+  # GNOME Keyring works fine outside of GNOME.
+  # dms-greeter uses the login PAM service for keyring unlock.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.login.enableGnomeKeyring = true;
 
   # =========================================================================
   # Tracker — file indexer for Nautilus search
-  #
-  # Provides org.freedesktop.Tracker3.Miner.Files so Nautilus can index
-  # and search files. Mutter.ServiceChannel is still unavailable (hard no
-  # on Hyprland — requires gnome-shell), but that warning is non-fatal.
   # =========================================================================
   services.gnome.tinysparql.enable = true;
   services.gnome.localsearch.enable = true;
 
-  # =========================================================================
-  # Greeter wallpaper sync
-  #
-  # Problem: cosmic-greeter runs as its own user and can't read files under
-  # /home/linuxury/, so it always shows a stale/hardcoded wallpaper.
-  #
-  # Solution:
-  #   1. set-wallpaper.sh hardlinks the chosen wallpaper to
-  #      /var/lib/wallpapers/current.jpg (world-readable, no sudo needed
-  #      since linuxury owns the directory).
-  #   2. A systemd path unit detects the change.
-  #   3. A root service writes the COSMIC RON config into the greeter's
-  #      home, so it displays the same wallpaper at the login screen.
-  # =========================================================================
-  systemd.tmpfiles.rules = [
-    "d /var/lib/wallpapers 0755 linuxury users -"
-    "d /var/lib/cosmic-greeter 0755 cosmic-greeter cosmic-greeter -"
-    "d /var/lib/cosmic-greeter/.config 0755 cosmic-greeter cosmic-greeter -"
-    "d /var/lib/cosmic-greeter/.config/cosmic 0755 cosmic-greeter cosmic-greeter -"
-    "d /var/lib/cosmic-greeter/.config/cosmic/com.system76.CosmicBackground 0755 cosmic-greeter cosmic-greeter -"
-    "d /var/lib/cosmic-greeter/.config/cosmic/com.system76.CosmicBackground/v1 0755 cosmic-greeter cosmic-greeter -"
-  ];
-
-  systemd.paths.sync-greeter-wallpaper = {
-    description = "Watch current wallpaper and sync to cosmic-greeter";
-    wantedBy    = [ "multi-user.target" ];
-    requires    = [ "systemd-tmpfiles-setup.service" ];
-    pathConfig.PathChanged = "/var/lib/wallpapers/current.jpg";
-  };
-
-  systemd.services.sync-greeter-wallpaper = {
-    description = "Sync cosmic-greeter background to current wallpaper";
-    wantedBy    = [ "multi-user.target" ];
-    after       = [ "systemd-tmpfiles-setup.service" ];
-    unitConfig.ConditionPathExists = "/var/lib/wallpapers/current.jpg";
-    serviceConfig.Type = "oneshot";
-    script = ''
-      WALLPAPER="/var/lib/wallpapers/current.jpg"
-      GREETER_BG_DIR="/var/lib/cosmic-greeter/.config/cosmic/com.system76.CosmicBackground/v1"
-      mkdir -p "$GREETER_BG_DIR"
-      printf 'true' > "$GREETER_BG_DIR/same-on-all"
-      printf '(\n    output: "all",\n    source: Path("%s"),\n    filter_by_theme: false,\n    rotation_frequency: 0,\n    filter_method: Lanczos,\n    scaling_mode: Zoom,\n    sampling_method: Alphanumeric,\n)\n' \
-        "$WALLPAPER" > "$GREETER_BG_DIR/all"
-      chown -R cosmic-greeter:cosmic-greeter /var/lib/cosmic-greeter/.config
-    '';
-  };
-
-  }; # end config
 }

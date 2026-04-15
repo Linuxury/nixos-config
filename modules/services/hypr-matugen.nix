@@ -1,11 +1,18 @@
 # ===========================================================================
 # hypr-matugen.nix — matugen color sync for Hyprland
 #
-# For Hyprland, the trigger is set-wallpaper.sh (called from autostart.conf
-# and any manual wallpaper change). That script calls `matugen color hex`
-# after setting the wallpaper via awww.
+# Same structural pattern as wallpaper-slideshow.nix (COSMIC):
+#   - wallpaper-service.ts writes ~/.local/share/last-matugen-wallpaper
+#     when the wallpaper changes.
+#   - A systemd path unit detects that write and triggers the service.
+#   - The service extracts the dominant color and runs matugen.
+#   - A startup timer runs the service 5s after session start so colors
+#     are always in sync even if the wallpaper didn't change.
+#   - Deduplication prevents running twice for the same wallpaper.
 #
-# This module handles the static setup: packages and config.toml.
+# Benefit over the old inline approach: matugen runs in a separate process
+# after the wallpaper is already set, and never runs more than once per
+# unique wallpaper — eliminating the rapid double-run that crashed GTK4 apps.
 # ===========================================================================
 { config, pkgs, lib, ... }:
 
@@ -16,6 +23,72 @@
     matugen
     imagemagick
   ];
+
+  # =========================================================================
+  # Color sync service — runs matugen when the wallpaper changes
+  #
+  # wallpaper-service.ts writes last-matugen-wallpaper after setting awww.
+  # The path unit fires, this service extracts the dominant color and runs
+  # matugen. Deduplication skips the run if the same wallpaper was already
+  # processed (prevents double-fire if path unit triggers more than once).
+  # =========================================================================
+  systemd.user.services.hypr-matugen = {
+    Unit = {
+      Description = "Apply matugen color theme for current Hyprland wallpaper";
+      After       = [ "graphical-session.target" ];
+      # Allow rapid triggers without systemd rate-limiting the service
+      StartLimitIntervalSec = 0;
+    };
+    Service = {
+      Type        = "oneshot";
+      ExecStart   = "${pkgs.writeShellScript "hypr-matugen" ''
+        LAST_FILE="$HOME/.local/share/last-matugen-wallpaper"
+        PROC_FILE="$HOME/.local/share/last-matugen-processed"
+        LOG="$HOME/.local/share/wallpaper-service.log"
+
+        log() { echo "[$(date "+%H:%M:%S")] MATUGEN $*" >> "$LOG"; }
+
+        WALLPAPER=$(cat "$LAST_FILE" 2>/dev/null || echo "")
+        if [ -z "$WALLPAPER" ] || [ ! -f "$WALLPAPER" ]; then exit 0; fi
+
+        # Deduplication — skip if this wallpaper's colors are already applied
+        LAST_PROC=$(cat "$PROC_FILE" 2>/dev/null || echo "")
+        if [ -n "$LAST_PROC" ] && [ "$WALLPAPER" = "$LAST_PROC" ]; then exit 0; fi
+        echo "$WALLPAPER" > "$PROC_FILE"
+
+        log "Applying: $(basename "$WALLPAPER")"
+
+        HEX=$(${pkgs.imagemagick}/bin/convert "$WALLPAPER" -resize 1x1 txt:- 2>/dev/null \
+          | grep -oP "#[0-9A-Fa-f]{6}" | head -1)
+        if [ -z "$HEX" ]; then log "WARN no color from $(basename "$WALLPAPER")"; exit 0; fi
+
+        log "Color: $HEX"
+        ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 \
+          || log "WARN matugen failed"
+        log "Done"
+      ''}";
+    };
+  };
+
+  # =========================================================================
+  # Path unit — triggers the service when the wallpaper path file changes
+  # =========================================================================
+  systemd.user.paths.hypr-matugen = {
+    Unit.Description = "Watch last-matugen-wallpaper for wallpaper changes";
+    Path.PathChanged  = "%h/.local/share/last-matugen-wallpaper";
+    Install.WantedBy  = [ "graphical-session.target" ];
+  };
+
+  # =========================================================================
+  # Startup timer — ensures colors are applied at session start
+  # (covers the case where the wallpaper didn't change so the path unit
+  # doesn't fire, but config or templates may have been updated)
+  # =========================================================================
+  systemd.user.timers.hypr-matugen = {
+    Unit.Description    = "Apply matugen colors on session start";
+    Timer.OnActiveSec   = "5s";
+    Install.WantedBy    = [ "graphical-session.target" ];
+  };
 
   home.file.".config/matugen/config.toml".text = ''
     [config]
