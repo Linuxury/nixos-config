@@ -134,7 +134,10 @@ in
   # log. /var/log/ is root-owned so we use tmpfiles to create it up front.
   # =========================================================================
   systemd.tmpfiles.rules = [
-    "f /var/log/nixos-auto-update.log 0640 linuxury users -"
+    "f /var/log/nixos-auto-update.log     0640 linuxury users -"
+    # Timestamp file — owned by linuxury so the user service can write it directly.
+    # (sudo tee is not available in NOPASSWD rules; direct write avoids that)
+    "f /etc/nixos-last-update-time        0644 linuxury users -"
   ];
 
   # =========================================================================
@@ -297,8 +300,8 @@ in
       # -----------------------------------------------------------------------
       # Success path
       # -----------------------------------------------------------------------
-      # Record successful update timestamp
-      date +%s | sudo tee "$TIMESTAMP_FILE" > /dev/null
+      # Record successful update timestamp (file is owned by linuxury via tmpfiles)
+      date +%s > "$TIMESTAMP_FILE"
       log "Update completed successfully"
 
       # Garbage collect old generations (keep last 30 days)

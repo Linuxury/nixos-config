@@ -219,8 +219,11 @@ function secondsToNextSlot(): number {
     const now  = GLib.DateTime.new_now_local()!
     const m    = now.get_minute()
     const s    = now.get_second()
-    const wait = m < 30 ? (30 - m) * 60 - s : (60 - m) * 60 - s
-    return Math.max(wait, 5)  // at least 5 seconds
+    let wait = m < 30 ? (30 - m) * 60 - s : (60 - m) * 60 - s
+    // If we just fired (timer fired slightly early, <60s to the slot boundary),
+    // skip to the following slot — prevents back-to-back double rotations.
+    if (wait < 60) wait += 30 * 60
+    return wait
 }
 
 function scheduleNext(): void {
