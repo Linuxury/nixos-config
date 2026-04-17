@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
-# volume-osd.sh — Volume control with swayosd center-bottom OSD
+# volume-osd.sh — Volume control via wpctl (DMS shows its own OSD via pipewire events)
 # Usage: volume-osd.sh [up|down|mute|input-up|input-down|input-mute]
 
 case "$1" in
     up)
-        swayosd-client --output-volume raise
+        wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+
         ;;
     down)
-        swayosd-client --output-volume lower
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
         ;;
     mute)
-        swayosd-client --output-volume mute-toggle
+        wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
         ;;
     input-up)
-        swayosd-client --input-volume raise
+        wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SOURCE@ 5%+
         ;;
     input-down)
-        swayosd-client --input-volume lower
+        wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 5%-
         ;;
     input-mute)
-        swayosd-client --input-volume mute-toggle
+        wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
         ;;
     *)
         echo "Usage: $0 [up|down|mute|input-up|input-down|input-mute]"

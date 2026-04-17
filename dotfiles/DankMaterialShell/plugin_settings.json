@@ -1,0 +1,91 @@
+{
+  "$schema": "https://dank.moe/schemas/plugin_settings.json",
+  "version": 1,
+  "plugins": {
+    "cava": {
+      "autostart": false,
+      "bar": {
+        "bars": []
+      },
+      "config": {
+        "backend": "alsa",
+        "framerate": 60,
+        "overshoot": true,
+        "source": "pulseaudio"
+      }
+    },
+    "cursed": {
+      "bar": {
+        "enable": false
+      }
+    },
+    "dwl": {
+      "tags": []
+    },
+    "foreign": {
+      "toplevel": {
+        "enable": false
+      }
+    },
+    "gamemode": {
+      "enable": false
+    },
+    "hyprlock": {
+      "enable": false
+    },
+    "idle": {
+      "disable_typing": false,
+      "enable": true,
+      "lock": {
+        "cmd": "hyprlock",
+        "notifs": true,
+        "refresh": 5
+      },
+      "swayidle": false
+    },
+    "magnet": {
+      "enable": false
+    },
+    "notifys": {
+      "actions": {
+        "dnd": "dnd",
+        "snooze": "snooze"
+      },
+      "filter": {
+        "apps": [],
+        "ignore": [],
+        "ignore_window": [],
+        "rules": []
+      },
+      "history": 5,
+      "persistence": true
+    },
+    "swww": {
+      "autostart": true,
+      "settings": {
+        "animation": "fade",
+        "fill": "fill",
+        "filter": "linear",
+        "font": "JetBrainsMono Nerd Font",
+        "font_size": 16,
+        "guard": false,
+        "prefer": "cat ~/.config/hypr/wallpaper",
+        "random_on_empty": false,
+        "transition_duration": 1,
+        "transition_type": "simple"
+      },
+      "wallpapers": []
+    },
+    "waybar": {
+      "autostart": false,
+      "ipc": true,
+      "kill_delay": 2000,
+      "modules_left": [],
+      "modules_right": [],
+      "tray": {
+        "icon_size": 16,
+        "spacing": 8
+      }
+    }
+  }
+}
