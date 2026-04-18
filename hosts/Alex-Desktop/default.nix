@@ -92,12 +92,6 @@
       options = [ "subvol=@swap" "noatime" ];
     };
 
-    "/boot" = {
-      device = "/dev/disk/by-label/EFI";
-      fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
-    };
-
     # -----------------------------------------------------------------------
     # Media-Server Samba share
     # Read-only for alex — he can browse media but not accidentally delete.
@@ -172,6 +166,16 @@
   swapDevices = [{
     device = "/swap/swapfile";
   }];
+
+  # =========================================================================
+  # Bootloader — Legacy BIOS (M5A78L-M LX has no UEFI)
+  # =========================================================================
+  boot.loader.systemd-boot.enable = lib.mkForce false;
+  boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
+  boot.loader.grub = {
+    enable = true;
+    device = "/dev/sda";
+  };
 
   # =========================================================================
   # Kernel
