@@ -20,7 +20,7 @@
 #   ]
 # ===========================================================================
 
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   imports = [
@@ -128,6 +128,11 @@
     # Shell tools
     # -----------------------------------------------------------------------
     eza   # Modern ls replacement — colors, icons, git status, dir grouping
+
+    # -----------------------------------------------------------------------
+    # Browsers
+    # -----------------------------------------------------------------------
+    inputs.helium-browser.packages.${pkgs.system}.helium  # Privacy-focused Chromium browser
 
     # -----------------------------------------------------------------------
     # Network share client

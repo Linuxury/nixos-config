@@ -117,6 +117,15 @@
       flake = false;
     };
 
+    # -------------------------------------------------------------------------
+    # helium-browser — Nix flake for the Helium browser
+    #
+    # Helium is a privacy-focused Chromium-based browser with built-in ad/
+    # tracker blocking, split-view, and !bang search shortcuts.
+    # Not in nixpkgs — packaged via community flake (prebuilt binaries).
+    # -------------------------------------------------------------------------
+    helium-browser.url = "github:schembriaiden/helium-browser-nix-flake";
+
   };
 
   # ===========================================================================
