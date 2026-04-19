@@ -43,8 +43,12 @@
 
   # =========================================================================
   # GPU driver selection
+  # M5A78L-M LX has Radeon HD 3000 (760G chipset) — pre-GCN, needs radeon
+  # driver not amdgpu. Override the amd defaults from drivers.nix.
   # =========================================================================
   hardware.gpu = "amd";
+  boot.initrd.kernelModules = lib.mkForce [ "radeon" ];
+  services.xserver.videoDrivers = lib.mkForce [ "radeon" ];
 
   # =========================================================================
   # Filesystem — BTRFS with subvolumes, no LUKS on desktop
@@ -302,12 +306,13 @@
     shell = pkgs.zsh;
   };
 
-  # linuxury user — needed for Syncthing (vault sync) and auto-update notifications
+  # linuxury user — remote admin access (SSH + sudo for rebuilds)
   users.users.linuxury = {
     isNormalUser = true;
     home         = "/home/linuxury";
     createHome   = true;
     group        = "users";
+    extraGroups  = [ "wheel" ];
   };
 
   programs.zsh.enable = true;
