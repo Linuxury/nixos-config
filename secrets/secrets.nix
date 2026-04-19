@@ -65,7 +65,7 @@ let
   Ryzen5900x = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHyps7MacHDkQcGP1kr6ZOc6fR/JTMrj4my3Bg5ybyJo root@Ryzen5900x";
   Ryzen5800x = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
   Asus-A15 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
-  Alex-Desktop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Alex-Desktop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnCW13n0suf4rFoopQhc3uDY15BrM1qltvO+JVrL5OH root@Alex-Desktop";
   Alex-Laptop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILyHn+dSmJU01t4p81PfmhHb8yaRjUhoarvQwTDJQ69T root@Alex-Laptop";
   MinisForum = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/HPvxQY35jS4VDZRy4viIfHIGjUqkCgFhRVNcIsZRG root@MinisForum";
   Radxa-X4 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPBE88V1jx/3qtbt94uueOdch+E+NEyIZ0JqIFYFRaEz";
