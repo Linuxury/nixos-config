@@ -181,6 +181,10 @@
     ".claude/projects/-home-linuxury/memory".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/memory";
 
+    # VSCodium — user settings (mkOutOfStoreSymlink keeps the file writable)
+    ".config/VSCodium/User/settings.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/vscodium/settings.json";
+
     # Nano — for quick root edits
     ".nanorc".source = ../../dotfiles/nano/.nanorc;
 
@@ -580,6 +584,32 @@
   # =========================================================================
   home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p "$HOME/Obsidian"
+  '';
+
+  # =========================================================================
+  # VSCodium — Claude Code NixOS wrapper
+  #
+  # The Claude Code extension bundles a generic Linux binary that can't run
+  # on NixOS (dynamic linker mismatch). This activation script replaces the
+  # bundled binary with a thin wrapper that calls the Nix-installed claude.
+  #
+  # Runs on every rebuild so it survives extension updates automatically.
+  # The original binary is preserved as claude.orig on first run.
+  # =========================================================================
+  home.activation.vscodiumClaudeWrapper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    CLAUDE_REAL="/etc/profiles/per-user/linuxury/bin/claude"
+    EXT_DIR="$HOME/.vscode-oss/extensions"
+
+    for ext_claude in "$EXT_DIR"/anthropic.claude-code-*/resources/native-binary/claude; do
+      [ -e "$ext_claude" ] || continue
+      # Skip if already our wrapper
+      grep -q "exec $CLAUDE_REAL" "$ext_claude" 2>/dev/null && continue
+      # Backup original binary once
+      [ -f "$ext_claude.orig" ] || mv "$ext_claude" "$ext_claude.orig"
+      [ -f "$ext_claude.orig" ] && rm -f "$ext_claude"
+      printf '#!/bin/sh\nexec %s "$@"\n' "$CLAUDE_REAL" > "$ext_claude"
+      chmod +x "$ext_claude"
+    done
   '';
 
   home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

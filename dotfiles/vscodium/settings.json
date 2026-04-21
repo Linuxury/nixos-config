@@ -1,0 +1,11 @@
+{
+    "claudeCode.preferredLocation": "panel",
+    "claudeCode.environmentVariables": [
+        {
+            "name": "PATH",
+            "value": "/etc/profiles/per-user/linuxury/bin:/run/current-system/sw/bin:/run/wrappers/bin"
+        }
+    ],
+    "workbench.colorTheme": "Experimental Dark",
+    "workbench.preferredDarkColorTheme": "Experimental Dark"
+}
