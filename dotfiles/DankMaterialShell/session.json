@@ -1,7 +1,7 @@
 {
   "isLightMode": false,
   "doNotDisturb": false,
-  "wallpaperPath": "/home/linuxury/Pictures/Wallpapers/3440x1440 - 58.jpg",
+  "wallpaperPath": "/home/linuxury/Pictures/Wallpapers/3440x1440 - 16.jpg",
   "perMonitorWallpaper": false,
   "monitorWallpapers": {},
   "perModeWallpaper": false,
@@ -49,6 +49,7 @@
   "weatherCoordinates": "40.7128,-74.0060",
   "pinnedApps": [
     "firefox",
+    "helium",
     "org.gnome.Nautilus",
     "kitty",
     "steam"
@@ -69,7 +70,7 @@
   "nonNvidiaGpuTempEnabled": false,
   "enabledGpuPciIds": [],
   "wifiDeviceOverride": "",
-  "weatherHourlyDetailed": true,
+  "weatherHourlyDetailed": false,
   "hiddenApps": [],
   "appOverrides": {},
   "searchAppActions": true,

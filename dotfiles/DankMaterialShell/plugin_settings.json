@@ -87,5 +87,14 @@
         "spacing": 8
       }
     }
+  },
+  "wallpaperCarousel": {
+    "enabled": true
+  },
+  "fullscreenPowerMenu": {
+    "enabled": true
+  },
+  "dmsScreenshot": {
+    "enabled": true
   }
 }
