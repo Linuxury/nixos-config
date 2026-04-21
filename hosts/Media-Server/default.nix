@@ -192,7 +192,7 @@
   # for read/write access to /data/media and related folders.
   # =========================================================================
   users.groups = {
-    media        = { gid = 995; members = [ "plex" "sonarr" "radarr" "lidarr" "readarr" "bazarr" "prowlarr" ]; };
+    media        = { gid = 995; members = [ "plex" "sonarr" "radarr" "lidarr" "readarr" "bazarr" "prowlarr" "linuxury" "babylinux" ]; };
     arr-services = {};  # Shared group for all arr services
     # linuxury/babylinux in the immich group so Samba connections can read
     # photo files (which immich creates as immich:immich).
@@ -234,7 +234,7 @@
 
     # Service config directories — persistent app data
     "d /data/config                       0755 root         root         -"
-    "d /data/config/plex                  0755 plex         media        -"
+    "d /data/config/plex                  0775 plex         media        -"
     "d /data/config/immich                0755 immich       immich       -"
     "d /data/config/arr-services          0755 root         arr-services -"
     "d /data/config/arr-services/sonarr   0755 sonarr       arr-services -"
@@ -302,6 +302,10 @@
     group        = "media";
     dataDir      = "/data/config/plex";
   };
+
+  # Allow media group members to write into Plex's data dir (e.g. Plug-ins).
+  # UMask 0002 means Plex creates files/dirs as 664/775 instead of 644/755.
+  systemd.services.plex.serviceConfig.UMask = "0002";
 
   # =========================================================================
   # Arr stack — automated media management
