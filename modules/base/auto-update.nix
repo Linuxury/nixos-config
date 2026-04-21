@@ -308,6 +308,11 @@ in
       log "Cleaning up old generations..."
       sudo nix-collect-garbage --delete-older-than 30d >> "$LOG_FILE" 2>&1 || true
 
+      # Prune snapshots — prevent stale snapshots from accumulating between cleanup timer runs
+      log "Pruning old snapshots..."
+      sudo snapper -c root cleanup timeline >> "$LOG_FILE" 2>&1 || true
+      sudo snapper -c home cleanup timeline >> "$LOG_FILE" 2>&1 || true
+
       # Firmware updates via fwupd
       log "Checking for firmware updates..."
       if sudo fwupdmgr refresh >> "$LOG_FILE" 2>&1; then
@@ -437,6 +442,10 @@ in
         }
         {
           command  = "${pkgs.fwupd}/bin/fwupdmgr";
+          options  = [ "NOPASSWD" ];
+        }
+        {
+          command  = "${pkgs.snapper}/bin/snapper";
           options  = [ "NOPASSWD" ];
         }
         {

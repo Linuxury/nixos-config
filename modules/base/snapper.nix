@@ -8,7 +8,7 @@
 #   - Automatically prunes old snapshots on a timeline:
 #       8 hourly    → covers the last 8 hours
 #       7 daily     → one per day for a week
-#       4 weekly    → one per week for a month
+#       2 weekly    → one per week for two weeks
 #   - Monthly BTRFS scrub to catch silent data corruption early
 #
 # ALL hosts use BTRFS and mount /.snapshots from @snapshots, so this
@@ -26,7 +26,8 @@
 {
   services.snapper = {
     # How often to run the cleanup daemon (not the snapshot creation)
-    cleanupInterval = "1d";
+    # 1h keeps snapshots pruned right after each hourly creation cycle
+    cleanupInterval = "1h";
     # How often to take new snapshots (the actual snapshot trigger interval)
     snapshotInterval = "hourly";
 
@@ -45,7 +46,7 @@
         TIMELINE_CLEANUP = true; # prune old ones automatically
         TIMELINE_LIMIT_HOURLY = "8";
         TIMELINE_LIMIT_DAILY = "7";
-        TIMELINE_LIMIT_WEEKLY = "4";
+        TIMELINE_LIMIT_WEEKLY = "2";
         TIMELINE_LIMIT_MONTHLY = "0"; # disabled — weekly is enough coverage
         TIMELINE_LIMIT_YEARLY = "0";
       };
@@ -63,7 +64,7 @@
         TIMELINE_CLEANUP = true;
         TIMELINE_LIMIT_HOURLY = "8";
         TIMELINE_LIMIT_DAILY = "7";
-        TIMELINE_LIMIT_WEEKLY = "4";
+        TIMELINE_LIMIT_WEEKLY = "2";
         TIMELINE_LIMIT_MONTHLY = "0";
         TIMELINE_LIMIT_YEARLY = "0";
       };
