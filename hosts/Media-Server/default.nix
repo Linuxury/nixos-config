@@ -235,6 +235,10 @@
     # Service config directories — persistent app data
     "d /data/config                       0755 root         root         -"
     "d /data/config/plex                  0775 plex         media        -"
+    # 'z' fixes permissions on existing dirs (unlike 'd' which only creates).
+    # Plex creates these subdirs itself — enforce group-write on every boot.
+    "z \"/data/config/plex/Plex Media Server\"           0775 plex media -"
+    "z \"/data/config/plex/Plex Media Server/Plug-ins\"  0775 plex media -"
     "d /data/config/immich                0755 immich       immich       -"
     "d /data/config/arr-services          0755 root         arr-services -"
     "d /data/config/arr-services/sonarr   0755 sonarr       arr-services -"
