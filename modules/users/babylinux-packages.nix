@@ -9,6 +9,9 @@
 {
   environment.systemPackages = with pkgs; [
 
+    # NixOS tools
+    nix-output-monitor # Progress bar + TUI for nix builds (nom)
+
     # Communication
     zoom-us         # Video conferencing
   ];

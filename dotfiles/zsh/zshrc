@@ -32,19 +32,30 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # Rebuild and switch to the current flake config.
 nr() {
   sudo -v
-  sudo nixos-rebuild switch --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
+    nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
 
-# Rebuild into boot (applies on next reboot, not immediately).
+# Rebuild into boot + pull latest nixpkgs first, then reboot when done.
+# Use this for unattended updates — it applies on next boot and reboots automatically.
 nrb() {
+  echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+  git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
+  git -C "$NIXOS_CONFIG" pull || return 1
+  nix flake update nixpkgs --flake "$NIXOS_CONFIG"
   sudo -v
-  sudo nixos-rebuild boot --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
+    nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  echo "→ Rebooting in 10 seconds... (Ctrl+C to cancel)"
+  sleep 10
+  sudo reboot
 }
 
-# Test rebuild — activates without touching the boot entry.
+# Test rebuild — activates now without touching the boot entry (safe for risky changes).
 nrt() {
   sudo -v
-  sudo nixos-rebuild test --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
+    nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
 
 # Rebuild + pull latest nixpkgs before switching.
@@ -55,7 +66,8 @@ nru() {
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
   sudo -v
-  sudo nixos-rebuild switch --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
+    nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
   # Notify if a kernel update requires a reboot
   local current_kernel installed_kernel
   current_kernel=$(uname -r)
@@ -70,6 +82,11 @@ nru() {
     echo "⚠ Reboot required — kernel updated to $installed_kernel"
   fi
 }
+
+# NixOS aliases — available to all users on all hosts
+alias nrr='sudo nixos-rebuild switch --rollback'
+alias ngc='sudo nix-collect-garbage --delete-older-than 30d'
+alias ngens='sudo nix-env --list-generations --profile /nix/var/nix/profiles/system'
 
 # ---------------------------------------------------------------------------
 # OpenCode — runs with OpenRouter API (key from agenix)

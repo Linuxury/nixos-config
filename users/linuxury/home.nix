@@ -379,12 +379,6 @@
     zsh-abbr = {
       enable = true;
       abbreviations = {
-        # NixOS management
-        # nr/nrb/nrt are shell functions in zshrc (run silently like nru)
-        nrr = "sudo nixos-rebuild switch --rollback";
-        ngc = "sudo nix-collect-garbage --delete-older-than 30d";
-        ngens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-
         # agenix — run from secrets/ dir without changing shell's cwd
         age-edit = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -e";
         age-rekey = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -r";

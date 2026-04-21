@@ -163,12 +163,7 @@
     zsh-abbr = {
       enable = true;
       abbreviations = {
-        nr    = "sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why=\"NixOS rebuild in progress\" nixos-rebuild switch --flake ~/nixos-config --print-build-logs";
-        nrb   = "sudo nixos-rebuild boot --flake ~/nixos-config --print-build-logs";
-        nrt   = "sudo nixos-rebuild test --flake ~/nixos-config --print-build-logs";
-        nrr   = "sudo nixos-rebuild switch --rollback";
-        ngc   = "sudo nix-collect-garbage --delete-older-than 30d";
-        ngens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
+        # agenix — run from secrets/ dir without changing shell's cwd
         age-edit  = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -e";
         age-rekey = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -r";
       };

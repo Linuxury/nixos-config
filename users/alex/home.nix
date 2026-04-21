@@ -146,19 +146,7 @@
       }
     ];
 
-    # Minimal abbreviations for alex — he won't use most of these but they're
-    # harmless, and he'll grow into them.
-    zsh-abbr = {
-      enable = true;
-      abbreviations = {
-        nr    = "sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why=\"NixOS rebuild in progress\" nixos-rebuild switch --flake ~/nixos-config --print-build-logs";
-        nrb   = "sudo nixos-rebuild boot --flake ~/nixos-config --print-build-logs";
-        nrt   = "sudo nixos-rebuild test --flake ~/nixos-config --print-build-logs";
-        nrr   = "sudo nixos-rebuild switch --rollback";
-        ngc   = "sudo nix-collect-garbage --delete-older-than 30d";
-        ngens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-      };
-    };
+    zsh-abbr.enable = true;
 
     shellAliases = {
       ll = "eza -la --color=always --icons --group-directories-first --git";
