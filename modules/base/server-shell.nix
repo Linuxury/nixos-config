@@ -100,6 +100,12 @@
         sudo -v
         sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
           nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
+        curl -s --max-time 10 \
+          -H "Title: Rebooting — $(hostname)" \
+          -H "Priority: high" \
+          -H "Tags: arrows_counterclockwise" \
+          -d "NixOS updated successfully. Rebooting in 10 seconds." \
+          "http://media-server:2586/nixos-updates" 2>/dev/null || true
         echo "→ Rebooting in 10 seconds... (Ctrl+C to cancel)"
         sleep 10
         sudo reboot
