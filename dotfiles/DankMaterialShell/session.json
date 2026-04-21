@@ -1,7 +1,7 @@
 {
   "isLightMode": false,
   "doNotDisturb": false,
-  "wallpaperPath": "/home/linuxury/Pictures/Wallpapers/3440x1440 - 16.jpg",
+  "wallpaperPath": "/home/linuxury/Pictures/Wallpapers/3440x1440 - 19.jpg",
   "perMonitorWallpaper": false,
   "monitorWallpapers": {},
   "perModeWallpaper": false,
@@ -50,8 +50,10 @@
   "pinnedApps": [
     "firefox",
     "helium",
+    "codium",
     "org.gnome.Nautilus",
     "kitty",
+    "org.prismlauncher.PrismLauncher",
     "steam"
   ],
   "barPinnedApps": [],
