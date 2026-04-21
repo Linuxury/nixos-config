@@ -6,6 +6,10 @@
             "value": "/etc/profiles/per-user/linuxury/bin:/run/current-system/sw/bin:/run/wrappers/bin"
         }
     ],
-    "workbench.colorTheme": "Experimental Dark",
-    "workbench.preferredDarkColorTheme": "Experimental Dark"
+    "workbench.colorTheme": "Catppuccin Mocha",
+    "workbench.preferredDarkColorTheme": "Experimental Dark",
+    "workbench.iconTheme": "flow-dawn",
+    "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
+    "editor.fontSize": 16,
+    "window.zoomLevel": 1
 }
