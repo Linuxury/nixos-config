@@ -55,15 +55,6 @@
     syntaxHighlighting.enable = true;
 
     shellAliases = {
-      # Rebuild and apply the current config
-      nr    = "sudo nixos-rebuild switch --flake ~/nixos-config --print-build-logs";
-
-      # Set next boot target — use for kernel or bootloader changes
-      nrb   = "sudo nixos-rebuild boot --flake ~/nixos-config --print-build-logs";
-
-      # Test build without activating — catches errors safely
-      nrt   = "sudo nixos-rebuild test --flake ~/nixos-config --print-build-logs";
-
       # Roll back to the previous generation
       nrr   = "sudo nixos-rebuild switch --rollback";
 
@@ -93,12 +84,43 @@
       # System info on login
       fastfetch
 
-      # Rebuild + update nixpkgs flake input before switching
+      # Rebuild and switch to the current flake config
+      nr() {
+        sudo -v
+        sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
+          nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
+      }
+
+      # Rebuild into boot + pull latest nixpkgs first, then reboot when done
+      nrb() {
+        echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+        git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
+        git -C "$NIXOS_CONFIG" pull || return 1
+        nix flake update nixpkgs --flake "$NIXOS_CONFIG"
+        sudo -v
+        sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
+          nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
+        echo "→ Rebooting in 10 seconds... (Ctrl+C to cancel)"
+        sleep 10
+        sudo reboot
+      }
+
+      # Test build without activating — catches errors safely
+      nrt() {
+        sudo -v
+        sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
+          nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
+      }
+
+      # Rebuild + pull latest nixpkgs before switching
       nru() {
         echo "→ Pulling latest changes from $NIXOS_CONFIG..."
         git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
         git -C "$NIXOS_CONFIG" pull || return 1
-        sudo nixos-rebuild switch --flake "$NIXOS_CONFIG" --update-input nixpkgs --print-build-logs
+        nix flake update nixpkgs --flake "$NIXOS_CONFIG"
+        sudo -v
+        sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
+          nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
         # Notify if a kernel update requires a reboot
         local current_kernel installed_kernel
         current_kernel=$(uname -r)
