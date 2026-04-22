@@ -3,20 +3,23 @@
 # nixpkgs builds opencode from source (bun + node_modules fixed-output
 # derivation) which requires manual hash updates for every release.
 # opencode ships daily and nixpkgs can't keep up, so we fetch the
-# prebuilt x64 Linux binary directly from GitHub releases and patch it
-# for NixOS with autoPatchelfHook.
+# prebuilt binary from the opencode-linux-x64 npm package instead.
+#
+# The binary is a Bun standalone executable. On NixOS this requires
+# programs.nix-ld.enable = true (set in modules/base/ai-tools.nix) so
+# that /lib64/ld-linux-x86-64.so.2 exists as a shim. Patching with
+# patchelf or invoking through the interpreter both break Bun because
+# it reads /proc/self/exe to locate its embedded JS.
 #
 # To update: change version + re-run to get new hash:
 #   nix-prefetch-url --type sha256 \
-#     https://github.com/anomalyco/opencode/releases/download/v<ver>/opencode-linux-x64.tar.gz
+#     https://registry.npmjs.org/opencode-linux-x64/-/opencode-linux-x64-<ver>.tgz
 #   nix hash convert --hash-algo sha256 --to sri <result>
 {
   lib,
   stdenv,
   fetchurl,
-  autoPatchelfHook,
   makeBinaryWrapper,
-  glibc,
   ripgrep,
 }:
 
@@ -25,26 +28,18 @@ stdenv.mkDerivation (finalAttrs: {
   version = "1.14.20";
 
   src = fetchurl {
-    url = "https://github.com/anomalyco/opencode/releases/download/v${finalAttrs.version}/opencode-linux-x64.tar.gz";
-    hash = "sha256-FwcTMCI4LqjIzFvEerHbUvoga9m6+NOtTYYrSJ27RI8=";
+    url = "https://registry.npmjs.org/opencode-linux-x64/-/opencode-linux-x64-${finalAttrs.version}.tgz";
+    hash = "sha256-LRjasyNZ9rMzsLLZPO4PApbvlS7H+bM+FGgNiGmbnpY=";
   };
 
-  nativeBuildInputs = [
-    autoPatchelfHook
-    makeBinaryWrapper
-  ];
+  nativeBuildInputs = [ makeBinaryWrapper ];
 
-  buildInputs = [
-    glibc
-  ];
-
-  # The tarball contains a single `opencode` binary at the root
   unpackPhase = ''
     tar -xzf $src
   '';
 
   installPhase = ''
-    install -Dm755 opencode $out/bin/.opencode-unwrapped
+    install -Dm755 package/bin/opencode $out/bin/.opencode-unwrapped
     makeWrapper $out/bin/.opencode-unwrapped $out/bin/opencode \
       --prefix PATH : ${lib.makeBinPath [ ripgrep ]}
   '';

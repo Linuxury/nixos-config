@@ -24,5 +24,13 @@
       git                 # Git operations
       gh                  # GitHub CLI
     ];
+
+    # nix-ld provides /lib64/ld-linux-x86-64.so.2 as a compatibility shim
+    # so prebuilt Linux binaries (like opencode) can run without ELF patching.
+    # Patching Bun standalone binaries with patchelf breaks them because Bun
+    # uses /proc/self/exe to locate its embedded JS — patchelf shifts offsets
+    # and the interpreter-invocation workaround breaks /proc/self/exe too.
+    programs.nix-ld.enable = true;
+    programs.nix-ld.libraries = with pkgs; [ glibc ];
   };
 }
