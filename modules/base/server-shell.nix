@@ -102,13 +102,14 @@
       fastfetch
 
       # Helper: hold a sleep/idle inhibit lock while a command runs
+      # systemd-inhibit works as a regular user via D-Bus — no sudo needed.
       _with_inhibit() {
         local reason="$1"; shift
-        sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="$reason" sleep infinity &
+        systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="$reason" sleep infinity &
         local inhibit_pid=$!
         "$@"
         local exit_code=$?
-        sudo kill $inhibit_pid 2>/dev/null
+        kill $inhibit_pid 2>/dev/null
         return $exit_code
       }
 
