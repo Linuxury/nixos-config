@@ -15,9 +15,26 @@
 # Import this in: Radxa-X4, MinisForum, Media-Server (any headless host).
 # ===========================================================================
 
-{ pkgs, lib, ... }:
+{ pkgs, lib, config, ... }:
 
 {
+  # NOPASSWD sudo rules for NixOS management commands
+  # Allows nr/nrb/nrt/nru to run without a password prompt on servers
+  security.sudo.extraRules = [
+    {
+      users = [ "linuxury" ];
+      commands = [
+        { command = "${pkgs.nixos-rebuild}/bin/nixos-rebuild";    options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/nixos-rebuild";   options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.nix}/bin/nix";                        options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.nix}/bin/nix-collect-garbage";        options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.systemd}/bin/systemd-inhibit";        options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.systemd}/bin/reboot";                 options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/reboot";          options = [ "NOPASSWD" ]; }
+      ];
+    }
+  ];
+
   # SSH agent — system-level, sets SSH_AUTH_SOCK via PAM for all login shells
   programs.ssh.startAgent = true;
 
@@ -86,7 +103,6 @@
 
       # Rebuild and switch to the current flake config
       nr() {
-        sudo -v
         sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
           nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
       }
@@ -97,7 +113,6 @@
         git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
         git -C "$NIXOS_CONFIG" pull || return 1
         nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-        sudo -v
         sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
           nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
         curl -s --max-time 10 \
@@ -113,7 +128,6 @@
 
       # Test build without activating — catches errors safely
       nrt() {
-        sudo -v
         sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
           nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
       }
@@ -124,7 +138,6 @@
         git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
         git -C "$NIXOS_CONFIG" pull || return 1
         nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-        sudo -v
         sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
           nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
         # Notify if a kernel update requires a reboot

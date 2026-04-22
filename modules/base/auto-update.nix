@@ -449,6 +449,18 @@ in
           options  = [ "NOPASSWD" ];
         }
         {
+          command  = "${pkgs.systemd}/bin/systemd-inhibit";
+          options  = [ "NOPASSWD" ];
+        }
+        {
+          command  = "${pkgs.systemd}/bin/reboot";
+          options  = [ "NOPASSWD" ];
+        }
+        {
+          command  = "/run/current-system/sw/bin/reboot";
+          options  = [ "NOPASSWD" ];
+        }
+        {
           # Allow starting notify-vault@ success/failure services
           # (system service that runs as linuxury, writes to vault)
           command  = "${pkgs.systemd}/bin/systemctl start notify-vault@success.service";

@@ -31,7 +31,6 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
 # Rebuild and switch to the current flake config.
 nr() {
-  sudo -v
   sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
     nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
@@ -43,7 +42,6 @@ nrb() {
   git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-  sudo -v
   sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
     nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
   curl -s --max-time 10 \
@@ -59,7 +57,6 @@ nrb() {
 
 # Test rebuild — activates now without touching the boot entry (safe for risky changes).
 nrt() {
-  sudo -v
   sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
     nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
@@ -71,7 +68,6 @@ nru() {
   git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-  sudo -v
   sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
     nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
   # Notify if a kernel update requires a reboot
