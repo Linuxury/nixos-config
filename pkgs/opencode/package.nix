@@ -34,6 +34,11 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [ makeBinaryWrapper ];
 
+  # The fixup phase strips binaries by default. Bun standalone binaries
+  # embed the application JS after the ELF content — stripping removes it,
+  # causing Bun to fall back to its own CLI instead of running opencode.
+  dontStrip = true;
+
   unpackPhase = ''
     tar -xzf $src
   '';
