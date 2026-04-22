@@ -591,7 +591,7 @@
   # The original binary is preserved as claude.orig on first run.
   # =========================================================================
   home.activation.vscodiumClaudeWrapper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    CLAUDE_REAL="/etc/profiles/per-user/linuxury/bin/claude"
+    CLAUDE_REAL="/etc/profiles/per-user/${config.home.username}/bin/claude"
     EXT_DIR="$HOME/.vscode-oss/extensions"
 
     for ext_claude in "$EXT_DIR"/anthropic.claude-code-*/resources/native-binary/claude; do

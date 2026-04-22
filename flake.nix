@@ -202,6 +202,7 @@
               nixpkgs.overlays = [
                 (final: prev: {
                   claude-code = prev.callPackage ./pkgs/claude-code/package.nix {};
+                  opencode    = prev.callPackage ./pkgs/opencode/package.nix {};
                 })
               ];
             }
