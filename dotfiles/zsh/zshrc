@@ -29,10 +29,22 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # via programs.zsh.zsh-abbr.abbreviations — they expand inline before running.
 # ---------------------------------------------------------------------------
 
+# Helper: hold a systemd sleep/idle inhibit lock while a command runs.
+# Runs inhibit in background so nixos-rebuild's stderr flows cleanly to nom.
+_with_inhibit() {
+  local reason="$1"; shift
+  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="$reason" sleep infinity &
+  local inhibit_pid=$!
+  "$@"
+  local exit_code=$?
+  sudo kill $inhibit_pid 2>/dev/null
+  return $exit_code
+}
+
 # Rebuild and switch to the current flake config.
 nr() {
-  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
-    nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  _with_inhibit "NixOS rebuild in progress" \
+    sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
 
 # Rebuild into boot + pull latest nixpkgs first, then reboot when done.
@@ -42,8 +54,8 @@ nrb() {
   git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
-    nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  _with_inhibit "NixOS update in progress" \
+    sudo nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
   curl -s --max-time 10 \
     -H "Title: Rebooting — $(hostname)" \
     -H "Priority: high" \
@@ -57,8 +69,8 @@ nrb() {
 
 # Test rebuild — activates now without touching the boot entry (safe for risky changes).
 nrt() {
-  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS rebuild in progress" \
-    nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  _with_inhibit "NixOS rebuild in progress" \
+    sudo nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
 }
 
 # Rebuild + pull latest nixpkgs before switching.
@@ -68,8 +80,8 @@ nru() {
   git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-  sudo systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="NixOS update in progress" \
-    nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  _with_inhibit "NixOS update in progress" \
+    sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
   # Notify if a kernel update requires a reboot
   local current_kernel installed_kernel
   current_kernel=$(uname -r)
