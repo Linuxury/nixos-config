@@ -14,6 +14,30 @@
 { config, pkgs, lib, inputs, ... }:
 
 let
+  # Wrapper that launches the UWSM-managed Hyprland session with stdout/stderr
+  # redirected to the journal. Without this, UWSM prints session-init messages
+  # directly to the TTY, causing a brief flash of text on a blank screen between
+  # the greeter exiting and Hyprland's first frame appearing.
+  hyprland-session-start = pkgs.writeShellScript "hyprland-session-start" ''
+    exec ${pkgs.systemd}/bin/systemd-cat -t hyprland-session \
+      uwsm start hyprland-uwsm.desktop
+  '';
+
+  hyprland-session-pkg = pkgs.runCommand "hyprland-session"
+    { passthru.providedSessions = [ "hyprland-session" ]; }
+    ''
+      mkdir -p $out/share/wayland-sessions
+      cat > $out/share/wayland-sessions/hyprland-session.desktop <<'EOF'
+      [Desktop Entry]
+      Name=Hyprland
+      Comment=Hyprland Wayland Compositor (UWSM)
+      Exec=${hyprland-session-start}
+      Type=Application
+      DesktopNames=Hyprland
+      Keywords=wayland;compositor;tiling
+      EOF
+    '';
+
   # BreezeX cursor theme — installed system-wide so dms-greeter (no
   # home-manager at login time) can use it on the login screen.
   breezex-cursors = pkgs.stdenv.mkDerivation {
@@ -92,6 +116,9 @@ in
     ];
     config.common.default = "hyprland";
   };
+
+  # Register the quiet session wrapper so greeters can offer it.
+  services.displayManager.sessionPackages = [ hyprland-session-pkg ];
 
   # =========================================================================
   # Polkit — Authentication agent

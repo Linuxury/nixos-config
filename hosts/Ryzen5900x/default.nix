@@ -71,7 +71,7 @@ in
   # Default session — use UWSM-managed Hyprland so graphical-session.target
   # starts properly (required for waybar, swaync, etc.)
   # =========================================================================
-  services.displayManager.defaultSession = "hyprland-uwsm";
+  services.displayManager.defaultSession = "hyprland-session";
 
   # =========================================================================
   # Network — prefer ethernet, auto-disable WiFi when ethernet is up
