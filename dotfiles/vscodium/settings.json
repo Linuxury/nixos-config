@@ -5,6 +5,6 @@
     "workbench.preferredDarkColorTheme": "Experimental Dark",
     "workbench.iconTheme": "flow-dawn",
     "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
-    "editor.fontSize": 16,
-    "window.zoomLevel": 1
+    "editor.fontSize": 13,
+    "window.zoomLevel": 1.5
 }
