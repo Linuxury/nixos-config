@@ -196,6 +196,22 @@ in
   programs.dank-material-shell.greeter = {
     enable = true;
     compositor.name = "hyprland";
+    # Provide a full base config so the greeter's Hyprland instance picks up
+    # the cursor theme. Without this, the script generates a minimal config
+    # with no cursor settings, so the greeter defaults to the system cursor.
+    # DMS_RUN_GREETER and misc must be repeated here — the script only injects
+    # them automatically when no customConfig is provided.
+    compositor.customConfig = ''
+      env = DMS_RUN_GREETER,1
+      env = XCURSOR_THEME,BreezeX-Light
+      env = XCURSOR_SIZE,24
+      env = HYPRCURSOR_THEME,BreezeX-Light
+      env = HYPRCURSOR_SIZE,24
+
+      misc {
+          disable_hyprland_logo = true
+      }
+    '';
   };
 
   # Copy the primary user's DMS config into the greeter cache so it inherits
