@@ -188,11 +188,36 @@ in
   #
   # DankMaterialShell's native login screen. Automatically shares theme
   # and wallpaper with the desktop session.
+  #
+  # configHome is derived from the host's first normal user — each machine
+  # has exactly one, so the greeter inherits the correct wallpaper and
+  # matugen color theme without any per-host configuration.
   # =========================================================================
   programs.dank-material-shell.greeter = {
     enable = true;
     compositor.name = "hyprland";
   };
+
+  # Copy the primary user's DMS config into the greeter cache so it inherits
+  # the active wallpaper and matugen color theme.
+  # configHome/configFiles use types.path which doesn't survive evaluation,
+  # so we inject the copy logic directly into the preStart script instead.
+  systemd.services.greetd.preStart = lib.mkBefore (
+    let
+      normalUsers = lib.filterAttrs (_: u: u.isNormalUser) config.users.users;
+      primaryUser = lib.head (lib.attrNames normalUsers);
+      home = config.users.users.${primaryUser}.home;
+      cacheDir = "/var/lib/dms-greeter";
+    in
+    ''
+      for f in \
+        "${home}/.config/DankMaterialShell/settings.json" \
+        "${home}/.local/state/DankMaterialShell/session.json" \
+        "${home}/.cache/DankMaterialShell/dms-colors.json"; do
+        [ -f "$f" ] && cp --dereference "$f" ${cacheDir}/
+      done
+    ''
+  );
 
   # =========================================================================
   # Keyring — Secret storage for apps
