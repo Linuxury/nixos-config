@@ -33,6 +33,10 @@
     # Self-activating: only applies to hosts that have /mnt/Torrents
     # in fileSystems. No-op on hosts without it.
     ./torrents-precheck.nix
+
+    # AccountsService avatars — copies per-user icons from
+    # /home/linuxury/Pictures/Avatar/ so they appear in the greeter.
+    ./user-avatars.nix
   ];
 
   # =========================================================================
@@ -64,6 +68,11 @@
     '';
     deps = [ "specialfs" ];
   };
+
+  # Qt theming — makes Qt apps follow the active GTK theme automatically.
+  # qt6gtk2 reads GTK3 settings at runtime, so Qt apps blend with the desktop
+  # without requiring a separate Qt configurator tool.
+  environment.sessionVariables.QT_QPA_PLATFORMTHEME = "gtk2";
 
   # Ensure flatpak desktop files/icons are discoverable by launchers
   environment.sessionVariables.XDG_DATA_DIRS = [
@@ -114,8 +123,9 @@
     # -----------------------------------------------------------------------
     # Wayland / desktop integration
     # -----------------------------------------------------------------------
-    wl-clipboard  # wl-copy / wl-paste — Wayland clipboard access from scripts
-    xdg-utils     # xdg-open — opens files with the correct default app
+    wl-clipboard           # wl-copy / wl-paste — Wayland clipboard access from scripts
+    xdg-utils              # xdg-open — opens files with the correct default app
+    qt6Packages.qt6gtk2    # Qt6 GTK platform theme — makes Qt apps follow the active GTK theme
 
     # GSettings schemas for GNOME/GTK desktop preferences.
     # COSMIC does not ship these, but GTK apps like Firefox read
