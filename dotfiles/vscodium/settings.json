@@ -1,7 +1,6 @@
 {
     "claudeCode.preferredLocation": "panel",
     "claudeCode.claudeProcessWrapper": "/etc/profiles/per-user/linuxury/bin/claude",
-    "workbench.colorTheme": "Catppuccin Mocha",
     "workbench.preferredDarkColorTheme": "Experimental Dark",
     "workbench.iconTheme": "flow-dawn",
     "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
