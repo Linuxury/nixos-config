@@ -9,7 +9,7 @@
 # Both can coexist — the user picks which one to log into at the login screen.
 # ===========================================================================
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   # =========================================================================
@@ -40,7 +40,7 @@
   # set on display-manager.service never reach kwin. The only reliable way to
   # inject env vars into kwin is via the CompositorCommand in the SDDM config.
   # QT_LOGGING_RULES gives verbose kwin output — remove once crash is diagnosed.
-  services.displayManager.sddm.settings.Wayland.CompositorCommand =
+  services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
     "env QT_LOGGING_RULES=kwin.*=true ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
   # =========================================================================
