@@ -498,10 +498,21 @@
     package = pkgs.vscodium;
     extensions =
       (with pkgs.vscode-extensions; [
-        anthropic.claude-code
         catppuccin.catppuccin-vsc
       ])
       ++ [
+        # Claude Code — Open VSX linux-x64 variant (nixpkgs version has stale hash)
+        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+          mktplcRef = {
+            publisher = "anthropic";
+            name = "claude-code";
+            version = "2.1.120";
+          };
+          vsix = pkgs.fetchurl {
+            url = "https://open-vsx.org/api/Anthropic/claude-code/linux-x64/2.1.120/file/Anthropic.claude-code-2.1.120@linux-x64.vsix";
+            sha256 = "1n4gl8f4csq4ngmw7dksiaxhlglsswgypynnjpzyzskn4c94c1c5";
+          };
+        })
         # flow-dawn icon theme
         (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
           mktplcRef = {
@@ -511,7 +522,7 @@
           };
           vsix = pkgs.fetchurl {
             url = "https://open-vsx.org/api/thang-nm/flow-icons/1.3.2/file/thang-nm.flow-icons-1.3.2.vsix";
-            sha256 = "17absgp60w4vz1wkq5iscdykv0dc5wvd6h71srf0v2m7279plnpw";
+            sha256 = "1lwsjawvhy3yzw7dl93ac4vyvfmcwbrs58s3wd2az1ld3d6m3drv";
           };
         })
         # OpenCode AI assistant
@@ -523,7 +534,7 @@
           };
           vsix = pkgs.fetchurl {
             url = "https://open-vsx.org/api/sst-dev/opencode/0.0.13/file/sst-dev.opencode-0.0.13.vsix";
-            sha256 = "14yrcyvx5s7i350104jdw88901nkvz86dqqw0klabswv6k559csc";
+            sha256 = "1m301j2qbym3j2qnck76jyxakca3h1qiybc2r7wy7z11m98mg9z9";
           };
         })
         # JetBrains-style file icons
@@ -535,7 +546,7 @@
           };
           vsix = pkgs.fetchurl {
             url = "https://open-vsx.org/api/fogio/jetbrains-file-icon-theme/1.5.0/file/fogio.jetbrains-file-icon-theme-1.5.0.vsix";
-            sha256 = "089cmxx3cxyx8k04br8c5h3192r0cgnv7igbd70hqbfpb5n9y0rh";
+            sha256 = "1jdha38c61hlz5hj59xzq89zprcwa6qhfg9pkqlpn017b2ccc4x3";
           };
         })
       ];
