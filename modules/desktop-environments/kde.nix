@@ -47,6 +47,11 @@
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
     "env KWIN_DRM_DEVICES=/dev/dri/card1 ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
+  # sddm runs kwin_wayland as the greeter compositor. kwin needs access to
+  # /dev/dri/card* (video group) and /dev/input/* (input group). NixOS does
+  # not add these by default.
+  users.users.sddm.extraGroups = [ "video" "input" ];
+
   # =========================================================================
   # XDG Portal for KDE
   #
