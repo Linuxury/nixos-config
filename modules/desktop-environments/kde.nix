@@ -36,16 +36,12 @@
     wayland.enable = true;
   };
 
-  # kwin_wayland (used by SDDM Wayland greeter and Plasma sessions) picks DRM
-  # devices in order. On this machine, simpledrm (EFI framebuffer) registers as
-  # card0 before amdgpu gets card1. kwin_wayland tries card0 first, fails
-  # because simpledrm doesn't support atomic modesetting, and exits with code 1
-  # — leaving a black screen. Pointing it at card1 (the real amdgpu device) fixes this.
-  systemd.services.display-manager.environment = {
-    KWIN_DRM_DEVICES = "/dev/dri/card1";
-    # Verbose kwin logging — remove once crash is diagnosed
-    QT_LOGGING_RULES = "kwin.*=true";
-  };
+  # SDDM strips its own environment before launching kwin_wayland, so env vars
+  # set on display-manager.service never reach kwin. The only reliable way to
+  # inject env vars into kwin is via the CompositorCommand in the SDDM config.
+  # QT_LOGGING_RULES gives verbose kwin output — remove once crash is diagnosed.
+  services.displayManager.sddm.settings.Wayland.CompositorCommand =
+    "env QT_LOGGING_RULES=kwin.*=true ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
   # =========================================================================
   # XDG Portal for KDE
