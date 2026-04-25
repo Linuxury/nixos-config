@@ -63,4 +63,12 @@
     kdePackages.plasma-browser-integration  # Browser integration for KDE
   ];
 
+  # =========================================================================
+  # TODO: plasma-foreground-booster (kdePackages.kcgroups)
+  #
+  # Once kcgroups lands in nixpkgs, add it here. It's the KDE-specific piece
+  # that signals the focused window to dmemcg-booster (already enabled via
+  # gaming.nix). Without it the daemon runs but has no focus awareness.
+  # =========================================================================
+
 }

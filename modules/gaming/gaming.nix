@@ -17,6 +17,11 @@
   pkgs,
   ...
 }: {
+  imports = [
+    ./dmemcg-booster.nix
+  ];
+
+  services.dmemcg-booster.enable = true;
   # =========================================================================
   # Steam
   #
