@@ -8,8 +8,8 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - Hyprland (active DE — cosmic-greeter)
-#   - Niri / GNOME / KDE (available — commented out, one at a time)
+#   - KDE Plasma 6 (active DE — SDDM)
+#   - Hyprland / Niri / GNOME (available — commented out, one at a time)
 #   - Gaming
 #   - Development
 # ===========================================================================
@@ -54,8 +54,8 @@ in
     #../../modules/desktop-environments/hyprland.nix
     #../../modules/desktop-environments/niri.nix
     # To test a full DE — comment out hyprland.nix above and uncomment one:
-    ../../modules/desktop-environments/gnome.nix
-    #../../modules/desktop-environments/kde.nix
+    #../../modules/desktop-environments/gnome.nix
+    ../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     #../../modules/development/development.nix
     ../../modules/base/auto-update.nix
