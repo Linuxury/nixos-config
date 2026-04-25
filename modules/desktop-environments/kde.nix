@@ -39,9 +39,13 @@
   # SDDM strips its own environment before launching kwin_wayland, so env vars
   # set on display-manager.service never reach kwin. The only reliable way to
   # inject env vars into kwin is via the CompositorCommand in the SDDM config.
-  # QT_LOGGING_RULES gives verbose kwin output — remove once crash is diagnosed.
+  #
+  # On Ryzen 7840U, the NPU (amdxdna) claims DRM minor 0, so amdgpu lands on
+  # card1 instead of card0. kwin defaults to card0, finds nothing, and exits
+  # immediately with code 1 — causing the SDDM black screen. Point kwin at the
+  # correct DRM device explicitly.
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
-    "env QT_LOGGING_RULES=kwin.*=true ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
+    "env KWIN_DRM_DEVICES=/dev/dri/card1 ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
   # =========================================================================
   # XDG Portal for KDE
