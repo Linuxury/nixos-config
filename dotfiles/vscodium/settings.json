@@ -2,8 +2,9 @@
     "claudeCode.preferredLocation": "panel",
     "claudeCode.claudeProcessWrapper": "/etc/profiles/per-user/linuxury/bin/claude",
     "workbench.preferredDarkColorTheme": "Experimental Dark",
-    "workbench.iconTheme": "flow-dawn",
+    "workbench.iconTheme": "flow-deep",
     "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
     "editor.fontSize": 13,
-    "window.zoomLevel": 1.5
+    "window.zoomLevel": 1.5,
+    "workbench.colorTheme": "Catppuccin Mocha"
 }
