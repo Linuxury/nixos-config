@@ -485,6 +485,63 @@
   };
 
   # =========================================================================
+  # VSCodium — declarative extensions
+  #
+  # Settings are managed separately via home.file (mkOutOfStoreSymlink) so
+  # the file stays writable from the GUI while still being tracked in the repo.
+  #
+  # Extensions not in nixpkgs are fetched from Open VSX using the vsix
+  # parameter so they don't hit the VS Marketplace (VSCodium ToS).
+  # =========================================================================
+  programs.vscode = {
+    enable = true;
+    package = pkgs.vscodium;
+    extensions =
+      (with pkgs.vscode-extensions; [
+        anthropic.claude-code
+        catppuccin.catppuccin-vsc
+      ])
+      ++ [
+        # flow-dawn icon theme
+        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+          mktplcRef = {
+            publisher = "thang-nm";
+            name = "flow-icons";
+            version = "1.3.2";
+          };
+          vsix = pkgs.fetchurl {
+            url = "https://open-vsx.org/api/thang-nm/flow-icons/1.3.2/file/thang-nm.flow-icons-1.3.2.vsix";
+            sha256 = "17absgp60w4vz1wkq5iscdykv0dc5wvd6h71srf0v2m7279plnpw";
+          };
+        })
+        # OpenCode AI assistant
+        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+          mktplcRef = {
+            publisher = "sst-dev";
+            name = "opencode";
+            version = "0.0.13";
+          };
+          vsix = pkgs.fetchurl {
+            url = "https://open-vsx.org/api/sst-dev/opencode/0.0.13/file/sst-dev.opencode-0.0.13.vsix";
+            sha256 = "14yrcyvx5s7i350104jdw88901nkvz86dqqw0klabswv6k559csc";
+          };
+        })
+        # JetBrains-style file icons
+        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+          mktplcRef = {
+            publisher = "fogio";
+            name = "jetbrains-file-icon-theme";
+            version = "1.5.0";
+          };
+          vsix = pkgs.fetchurl {
+            url = "https://open-vsx.org/api/fogio/jetbrains-file-icon-theme/1.5.0/file/fogio.jetbrains-file-icon-theme-1.5.0.vsix";
+            sha256 = "089cmxx3cxyx8k04br8c5h3192r0cgnv7igbd70hqbfpb5n9y0rh";
+          };
+        })
+      ];
+  };
+
+  # =========================================================================
   # SSH agent
   # =========================================================================
   services.ssh-agent.enable = true;
@@ -596,6 +653,8 @@
 
     for ext_claude in "$EXT_DIR"/anthropic.claude-code-*/resources/native-binary/claude; do
       [ -e "$ext_claude" ] || continue
+      # Skip Nix store paths — read-only; claudeProcessWrapper in settings.json handles NixOS
+      case "$ext_claude" in /nix/store/*) continue;; esac
       # Skip if already our wrapper
       grep -q "exec $CLAUDE_REAL" "$ext_claude" 2>/dev/null && continue
       # Backup original binary once

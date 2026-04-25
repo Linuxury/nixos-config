@@ -16,7 +16,6 @@
     bat         # cat with syntax highlighting and line numbers
 
     # Development helpers
-    vscodium    # VS Code without Microsoft telemetry
     lazygit     # TUI for git — stage, commit, branch all in one
     gh          # GitHub CLI — PRs, issues from terminal
     delta       # Pretty diff viewer — integrates with git
