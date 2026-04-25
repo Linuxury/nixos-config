@@ -41,7 +41,11 @@
   # card0 before amdgpu gets card1. kwin_wayland tries card0 first, fails
   # because simpledrm doesn't support atomic modesetting, and exits with code 1
   # — leaving a black screen. Pointing it at card1 (the real amdgpu device) fixes this.
-  systemd.services.display-manager.environment.KWIN_DRM_DEVICES = "/dev/dri/card1";
+  systemd.services.display-manager.environment = {
+    KWIN_DRM_DEVICES = "/dev/dri/card1";
+    # Verbose kwin logging — remove once crash is diagnosed
+    QT_LOGGING_RULES = "kwin.*=true";
+  };
 
   # =========================================================================
   # XDG Portal for KDE
