@@ -180,10 +180,12 @@
         extraModules ? []
       }:
         nixpkgs.lib.nixosSystem {
-          inherit system;
           # Pass inputs down so any module can access them if needed
           specialArgs = { inherit inputs; };
           modules = [
+            # Set the host platform — replaces the deprecated `system` argument
+            { nixpkgs.hostPlatform.system = system; }
+
             # The host's specific hardware and role configuration
             hostConfig
 
