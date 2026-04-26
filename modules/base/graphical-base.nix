@@ -142,7 +142,7 @@
     # -----------------------------------------------------------------------
     # Browsers
     # -----------------------------------------------------------------------
-    inputs.helium-browser.packages.${pkgs.system}.helium  # Privacy-focused Chromium browser
+    inputs.helium-browser.packages.${pkgs.stdenv.hostPlatform.system}.helium  # Privacy-focused Chromium browser
 
     # -----------------------------------------------------------------------
     # Network share client
