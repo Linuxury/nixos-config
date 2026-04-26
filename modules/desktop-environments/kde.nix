@@ -57,7 +57,7 @@
   ];
 
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
-    "env KWIN_DRM_DEVICES=/dev/dri/card1 ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
+    "env KWIN_DRM_DEVICES=/dev/dri/card1 QT_QPA_PLATFORMTHEME= ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
   users.users.sddm.extraGroups = [ "video" "input" ];
 
