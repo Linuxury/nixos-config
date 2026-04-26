@@ -49,22 +49,15 @@
   #   sddm can enter but not write. We use /run/kwin-sddm instead, created
   #   below via tmpfiles and owned by sddm.
   # - sddm in video+input groups: kwin needs /dev/dri/* and /dev/input/* access.
+  # SDDM sets XDG_RUNTIME_DIR=/run/user/175 and DBUS_SESSION_BUS_ADDRESS pointing
+  # there, but logind doesn't create /run/user/175 for greeter sessions.
+  # Create it via tmpfiles so kwin and dbus can use it.
   systemd.tmpfiles.rules = [
-    "d /run/kwin-sddm 0700 sddm sddm -"
+    "d /run/user/175 0700 sddm sddm -"
   ];
 
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
-    "${pkgs.writeShellScript "kwin-sddm-debug" ''
-      LOG=/tmp/kwin-sddm.log
-      echo "=== kwin started $(date) ===" >> $LOG
-      echo "=== ENV ===" >> $LOG
-      env >> $LOG
-      echo "=== OUTPUT ===" >> $LOG
-      exec env KWIN_DRM_DEVICES=/dev/dri/card1 XDG_RUNTIME_DIR=/run/kwin-sddm \
-        ${pkgs.kdePackages.kwin}/bin/kwin_wayland \
-        --no-global-shortcuts --no-kactivities --no-lockscreen --locale1 \
-        >> $LOG 2>&1
-    ''}";
+    "env KWIN_DRM_DEVICES=/dev/dri/card1 ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
   users.users.sddm.extraGroups = [ "video" "input" ];
 
