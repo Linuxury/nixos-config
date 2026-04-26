@@ -21,6 +21,16 @@
   services.desktopManager.plasma6.enable = true;
 
   # =========================================================================
+  # Qt platform theme
+  #
+  # NixOS defaults QT_QPA_PLATFORMTHEME=gtk2 for GTK integration. With KDE,
+  # this causes kwin_wayland to crash on startup — GTK2's platform theme calls
+  # gtk_init() which requires an X11 display, but kwin IS the display and
+  # hasn't started one yet. Set it to "kde" so Qt uses KDE's native theme.
+  # =========================================================================
+  environment.sessionVariables.QT_QPA_PLATFORMTHEME = lib.mkForce "kde";
+
+  # =========================================================================
   # Display Manager (Login Screen)
   #
   # KDE Plasma 6.6 introduced "Plasma Login Manager", a new native KDE
@@ -34,6 +44,8 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
+    # Clear QT_QPA_PLATFORMTHEME for the greeter process — it inherits the
+    # system value (gtk2) which crashes sddm-greeter-qt6 the same way.
     settings.General.GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell,QT_QPA_PLATFORMTHEME=";
   };
 
@@ -41,26 +53,21 @@
   # set on display-manager.service never reach kwin. The only reliable way to
   # inject env vars into kwin is via the CompositorCommand in the SDDM config.
   #
-  # Three things are required for kwin to start as the SDDM greeter compositor:
   # - KWIN_DRM_DEVICES: On Ryzen 7840U the NPU (amdxdna) claims DRM minor 0,
   #   pushing amdgpu to card1. kwin defaults to card0, finds nothing, exits 1.
-  # - XDG_RUNTIME_DIR: sddm is a system user — logind never creates
-  #   /run/user/175. kwin needs XDG_RUNTIME_DIR to create its Wayland socket.
-  #   /run/sddm (the display-manager RuntimeDirectory) is root-owned 0711 —
-  #   sddm can enter but not write. We use /run/kwin-sddm instead, created
-  #   below via tmpfiles and owned by sddm.
-  # - sddm in video+input groups: kwin needs /dev/dri/* and /dev/input/* access.
-  # SDDM sets XDG_RUNTIME_DIR=/run/user/175 and DBUS_SESSION_BUS_ADDRESS pointing
-  # there, but logind doesn't create /run/user/175 for greeter sessions.
-  # Create it via tmpfiles so kwin and dbus can use it.
-  systemd.tmpfiles.rules = [
-    "d /run/user/175 0700 sddm sddm -"
-  ];
-
+  # - QT_QPA_PLATFORMTHEME=: Clear it for the greeter kwin too (same crash).
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
     "env KWIN_DRM_DEVICES=/dev/dri/card1 QT_QPA_PLATFORMTHEME= ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
+  # sddm runs kwin_wayland as the greeter compositor. kwin needs access to
+  # /dev/dri/card* (video group) and /dev/input/* (input group).
   users.users.sddm.extraGroups = [ "video" "input" ];
+
+  # SDDM sets XDG_RUNTIME_DIR=/run/user/175 but logind never creates it for
+  # greeter sessions. Create it so kwin and dbus can use it.
+  systemd.tmpfiles.rules = [
+    "d /run/user/175 0700 sddm sddm -"
+  ];
 
   # =========================================================================
   # XDG Portal for KDE
