@@ -58,15 +58,7 @@
   ];
 
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
-    "${pkgs.writeShellScript "kwin-sddm-wrapper" ''
-      LOG=/tmp/kwin-sddm.log
-      echo "=== kwin started $(date) ===" > $LOG
-      echo "=== OUTPUT ===" >> $LOG
-      exec env KWIN_DRM_DEVICES=/dev/dri/card1 QT_QPA_PLATFORMTHEME= \
-        ${pkgs.kdePackages.kwin}/bin/kwin_wayland \
-        --no-global-shortcuts --no-kactivities --no-lockscreen --locale1 \
-        >> $LOG 2>&1
-    ''}";
+    "env KWIN_DRM_DEVICES=/dev/dri/card1 QT_QPA_PLATFORMTHEME= ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
   users.users.sddm.extraGroups = [ "video" "input" ];
 
