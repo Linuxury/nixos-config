@@ -40,18 +40,22 @@
   # set on display-manager.service never reach kwin. The only reliable way to
   # inject env vars into kwin is via the CompositorCommand in the SDDM config.
   #
-  # Two env vars are required for kwin to start as the SDDM greeter compositor:
+  # Three things are required for kwin to start as the SDDM greeter compositor:
   # - KWIN_DRM_DEVICES: On Ryzen 7840U the NPU (amdxdna) claims DRM minor 0,
   #   pushing amdgpu to card1. kwin defaults to card0, finds nothing, exits 1.
   # - XDG_RUNTIME_DIR: sddm is a system user — logind never creates
   #   /run/user/175. kwin needs XDG_RUNTIME_DIR to create its Wayland socket.
-  #   /run/sddm is created by the display-manager service's RuntimeDirectory.
-  services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
-    "env KWIN_DRM_DEVICES=/dev/dri/card1 XDG_RUNTIME_DIR=/run/sddm ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
+  #   /run/sddm (the display-manager RuntimeDirectory) is root-owned 0711 —
+  #   sddm can enter but not write. We use /run/kwin-sddm instead, created
+  #   below via tmpfiles and owned by sddm.
+  # - sddm in video+input groups: kwin needs /dev/dri/* and /dev/input/* access.
+  systemd.tmpfiles.rules = [
+    "d /run/kwin-sddm 0700 sddm sddm -"
+  ];
 
-  # sddm runs kwin_wayland as the greeter compositor. kwin needs access to
-  # /dev/dri/card* (video group) and /dev/input/* (input group). NixOS does
-  # not add these by default.
+  services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
+    "env KWIN_DRM_DEVICES=/dev/dri/card1 XDG_RUNTIME_DIR=/run/kwin-sddm ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
+
   users.users.sddm.extraGroups = [ "video" "input" ];
 
   # =========================================================================
