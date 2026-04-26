@@ -34,6 +34,7 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
+    settings.General.GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell,QT_QPA_PLATFORMTHEME=";
   };
 
   # SDDM strips its own environment before launching kwin_wayland, so env vars
