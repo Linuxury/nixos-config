@@ -497,9 +497,11 @@
   programs.vscode = {
     enable = true;
     package = pkgs.vscodium;
-    extensions =
+    mutableExtensionsDir = true;
+    profiles.default.extensions =
       (with pkgs.vscode-extensions; [
         catppuccin.catppuccin-vsc
+        golang.go
       ])
       ++ [
         # Claude Code — Open VSX linux-x64 variant (nixpkgs version has stale hash)
