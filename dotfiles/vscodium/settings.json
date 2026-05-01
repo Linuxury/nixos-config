@@ -6,5 +6,6 @@
     "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
     "editor.fontSize": 13,
     "window.zoomLevel": 1.5,
-    "workbench.colorTheme": "Catppuccin Mocha"
+    "workbench.colorTheme": "Catppuccin Mocha",
+    "workbench.statusBar.visible": false
 }
