@@ -166,21 +166,21 @@
     # AI config symlinks — source files live in ~/.agents/{Claude,OpenCode,Shared}/
     # synced via Syncthing. home-manager only creates the outbound symlinks.
     # On a fresh host: rebuild creates symlinks, Syncthing populates ~/.agents.
+    #
+    # ~/.claude is a full directory symlink to ~/.agents/Claude/ so all of
+    # Claude Code's runtime data (history, sessions, projects, credentials)
+    # lands in ~/.agents/Claude/ and syncs across hosts via Syncthing.
     # -----------------------------------------------------------------------
     "AGENTS.md".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Shared/AGENTS.md";
     "CLAUDE.md".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude/CLAUDE.md";
-    ".claude/settings.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude/settings.json";
-    ".claude/settings.local.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude/settings.local.json";
+    ".claude".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude";
     ".config/opencode/opencode.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/OpenCode/settings.json";
     ".claude.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude/state.json";
-    ".claude/projects/-home-linuxury/memory".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/memory";
 
     # VSCodium — user settings (mkOutOfStoreSymlink keeps the file writable)
     ".config/VSCodium/User/settings.json".source =
@@ -305,23 +305,31 @@
   # Remove manually-created AI symlinks/files so home-manager can take ownership.
   # Safe to run repeatedly — only acts on symlinks or plain files, never dirs.
   home.activation.migrateAiSymlinks = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    # Clean up top-level symlinks/files so HM can recreate them
     for f in \
       "$HOME/AGENTS.md" \
       "$HOME/CLAUDE.md" \
-      "$HOME/.claude/settings.json" \
-      "$HOME/.claude/settings.local.json" \
       "$HOME/.config/opencode/opencode.json" \
       "$HOME/.claude.json"; do
       if [ -L "$f" ] || [ -f "$f" ]; then
         rm -f "$f"
       fi
     done
-    # Claude memory dir → now a symlink to ~/.agents/memory
-    # May be a plain dir (fresh machine) or symlink (already migrated)
-    mem="$HOME/.claude/projects/-home-linuxury/memory"
-    if [ -L "$mem" ]; then rm -f "$mem"
-    elif [ -d "$mem" ]; then rmdir "$mem" 2>/dev/null || true
+
+    # Migrate ~/.claude real directory → ~/.agents/Claude/ then remove it
+    # so HM can create ~/.claude as a directory symlink to ~/.agents/Claude/.
+    # Only runs once — skipped if ~/.claude is already a symlink.
+    if [ -d "$HOME/.claude" ] && [ ! -L "$HOME/.claude" ]; then
+      for item in projects history.jsonl todos sessions backups .credentials.json; do
+        src="$HOME/.claude/$item"
+        dst="$HOME/.agents/Claude/$item"
+        if [ -e "$src" ] && [ ! -L "$src" ] && [ ! -e "$dst" ]; then
+          mv "$src" "$dst"
+        fi
+      done
+      rm -rf "$HOME/.claude"
     fi
+
     # Remove old flat-layout stale files if Syncthing left them behind
     for f in \
       "$HOME/.agents/AGENTS.md" \
