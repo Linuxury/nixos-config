@@ -7,5 +7,6 @@
     "editor.fontSize": 13,
     "window.zoomLevel": 1.5,
     "workbench.colorTheme": "Catppuccin Mocha",
-    "workbench.statusBar.visible": false
+    "workbench.statusBar.visible": false,
+    "workbench.startupEditor": "none"
 }
