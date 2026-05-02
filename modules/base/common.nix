@@ -277,10 +277,14 @@
   # --no-ask-password, which means polkit can't prompt — it just fails.
   # This rule grants the wheel group implicit YES for systemd unit management
   # so nixos-rebuild switch works without requiring a polkit agent session.
+  #
+  # Also covers login1 inhibit actions so systemd-inhibit (used by nru/nrb
+  # to hold a sleep lock during rebuilds) doesn't prompt for a password.
   # =========================================================================
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
-      if (action.id.indexOf("org.freedesktop.systemd1.") === 0 &&
+      if ((action.id.indexOf("org.freedesktop.systemd1.") === 0 ||
+           action.id.indexOf("org.freedesktop.login1.inhibit-") === 0) &&
           subject.isInGroup("wheel")) {
         return polkit.Result.YES;
       }
