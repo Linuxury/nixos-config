@@ -18,23 +18,6 @@
 { pkgs, lib, config, ... }:
 
 {
-  # NOPASSWD sudo rules for NixOS management commands
-  # Allows nr/nrb/nrt/nru to run without a password prompt on servers
-  security.sudo.extraRules = [
-    {
-      users = [ "linuxury" ];
-      commands = [
-        { command = "${pkgs.nixos-rebuild}/bin/nixos-rebuild";    options = [ "NOPASSWD" ]; }
-        { command = "/run/current-system/sw/bin/nixos-rebuild";   options = [ "NOPASSWD" ]; }
-        { command = "${pkgs.nix}/bin/nix";                        options = [ "NOPASSWD" ]; }
-        { command = "${pkgs.nix}/bin/nix-collect-garbage";        options = [ "NOPASSWD" ]; }
-        { command = "${pkgs.systemd}/bin/systemd-inhibit";        options = [ "NOPASSWD" ]; }
-        { command = "${pkgs.systemd}/bin/reboot";                 options = [ "NOPASSWD" ]; }
-        { command = "/run/current-system/sw/bin/reboot";          options = [ "NOPASSWD" ]; }
-      ];
-    }
-  ];
-
   # SSH agent — system-level, sets SSH_AUTH_SOCK via PAM for all login shells
   programs.ssh.startAgent = true;
 
