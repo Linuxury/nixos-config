@@ -95,7 +95,8 @@
     kdePackages.gwenview      # Image viewer
     kdePackages.plasma-browser-integration  # Browser integration for KDE
     kdePackages.qtstyleplugin-kvantum  # Kvantum theme engine for Qt apps
-    ant-dark-kde              # Ant-Dark KDE theme (Aurorae, Plasma, color scheme, Kvantum)
+    ant-dark-kde                  # Ant-Dark KDE theme (Aurorae, Plasma, color scheme, Kvantum)
+    breeze-chameleon-dark-icons   # Breeze Chameleon Dark icon theme (adaptive folder colors)
     darkly                    # Window decoration + application style (fork of Lightly)
     darkly-qt5                # Qt5 variant — needed for apps still using Qt5
     kara                      # Desktop/workspace pager widget
