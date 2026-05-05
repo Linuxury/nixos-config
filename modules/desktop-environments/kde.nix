@@ -94,6 +94,7 @@
     kdePackages.okular        # Document viewer (PDF, etc)
     kdePackages.gwenview      # Image viewer
     kdePackages.plasma-browser-integration  # Browser integration for KDE
+    darkly                    # Window decoration + application style (fork of Lightly)
   ];
 
   # =========================================================================
