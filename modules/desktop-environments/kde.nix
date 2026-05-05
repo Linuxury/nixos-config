@@ -94,6 +94,7 @@
     kdePackages.okular        # Document viewer (PDF, etc)
     kdePackages.gwenview      # Image viewer
     kdePackages.plasma-browser-integration  # Browser integration for KDE
+    ant-dark-kde              # Ant-Dark KDE theme (Aurorae, Plasma, color scheme, Kvantum)
     darkly                    # Window decoration + application style (fork of Lightly)
     darkly-qt5                # Qt5 variant — needed for apps still using Qt5
     kara                      # Desktop/workspace pager widget
