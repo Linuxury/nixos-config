@@ -8,8 +8,8 @@
 #
 # Enabled modules:
 #   - Nvidia hybrid drivers (AMD iGPU + Nvidia dGPU)
-#   - COSMIC (default DE)
-#   - KDE (fallback)
+#   - KDE (default DE)
+#   - COSMIC (disabled)
 #   - Gaming
 #
 # Special considerations:
@@ -37,8 +37,8 @@ in
     ../../modules/base/common.nix
     ../../modules/base/graphical-base.nix
     ../../modules/hardware/drivers.nix
-    ../../modules/desktop-environments/cosmic.nix
-    #../../modules/desktop-environments/kde.nix
+    #../../modules/desktop-environments/cosmic.nix
+    ../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
     ../../modules/base/linuxury-ssh.nix
@@ -87,11 +87,7 @@ in
   # };
   # TODO: fill in PCI bus IDs from: lspci | grep -E "VGA|3D"
 
-  # =========================================================================
-  # Display manager session priority
-  # Same as wife's desktop — COSMIC default, KDE available at login
-  # =========================================================================
-  services.displayManager.defaultSession = "cosmic";
+  services.displayManager.defaultSession = "plasma";
 
   # =========================================================================
   # LUKS — Full disk encryption

@@ -8,8 +8,8 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - COSMIC (default DE)
-#   - KDE (fallback, available at login screen)
+#   - KDE (default DE)
+#   - COSMIC (disabled)
 #   - Gaming
 #
 # No development tools — kept clean and simple.
@@ -33,8 +33,8 @@ in
     ../../modules/base/common.nix
     ../../modules/base/graphical-base.nix
     ../../modules/hardware/drivers.nix
-    ../../modules/desktop-environments/cosmic.nix
-    #../../modules/desktop-environments/kde.nix
+    #../../modules/desktop-environments/cosmic.nix
+    ../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
     ../../modules/base/linuxury-ssh.nix
@@ -57,15 +57,7 @@ in
   # =========================================================================
   hardware.gpu = "amd";
 
-  # =========================================================================
-  # Display manager session priority
-  #
-  # Both COSMIC and KDE are enabled so we need to explicitly tell NixOS
-  # which session to use as default at the login screen.
-  # COSMIC is the default — KDE is available as an option if she wants
-  # to switch by clicking the session selector at login.
-  # =========================================================================
-  services.displayManager.defaultSession = "cosmic";
+  services.displayManager.defaultSession = "plasma";
 
   # =========================================================================
   # Filesystem — BTRFS with subvolumes, no LUKS on desktop
