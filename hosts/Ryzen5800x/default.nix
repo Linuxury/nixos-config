@@ -39,6 +39,7 @@ in
     ../../modules/base/auto-update.nix
     ../../modules/base/linuxury-ssh.nix
     ../../modules/users/babylinux-packages.nix
+    #../../modules/base/libreoffice.nix
     ../../modules/base/syncthing.nix
   ];
 
@@ -219,11 +220,6 @@ in
     # Remote support
     rustdesk          # Open source remote desktop — lets you help her
                       # remotely without needing to be physically present
-
-    # Basic productivity
-    libreoffice       # Full office suite (documents, spreadsheets etc)
-    hunspell          # Spell checker used by LibreOffice
-    hunspellDicts.en-us
 
     # Media
     vlc               # Reliable video player that plays anything

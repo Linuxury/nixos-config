@@ -114,7 +114,7 @@
     # Documents & office
     # -----------------------------------------------------------------------
     papers                   # GNOME document viewer — PDFs and more (GTK4, modern)
-    libreoffice-fresh # Full office suite — word processor, spreadsheet, presentations, draw
+
     # -----------------------------------------------------------------------
     # System monitoring
     # -----------------------------------------------------------------------
