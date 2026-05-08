@@ -101,6 +101,10 @@
     if [ -d "$HOME/Documents/assets" ] && [ ! -L "$HOME/Documents/assets" ]; then
       rmdir "$HOME/Documents/assets" 2>/dev/null || true
     fi
+    # Stale fontconfig file left by a previous HM generation
+    if [ -f "$HOME/.config/fontconfig/conf.d/10-hm-fonts.conf" ] && [ ! -L "$HOME/.config/fontconfig/conf.d/10-hm-fonts.conf" ]; then
+      rm "$HOME/.config/fontconfig/conf.d/10-hm-fonts.conf" 2>/dev/null || true
+    fi
   '';
 
   # =========================================================================
