@@ -79,22 +79,11 @@
   # Extra directories
   # =========================================================================
   systemd.user.tmpfiles.rules = [
-    # Wallpaper source — wallpapers are stored locally per user (not in the repo)
-    # ~/Pictures/Wallpapers symlinks here (see home.file below)
-    "d ${config.home.homeDirectory}/assets                        0755 babylinux users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers             0755 babylinux users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers/4k          0755 babylinux users -"
-
     # Profile photos live in ~/Pictures/Avatar (plain dir, add photos manually)
     "d ${config.home.homeDirectory}/Pictures/Avatar               0755 babylinux users -"
 
-    # Hytale flatpak bundle storage — moved to ~/Documents/assets/flatpaks
-    "d ${config.home.homeDirectory}/Documents/assets              0755 babylinux users -"
-    "d ${config.home.homeDirectory}/Documents/assets/flatpaks     0755 babylinux users -"
-
     # SSH directory with correct permissions
     "d ${config.home.homeDirectory}/.ssh  0700 babylinux users -"
-
   ];
 
   # =========================================================================
@@ -115,7 +104,7 @@
     # -----------------------------------------------------------------------
     "Pictures/Wallpapers".source =
       config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/assets/Wallpapers/${wallpaperDir}";
+        "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
 
     # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
     "Pictures/Fastfetch".source =
@@ -229,7 +218,7 @@
   # directly in the assets repo and install it automatically on first login.
   #
   # Source: https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak
-  # Store at: ~/assets/flatpaks/hytale-launcher-latest.flatpak
+  # Store at: ~/nixos-config/assets/flatpaks/hytale-launcher-latest.flatpak
   #
   # When Hytale eventually lands on Flathub:
   #   1. Remove assets/flatpaks/hytale-launcher-latest.flatpak
@@ -249,7 +238,7 @@
       Restart   = "no";
       ExecStart = "${pkgs.writeShellScript "install-hytale" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
+        FLATPAK_FILE="$HOME/nixos-config/assets/flatpaks/hytale-launcher-latest.flatpak"
 
         if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
           echo "Hytale already installed, skipping."

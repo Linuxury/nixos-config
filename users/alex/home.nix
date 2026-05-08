@@ -85,19 +85,6 @@
   # Extra directories
   # =========================================================================
   systemd.user.tmpfiles.rules = [
-    # Wallpaper source — wallpapers stored locally (not in repo)
-    # ~/Pictures/Wallpapers symlinks here (see home.file below)
-    "d ${config.home.homeDirectory}/assets                        0755 alex users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers             0755 alex users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers/PikaOS      0755 alex users -"
-
-    # Minecraft assets (skins, resource packs) — game-specific, kept in ~/assets
-    "d ${config.home.homeDirectory}/assets/Minecraft              0755 alex users -"
-
-    # Hytale flatpak bundle storage — moved to ~/Documents/assets/flatpaks
-    "d ${config.home.homeDirectory}/Documents/assets              0755 alex users -"
-    "d ${config.home.homeDirectory}/Documents/assets/flatpaks     0755 alex users -"
-
     # Creative workspace
     "d ${config.home.homeDirectory}/Documents/Art                 0755 alex users -"
     "d ${config.home.homeDirectory}/Documents/School              0755 alex users -"
@@ -122,12 +109,12 @@
     # -----------------------------------------------------------------------
     "Pictures/Wallpapers".source =
       config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/assets/Wallpapers/${wallpaperDir}";
+        "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
 
     # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
     "Pictures/Fastfetch".source =
       config.lib.file.mkOutOfStoreSymlink
-        "/home/linuxury/nixos-config/assets/Fastfetch";
+        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
   };
 
   # =========================================================================
@@ -212,7 +199,7 @@
       Restart   = "no";
       ExecStart = "${pkgs.writeShellScript "install-hytale-alex" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
+        FLATPAK_FILE="$HOME/nixos-config/assets/flatpaks/hytale-launcher-latest.flatpak"
 
         if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
           echo "Hytale already installed, skipping."
