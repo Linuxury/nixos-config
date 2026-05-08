@@ -37,8 +37,9 @@ in
     ../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
-    ../../modules/base/babylinux-ssh.nix   # babylinux — primary SSH access
-    ../../modules/base/linuxury-ssh.nix    # linuxury  — emergency SSH only
+    ../../modules/base/babylinux-ssh.nix        # babylinux — primary SSH access
+    ../../modules/base/linuxury-ssh.nix         # linuxury  — emergency SSH only
+    ../../modules/base/babylinux-description.nix
     ../../modules/users/babylinux-packages.nix
     #../../modules/base/libreoffice.nix
     ../../modules/base/syncthing-babylinux.nix

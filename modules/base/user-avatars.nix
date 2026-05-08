@@ -4,15 +4,15 @@
 # Sets user avatar icons via AccountsService so they appear in the greeter
 # (dms-greeter, cosmic-greeter) and any other AccountsService-aware tool.
 #
-# All avatars live in linuxury's ~/Pictures/Avatar/ — which is a symlink to
-# nixos-config/assets/Avatar and is accessible on every graphical host since
-# linuxury has an account everywhere. The activation script only processes
-# users that actually exist on the current host.
+# Each user has ~/Pictures/Avatar symlinked to their own nixos-config clone
+# (managed by Home Manager). Using per-user paths means this works on all
+# hosts — linuxury has no home on babylinux/alex machines so a shared path
+# would silently fail there.
 #
-# Avatar source layout:
-#   /home/linuxury/Pictures/Avatar/linuxury.jpg     → linuxury
-#   /home/linuxury/Pictures/Avatar/babylinux.jpeg   → babylinux
-#   /home/linuxury/Pictures/Avatar/alexander.jpg    → alex
+# Avatar source layout (~/Pictures/Avatar/ per user):
+#   linuxury.jpg     → linuxury
+#   babylinux.jpeg   → babylinux
+#   alexander.jpg    → alex
 #
 # Imported by: modules/base/graphical-base.nix
 # ===========================================================================
@@ -20,13 +20,11 @@
 { config, pkgs, lib, ... }:
 
 let
-  avatarBase = "/home/linuxury/Pictures/Avatar";
-
-  # Map each username to its avatar file
+  # Map each username to its avatar file in their own ~/Pictures/Avatar/
   avatarMap = {
-    linuxury  = "${avatarBase}/linuxury.jpg";
-    babylinux = "${avatarBase}/babylinux.jpeg";
-    alex      = "${avatarBase}/alexander.jpg";
+    linuxury  = "/home/linuxury/Pictures/Avatar/linuxury.jpg";
+    babylinux = "/home/babylinux/Pictures/Avatar/babylinux.jpeg";
+    alex      = "/home/alex/Pictures/Avatar/alexander.jpg";
   };
 
   # Only act on users that are defined as normal users on this host
