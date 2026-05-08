@@ -120,7 +120,7 @@
     # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
     "Pictures/Fastfetch".source =
       config.lib.file.mkOutOfStoreSymlink
-        "/home/linuxury/nixos-config/assets/Fastfetch";
+        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
 
     # SSH config
     ".ssh/config".text = ''
