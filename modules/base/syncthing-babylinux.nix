@@ -35,7 +35,7 @@
       #   systemctl status syncthing | grep "device id"
       devices = {
         "Ryzen5800x" = {
-          id        = "FILL-IN-RYZEN5800X-BABYLINUX-SYNCTHING-ID";
+          id        = "KMIXV62-XWKZX73-I4D5TVY-QD4NQ5D-S4B4LSO-TGVU7V5-267HUAB-YDEGXQG";
           addresses = [ "tcp://100.114.95.99:22000" ];
         };
         "Asus-A15" = {
