@@ -157,6 +157,25 @@ in
       ];
     };
 
+    # -----------------------------------------------------------------------
+    # Local NTFS HDD — former Windows drive, now used as storage
+    # remove_hiberfile: clears the Windows fast-startup hibernation flag so
+    # the drive can be mounted read-write. Safe to use once Windows is no
+    # longer resuming from this drive.
+    # -----------------------------------------------------------------------
+    "/mnt/Warehouse" = {
+      device  = "/dev/disk/by-label/Warehouse";
+      fsType  = "ntfs-3g";
+      options = [
+        "uid=1000" "gid=100"
+        "dmask=007" "fmask=117"
+        "nofail" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "x-systemd.mount-timeout=10s"
+        "remove_hiberfile"
+      ];
+    };
+
   };
 
   # =========================================================================
@@ -166,6 +185,7 @@ in
     "d /mnt/Media-Server 0755 babylinux users -"
     "d /mnt/MinisForum   0755 babylinux users -"
     "d /mnt/Torrents     0755 babylinux users -"
+    "d /mnt/Warehouse    0755 babylinux users -"
   ];
 
   # =========================================================================
@@ -220,6 +240,7 @@ in
   # =========================================================================
   environment.systemPackages = with pkgs; [
     cifs-utils
+    ntfs3g
 
     # Remote support
     rustdesk          # Open source remote desktop — lets you help her
