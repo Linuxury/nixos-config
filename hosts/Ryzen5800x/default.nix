@@ -209,6 +209,9 @@ in
   # =========================================================================
   boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
 
+  # NTFS support for the Warehouse HDD
+  boot.supportedFilesystems = [ "ntfs" ];
+
   # =========================================================================
   # AMD Radeon RX 5700 XT specific settings
   #
