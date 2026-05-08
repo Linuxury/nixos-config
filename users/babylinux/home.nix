@@ -86,6 +86,24 @@
   # =========================================================================
   # Dotfiles — shared terminal setup with linuxury
   # =========================================================================
+  # Migration — remove old plain dirs before HM creates symlinks in their place
+  # =========================================================================
+  home.activation.migrateAssetDirs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    # Old ~/Pictures/Avatar plain dir → now symlinked at ~/Pictures/Avatar
+    if [ -d "$HOME/Pictures/Avatar" ] && [ ! -L "$HOME/Pictures/Avatar" ]; then
+      rmdir "$HOME/Pictures/Avatar" 2>/dev/null || true
+    fi
+    # Old ~/Documents/assets/flatpaks plain dir → now symlinked at ~/Documents/assets/flatpaks
+    if [ -d "$HOME/Documents/assets/flatpaks" ] && [ ! -L "$HOME/Documents/assets/flatpaks" ]; then
+      rmdir "$HOME/Documents/assets/flatpaks" 2>/dev/null || true
+    fi
+    # Remove ~/Documents/assets parent if empty
+    if [ -d "$HOME/Documents/assets" ] && [ ! -L "$HOME/Documents/assets" ]; then
+      rmdir "$HOME/Documents/assets" 2>/dev/null || true
+    fi
+  '';
+
+  # =========================================================================
   home.file = {
     # Starship prompt — shared config
     ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
