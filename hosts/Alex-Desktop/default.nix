@@ -318,5 +318,8 @@
     extraGroups  = [ "wheel" ];
   };
 
+  # Hide linuxury from the login screen — emergency account only
+  services.displayManager.hiddenUsers = [ "linuxury" ];
+
   programs.zsh.enable = true;
 }
