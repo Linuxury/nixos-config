@@ -79,9 +79,6 @@
   # Extra directories
   # =========================================================================
   systemd.user.tmpfiles.rules = [
-    # Profile photos live in ~/Pictures/Avatar (plain dir, add photos manually)
-    "d ${config.home.homeDirectory}/Pictures/Avatar               0755 babylinux users -"
-
     # SSH directory with correct permissions
     "d ${config.home.homeDirectory}/.ssh  0700 babylinux users -"
   ];
@@ -106,10 +103,20 @@
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
 
+    # ~/Pictures/Avatar → nixos-config/assets/Avatar (family profile photos)
+    "Pictures/Avatar".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/Avatar";
+
     # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
     "Pictures/Fastfetch".source =
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
+
+    # ~/Documents/assets/flatpaks → nixos-config/assets/flatpaks (Hytale bundle)
+    "Documents/assets/flatpaks".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
 
     # SSH config
     ".ssh/config".text = ''
@@ -238,7 +245,7 @@
       Restart   = "no";
       ExecStart = "${pkgs.writeShellScript "install-hytale" ''
         FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        FLATPAK_FILE="$HOME/nixos-config/assets/flatpaks/hytale-launcher-latest.flatpak"
+        FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
 
         if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
           echo "Hytale already installed, skipping."
