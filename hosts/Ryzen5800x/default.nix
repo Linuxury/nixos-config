@@ -159,20 +159,19 @@ in
 
     # -----------------------------------------------------------------------
     # Local NTFS HDD — former Windows drive, now used as storage
-    # remove_hiberfile: clears the Windows fast-startup hibernation flag so
-    # the drive can be mounted read-write. Safe to use once Windows is no
-    # longer resuming from this drive.
+    # Uses the ntfs3 in-kernel driver (faster than FUSE ntfs-3g).
+    # force: mounts even if Windows left the dirty/hibernation flag set.
     # -----------------------------------------------------------------------
     "/mnt/Warehouse" = {
       device  = "/dev/disk/by-label/Warehouse";
-      fsType  = "ntfs-3g";
+      fsType  = "ntfs3";
       options = [
         "uid=1000" "gid=100"
-        "dmask=007" "fmask=117"
+        "umask=007"
         "nofail" "noauto"
         "x-systemd.automount" "x-systemd.idle-timeout=60"
         "x-systemd.mount-timeout=10s"
-        "remove_hiberfile"
+        "force"
       ];
     };
 
@@ -209,8 +208,8 @@ in
   # =========================================================================
   boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
 
-  # NTFS support for the Warehouse HDD
-  boot.supportedFilesystems = [ "ntfs" ];
+  # NTFS3 kernel driver for the Warehouse HDD
+  boot.supportedFilesystems.ntfs = true;
 
   # =========================================================================
   # AMD Radeon RX 5700 XT specific settings
