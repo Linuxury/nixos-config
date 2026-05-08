@@ -42,6 +42,8 @@
   # =========================================================================
   networking.hostName = "Alex-Desktop";
 
+  services.nixos-auto-update.primaryUser = "alex";
+
   # =========================================================================
   # GPU driver selection
   # M5A78L-M LX has Radeon HD 3000 (760G chipset) — pre-GCN, needs radeon

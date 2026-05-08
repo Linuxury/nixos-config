@@ -41,7 +41,7 @@ in
     ../../modules/base/linuxury-ssh.nix    # linuxury  — emergency SSH only
     ../../modules/users/babylinux-packages.nix
     #../../modules/base/libreoffice.nix
-    ../../modules/base/syncthing.nix
+    ../../modules/base/syncthing-babylinux.nix
   ];
 
   # =========================================================================
@@ -58,6 +58,8 @@ in
   # GPU driver selection
   # =========================================================================
   hardware.gpu = "amd";
+
+  services.nixos-auto-update.primaryUser = "babylinux";
 
   services.displayManager.defaultSession = "plasma";
 

@@ -20,6 +20,9 @@
 #   - onFailure/onSuccess hooks trigger notify-update-result.sh
 #   - Missed runs (machine was off) caught on next boot via session service
 #
+# Per-host configuration:
+#   services.nixos-auto-update.primaryUser = "babylinux"; # default: "linuxury"
+#
 # To disable on a specific host:
 #   services.nixos-auto-update.enable = lib.mkForce false;
 # ===========================================================================
@@ -27,14 +30,29 @@
 { config, pkgs, lib, ... }:
 
 let
-  # ---------------------------------------------------------------------------
-  # Notification script — shared handler for all update notifications
-  # Writes Obsidian entries, sends toast, emails on failure
-  # ---------------------------------------------------------------------------
   notifyScript = ./scripts/notify-update-result.sh;
+  cfg          = config.services.nixos-auto-update;
 in
 
 {
+  # =========================================================================
+  # Options
+  # =========================================================================
+  options.services.nixos-auto-update.primaryUser = lib.mkOption {
+    type        = lib.types.str;
+    default     = "linuxury";
+    description = ''
+      Primary user on this host. Vault writes, notification ownership, and
+      the smtp-app-password secret are all scoped to this user.
+      Set to "babylinux" on her machines, "alex" on his, etc.
+    '';
+  };
+
+  # =========================================================================
+  # Config
+  # =========================================================================
+  config = {
+
   # =========================================================================
   # Email — msmtp (lightweight SMTP client, no daemon)
   #
@@ -62,11 +80,12 @@ in
     };
   };
 
-  # SMTP password via agenix — only hosts that import this module need it
+  # SMTP password via agenix — owned by the primary user so the
+  # notify-vault@ service (which runs as primaryUser) can read it.
   age.secrets.smtp-app-password = {
-    file = ../../secrets/smtp-app-password.age;
-    mode = "0400";
-    owner = "linuxury"; # notify-vault@ runs as linuxury — must be able to read this
+    file  = ../../secrets/smtp-app-password.age;
+    mode  = "0400";
+    owner = cfg.primaryUser;
   };
 
   # =========================================================================
@@ -88,15 +107,18 @@ in
   };
 
   # =========================================================================
-  # Vault notification service — writes to Obsidian vault as linuxury
+  # Vault notification service — writes to Obsidian vault as primaryUser
   #
-  # This system service always runs as the linuxury user, regardless of who
-  # triggered the update (root via weekly timer, or babylinux/alex via
-  # session start). This ensures vault writes land in /home/linuxury/Obsidian
-  # with correct ownership for Syncthing to sync.
+  # This system service runs as the host's primary user, regardless of who
+  # triggered the update (root via weekly timer, or any user via session
+  # start). This ensures vault writes land in the right ~/Obsidian with
+  # correct ownership for Syncthing to sync.
   #
   # Called via: systemctl start notify-vault@success.service
   #             systemctl start notify-vault@failure.service
+  #
+  # XDG_RUNTIME_DIR uses UID 1000 — the primary user is always the first
+  # normal user created on each machine (babylinux=1000, linuxury=1000, etc).
   # =========================================================================
   systemd.services."notify-vault@" = {
     description = "Write update notification to Obsidian vault (%i)";
@@ -104,15 +126,15 @@ in
     path = with pkgs; [ hostname coreutils gnugrep gnused gawk nix msmtp libnotify curl ];
     serviceConfig = {
       Type      = "oneshot";
-      User      = "linuxury";
+      User      = cfg.primaryUser;
       Group     = "users";
       ExecStart = "${pkgs.bash}/bin/bash ${notifyScript} %i /var/log/nixos-auto-update.log";
       # notify-send needs XDG_RUNTIME_DIR + D-Bus session socket
-      # msmtp needs HOME to find its config (set by agenix owner change)
+      # msmtp needs HOME to find its config
       Environment = [
         "XDG_RUNTIME_DIR=/run/user/1000"
         "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
-        "HOME=/home/linuxury"
+        "HOME=/home/${cfg.primaryUser}"
       ];
     };
   };
@@ -121,23 +143,22 @@ in
   # Weekly schedule notification hooks
   #
   # system.autoUpgrade has no built-in hooks. These systemd overrides
-  # trigger notify-vault@.service (which runs as linuxury) when the
+  # trigger notify-vault@.service (which runs as primaryUser) when the
   # weekly update succeeds or fails.
   # =========================================================================
   systemd.services.nixos-upgrade.onSuccess = [ "notify-vault@success.service" ];
   systemd.services.nixos-upgrade.onFailure = [ "notify-vault@failure.service" ];
 
   # =========================================================================
-  # Update log file — pre-created with linuxury ownership
+  # Update log file — pre-created with primaryUser ownership
   #
-  # The auto-update script runs as linuxury (user service) and writes to this
-  # log. /var/log/ is root-owned so we use tmpfiles to create it up front.
+  # The auto-update script runs as primaryUser and writes to this log.
+  # /var/log/ is root-owned so we use tmpfiles to create it up front.
   # =========================================================================
   systemd.tmpfiles.rules = [
-    "f /var/log/nixos-auto-update.log     0640 linuxury users -"
-    # Timestamp file — owned by linuxury so the user service can write it directly.
-    # (sudo tee is not available in NOPASSWD rules; direct write avoids that)
-    "f /etc/nixos-last-update-time        0644 linuxury users -"
+    "f /var/log/nixos-auto-update.log     0640 ${cfg.primaryUser} users -"
+    # Timestamp file — owned by primaryUser so the user service can write it directly.
+    "f /etc/nixos-last-update-time        0644 ${cfg.primaryUser} users -"
   ];
 
   # =========================================================================
@@ -300,7 +321,7 @@ in
       # -----------------------------------------------------------------------
       # Success path
       # -----------------------------------------------------------------------
-      # Record successful update timestamp (file is owned by linuxury via tmpfiles)
+      # Record successful update timestamp (file is owned by primaryUser via tmpfiles)
       date +%s > "$TIMESTAMP_FILE"
       log "Update completed successfully"
 
@@ -372,7 +393,7 @@ in
       # Gives the DE time to fully load and settle
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 120";
       # Run update, then route notification through notify-vault@ service
-      # (runs as linuxury regardless of which user is logged in)
+      # (runs as primaryUser regardless of which user is logged in)
       # Exit codes: 0=updated, 1=failed, 2=no update needed (skip notification)
       ExecStart = "${pkgs.bash}/bin/bash -c 'nixos-auto-update; OUTCOME=$?; if [ $OUTCOME -eq 0 ]; then sudo systemctl start notify-vault@success.service; elif [ $OUTCOME -eq 1 ]; then sudo systemctl start notify-vault@failure.service; fi'";
 
@@ -415,7 +436,7 @@ in
   # The update script needs sudo for nixos-rebuild and nix-collect-garbage.
   # All users also need sudo for notify-vault@ so the session-start user
   # service (running as babylinux/alex) can trigger vault notifications
-  # that run as linuxury.
+  # that run as primaryUser.
   # =========================================================================
   security.sudo.extraRules = [
     {
@@ -462,7 +483,7 @@ in
         }
         {
           # Allow starting notify-vault@ success/failure services
-          # (system service that runs as linuxury, writes to vault)
+          # (system service that runs as primaryUser, writes to vault)
           command  = "${pkgs.systemd}/bin/systemctl start notify-vault@success.service";
           options  = [ "NOPASSWD" ];
         }
@@ -486,4 +507,6 @@ in
     missingok    = true;
     notifempty   = true;
   };
+
+  }; # end config
 }

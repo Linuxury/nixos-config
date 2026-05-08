@@ -45,7 +45,7 @@ in
     ../../modules/base/linuxury-ssh.nix    # linuxury  — emergency SSH only
     ../../modules/users/babylinux-packages.nix
     #../../modules/base/libreoffice.nix
-    ../../modules/base/syncthing.nix
+    ../../modules/base/syncthing-babylinux.nix
     ../../modules/base/ai-tools.nix
   ];
 
@@ -88,6 +88,8 @@ in
   #   nvidiaBusId = "PCI:FILL:IN"; # Nvidia dGPU — replace with actual ID
   # };
   # TODO: fill in PCI bus IDs from: lspci | grep -E "VGA|3D"
+
+  services.nixos-auto-update.primaryUser = "babylinux";
 
   services.displayManager.defaultSession = "plasma";
 

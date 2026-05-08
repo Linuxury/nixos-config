@@ -39,6 +39,8 @@
   # =========================================================================
   networking.hostName = "Alex-Laptop";
 
+  services.nixos-auto-update.primaryUser = "alex";
+
   # =========================================================================
   # GPU driver selection
   #
