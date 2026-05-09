@@ -41,7 +41,7 @@ in
     ../../modules/base/linuxury-ssh.nix         # linuxury  — emergency SSH only
     ../../modules/base/babylinux-description.nix
     ../../modules/users/babylinux-packages.nix
-    ../../modules/base/libreoffice.nix
+    #../../modules/base/libreoffice.nix  # replaced by libreoffice-flatpak.nix in home.nix
     ../../modules/base/syncthing-babylinux.nix
   ];
 
