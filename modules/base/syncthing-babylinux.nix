@@ -30,7 +30,7 @@
     settings = {
       gui.address = "127.0.0.1:8384";
 
-      # ── Devices ──────────────────────────────────────────────────────────
+      # ── Devices — IDs verified 2026-05-09 ───────────────────────────────
       devices = {
         "Ryzen5800x" = {
           id        = "KMIXV62-XWKZX73-I4D5TVY-QD4NQ5D-S4B4LSO-TGVU7V5-267HUAB-YDEGXQG";
