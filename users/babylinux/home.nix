@@ -152,6 +152,16 @@ in
     # Fastfetch — shared config
     ".config/fastfetch".source = ../../dotfiles/fastfetch;
 
+    # Kitty terminal — base config; colors written by matugen at runtime
+    ".config/kitty/kitty.conf".source = ../../dotfiles/kitty/kitty.conf;
+
+    # VSCodium — user settings (mkOutOfStoreSymlink keeps the file writable)
+    ".config/VSCodium/User/settings.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/vscodium/settings.json";
+
+    # Nano — for quick root edits
+    ".nanorc".source = ../../dotfiles/nano/.nanorc;
+
     # -----------------------------------------------------------------------
     # Wallpaper symlink
     #
