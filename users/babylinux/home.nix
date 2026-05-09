@@ -116,6 +116,15 @@ in
   # =========================================================================
   # Migration — remove old plain dirs before HM creates symlinks in their place
   # =========================================================================
+  home.activation.migrateKdeGtkFiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    # GTK settings written by KDE/Plasma — HM will manage these declaratively
+    rm -f "$HOME/.gtkrc-2.0"
+    rm -f "$HOME/.config/gtk-3.0/settings.ini"
+    rm -f "$HOME/.config/gtk-4.0/settings.ini"
+    # BreezeX cursor dir written by a previous session — HM will symlink it
+    rm -rf "$HOME/.icons/BreezeX-Light"
+  '';
+
   home.activation.migrateAssetDirs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
     # Old ~/Pictures/Avatar plain dir → now symlinked at ~/Pictures/Avatar
     if [ -d "$HOME/Pictures/Avatar" ] && [ ! -L "$HOME/Pictures/Avatar" ]; then
@@ -341,8 +350,12 @@ in
 
   # =========================================================================
   # GTK — required for home.pointerCursor.gtk to take effect
+  # gtk4.theme = null adopts the HM 26.05 default (silence deprecation warning)
   # =========================================================================
-  gtk.enable = true;
+  gtk = {
+    enable = true;
+    gtk4.theme = null;
+  };
 
   # =========================================================================
   # KDE declarative config
@@ -355,25 +368,31 @@ in
   # kcminputrc   — input settings: cursor theme + size
   # plasmarc     — Plasma shell settings: widget style
   # =========================================================================
-  xdg.configFile."kdeglobals".text = ''
-    [Icons]
-    Theme=breeze-chameleon-dark
+  xdg.configFile."kdeglobals" = {
+    force = true;
+    text = ''
+      [Icons]
+      Theme=breeze-chameleon-dark
 
-    [General]
-    ColorScheme=BreezeDark
-    shadeSortColumn=true
+      [General]
+      ColorScheme=BreezeDark
+      shadeSortColumn=true
 
-    [KDE]
-    LookAndFeelPackage=org.kde.breezedark.desktop
-    SingleClick=false
-    widgetStyle=darkly
-  '';
+      [KDE]
+      LookAndFeelPackage=org.kde.breezedark.desktop
+      SingleClick=false
+      widgetStyle=darkly
+    '';
+  };
 
-  xdg.configFile."kcminputrc".text = ''
-    [Mouse]
-    cursorTheme=BreezeX-Light
-    cursorSize=24
-  '';
+  xdg.configFile."kcminputrc" = {
+    force = true;
+    text = ''
+      [Mouse]
+      cursorTheme=BreezeX-Light
+      cursorSize=24
+    '';
+  };
 
   # =========================================================================
   # SSH agent
