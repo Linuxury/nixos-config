@@ -20,7 +20,7 @@
 #   ]
 # ===========================================================================
 
-{ config, pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 {
   imports = [
@@ -80,6 +80,18 @@
     "$HOME/.local/share/flatpak/exports/share"
     "$XDG_DATA_DIRS"
   ];
+
+  # =========================================================================
+  # Bluetooth
+  #
+  # Enables the bluez stack (kernel + userspace) and the blueman GUI manager.
+  # blueman is DE-agnostic — it works on COSMIC, Hyprland, KDE, and anything
+  # else. powerOnBoot = false leaves the adapter off until the user turns it
+  # on, avoiding unnecessary radio activity on hosts that rarely use it.
+  # =========================================================================
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = lib.mkDefault false;
+  services.blueman.enable = true;
 
   # =========================================================================
   # KDE Connect — Phone/desktop integration
