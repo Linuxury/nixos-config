@@ -40,7 +40,7 @@
 
     # LibreOffice via Flathub — installed on first login for every graphical
     # user. Skips gracefully on hosts where Flathub has been removed.
-    ./libreoffice-flatpak.nix
+    ./libreoffice.nix
   ];
 
   # =========================================================================
