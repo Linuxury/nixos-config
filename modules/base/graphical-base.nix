@@ -37,6 +37,10 @@
     # AccountsService avatars — copies per-user icons from
     # /home/linuxury/Pictures/Avatar/ so they appear in the greeter.
     ./user-avatars.nix
+
+    # LibreOffice via Flathub — installed on first login for every graphical
+    # user. Skips gracefully on hosts where Flathub has been removed.
+    ./libreoffice-flatpak.nix
   ];
 
   # =========================================================================

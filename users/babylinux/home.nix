@@ -49,7 +49,6 @@ in
 {
   imports = [
     ../../modules/home/neovim.nix
-    ../../modules/home/libreoffice-flatpak.nix
   ];
 
   # =========================================================================
