@@ -205,7 +205,6 @@ in
     settings = {
       General = {
         FastConnectable = true;
-        AutoEnable = true;
       };
       Policy = {
         AutoEnable = true;
