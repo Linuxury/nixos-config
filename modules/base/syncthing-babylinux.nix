@@ -36,10 +36,12 @@
           id        = "KMIXV62-XWKZX73-I4D5TVY-QD4NQ5D-S4B4LSO-TGVU7V5-267HUAB-YDEGXQG";
           addresses = [ "tcp://100.114.95.99:22000" ];
         };
-        "Asus-A15" = {
-          id        = "FILL-IN-ASUS-A15-BABYLINUX-SYNCTHING-ID";
-          addresses = [ "tcp://FILL-IN-ASUS-A15-TAILSCALE-IP:22000" ];
-        };
+        # Asus-A15 — add when machine is online and ID is obtained:
+        #   systemctl status syncthing | grep "device id"
+        # "Asus-A15" = {
+        #   id        = "FILL-IN-ASUS-A15-BABYLINUX-SYNCTHING-ID";
+        #   addresses = [ "tcp://FILL-IN-ASUS-A15-TAILSCALE-IP:22000" ];
+        # };
         "Ryzen5900x" = {
           id        = "NOWQCM4-GKSAUGA-PWPLLPX-WPUWSD4-DOXLHTJ-QQ2GTVV-CE3IAKR-B5LWZAI";
           addresses = [ "tcp://100.112.137.120:22000" ];
@@ -73,7 +75,8 @@
           label            = "Obsidian Vault";
           path             = "/home/babylinux/Obsidian";
           devices          = [
-            "Ryzen5800x" "Asus-A15"
+            "Ryzen5800x"
+            # "Asus-A15"  # add back once ID is filled in above
             "Ryzen5900x" "ThinkPad" "Media-Server" "MinisForum" "Radxa-X4"
             "Pixel-Pro-8"
           ];
@@ -87,7 +90,7 @@
           id               = "ai-config-babylinux";
           label            = "AI Config";
           path             = "/home/babylinux/.agents";
-          devices          = [ "Ryzen5800x" "Asus-A15" ];
+          devices          = [ "Ryzen5800x" ]; # Asus-A15 added once ID is known
           fsWatcherEnabled = true;
           fsWatcherDelayS  = 10;
           rescanIntervalS  = 60;
