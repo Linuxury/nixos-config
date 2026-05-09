@@ -182,9 +182,6 @@
     ".claude.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude/state.json";
 
-    # VSCodium — user settings (mkOutOfStoreSymlink keeps the file writable)
-    ".config/VSCodium/User/settings.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/vscodium/settings.json";
 
     # Nano — for quick root edits
     ".nanorc".source = ../../dotfiles/nano/.nanorc;
@@ -561,6 +558,11 @@
           };
         })
       ];
+    profiles.default.userSettings =
+      (builtins.fromJSON (builtins.readFile ../../dotfiles/vscodium/settings.json))
+      // {
+        "claudeCode.claudeProcessWrapper" = "/etc/profiles/per-user/${config.home.username}/bin/claude";
+      };
   };
 
   # =========================================================================

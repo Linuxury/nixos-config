@@ -222,6 +222,15 @@ in
   ];
 
   # =========================================================================
+  # nix-ld — dynamic linker shim for prebuilt binaries
+  #
+  # Needed by opencode (Bun standalone binary). Without this,
+  # /lib64/ld-linux-x86-64.so.2 doesn't exist and the binary can't run.
+  # =========================================================================
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [ glibc ];
+
+  # =========================================================================
   # OpenRGB — RGB lighting control
   #
   # Controls RGB LEDs on the motherboard, RAM, and peripherals.
