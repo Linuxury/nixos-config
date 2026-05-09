@@ -119,6 +119,10 @@ in
   home.activation.migrateKdeGtkFiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
     # BreezeX cursor dir written by a previous session — HM will symlink it
     rm -rf "$HOME/.icons/BreezeX-Light"
+    # kdeglobals/kcminputrc were previously HM-managed symlinks — remove them
+    # so HM doesn't conflict, and initKdeConfig below writes them as regular files
+    [ -L "$HOME/.config/kdeglobals" ]  && rm -f "$HOME/.config/kdeglobals"
+    [ -L "$HOME/.config/kcminputrc" ]  && rm -f "$HOME/.config/kcminputrc"
   '';
 
   home.activation.migrateAssetDirs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
@@ -345,41 +349,44 @@ in
   };
 
   # =========================================================================
-  # KDE declarative config
+  # KDE initial config — written as regular files, not HM symlinks
   #
-  # KDE reads these at session start. Without declarative config, any GUI
-  # change gets overwritten on the next rebuild. These files persist across
-  # reboots because HM manages them as symlinks into the Nix store.
+  # kdeglobals and kcminputrc must be writable by KDE at runtime:
+  # KDE fills in [Colors:Button], [Colors:View], etc. sections when it loads
+  # the color scheme. A read-only Nix store symlink silently blocks those
+  # writes, leaving the color tables empty → apps fall back to light theme.
   #
-  # kdeglobals   — global settings: icons, color scheme, fonts
-  # kcminputrc   — input settings: cursor theme + size
-  # plasmarc     — Plasma shell settings: widget style
+  # Strategy: write the files once (on first setup or if missing) as regular
+  # writable files. KDE can then populate color values and persist user changes.
+  # Settings survive rebuilds — activation only writes if the file is absent.
   # =========================================================================
-  xdg.configFile."kdeglobals" = {
-    force = true;
-    text = ''
-      [Icons]
-      Theme=breeze-chameleon-dark
+  home.activation.initKdeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    KDEGLOBALS="$HOME/.config/kdeglobals"
+    if [ ! -f "$KDEGLOBALS" ]; then
+      cat > "$KDEGLOBALS" << 'EOF'
+[Icons]
+Theme=breeze-chameleon-dark
 
-      [General]
-      ColorScheme=BreezeDark
-      shadeSortColumn=true
+[General]
+ColorScheme=BreezeDark
+shadeSortColumn=true
 
-      [KDE]
-      LookAndFeelPackage=org.kde.breezedark.desktop
-      SingleClick=false
-      widgetStyle=darkly
-    '';
-  };
+[KDE]
+LookAndFeelPackage=org.kde.breezedark.desktop
+SingleClick=false
+widgetStyle=darkly
+EOF
+    fi
 
-  xdg.configFile."kcminputrc" = {
-    force = true;
-    text = ''
-      [Mouse]
-      cursorTheme=BreezeX-Light
-      cursorSize=24
-    '';
-  };
+    KCMINPUTRC="$HOME/.config/kcminputrc"
+    if [ ! -f "$KCMINPUTRC" ]; then
+      cat > "$KCMINPUTRC" << 'EOF'
+[Mouse]
+cursorTheme=BreezeX-Light
+cursorSize=24
+EOF
+    fi
+  '';
 
   # =========================================================================
   # SSH agent
