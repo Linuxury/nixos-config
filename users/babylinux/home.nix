@@ -18,6 +18,34 @@
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
 { config, pkgs, inputs, lib, wallpaperDir, ... }:
 
+let
+  # ===========================================================================
+  # BreezeX cursor theme — not in nixpkgs, fetched from GitHub releases
+  #
+  # Same derivation used by linuxury in cosmic-theme.nix.
+  # BreezeX-Light is a refined KDE Breeze cursor with larger sizes.
+  # ===========================================================================
+  breezex-cursors = pkgs.stdenv.mkDerivation {
+    pname   = "breezex-cursor-theme";
+    version = "2.0.1";
+
+    src = pkgs.fetchzip {
+      url       = "https://github.com/ful1e5/BreezeX_Cursor/releases/download/v2.0.1/BreezeX.tar.xz";
+      sha256    = "10fbvbls52cgp5kshlcxbh3nqarh2mwhpj0w5kkk4hrl3sdc1bcj";
+      stripRoot = false; # archive has multiple top-level dirs (BreezeX, BreezeX-Black, …)
+    };
+
+    dontBuild     = true;
+    dontConfigure = true;
+
+    installPhase = ''
+      mkdir -p $out/share/icons
+      cp -r . $out/share/icons/
+    '';
+  };
+
+in
+
 {
   imports = [
     ../../modules/home/neovim.nix
@@ -294,6 +322,58 @@
       WantedBy = [ "graphical-session.target" ];
     };
   };
+
+  # =========================================================================
+  # Cursor — BreezeX-Light
+  #
+  # home.pointerCursor sets three things at once:
+  #   1. XCURSOR_THEME + XCURSOR_SIZE in the systemd user environment
+  #      so kwin_wayland picks it up on session start
+  #   2. ~/.icons/default/index.theme for X11 fallback
+  #   3. GTK cursor config (via gtk.enable below)
+  # =========================================================================
+  home.pointerCursor = {
+    name    = "BreezeX-Light";
+    package = breezex-cursors;
+    size    = 24;
+    gtk.enable = true;
+  };
+
+  # =========================================================================
+  # GTK — required for home.pointerCursor.gtk to take effect
+  # =========================================================================
+  gtk.enable = true;
+
+  # =========================================================================
+  # KDE declarative config
+  #
+  # KDE reads these at session start. Without declarative config, any GUI
+  # change gets overwritten on the next rebuild. These files persist across
+  # reboots because HM manages them as symlinks into the Nix store.
+  #
+  # kdeglobals   — global settings: icons, color scheme, fonts
+  # kcminputrc   — input settings: cursor theme + size
+  # plasmarc     — Plasma shell settings: widget style
+  # =========================================================================
+  xdg.configFile."kdeglobals".text = ''
+    [Icons]
+    Theme=breeze-chameleon-dark
+
+    [General]
+    ColorScheme=BreezeDark
+    shadeSortColumn=true
+
+    [KDE]
+    LookAndFeelPackage=org.kde.breezedark.desktop
+    SingleClick=false
+    widgetStyle=darkly
+  '';
+
+  xdg.configFile."kcminputrc".text = ''
+    [Mouse]
+    cursorTheme=BreezeX-Light
+    cursorSize=24
+  '';
 
   # =========================================================================
   # SSH agent
