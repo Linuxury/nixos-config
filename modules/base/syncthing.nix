@@ -69,8 +69,14 @@
           addresses = [ "tcp://100.107.245.87:22000" ];
         };
 
+        "Ryzen5800x" = {
+          id = "ZIQLTDL-FGR5DNK-I7FFQRC-KST7NDM-CPK3EZL-EHDRDEN-WMPU3TB-UQTYIAP";
+          addresses = [ "tcp://100.114.95.99:22000" ];
+        };
+
         # babylinux and alex machines have their own Syncthing instances
-        # (syncthing-babylinux.nix, syncthing-alex.nix) — not listed here.
+        # (syncthing-babylinux.nix, syncthing-alex.nix) but share the same
+        # "obsidian" folder ID so they participate in the single sync group.
 
         "Pixel-Pro-8" = {
           id = "DHN7MUP-UBRZGR4-PXHDLCY-54O2IJI-Q7K7WKH-QQMQZWV-SXLAVNV-ALFCQQI";
@@ -93,6 +99,7 @@
             "MinisForum"
             "Radxa-X4"
             "Pixel-Pro-8"
+            "Ryzen5800x"
           ];
           fsWatcherEnabled = true;
           fsWatcherDelayS  = 10;

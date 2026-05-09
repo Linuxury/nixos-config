@@ -3,8 +3,8 @@
 #
 # Imported by: Ryzen5800x, Asus-A15
 #
-# Runs as babylinux. Syncs her Obsidian vault and AI config between
-# her own machines only (separate from linuxury's sync group).
+# Runs as babylinux. Participates in the same single Obsidian sync group
+# as all other hosts — folder ID "obsidian" matches syncthing.nix.
 #
 # SETUP — after first rebuild on each new machine:
 #   1. Get the Syncthing device ID:
@@ -31,8 +31,6 @@
       gui.address = "127.0.0.1:8384";
 
       # ── Devices ──────────────────────────────────────────────────────────
-      # Collect device IDs after first boot of each machine:
-      #   systemctl status syncthing | grep "device id"
       devices = {
         "Ryzen5800x" = {
           id        = "ZIQLTDL-FGR5DNK-I7FFQRC-KST7NDM-CPK3EZL-EHDRDEN-WMPU3TB-UQTYIAP";
@@ -42,17 +40,43 @@
           id        = "FILL-IN-ASUS-A15-BABYLINUX-SYNCTHING-ID";
           addresses = [ "tcp://FILL-IN-ASUS-A15-TAILSCALE-IP:22000" ];
         };
+        "Ryzen5900x" = {
+          id        = "NOWQCM4-GKSAUGA-PWPLLPX-WPUWSD4-DOXLHTJ-QQ2GTVV-CE3IAKR-B5LWZAI";
+          addresses = [ "tcp://100.112.137.120:22000" ];
+        };
+        "ThinkPad" = {
+          id        = "INWQLVH-KBFFJLJ-YAPK7JQ-BLUEJNL-GMHVIMO-YX3G5JZ-PO2FMHS-MROBVAU";
+          addresses = [ "tcp://100.125.106.128:22000" ];
+        };
+        "Media-Server" = {
+          id        = "AUUN6PE-UYNWKLZ-UGUUERI-MQTIANQ-LMUG2SC-P3C5GFR-ODARYQP-WMMWTQD";
+          addresses = [ "tcp://100.116.205.39:22000" ];
+        };
+        "MinisForum" = {
+          id        = "PZEK3RM-6YSY3EP-CL4Y2CI-O3BLPTA-CWUXGPH-XL4GMDP-4BIOMZ7-NE3WUAM";
+          addresses = [ "tcp://100.126.220.53:22000" ];
+        };
+        "Radxa-X4" = {
+          id        = "BGJEXC3-YNHVMOF-PAG2C43-5C3GI33-TTNMFCF-D5BSZL6-IXMN56R-BY7N5QH";
+          addresses = [ "tcp://100.107.245.87:22000" ];
+        };
+        "Pixel-Pro-8" = {
+          id        = "DHN7MUP-UBRZGR4-PXHDLCY-54O2IJI-Q7K7WKH-QQMQZWV-SXLAVNV-ALFCQQI";
+          addresses = [ "tcp://100.126.77.126:22000" ];
+        };
       };
 
       # ── Folders ──────────────────────────────────────────────────────────
-      # Folder IDs use a babylinux suffix to avoid any clash with
-      # linuxury's "obsidian" / "ai-config" folder IDs.
       folders = {
         "Obsidian" = {
-          id               = "obsidian-babylinux";
+          id               = "obsidian";
           label            = "Obsidian Vault";
           path             = "/home/babylinux/Obsidian";
-          devices          = [ "Ryzen5800x" "Asus-A15" ];
+          devices          = [
+            "Ryzen5800x" "Asus-A15"
+            "Ryzen5900x" "ThinkPad" "Media-Server" "MinisForum" "Radxa-X4"
+            "Pixel-Pro-8"
+          ];
           fsWatcherEnabled = true;
           fsWatcherDelayS  = 10;
           rescanIntervalS  = 60;
