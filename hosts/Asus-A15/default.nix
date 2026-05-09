@@ -45,7 +45,6 @@ in
     ../../modules/base/linuxury-ssh.nix         # linuxury  — emergency SSH only
     ../../modules/base/babylinux-description.nix
     ../../modules/users/babylinux-packages.nix
-    #../../modules/base/libreoffice.nix
     ../../modules/base/syncthing-babylinux.nix
     ../../modules/base/ai-tools.nix
   ];
