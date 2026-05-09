@@ -403,5 +403,16 @@ EOF
   # =========================================================================
   services.ssh-agent.enable = true;
 
+  # =========================================================================
+  # Obsidian vault directory
+  #
+  # Creates ~/Obsidian on first activation so Syncthing has a target path
+  # to sync into. Without this the syncthing service logs an error on boot
+  # because the folder doesn't exist yet.
+  # =========================================================================
+  home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mkdir -p "$HOME/Obsidian"
+  '';
+
   # Personal packages live in modules/users/babylinux-packages.nix
 }

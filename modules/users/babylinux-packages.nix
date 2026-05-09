@@ -14,5 +14,8 @@
 
     # Communication
     zoom-us         # Video conferencing
+
+    # Knowledge base
+    obsidian        # Markdown-based note-taking / knowledge base
   ];
 }
