@@ -93,6 +93,11 @@
   hardware.bluetooth.powerOnBoot = lib.mkDefault false;
   services.blueman.enable = true;
 
+  # Load btusb at boot so /sys/class/bluetooth exists before bluetoothd
+  # evaluates its ConditionPathIsDirectory check. Without this, the service
+  # silently skips itself on machines where the module isn't loaded early.
+  boot.kernelModules = [ "btusb" ];
+
   # =========================================================================
   # KDE Connect — Phone/desktop integration
   #
