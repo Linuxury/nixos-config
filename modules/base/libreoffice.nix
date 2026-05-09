@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/base/libreoffice-flatpak.nix — LibreOffice via Flathub (system-wide)
+# modules/base/libreoffice.nix — LibreOffice via Flathub (system-wide)
 #
 # Imported by: graphical-base.nix (all graphical hosts)
 #
