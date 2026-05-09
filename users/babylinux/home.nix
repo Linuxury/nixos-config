@@ -117,10 +117,6 @@ in
   # Migration — remove old plain dirs before HM creates symlinks in their place
   # =========================================================================
   home.activation.migrateKdeGtkFiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-    # GTK settings written by KDE/Plasma — HM will manage these declaratively
-    rm -f "$HOME/.gtkrc-2.0"
-    rm -f "$HOME/.config/gtk-3.0/settings.ini"
-    rm -f "$HOME/.config/gtk-4.0/settings.ini"
     # BreezeX cursor dir written by a previous session — HM will symlink it
     rm -rf "$HOME/.icons/BreezeX-Light"
   '';
@@ -342,19 +338,10 @@ in
   #   3. GTK cursor config (via gtk.enable below)
   # =========================================================================
   home.pointerCursor = {
-    name    = "BreezeX-Light";
-    package = breezex-cursors;
-    size    = 24;
-    gtk.enable = true;
-  };
-
-  # =========================================================================
-  # GTK — required for home.pointerCursor.gtk to take effect
-  # gtk4.theme = null adopts the HM 26.05 default (silence deprecation warning)
-  # =========================================================================
-  gtk = {
-    enable = true;
-    gtk4.theme = null;
+    name       = "BreezeX-Light";
+    package    = breezex-cursors;
+    size       = 24;
+    gtk.enable = false; # KDE manages GTK theming — don't let HM overwrite it
   };
 
   # =========================================================================
