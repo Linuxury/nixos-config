@@ -41,6 +41,10 @@
     # LibreOffice via Flathub — installed on first login for every graphical
     # user. Skips gracefully on hosts where Flathub has been removed.
     ./libreoffice.nix
+
+    # Fluxer via Flathub — self-hostable community platform replacing Discord.
+    # Installed on first login for every graphical user.
+    ./fluxer.nix
   ];
 
   # =========================================================================

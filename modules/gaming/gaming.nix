@@ -160,16 +160,6 @@
     # Useful for games with no controller support
 
     # -----------------------------------------------------------------------
-    # Communication
-    # -----------------------------------------------------------------------
-    # XMPP — primary messaging client (self-hosted server coming)
-    gajim # Full-featured XMPP client — OMEMO encryption, groupchat,
-    # file transfer. Will replace Discord once server is set up.
-
-    # TODO: Remove discord once XMPP server is set up
-    discord # Temporary — kept for gaming coordination during transition
-
-    # -----------------------------------------------------------------------
     # Minecraft — all three family members play
     # -----------------------------------------------------------------------
     prismlauncher # Java Minecraft launcher — manages its own Java runtimes
