@@ -96,6 +96,7 @@
   },
   "dmsScreenshot": {
     "enabled": true,
-    "quality": 90
+    "quality": 90,
+    "mode": "interactive"
   }
 }
