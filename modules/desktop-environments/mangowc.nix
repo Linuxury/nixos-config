@@ -142,6 +142,23 @@ in
     };
   };
 
+  # Workaround: cheap USB BT dongles (e.g. Actions 10d7:b012) don't fully
+  # support BlueZ MGMT commands, causing "Failed to set default system config"
+  # and leaving the adapter powered off despite AutoEnable=true. This service
+  # explicitly powers on the adapter after it has had time to settle.
+  systemd.services.bluetooth-power-on = {
+    description = "Force-power Bluetooth adapter on";
+    after = [ "bluetooth.service" ];
+    requires = [ "bluetooth.service" ];
+    wantedBy = [ "bluetooth.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStartPre = "${pkgs.coreutils}/bin/sleep 3";
+      ExecStart = "${pkgs.bluez}/bin/bluetoothctl power on";
+      RemainAfterExit = true;
+    };
+  };
+
   # =========================================================================
   # Packages — compositor, shell layer, and companion tools
   # =========================================================================
