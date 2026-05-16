@@ -8,9 +8,10 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - COSMIC (default DE)
-#   - Hyprland (experimentation)
-#   - Niri (experimentation)
+#   - MangoWC + Noctalia (active)
+#   - COSMIC (disabled)
+#   - Hyprland (disabled)
+#   - Niri (disabled)
 #   - Gaming
 #   - Development
 # ===========================================================================
@@ -46,8 +47,9 @@ in
     ../../modules/base/linuxury-description.nix
     ../../modules/hardware/drivers.nix
     #../../modules/desktop-environments/cosmic.nix
-    ../../modules/desktop-environments/hyprland.nix
+    #../../modules/desktop-environments/hyprland.nix
     #../../modules/desktop-environments/niri.nix
+    ../../modules/desktop-environments/mangowc.nix
     ../../modules/gaming/gaming.nix
     #../../modules/development/development.nix
     ../../modules/base/auto-update.nix
@@ -68,10 +70,10 @@ in
   networking.hostName = "Ryzen5900x";
 
   # =========================================================================
-  # Default session — use UWSM-managed Hyprland so graphical-session.target
-  # starts properly (required for waybar, swaync, etc.)
+  # Default session — managed by greetd when mangowc.nix is active.
+  # Restore this if switching back to a display manager (SDDM, GDM, etc.).
   # =========================================================================
-  services.displayManager.defaultSession = "hyprland-session";
+  # services.displayManager.defaultSession = "hyprland-session";
 
   # =========================================================================
   # Network — prefer ethernet, auto-disable WiFi when ethernet is up

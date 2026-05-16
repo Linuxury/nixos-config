@@ -8,8 +8,8 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - COSMIC (default DE)
-#   - KDE (fallback, available at login screen)
+#   - KDE (default DE)
+#   - COSMIC (disabled)
 #   - Gaming
 #
 # No development tools — kept clean and simple.
@@ -33,13 +33,15 @@ in
     ../../modules/base/common.nix
     ../../modules/base/graphical-base.nix
     ../../modules/hardware/drivers.nix
-    ../../modules/desktop-environments/cosmic.nix
-    #../../modules/desktop-environments/kde.nix
+    #../../modules/desktop-environments/cosmic.nix
+    ../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
-    ../../modules/base/linuxury-ssh.nix
+    ../../modules/base/babylinux-ssh.nix        # babylinux — primary SSH access
+    ../../modules/base/linuxury-ssh.nix         # linuxury  — emergency SSH only
+    ../../modules/base/babylinux-description.nix
     ../../modules/users/babylinux-packages.nix
-    ../../modules/base/syncthing.nix
+    ../../modules/base/syncthing-babylinux.nix
   ];
 
   # =========================================================================
@@ -57,15 +59,9 @@ in
   # =========================================================================
   hardware.gpu = "amd";
 
-  # =========================================================================
-  # Display manager session priority
-  #
-  # Both COSMIC and KDE are enabled so we need to explicitly tell NixOS
-  # which session to use as default at the login screen.
-  # COSMIC is the default — KDE is available as an option if she wants
-  # to switch by clicking the session selector at login.
-  # =========================================================================
-  services.displayManager.defaultSession = "cosmic";
+  services.nixos-auto-update.primaryUser = "babylinux";
+
+  services.displayManager.defaultSession = "plasma";
 
   # =========================================================================
   # Filesystem — BTRFS with subvolumes, no LUKS on desktop
@@ -160,6 +156,24 @@ in
       ];
     };
 
+    # -----------------------------------------------------------------------
+    # Local NTFS HDD — former Windows drive, now used as storage
+    # Uses the ntfs3 in-kernel driver (faster than FUSE ntfs-3g).
+    # force: mounts even if Windows left the dirty/hibernation flag set.
+    # -----------------------------------------------------------------------
+    "/mnt/Warehouse" = {
+      device  = "/dev/disk/by-label/Warehouse";
+      fsType  = "ntfs3";
+      options = [
+        "uid=1000" "gid=100"
+        "umask=007"
+        "nofail" "noauto"
+        "x-systemd.automount" "x-systemd.idle-timeout=60"
+        "x-systemd.mount-timeout=10s"
+        "force"
+      ];
+    };
+
   };
 
   # =========================================================================
@@ -169,6 +183,7 @@ in
     "d /mnt/Media-Server 0755 babylinux users -"
     "d /mnt/MinisForum   0755 babylinux users -"
     "d /mnt/Torrents     0755 babylinux users -"
+    "d /mnt/Warehouse    0755 babylinux users -"
   ];
 
   # =========================================================================
@@ -192,6 +207,9 @@ in
   # =========================================================================
   boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
 
+  # NTFS3 kernel driver for the Warehouse HDD
+  boot.supportedFilesystems.ntfs = true;
+
   # =========================================================================
   # AMD Radeon RX 5700 XT specific settings
   #
@@ -202,6 +220,15 @@ in
   boot.kernelParams = [
     "amdgpu.ppfeaturemask=0xffffffff"
   ];
+
+  # =========================================================================
+  # nix-ld — dynamic linker shim for prebuilt binaries
+  #
+  # Needed by opencode (Bun standalone binary). Without this,
+  # /lib64/ld-linux-x86-64.so.2 doesn't exist and the binary can't run.
+  # =========================================================================
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [ glibc ];
 
   # =========================================================================
   # OpenRGB — RGB lighting control
@@ -223,15 +250,11 @@ in
   # =========================================================================
   environment.systemPackages = with pkgs; [
     cifs-utils
+    ntfs3g
 
     # Remote support
     rustdesk          # Open source remote desktop — lets you help her
                       # remotely without needing to be physically present
-
-    # Basic productivity
-    libreoffice       # Full office suite (documents, spreadsheets etc)
-    hunspell          # Spell checker used by LibreOffice
-    hunspellDicts.en-us
 
     # Media
     vlc               # Reliable video player that plays anything
@@ -274,13 +297,17 @@ in
     shell = pkgs.zsh;
   };
 
-  # linuxury user — needed for Syncthing (vault sync) and auto-update notifications
+  # linuxury user — emergency SSH access only, no home on this host
   users.users.linuxury = {
     isNormalUser = true;
-    home         = "/home/linuxury";
-    createHome   = true;
+    home         = "/var/empty";
+    createHome   = false;
     group        = "users";
+    shell        = pkgs.bash;
   };
+
+  # Hide linuxury from the login screen — emergency account only
+  services.displayManager.hiddenUsers = [ "linuxury" ];
 
   programs.zsh.enable = true;
 }

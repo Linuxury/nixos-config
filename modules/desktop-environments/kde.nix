@@ -95,6 +95,7 @@
     kdePackages.gwenview      # Image viewer
     kdePackages.plasma-browser-integration  # Browser integration for KDE
     kdePackages.qtstyleplugin-kvantum  # Kvantum theme engine for Qt apps
+    kdePackages.sddm-kcm               # SDDM config in System Settings → Colors & Themes
     ant-dark-kde                  # Ant-Dark KDE theme (Aurorae, Plasma, color scheme, Kvantum)
     breeze-chameleon-dark-icons   # Breeze Chameleon Dark icon theme (adaptive folder colors)
     darkly                    # Window decoration + application style (fork of Lightly)

@@ -27,10 +27,10 @@ SLUG_DATE=$(date '+%Y%m%d')
 
 # ---------------------------------------------------------------------------
 # Obsidian vault path
-# Syncthing syncs ~/Obsidian across all hosts. The notify-vault service
-# always runs as linuxury, so this path is consistent everywhere.
+# HOME is set by the notify-vault@ service to the primary user's home,
+# so this resolves correctly on all hosts regardless of who the primary is.
 # ---------------------------------------------------------------------------
-VAULT="/home/linuxury/Obsidian"
+VAULT="${HOME}/Obsidian"
 
 # Ensure vault directory exists
 mkdir -p "$VAULT/04 ⏳ Pending" "$VAULT/05 📋 Activity Log" 2>/dev/null || true

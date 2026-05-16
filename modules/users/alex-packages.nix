@@ -18,10 +18,6 @@
     # Creative
     krita           # Digital painting and drawing
 
-    # Office / School
-    hunspell                   # Spell checker
-    hunspellDicts.en-us        # English (US) dictionary
-
     # Media
     freetube        # YouTube without ads, algorithm, or shorts
   ];

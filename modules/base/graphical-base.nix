@@ -20,7 +20,7 @@
 #   ]
 # ===========================================================================
 
-{ config, pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 {
   imports = [
@@ -37,6 +37,14 @@
     # AccountsService avatars — copies per-user icons from
     # /home/linuxury/Pictures/Avatar/ so they appear in the greeter.
     ./user-avatars.nix
+
+    # LibreOffice via Flathub — installed on first login for every graphical
+    # user. Skips gracefully on hosts where Flathub has been removed.
+    ./libreoffice.nix
+
+    # Fluxer via Flathub — self-hostable community platform replacing Discord.
+    # Installed on first login for every graphical user.
+    ./fluxer.nix
   ];
 
   # =========================================================================
@@ -82,6 +90,23 @@
   ];
 
   # =========================================================================
+  # Bluetooth
+  #
+  # Enables the bluez stack (kernel + userspace) and the blueman GUI manager.
+  # blueman is DE-agnostic — it works on COSMIC, Hyprland, KDE, and anything
+  # else. powerOnBoot = false leaves the adapter off until the user turns it
+  # on, avoiding unnecessary radio activity on hosts that rarely use it.
+  # =========================================================================
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = lib.mkDefault false;
+  services.blueman.enable = true;
+
+  # Load btusb at boot so /sys/class/bluetooth exists before bluetoothd
+  # evaluates its ConditionPathIsDirectory check. Without this, the service
+  # silently skips itself on machines where the module isn't loaded early.
+  boot.kernelModules = [ "btusb" ];
+
+  # =========================================================================
   # KDE Connect — Phone/desktop integration
   #
   # Lets your phone and desktop share clipboard, notifications, files,
@@ -114,7 +139,7 @@
     # Documents & office
     # -----------------------------------------------------------------------
     papers                   # GNOME document viewer — PDFs and more (GTK4, modern)
-    libreoffice-fresh # Full office suite — word processor, spreadsheet, presentations, draw
+
     # -----------------------------------------------------------------------
     # System monitoring
     # -----------------------------------------------------------------------

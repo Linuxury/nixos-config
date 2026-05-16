@@ -241,7 +241,8 @@
     "d /data/gameservers/crafty/logs          0775 linuxury users -"
     "d /data/gameservers/crafty/import        0775 linuxury users -"
     # Z = recursively fix ownership on existing files (crafty container runs as UID 1000)
-    "Z /data/gameservers/crafty              -     1000  1000  - -"
+    # GID 100 (users) so linuxury (also UID 1000) is owner + group access is consistent
+    "Z /data/gameservers/crafty              -     1000  100   - -"
     "d /data/gameservers/hytale               0775 linuxury users -"
     "d /data/gameservers/hytale/Server        0775 linuxury users -"
   ];
@@ -392,12 +393,15 @@
   users.users = {
     linuxury = {
       isNormalUser = true;
+      uid          = 1000;  # Pinned — primary admin; NixOS assigns UIDs alphabetically
+                            # without pins (alex=1000, babylinux=1001, linuxury=1002)
       extraGroups  = [ "wheel" "networkmanager" "docker" ];
       shell        = pkgs.zsh;
     };
 
     babylinux = {
       isNormalUser  = true;
+      uid           = 1001;  # Pinned — second user
       # No wheel — wife doesn't need server admin access
       extraGroups   = [ "networkmanager" "docker" ];
       shell         = pkgs.zsh;
@@ -405,6 +409,7 @@
 
     alex = {
       isNormalUser  = true;
+      uid           = 1002;  # Pinned — third user (kid account)
       # No wheel — kid definitely doesn't need server access
       extraGroups   = [];
       shell         = pkgs.zsh;

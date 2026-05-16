@@ -42,9 +42,11 @@ let
   # Add a new entry when setting up a new machine:
   #   cat ~/.ssh/id_ed25519.pub
   # --------------------------------------------------------------------------
-  linuxury-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
-  thinkpad-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILx6aZyKXvPNCP9q+Mv+5FLJ/G3O7IA8duJuTkxeB6Uz linuxury-thinkpad";
+  linuxury-personal   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  thinkpad-personal   = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILx6aZyKXvPNCP9q+Mv+5FLJ/G3O7IA8duJuTkxeB6Uz linuxury-thinkpad";
   ryzen5900x-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ7VayUjJnywEEhyLOnc5E4Pqb5DxoNDmVVNLRpiV7dQ ryzen5900x-linuxury";
+  # babylinux's personal SSH key — generated on Ryzen5800x
+  ryzen5800x-personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILwXwWZ527dCVLL8cGgpMdv0kUNLCNee3kFupr6sI/Dr babylinux-ryzen5800x";
 
   linuxury-admins = [
     linuxury-personal
@@ -63,7 +65,7 @@ let
   # --------------------------------------------------------------------------
   ThinkPad = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIT5rYiAs2ukQJtUmGWTD5nbxX74fh3vG3OyNxE1XfdJ root@ThinkPad";
   Ryzen5900x = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHyps7MacHDkQcGP1kr6ZOc6fR/JTMrj4my3Bg5ybyJo root@Ryzen5900x";
-  Ryzen5800x = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
+  Ryzen5800x = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINl+VNvT/47nZ0x3W+1bZudGCNcMw8k8dXeQE2pkLeWU root@Ryzen5800x";
   Asus-A15 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0ZEivzBqlE7mH2ZepwWmTnQM2Oha6q0Mblx20CyvcP linuxurypr@gmail.com";
   Alex-Desktop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnCW13n0suf4rFoopQhc3uDY15BrM1qltvO+JVrL5OH root@Alex-Desktop";
   Alex-Laptop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILyHn+dSmJU01t4p81PfmhHb8yaRjUhoarvQwTDJQ69T root@Alex-Laptop";
@@ -100,10 +102,20 @@ in
   #
   # The .age file contains linuxury's SSH PUBLIC key (authorized_keys format).
   # agenix decrypts it onto each host so linuxury can SSH in after install.
-  # Deployed to: all hosts where linuxury has a user account.
+  # Deployed to: all hosts (emergency/admin access on family machines).
   # --------------------------------------------------------------------------
   "linuxury-authorized-key.age".publicKeys = uniq (
     linuxury-admins ++ linuxury-machines ++ babylinux-machines ++ alex-machines
+  );
+
+  # --------------------------------------------------------------------------
+  # babylinux's SSH authorized key
+  #
+  # Primary SSH key for babylinux — deployed to her machines so she can
+  # manage them directly. linuxury-admins included so secrets can be re-keyed.
+  # --------------------------------------------------------------------------
+  "babylinux-authorized-key.age".publicKeys = uniq (
+    linuxury-admins ++ [ ryzen5800x-personal ] ++ babylinux-machines
   );
 
   # --------------------------------------------------------------------------

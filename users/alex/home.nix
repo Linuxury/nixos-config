@@ -85,23 +85,28 @@
   # Extra directories
   # =========================================================================
   systemd.user.tmpfiles.rules = [
-    # Wallpaper source — wallpapers stored locally (not in repo)
-    # ~/Pictures/Wallpapers symlinks here (see home.file below)
-    "d ${config.home.homeDirectory}/assets                        0755 alex users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers             0755 alex users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers/PikaOS      0755 alex users -"
-
-    # Minecraft assets (skins, resource packs) — game-specific, kept in ~/assets
-    "d ${config.home.homeDirectory}/assets/Minecraft              0755 alex users -"
-
-    # Hytale flatpak bundle storage — moved to ~/Documents/assets/flatpaks
-    "d ${config.home.homeDirectory}/Documents/assets              0755 alex users -"
-    "d ${config.home.homeDirectory}/Documents/assets/flatpaks     0755 alex users -"
-
     # Creative workspace
     "d ${config.home.homeDirectory}/Documents/Art                 0755 alex users -"
     "d ${config.home.homeDirectory}/Documents/School              0755 alex users -"
   ];
+
+  # =========================================================================
+  # Migration — remove old plain dirs before HM creates symlinks in their place
+  # =========================================================================
+  home.activation.migrateAssetDirs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    # Old ~/Pictures/Avatar plain dir → now symlinked at ~/Pictures/Avatar
+    if [ -d "$HOME/Pictures/Avatar" ] && [ ! -L "$HOME/Pictures/Avatar" ]; then
+      rmdir "$HOME/Pictures/Avatar" 2>/dev/null || true
+    fi
+    # Old ~/Documents/assets/flatpaks plain dir → now symlinked at ~/Documents/assets/flatpaks
+    if [ -d "$HOME/Documents/assets/flatpaks" ] && [ ! -L "$HOME/Documents/assets/flatpaks" ]; then
+      rmdir "$HOME/Documents/assets/flatpaks" 2>/dev/null || true
+    fi
+    # Remove ~/Documents/assets parent if empty
+    if [ -d "$HOME/Documents/assets" ] && [ ! -L "$HOME/Documents/assets" ]; then
+      rmdir "$HOME/Documents/assets" 2>/dev/null || true
+    fi
+  '';
 
   # =========================================================================
   # Dotfiles — shared terminal setup with the rest of the family
@@ -122,12 +127,22 @@
     # -----------------------------------------------------------------------
     "Pictures/Wallpapers".source =
       config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/assets/Wallpapers/${wallpaperDir}";
+        "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
+
+    # ~/Pictures/Avatar → nixos-config/assets/Avatar (family profile photos)
+    "Pictures/Avatar".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/Avatar";
 
     # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
     "Pictures/Fastfetch".source =
       config.lib.file.mkOutOfStoreSymlink
-        "/home/linuxury/nixos-config/assets/Fastfetch";
+        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
+
+    # ~/Documents/assets/flatpaks → nixos-config/assets/flatpaks (Hytale bundle)
+    "Documents/assets/flatpaks".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
   };
 
   # =========================================================================

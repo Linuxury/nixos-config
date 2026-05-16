@@ -38,6 +38,8 @@
   # =========================================================================
   networking.hostName = "Alex-Laptop";
 
+  services.nixos-auto-update.primaryUser = "alex";
+
   # =========================================================================
   # GPU driver selection
   #
@@ -316,6 +318,9 @@
     createHome   = true;
     group        = "users";
   };
+
+  # Hide linuxury from the login screen — emergency account only
+  services.displayManager.hiddenUsers = [ "linuxury" ];
 
   programs.zsh.enable = true;
 }

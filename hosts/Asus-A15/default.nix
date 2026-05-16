@@ -8,8 +8,8 @@
 #
 # Enabled modules:
 #   - Nvidia hybrid drivers (AMD iGPU + Nvidia dGPU)
-#   - COSMIC (default DE)
-#   - KDE (fallback)
+#   - KDE (default DE)
+#   - COSMIC (disabled)
 #   - Gaming
 #
 # Special considerations:
@@ -37,13 +37,15 @@ in
     ../../modules/base/common.nix
     ../../modules/base/graphical-base.nix
     ../../modules/hardware/drivers.nix
-    ../../modules/desktop-environments/cosmic.nix
-    #../../modules/desktop-environments/kde.nix
+    #../../modules/desktop-environments/cosmic.nix
+    ../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     ../../modules/base/auto-update.nix
-    ../../modules/base/linuxury-ssh.nix
+    ../../modules/base/babylinux-ssh.nix        # babylinux — primary SSH access
+    ../../modules/base/linuxury-ssh.nix         # linuxury  — emergency SSH only
+    ../../modules/base/babylinux-description.nix
     ../../modules/users/babylinux-packages.nix
-    ../../modules/base/syncthing.nix
+    ../../modules/base/syncthing-babylinux.nix
     ../../modules/base/ai-tools.nix
   ];
 
@@ -87,11 +89,9 @@ in
   # };
   # TODO: fill in PCI bus IDs from: lspci | grep -E "VGA|3D"
 
-  # =========================================================================
-  # Display manager session priority
-  # Same as wife's desktop — COSMIC default, KDE available at login
-  # =========================================================================
-  services.displayManager.defaultSession = "cosmic";
+  services.nixos-auto-update.primaryUser = "babylinux";
+
+  services.displayManager.defaultSession = "plasma";
 
   # =========================================================================
   # LUKS — Full disk encryption
@@ -322,13 +322,17 @@ in
     shell = pkgs.zsh;
   };
 
-  # linuxury user — needed for Syncthing (vault sync) and auto-update notifications
+  # linuxury user — emergency SSH access only, no home on this host
   users.users.linuxury = {
     isNormalUser = true;
-    home         = "/home/linuxury";
-    createHome   = true;
+    home         = "/var/empty";
+    createHome   = false;
     group        = "users";
+    shell        = pkgs.bash;
   };
+
+  # Hide linuxury from the login screen — emergency account only
+  services.displayManager.hiddenUsers = [ "linuxury" ];
 
   programs.zsh.enable = true;
 }

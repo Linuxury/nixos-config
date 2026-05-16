@@ -41,6 +41,8 @@
   # =========================================================================
   networking.hostName = "Alex-Desktop";
 
+  services.nixos-auto-update.primaryUser = "alex";
+
   # =========================================================================
   # GPU driver selection
   # M5A78L-M LX has Radeon HD 3000 (760G chipset) — pre-GCN, needs radeon
@@ -314,6 +316,9 @@
     group        = "users";
     extraGroups  = [ "wheel" ];
   };
+
+  # Hide linuxury from the login screen — emergency account only
+  services.displayManager.hiddenUsers = [ "linuxury" ];
 
   programs.zsh.enable = true;
 }

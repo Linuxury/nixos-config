@@ -69,25 +69,14 @@
           addresses = [ "tcp://100.107.245.87:22000" ];
         };
 
-        "Alex-Desktop" = {
-          id = "FILL-IN-ALEX-DESKTOP-DEVICE-ID";
-          addresses = [ "tcp://FILL-IN-ALEX-DESKTOP-IP:22000" ];
-        };
-
-        "Alex-Laptop" = {
-          id = "FILL-IN-ALEX-LAPTOP-DEVICE-ID";
-          addresses = [ "tcp://FILL-IN-ALEX-LAPTOP-IP:22000" ];
-        };
-
-        "Asus-A15" = {
-          id = "FILL-IN-ASUS-A15-DEVICE-ID";
-          addresses = [ "tcp://FILL-IN-ASUS-A15-IP:22000" ];
-        };
-
         "Ryzen5800x" = {
-          id = "FILL-IN-RYZEN5800X-DEVICE-ID";
-          addresses = [ "tcp://FILL-IN-RYZEN5800X-IP:22000" ];
+          id = "KMIXV62-XWKZX73-I4D5TVY-QD4NQ5D-S4B4LSO-TGVU7V5-267HUAB-YDEGXQG";
+          addresses = [ "tcp://100.114.95.99:22000" ];
         };
+
+        # babylinux and alex machines have their own Syncthing instances
+        # (syncthing-babylinux.nix, syncthing-alex.nix) but share the same
+        # "obsidian" folder ID so they participate in the single sync group.
 
         "Pixel-Pro-8" = {
           id = "DHN7MUP-UBRZGR4-PXHDLCY-54O2IJI-Q7K7WKH-QQMQZWV-SXLAVNV-ALFCQQI";
@@ -110,11 +99,7 @@
             "MinisForum"
             "Radxa-X4"
             "Pixel-Pro-8"
-            # Add these when device IDs are ready:
-            # "Alex-Desktop"
-            # "Alex-Laptop"
-            # "Asus-A15"
-            # "Ryzen5800x"
+            "Ryzen5800x"
           ];
           fsWatcherEnabled = true;
           fsWatcherDelayS  = 10;
@@ -131,9 +116,6 @@
             "ThinkPad"
             "MinisForum"
             "Radxa-X4"
-            # Add these when device IDs are ready:
-            # "Asus-A15"
-            # "Ryzen5800x"
           ];
           fsWatcherEnabled = true;
           fsWatcherDelayS  = 10;

@@ -18,6 +18,34 @@
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
 { config, pkgs, inputs, lib, wallpaperDir, ... }:
 
+let
+  # ===========================================================================
+  # BreezeX cursor theme — not in nixpkgs, fetched from GitHub releases
+  #
+  # Same derivation used by linuxury in cosmic-theme.nix.
+  # BreezeX-Light is a refined KDE Breeze cursor with larger sizes.
+  # ===========================================================================
+  breezex-cursors = pkgs.stdenv.mkDerivation {
+    pname   = "breezex-cursor-theme";
+    version = "2.0.1";
+
+    src = pkgs.fetchzip {
+      url       = "https://github.com/ful1e5/BreezeX_Cursor/releases/download/v2.0.1/BreezeX.tar.xz";
+      sha256    = "10fbvbls52cgp5kshlcxbh3nqarh2mwhpj0w5kkk4hrl3sdc1bcj";
+      stripRoot = false; # archive has multiple top-level dirs (BreezeX, BreezeX-Black, …)
+    };
+
+    dontBuild     = true;
+    dontConfigure = true;
+
+    installPhase = ''
+      mkdir -p $out/share/icons
+      cp -r . $out/share/icons/
+    '';
+  };
+
+in
+
 {
   imports = [
     ../../modules/home/neovim.nix
@@ -79,26 +107,43 @@
   # Extra directories
   # =========================================================================
   systemd.user.tmpfiles.rules = [
-    # Wallpaper source — wallpapers are stored locally per user (not in the repo)
-    # ~/Pictures/Wallpapers symlinks here (see home.file below)
-    "d ${config.home.homeDirectory}/assets                        0755 babylinux users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers             0755 babylinux users -"
-    "d ${config.home.homeDirectory}/assets/Wallpapers/4k          0755 babylinux users -"
-
-    # Profile photos live in ~/Pictures/Avatar (plain dir, add photos manually)
-    "d ${config.home.homeDirectory}/Pictures/Avatar               0755 babylinux users -"
-
-    # Hytale flatpak bundle storage — moved to ~/Documents/assets/flatpaks
-    "d ${config.home.homeDirectory}/Documents/assets              0755 babylinux users -"
-    "d ${config.home.homeDirectory}/Documents/assets/flatpaks     0755 babylinux users -"
-
     # SSH directory with correct permissions
     "d ${config.home.homeDirectory}/.ssh  0700 babylinux users -"
-
   ];
 
   # =========================================================================
   # Dotfiles — shared terminal setup with linuxury
+  # =========================================================================
+  # Migration — remove old plain dirs before HM creates symlinks in their place
+  # =========================================================================
+  home.activation.migrateKdeGtkFiles = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    # BreezeX cursor dir written by a previous session — HM will symlink it
+    rm -rf "$HOME/.icons/BreezeX-Light"
+    # kdeglobals/kcminputrc were previously HM-managed symlinks — remove them
+    # so HM doesn't conflict, and initKdeConfig below writes them as regular files
+    [ -L "$HOME/.config/kdeglobals" ]  && rm -f "$HOME/.config/kdeglobals"
+    [ -L "$HOME/.config/kcminputrc" ]  && rm -f "$HOME/.config/kcminputrc"
+  '';
+
+  home.activation.migrateAssetDirs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    # Old ~/Pictures/Avatar plain dir → now symlinked at ~/Pictures/Avatar
+    if [ -d "$HOME/Pictures/Avatar" ] && [ ! -L "$HOME/Pictures/Avatar" ]; then
+      rmdir "$HOME/Pictures/Avatar" 2>/dev/null || true
+    fi
+    # Old ~/Documents/assets/flatpaks plain dir → now symlinked at ~/Documents/assets/flatpaks
+    if [ -d "$HOME/Documents/assets/flatpaks" ] && [ ! -L "$HOME/Documents/assets/flatpaks" ]; then
+      rmdir "$HOME/Documents/assets/flatpaks" 2>/dev/null || true
+    fi
+    # Remove ~/Documents/assets parent if empty
+    if [ -d "$HOME/Documents/assets" ] && [ ! -L "$HOME/Documents/assets" ]; then
+      rmdir "$HOME/Documents/assets" 2>/dev/null || true
+    fi
+    # Stale fontconfig file left by a previous HM generation
+    if [ -f "$HOME/.config/fontconfig/conf.d/10-hm-fonts.conf" ] && [ ! -L "$HOME/.config/fontconfig/conf.d/10-hm-fonts.conf" ]; then
+      rm "$HOME/.config/fontconfig/conf.d/10-hm-fonts.conf" 2>/dev/null || true
+    fi
+  '';
+
   # =========================================================================
   home.file = {
     # Starship prompt — shared config
@@ -106,6 +151,13 @@
 
     # Fastfetch — shared config
     ".config/fastfetch".source = ../../dotfiles/fastfetch;
+
+    # Kitty terminal — base config; colors written by matugen at runtime
+    ".config/kitty/kitty.conf".source = ../../dotfiles/kitty/kitty.conf;
+
+
+    # Nano — for quick root edits
+    ".nanorc".source = ../../dotfiles/nano/.nanorc;
 
     # -----------------------------------------------------------------------
     # Wallpaper symlink
@@ -115,12 +167,22 @@
     # -----------------------------------------------------------------------
     "Pictures/Wallpapers".source =
       config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/assets/Wallpapers/${wallpaperDir}";
+        "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
+
+    # ~/Pictures/Avatar → nixos-config/assets/Avatar (family profile photos)
+    "Pictures/Avatar".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/Avatar";
 
     # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
     "Pictures/Fastfetch".source =
       config.lib.file.mkOutOfStoreSymlink
-        "/home/linuxury/nixos-config/assets/Fastfetch";
+        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
+
+    # ~/Documents/assets/flatpaks → nixos-config/assets/flatpaks (Hytale bundle)
+    "Documents/assets/flatpaks".source =
+      config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
 
     # SSH config
     ".ssh/config".text = ''
@@ -229,7 +291,7 @@
   # directly in the assets repo and install it automatically on first login.
   #
   # Source: https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak
-  # Store at: ~/assets/flatpaks/hytale-launcher-latest.flatpak
+  # Store at: ~/nixos-config/assets/flatpaks/hytale-launcher-latest.flatpak
   #
   # When Hytale eventually lands on Flathub:
   #   1. Remove assets/flatpaks/hytale-launcher-latest.flatpak
@@ -278,9 +340,173 @@
   };
 
   # =========================================================================
+  # Cursor — BreezeX-Light
+  #
+  # home.pointerCursor sets three things at once:
+  #   1. XCURSOR_THEME + XCURSOR_SIZE in the systemd user environment
+  #      so kwin_wayland picks it up on session start
+  #   2. ~/.icons/default/index.theme for X11 fallback
+  #   3. GTK cursor config (via gtk.enable below)
+  # =========================================================================
+  home.pointerCursor = {
+    name       = "BreezeX-Light";
+    package    = breezex-cursors;
+    size       = 24;
+    gtk.enable = false; # KDE manages GTK theming — don't let HM overwrite it
+  };
+
+  # =========================================================================
+  # KDE initial config — written as regular files, not HM symlinks
+  #
+  # kdeglobals and kcminputrc must be writable by KDE at runtime:
+  # KDE fills in [Colors:Button], [Colors:View], etc. sections when it loads
+  # the color scheme. A read-only Nix store symlink silently blocks those
+  # writes, leaving the color tables empty → apps fall back to light theme.
+  #
+  # Strategy: write the files once (on first setup or if missing) as regular
+  # writable files. KDE can then populate color values and persist user changes.
+  # Settings survive rebuilds — activation only writes if the file is absent.
+  # =========================================================================
+  home.activation.initKdeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    KDEGLOBALS="$HOME/.config/kdeglobals"
+    if [ ! -f "$KDEGLOBALS" ]; then
+      cat > "$KDEGLOBALS" << 'EOF'
+[Icons]
+Theme=breeze-chameleon-dark
+
+[General]
+ColorScheme=BreezeDark
+shadeSortColumn=true
+
+[KDE]
+LookAndFeelPackage=org.kde.breezedark.desktop
+SingleClick=false
+widgetStyle=darkly
+EOF
+    fi
+
+    KCMINPUTRC="$HOME/.config/kcminputrc"
+    if [ ! -f "$KCMINPUTRC" ]; then
+      cat > "$KCMINPUTRC" << 'EOF'
+[Mouse]
+cursorTheme=BreezeX-Light
+cursorSize=24
+EOF
+    fi
+  '';
+
+  # =========================================================================
   # SSH agent
   # =========================================================================
   services.ssh-agent.enable = true;
+
+  # =========================================================================
+  # VSCodium — declarative extensions
+  #
+  # Settings are managed via home.file (mkOutOfStoreSymlink) so the file
+  # stays writable from the GUI while still being tracked in the repo.
+  #
+  # Extensions fetched from Open VSX — not VS Marketplace (VSCodium ToS).
+  # =========================================================================
+  programs.vscode = {
+    enable = true;
+    package = pkgs.vscodium;
+    mutableExtensionsDir = true;
+    profiles.default.extensions =
+      (with pkgs.vscode-extensions; [
+        catppuccin.catppuccin-vsc
+        golang.go
+      ])
+      ++ [
+        # Claude Code — Open VSX linux-x64 variant
+        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+          mktplcRef = {
+            publisher = "anthropic";
+            name = "claude-code";
+            version = "2.1.120";
+          };
+          vsix = pkgs.fetchurl {
+            url = "https://open-vsx.org/api/Anthropic/claude-code/linux-x64/2.1.120/file/Anthropic.claude-code-2.1.120@linux-x64.vsix";
+            sha256 = "1n4gl8f4csq4ngmw7dksiaxhlglsswgypynnjpzyzskn4c94c1c5";
+          };
+        })
+        # flow-dawn icon theme
+        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+          mktplcRef = {
+            publisher = "thang-nm";
+            name = "flow-icons";
+            version = "1.3.2";
+          };
+          vsix = pkgs.fetchurl {
+            url = "https://open-vsx.org/api/thang-nm/flow-icons/1.3.2/file/thang-nm.flow-icons-1.3.2.vsix";
+            sha256 = "1lwsjawvhy3yzw7dl93ac4vyvfmcwbrs58s3wd2az1ld3d6m3drv";
+          };
+        })
+        # OpenCode AI assistant
+        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+          mktplcRef = {
+            publisher = "sst-dev";
+            name = "opencode";
+            version = "0.0.13";
+          };
+          vsix = pkgs.fetchurl {
+            url = "https://open-vsx.org/api/sst-dev/opencode/0.0.13/file/sst-dev.opencode-0.0.13.vsix";
+            sha256 = "1m301j2qbym3j2qnck76jyxakca3h1qiybc2r7wy7z11m98mg9z9";
+          };
+        })
+        # JetBrains-style file icons
+        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+          mktplcRef = {
+            publisher = "fogio";
+            name = "jetbrains-file-icon-theme";
+            version = "1.5.0";
+          };
+          vsix = pkgs.fetchurl {
+            url = "https://open-vsx.org/api/fogio/jetbrains-file-icon-theme/1.5.0/file/fogio.jetbrains-file-icon-theme-1.5.0.vsix";
+            sha256 = "1jdha38c61hlz5hj59xzq89zprcwa6qhfg9pkqlpn017b2ccc4x3";
+          };
+        })
+      ];
+    profiles.default.userSettings =
+      (builtins.fromJSON (builtins.readFile ../../dotfiles/vscodium/settings.json))
+      // {
+        "claudeCode.claudeProcessWrapper" = "/etc/profiles/per-user/${config.home.username}/bin/claude";
+      };
+  };
+
+  # =========================================================================
+  # VSCodium — Claude Code NixOS wrapper
+  #
+  # The Claude Code extension bundles a generic Linux binary that can't run
+  # on NixOS (dynamic linker mismatch). This replaces it with a thin wrapper
+  # that calls the Nix-installed claude binary if present.
+  # No-op if claude is not installed.
+  # =========================================================================
+  home.activation.vscodiumClaudeWrapper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    CLAUDE_REAL="/etc/profiles/per-user/${config.home.username}/bin/claude"
+    EXT_DIR="$HOME/.vscode-oss/extensions"
+
+    for ext_claude in "$EXT_DIR"/anthropic.claude-code-*/resources/native-binary/claude; do
+      [ -e "$ext_claude" ] || continue
+      case "$ext_claude" in /nix/store/*) continue;; esac
+      grep -q "exec $CLAUDE_REAL" "$ext_claude" 2>/dev/null && continue
+      [ -f "$ext_claude.orig" ] || mv "$ext_claude" "$ext_claude.orig"
+      [ -f "$ext_claude.orig" ] && rm -f "$ext_claude"
+      printf '#!/bin/sh\nexec %s "$@"\n' "$CLAUDE_REAL" > "$ext_claude"
+      chmod +x "$ext_claude"
+    done
+  '';
+
+  # =========================================================================
+  # Obsidian vault directory
+  #
+  # Creates ~/Obsidian on first activation so Syncthing has a target path
+  # to sync into. Without this the syncthing service logs an error on boot
+  # because the folder doesn't exist yet.
+  # =========================================================================
+  home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mkdir -p "$HOME/Obsidian"
+  '';
 
   # Personal packages live in modules/users/babylinux-packages.nix
 }

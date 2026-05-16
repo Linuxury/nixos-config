@@ -193,22 +193,24 @@ in
   ];
 
   # =========================================================================
-  # Bluetooth — blueman for tray control
+  # Bluetooth — Hyprland-specific tuning (base enabled in graphical-base.nix)
+  #
+  # graphical-base.nix sets enable + powerOnBoot = false (mkDefault).
+  # Override powerOnBoot to true here so Hyprland hosts come up with
+  # the adapter on — useful with desktop Waybar tray on a known device.
+  # FastConnectable + AutoEnable speed up reconnection to paired headsets.
   # =========================================================================
   hardware.bluetooth = {
-    enable = true;
     powerOnBoot = true;
     settings = {
       General = {
         FastConnectable = true;
-        AutoEnable = true;
       };
       Policy = {
         AutoEnable = true;
       };
     };
   };
-  services.blueman.enable = true;
 
   # =========================================================================
   # Display Manager — dms-greeter (greetd backend)
