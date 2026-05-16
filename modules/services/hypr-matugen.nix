@@ -108,7 +108,7 @@
     [templates.hyprland]
     input_path = "/home/linuxury/.config/matugen/templates/templates/hyprland-colors.conf"
     output_path = "/home/linuxury/.config/hypr/colors.conf"
-    post_hook = "PRIMARY=$(grep '^\\$primary ' /home/linuxury/.config/hypr/colors.conf | awk '{print $3}') && TERTIARY=$(grep '^\\$tertiary ' /home/linuxury/.config/hypr/colors.conf | awk '{print $3}') && OUTLINE=$(grep '^\\$outline_variant ' /home/linuxury/.config/hypr/colors.conf | awk '{print $3}') && hyprctl keyword general:col.active_border \"$PRIMARY $TERTIARY 45deg\" && hyprctl keyword general:col.inactive_border \"$OUTLINE\" || true"
+    # No post_hook — border colors are owned by dms/colors.conf (Noctalia accent)
 
     [templates.kitty]
     input_path = "/home/linuxury/.config/matugen/templates/templates/kitty-colors.conf"
