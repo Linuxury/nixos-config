@@ -115,6 +115,12 @@
   # =========================================================================
   programs.kdeconnect.enable = true;
 
+  # Required for dconf/GSettings to work on non-GNOME desktops.
+  # Installs the D-Bus service activation entry so that `dconf load`
+  # (used by Home Manager) and GTK apps using GSettings can start
+  # dconf-service on demand.
+  programs.dconf.enable = true;
+
   # =========================================================================
   # Shared graphical packages
   #
