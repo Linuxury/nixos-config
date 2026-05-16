@@ -29,6 +29,7 @@
   imports = [
     ../../modules/home/neovim.nix
     ../../modules/services/hypr-matugen.nix
+    ../../modules/services/noctalia-color-sync.nix
   ];
 
   # =========================================================================
