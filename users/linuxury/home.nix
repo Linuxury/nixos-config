@@ -153,6 +153,13 @@
     ".config/hypr".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr";
 
+    # MangoWC — compositor config + autostart script
+    # Live symlinks so edits in the repo take effect immediately via SUPER+r
+    ".config/mango/config.conf".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/mangowc/config.conf";
+    ".config/mango/autostart.sh".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/mangowc/autostart.sh";
+
     # Zed editor
     ".config/zed/settings.json".source = ../../dotfiles/zed/settings.json;
 

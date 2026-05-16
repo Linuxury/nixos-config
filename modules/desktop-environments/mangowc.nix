@@ -4,8 +4,8 @@
 # MangoWC is a lightweight wlroots/scenefx-based Wayland compositor.
 # Noctalia is the shell layer: bar, launcher, notifications, widgets.
 #
-# Login screen: greetd backend + QtGreet frontend (rendered inside cage,
-# a single-app kiosk compositor — cage exits as soon as QtGreet hands off).
+# Login screen: greetd backend + tuigreet frontend (TUI, runs on TTY directly
+# — no Wayland compositor needed for the greeter, avoids cage SIGABRT on RDNA3).
 #
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
@@ -19,7 +19,7 @@ let
     [Desktop Entry]
     Name=MangoWC
     Comment=Lightweight Wayland Compositor (MangoWC + Noctalia)
-    Exec=mangowc
+    Exec=${pkgs.mangowc}/bin/mangowc
     Type=Application
     DesktopNames=MangoWC
     Keywords=wayland;compositor;tiling
@@ -41,24 +41,36 @@ in
   };
 
   # =========================================================================
-  # Login manager — greetd + QtGreet
+  # Login manager — greetd + tuigreet
   #
   # greetd is a minimal login daemon (replaces dms-greeter/cosmic-greeter).
-  # QtGreet is a Qt/QML graphical frontend for greetd; it needs a Wayland
-  # compositor to render into, so we run it inside cage (kiosk compositor).
+  # tuigreet is a TUI frontend that runs directly on the TTY — no Wayland
+  # compositor required for the greeter itself.
   #
-  # Flow: greetd → cage → qtgreet → user picks session → cage exits → MangoWC
+  # cage + qtgreet was attempted but cage 0.2.1 crashes with SIGABRT on
+  # RDNA3 (RX 7900 XTX) before it can open a display. tuigreet sidesteps
+  # this entirely since it never touches the GPU.
+  #
+  # --time        shows current time on the login screen
+  # --remember    pre-fills the last logged-in username
+  # --sessions    points tuigreet at the wayland-sessions directory so it
+  #               can offer MangoWC (and any other registered sessions)
   # =========================================================================
   services.greetd = {
     enable = true;
     settings = {
       default_session = {
-        command = "${pkgs.cage}/bin/cage -s -- ${pkgs.qtgreet}/bin/qtgreet";
+        command = ''
+          ${pkgs.tuigreet}/bin/tuigreet \
+            --time \
+            --remember \
+            --sessions /run/current-system/sw/share/wayland-sessions
+        '';
       };
     };
   };
 
-  # Make the MangoWC session visible to QtGreet's session picker
+  # Make the MangoWC session visible to tuigreet's session picker
   environment.pathsToLink = [ "/share/wayland-sessions" ];
 
   # =========================================================================
@@ -112,12 +124,6 @@ in
 
     # Session .desktop (registers MangoWC in QtGreet's session list)
     mangowc-session
-
-    # -----------------------------------------------------------------------
-    # Login manager
-    # -----------------------------------------------------------------------
-    qtgreet           # Qt/QML graphical greeter frontend for greetd
-    cage              # Minimal kiosk compositor that hosts qtgreet
 
     # -----------------------------------------------------------------------
     # Screenshots
