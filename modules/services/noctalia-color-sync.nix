@@ -13,10 +13,7 @@
 
 {
   systemd.user.services.noctalia-color-sync = {
-    Unit = {
-      Description = "Sync MangoWC focus border with Noctalia accent color";
-      After       = [ "graphical-session.target" ];
-    };
+    Unit.Description = "Sync MangoWC focus border with Noctalia accent color";
 
     Service = {
       Type      = "oneshot";
@@ -39,6 +36,6 @@
   systemd.user.paths.noctalia-color-sync = {
     Unit.Description  = "Watch Noctalia colors.json for accent changes";
     Path.PathChanged  = "%h/.config/noctalia/colors.json";
-    Install.WantedBy  = [ "graphical-session.target" ];
+    Install.WantedBy  = [ "default.target" ];
   };
 }
