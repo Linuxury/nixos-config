@@ -197,6 +197,12 @@
 
       # Allow your user to manage the Nix store without sudo for some operations
       trusted-users = [ "root" "@wheel" ];
+
+      # Limit parallel build jobs — each heavy package (LLVM, chromium, Qt, etc.)
+      # can consume 4–8 GB RAM per job. Without a cap, machines with 16–32 GB RAM
+      # OOM-kill the Nix daemon during auto-updates. Per-host configs can override
+      # with a higher value (e.g. Ryzen5900x sets max-jobs = 6 via nixBuildJobs).
+      max-jobs = lib.mkDefault 2;
     };
 
     # Automatically clean up old generations and unused packages.

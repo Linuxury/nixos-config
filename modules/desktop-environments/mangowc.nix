@@ -226,5 +226,10 @@ in
     # -----------------------------------------------------------------------
     playerctl             # Media key control (play/pause/next/prev)
     brightnessctl         # Monitor brightness control
+
+    # -----------------------------------------------------------------------
+    # Output management
+    # -----------------------------------------------------------------------
+    wlr-randr             # wlroots output tool — sets resolution, refresh rate, VRR
   ];
 }

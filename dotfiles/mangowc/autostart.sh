@@ -20,12 +20,31 @@ run noctalia-shell
 # System tray applets
 # ---------------------------------------------------------------------------
 run nm-applet --indicator   # Network Manager tray icon
-run blueman-applet          # Bluetooth tray icon
+# Bluetooth applet — brief delay lets bluetoothd finish registering on D-Bus
+# before blueman-applet tries to connect. Without this it fails silently.
+(sleep 3 && run blueman-applet) &
 
 # ---------------------------------------------------------------------------
 # Clipboard history daemon
 # ---------------------------------------------------------------------------
 run cliphist wipe 2>/dev/null; wl-paste --watch cliphist store &
+
+# ---------------------------------------------------------------------------
+# Monitor output — max refresh rate + VRR (adaptive sync)
+#
+# Queries all connected outputs, selects the highest-refresh mode for each,
+# and enables adaptive sync (VRR/FreeSync). Runs once at startup via wlr-randr.
+# jq parses the JSON; refresh values from wlr-randr are in mHz (divide by 1000).
+# ---------------------------------------------------------------------------
+wlr-randr --json 2>/dev/null | jq -c '.[]' 2>/dev/null | while read -r out; do
+  name=$(printf '%s' "$out" | jq -r '.name')
+  width=$(printf '%s' "$out" | jq -r '.modes | max_by(.refresh) | .width')
+  height=$(printf '%s' "$out" | jq -r '.modes | max_by(.refresh) | .height')
+  refresh=$(printf '%s' "$out" | jq -r '.modes | max_by(.refresh) | (.refresh / 1000 | floor)')
+  wlr-randr --output "$name" \
+    --mode "${width}x${height}@${refresh}" \
+    --adaptive-sync enabled 2>/dev/null || true
+done
 
 # ---------------------------------------------------------------------------
 # Night light (color temperature by time of day)
