@@ -153,10 +153,10 @@
     ".config/hypr".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr";
 
-    # MangoWC — compositor config + autostart script
-    # Live symlinks so edits in the repo take effect immediately via SUPER+r
-    ".config/mango/config.conf".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/mangowc/config.conf";
+    # MangoWC — autostart script (live symlink; edits take effect via SUPER+r)
+    # config.conf is NOT a symlink — it is written by matugen on each wallpaper
+    # change so border/focus colors stay in sync with the current palette.
+    # The seed activation below creates an initial copy if the file is absent.
     ".config/mango/autostart.sh".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/mangowc/autostart.sh";
 
@@ -700,6 +700,19 @@
     ${pkgs.flatpak}/bin/flatpak override --user \
       --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
       com.hypixel.HytaleLauncher 2>/dev/null || true
+  '';
+
+  # Seed MangoWC config on first install.
+  # After this point matugen owns ~/.config/mango/config.conf and regenerates
+  # it on every wallpaper change (see wallpaper-slideshow.nix [templates.mangowc]).
+  # We only copy if the file is absent so we don't stomp live matugen output.
+  home.activation.mangowcConfigSeed = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _mangowc_conf="$HOME/.config/mango/config.conf"
+    if [ ! -f "$_mangowc_conf" ]; then
+      mkdir -p "$(dirname "$_mangowc_conf")"
+      cp "${../../dotfiles/mangowc/config.conf}" "$_mangowc_conf"
+      chmod 644 "$_mangowc_conf"
+    fi
   '';
 
   # Personal packages live in modules/users/linuxury-packages.nix
