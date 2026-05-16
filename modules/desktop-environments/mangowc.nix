@@ -10,16 +10,24 @@
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 let
-  # MangoWC session .desktop — tells QtGreet and any display manager
-  # that MangoWC is an available Wayland session.
+  # Wrapper that sets cursor env vars before exec-ing MangoWC.
+  # greetd launches this directly, so MangoWC inherits XCURSOR_THEME
+  # at startup (before systemd environment.d is sourced — too late otherwise).
+  mangowc-start = pkgs.writeShellScript "mangowc-start" ''
+    export XCURSOR_THEME=BreezeX-Light
+    export XCURSOR_SIZE=24
+    exec ${pkgs.mangowc}/bin/mangowc
+  '';
+
+  # Session .desktop — registers MangoWC with tuigreet's session picker.
   mangowc-session = pkgs.writeTextDir "share/wayland-sessions/mangowc.desktop" ''
     [Desktop Entry]
     Name=MangoWC
     Comment=Lightweight Wayland Compositor (MangoWC + Noctalia)
-    Exec=${pkgs.mangowc}/bin/mangowc
+    Exec=${mangowc-start}
     Type=Application
     DesktopNames=MangoWC
     Keywords=wayland;compositor;tiling
@@ -27,6 +35,29 @@ let
 in
 
 {
+  # =========================================================================
+  # Shared Home Manager modules — cursor, icons, GTK theme, Nautilus extras
+  #
+  # Injected into every user on this host via sharedModules so all users
+  # inherit the same cursor, icon theme, and Nautilus bookmarks/scripts
+  # without duplicating config per-user.
+  # =========================================================================
+  home-manager.sharedModules = [
+    ../home/cosmic-theme.nix       # BreezeX-Light cursor + Tela-dark icons + adw-gtk3-dark
+    ../home/nautilus-bookmarks.nix # Sidebar bookmarks + right-click Copy Path / Open as Root
+  ];
+
+  # =========================================================================
+  # Tracker — file indexer for Nautilus search
+  #
+  # tinysparql (Tracker3) provides the org.freedesktop.Tracker3 DBus service
+  # that Nautilus queries when you search. localsearch crawls the filesystem
+  # and feeds results into Tracker's SPARQL store.
+  # Without these, Nautilus search returns no results.
+  # =========================================================================
+  services.gnome.tinysparql.enable = true;
+  services.gnome.localsearch.enable  = true;
+
   # =========================================================================
   # Nix binary cache — pre-built Noctalia binaries (avoids local Qt compile)
   #
@@ -169,6 +200,19 @@ in
     # -----------------------------------------------------------------------
     nwg-look           # GTK theme settings for Wayland compositors
     qt6Packages.qt6ct  # Qt6 theme settings outside of KDE/GNOME
+
+    # -----------------------------------------------------------------------
+    # File manager
+    # -----------------------------------------------------------------------
+    nautilus              # GNOME Files — graphical file manager
+    sushi                 # Quick file preview — press Space on a file in Nautilus
+    tinysparql            # Tracker3 — org.freedesktop.Tracker3 for Nautilus search
+    localsearch           # Tracker miners — filesystem crawler that feeds Tracker
+
+    # -----------------------------------------------------------------------
+    # IPC / scripting
+    # -----------------------------------------------------------------------
+    socat                 # Socket relay — used by scripts watching compositor events
 
     # -----------------------------------------------------------------------
     # System tray / applets
