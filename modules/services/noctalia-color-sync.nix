@@ -24,7 +24,7 @@
         [ -f "$COLORS" ] || exit 0
         [ -f "$MANGO"  ] || exit 0
 
-        HEX=$(${pkgs.jq}/bin/jq -r '.mPrimary' "$COLORS" | tr -d '#')
+        HEX=$(${pkgs.jq}/bin/jq -r '.mPrimary | ltrimstr("#")' "$COLORS")
         [ -n "$HEX" ] || exit 0
 
         ${pkgs.gnused}/bin/sed -i "s/^focuscolor=.*/focuscolor=0x''${HEX}ff/" "$MANGO"
@@ -35,7 +35,7 @@
 
   systemd.user.paths.noctalia-color-sync = {
     Unit.Description  = "Watch Noctalia colors.json for accent changes";
-    Path.PathChanged  = "%h/.config/noctalia/colors.json";
+    Path.PathModified = "%h/.config/noctalia/colors.json";
     Install.WantedBy  = [ "default.target" ];
   };
 }
