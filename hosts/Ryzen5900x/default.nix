@@ -365,6 +365,13 @@ in
   # The 7900 XTX is an RDNA3 card. These settings unlock its full
   # potential on Linux.
   # =========================================================================
+
+  # amdgpu must be loaded in the initrd so Plymouth can initialize the GPU
+  # early enough to display its splash screen. Without this, Plymouth falls
+  # back to a basic framebuffer that doesn't work on RDNA3, causing kernel
+  # messages to bleed through despite quiet+splash being set.
+  boot.initrd.kernelModules = [ "amdgpu" ];
+
   boot.kernelParams = [
     "amdgpu.ppfeaturemask=0xffffffff" # Unlocks all power management features
     # Required for full fan curve and
