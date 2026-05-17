@@ -58,6 +58,8 @@
       "audio/x-m4a"      = "com.github.neithern.g4music.desktop";
       "audio/opus"       = "com.github.neithern.g4music.desktop";  # Opus
       "audio/webm"       = "com.github.neithern.g4music.desktop";
+      "application/pdf"   = "org.gnome.Papers.desktop";            # PDF → Document Viewer
+      "application/x-pdf" = "org.gnome.Papers.desktop";
     };
   };
 
