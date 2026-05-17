@@ -15,8 +15,91 @@
 {
   config,
   pkgs,
+  lib,
   ...
-}: {
+}: let
+  # ===========================================================================
+  # OptiScaler Client — GUI manager for the OptiScaler upscaling injector
+  #
+  # OptiScaler shims FSR/DLSS/XeSS upscaling into games that don't natively
+  # support your preferred API. This client manages installation and
+  # configuration across Steam, Epic, GOG, and EA game libraries.
+  #
+  # Self-contained Avalonia UI binary — no .NET runtime needed on the host.
+  # autoPatchelfHook rewrites the ELF interpreter + RPATH so it finds
+  # NixOS's libs instead of the FHS paths the binary was compiled against.
+  # ===========================================================================
+  optiscaler-client = pkgs.stdenv.mkDerivation rec {
+    pname = "optiscaler-client";
+    version = "1.0.5";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/Agustinm28/Optiscaler-Client/releases/download/OptiscalerClient-${version}/OptiscalerClient-${version}-linux-x64.tar.gz";
+      sha256 = "12wlifm40x5rkail6b2098c375b6s3948xszqzni7zf84zfndbys";
+    };
+
+    nativeBuildInputs = [
+      pkgs.autoPatchelfHook
+      pkgs.makeWrapper
+      pkgs.copyDesktopItems
+    ];
+
+    buildInputs = [
+      pkgs.libX11
+      pkgs.libXext
+      pkgs.libXrandr
+      pkgs.libXcursor
+      pkgs.libXi
+      pkgs.libICE
+      pkgs.libSM
+      pkgs.fontconfig
+      pkgs.freetype
+      pkgs.zlib
+      pkgs.openssl
+      pkgs.icu
+      pkgs.libGL
+      pkgs.stdenv.cc.cc.lib
+    ];
+
+    # The tarball may extract to a subdirectory — sourceRoot handles both cases
+    sourceRoot = ".";
+
+    installPhase = ''
+      runHook preInstall
+
+      mkdir -p $out/bin $out/lib/optiscaler-client
+
+      # Copy all extracted files — handles flat or single-subdir layout
+      find . -maxdepth 2 -name "OptiscalerClient" -type f | head -1 | xargs -I{} sh -c '
+        cp -r "$(dirname {})/." $out/lib/optiscaler-client/
+      '
+
+      chmod +x $out/lib/optiscaler-client/OptiscalerClient
+      makeWrapper $out/lib/optiscaler-client/OptiscalerClient $out/bin/optiscaler-client \
+        --set DOTNET_BUNDLE_EXTRACT_BASE_DIR "/tmp/optiscaler-client"
+
+      runHook postInstall
+    '';
+
+    desktopItems = [
+      (pkgs.makeDesktopItem {
+        name = "optiscaler-client";
+        desktopName = "OptiScaler Client";
+        comment = "Manage OptiScaler upscaling across your game libraries";
+        exec = "optiscaler-client";
+        categories = ["Game" "Utility"];
+        keywords = ["upscaling" "fsr" "dlss" "xess" "optiscaler"];
+      })
+    ];
+
+    meta = with lib; {
+      description = "GUI manager for OptiScaler — injects FSR/DLSS/XeSS upscaling into any game";
+      homepage = "https://github.com/Agustinm28/Optiscaler-Client";
+      platforms = ["x86_64-linux"];
+    };
+  };
+in
+{
   imports = [
     ./dmemcg-booster.nix
   ];
@@ -154,6 +237,12 @@
 
     vulkan-tools # vulkaninfo — useful for checking Vulkan is working
     mesa-demos # glxinfo, glxgears — check OpenGL info and verify drivers
+
+    # -----------------------------------------------------------------------
+    # OptiScaler Client — upscaling injector manager
+    # -----------------------------------------------------------------------
+    optiscaler-client # GUI manager for OptiScaler — shims FSR/DLSS/XeSS into
+    # games that don't natively support your preferred upscaling API
 
     # Controller support
     antimicrox # Map controller buttons to keyboard/mouse
