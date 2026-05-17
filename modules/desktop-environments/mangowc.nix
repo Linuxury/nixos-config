@@ -129,6 +129,11 @@ in
   # Unlocked automatically on login via PAM integration.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
+  # greetd (tuigreet) authenticates via the "greetd" PAM service — that is
+  # the service that must run the keyring unlock module so the keyring is open
+  # before any app (Helium, etc.) tries to access it.  The "login" entry
+  # covers TTY-only logins; both are needed to handle all auth paths.
+  security.pam.services.greetd.enableGnomeKeyring = true;
   security.pam.services.login.enableGnomeKeyring = true;
 
   # =========================================================================
