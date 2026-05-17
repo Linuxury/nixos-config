@@ -11,8 +11,6 @@
 # The wallpaperDir value gets symlinked:
 #   ~/nixos-config/assets/Wallpapers/<wallpaperDir> → ~/Pictures/Wallpapers
 #
-# The wallpaper + matugen theming is handled by:
-#   modules/services/hypr-matugen.nix
 # ===========================================================================
 
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
@@ -28,7 +26,6 @@
 {
   imports = [
     ../../modules/home/neovim.nix
-    ../../modules/services/hypr-matugen.nix
   ];
 
   # =========================================================================

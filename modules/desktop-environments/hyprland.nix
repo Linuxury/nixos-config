@@ -86,6 +86,7 @@ in
 
     ../home/cosmic-theme.nix         # BreezeX-Light cursor + Tela-dark icons
     ../home/nautilus-bookmarks.nix   # GTK3 bookmarks + scripts for Nautilus
+    ../services/hypr-matugen.nix     # matugen color sync on wallpaper change
     {
       # Kitty — Hyprland handles transparency/blur, disable Kitty's own settings
       home.file.".config/kitty/hyprland-overrides.conf".source =
