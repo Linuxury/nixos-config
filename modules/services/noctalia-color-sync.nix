@@ -28,7 +28,7 @@
         [ -n "$HEX" ] || exit 0
 
         ${pkgs.gnused}/bin/sed -i "s/^focuscolor=.*/focuscolor=0x''${HEX}ff/" "$MANGO"
-        mmsg -d reload_config 2>/dev/null || true
+        mmsg -d reload_config 2>&1 || echo "mmsg failed"
       ''}";
     };
   };
