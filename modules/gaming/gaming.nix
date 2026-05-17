@@ -25,12 +25,16 @@
   # support your preferred API. This client manages installation and
   # configuration across Steam, Epic, GOG, and EA game libraries.
   #
-  # Self-contained Avalonia UI binary — no .NET runtime needed on the host.
-  # autoPatchelfHook rewrites the ELF interpreter + RPATH so it finds
-  # NixOS's libs instead of the FHS paths the binary was compiled against.
+  # Self-contained .NET single-file bundle — the entire runtime + assemblies
+  # are packed inside the ELF binary using an offset table appended at the end.
+  # autoPatchelfHook would resize the binary to fix ELF paths, invalidating
+  # those offsets → "Arithmetic overflow while reading bundle" at startup.
+  #
+  # Fix: never touch the binary. Use buildFHSEnv to provide the FHS paths
+  # (/lib, /lib64, /usr/lib) that the binary's hardcoded interpreter expects.
   # ===========================================================================
-  optiscaler-client = pkgs.stdenv.mkDerivation rec {
-    pname = "optiscaler-client";
+  optiscaler-client-bin = pkgs.stdenv.mkDerivation rec {
+    pname = "optiscaler-client-bin";
     version = "1.0.5";
 
     src = pkgs.fetchurl {
@@ -38,59 +42,59 @@
       sha256 = "12wlifm40x5rkail6b2098c375b6s3948xszqzni7zf84zfndbys";
     };
 
-    nativeBuildInputs = [
-      pkgs.autoPatchelfHook
-      pkgs.makeWrapper
-      pkgs.copyDesktopItems
-    ];
-
-    buildInputs = [
-      pkgs.libX11
-      pkgs.libXext
-      pkgs.libXrandr
-      pkgs.libXcursor
-      pkgs.libXi
-      pkgs.libICE
-      pkgs.libSM
-      pkgs.fontconfig
-      pkgs.freetype
-      pkgs.zlib
-      pkgs.openssl
-      pkgs.icu
-      pkgs.libGL
-      pkgs.stdenv.cc.cc.lib
-    ];
-
-    # The tarball may extract to a subdirectory — sourceRoot handles both cases
     sourceRoot = ".";
+    dontBuild = true;
+    dontFixup = true; # critical — prevents any ELF patching that corrupts the bundle
 
     installPhase = ''
       runHook preInstall
-
-      mkdir -p $out/bin $out/lib/optiscaler-client
-
-      # Copy all extracted files — handles flat or single-subdir layout
-      find . -maxdepth 2 -name "OptiscalerClient" -type f | head -1 | xargs -I{} sh -c '
-        cp -r "$(dirname {})/." $out/lib/optiscaler-client/
-      '
-
+      mkdir -p $out/lib/optiscaler-client
+      cp -r . $out/lib/optiscaler-client/
       chmod +x $out/lib/optiscaler-client/OptiscalerClient
-      makeWrapper $out/lib/optiscaler-client/OptiscalerClient $out/bin/optiscaler-client \
-        --set DOTNET_BUNDLE_EXTRACT_BASE_DIR "/tmp/optiscaler-client"
-
       runHook postInstall
     '';
+  };
 
-    desktopItems = [
-      (pkgs.makeDesktopItem {
-        name = "optiscaler-client";
-        desktopName = "OptiScaler Client";
-        comment = "Manage OptiScaler upscaling across your game libraries";
-        exec = "optiscaler-client";
-        categories = ["Game" "Utility"];
-        keywords = ["upscaling" "fsr" "dlss" "xess" "optiscaler"];
-      })
+  optiscaler-client = pkgs.buildFHSEnv {
+    name = "optiscaler-client";
+
+    # Libraries provided inside the FHS sandbox — Avalonia UI + .NET deps
+    targetPkgs = _: with pkgs; [
+      libX11
+      libXext
+      libXrandr
+      libXcursor
+      libXi
+      libICE
+      libSM
+      fontconfig
+      freetype
+      zlib
+      openssl
+      icu
+      libGL
+      stdenv.cc.cc.lib
     ];
+
+    # Script run inside the FHS environment
+    runScript = pkgs.writeShellScript "optiscaler-client" ''
+      export DOTNET_BUNDLE_EXTRACT_BASE_DIR="''${XDG_RUNTIME_DIR:-/tmp}/optiscaler-client"
+      exec ${optiscaler-client-bin}/lib/optiscaler-client/OptiscalerClient "$@"
+    '';
+
+    # Desktop entry lives outside the FHS wrapper
+    extraInstallCommands = ''
+      mkdir -p $out/share/applications
+      cat > $out/share/applications/optiscaler-client.desktop <<EOF
+      [Desktop Entry]
+      Name=OptiScaler Client
+      Comment=Manage OptiScaler upscaling across your game libraries
+      Exec=optiscaler-client
+      Type=Application
+      Categories=Game;Utility;
+      Keywords=upscaling;fsr;dlss;xess;optiscaler;
+      EOF
+    '';
 
     meta = with lib; {
       description = "GUI manager for OptiScaler — injects FSR/DLSS/XeSS upscaling into any game";
