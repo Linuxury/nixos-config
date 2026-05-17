@@ -95,6 +95,8 @@ in
           ${pkgs.tuigreet}/bin/tuigreet \
             --time \
             --remember \
+            --asterisks \
+            --theme "border=magenta;text=white;prompt=magenta;time=magenta;action=magenta;button=magenta;container=black;input=white" \
             --sessions /run/current-system/sw/share/wayland-sessions
         '';
       };
