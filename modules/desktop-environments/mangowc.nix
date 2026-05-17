@@ -96,7 +96,7 @@ in
             --time \
             --remember \
             --asterisks \
-            --theme "border=magenta;text=white;prompt=magenta;time=magenta;action=magenta;button=magenta;container=black;input=white" \
+            --theme "border=#cba6f7;text=#cdd6f4;prompt=#cba6f7;time=#a6adc8;action=#89b4fa;button=#cba6f7;container=#1e1e2e;input=#cdd6f4" \
             --sessions /run/current-system/sw/share/wayland-sessions
         '';
       };
