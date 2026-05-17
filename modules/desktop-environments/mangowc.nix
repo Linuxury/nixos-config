@@ -43,7 +43,7 @@ in
   # without duplicating config per-user.
   # =========================================================================
   home-manager.sharedModules = [
-    ../home/cosmic-theme.nix       # BreezeX-Light cursor + Tela-dark icons + adw-gtk3-dark
+    ../home/mangowc-theme.nix      # BreezeX-Light cursor + Tela-dark icons + adw-gtk3-dark
     ../home/nautilus-bookmarks.nix # Sidebar bookmarks + right-click Copy Path / Open as Root
   ];
 
