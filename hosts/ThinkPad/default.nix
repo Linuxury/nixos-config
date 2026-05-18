@@ -69,7 +69,6 @@ in
   # Nix build limits
   # =========================================================================
   nix.settings.max-jobs = nixBuildJobs;
-  nix.settings.cores = 2; # threads per build job — caps per-package RAM spike
 
   # =========================================================================
   # Host identity
