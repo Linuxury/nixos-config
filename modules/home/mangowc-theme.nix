@@ -100,6 +100,9 @@ in
         gtk-application-prefer-dark-theme = 1;
         gtk-decoration-layout             = ":minimize,maximize,close";
       };
+      # Pull in Noctalia's generated color overrides. The file is written to
+      # ~/.config/gtk-4.0/noctalia.css by the Noctalia bar on each launch.
+      extraCss = ''@import url("noctalia.css");'';
     };
   };
 
