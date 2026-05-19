@@ -107,6 +107,23 @@
   boot.kernelModules = [ "btusb" ];
 
   # =========================================================================
+  # Lemokey / Keychron peripherals — WebHID access
+  #
+  # The Lemokey web launcher (launcher.lemokey.com) uses the WebHID API to
+  # configure keyboards and mice directly from the browser. By default,
+  # /dev/hidraw* nodes are root-only. TAG+="uaccess" tells systemd-logind
+  # to grant the active logged-in user a session-scoped ACL on matching
+  # nodes — no MODE=0666 needed, and no static group to manage.
+  #
+  # VID 362d = Lemokey (Hall Effect keyboards — P1 HE, etc.)
+  # VID 3434 = Keychron (QMK keyboards + Keychron M-series mice)
+  # =========================================================================
+  services.udev.extraRules = ''
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="362d", TAG+="uaccess"
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", TAG+="uaccess"
+  '';
+
+  # =========================================================================
   # KDE Connect — Phone/desktop integration
   #
   # Lets your phone and desktop share clipboard, notifications, files,
