@@ -118,6 +118,7 @@
   # the keyring automatically at login so no separate unlock prompt appears.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
-  security.pam.services.login.enableGnomeKeyring = true;
+  security.pam.services.greetd.enableGnomeKeyring = true; # cosmic-greeter auth path
+  security.pam.services.login.enableGnomeKeyring = true;  # TTY login fallback
 
 }

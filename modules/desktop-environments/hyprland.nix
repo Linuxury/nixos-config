@@ -269,10 +269,11 @@ in
   # Keyring — Secret storage for apps
   #
   # GNOME Keyring works fine outside of GNOME.
-  # dms-greeter uses the login PAM service for keyring unlock.
+  # dms-greeter (greetd) uses the greetd PAM service — not login.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
-  security.pam.services.login.enableGnomeKeyring = true;
+  security.pam.services.greetd.enableGnomeKeyring = true; # dms-greeter auth path
+  security.pam.services.login.enableGnomeKeyring = true;  # TTY login fallback
 
   # =========================================================================
   # Tracker — file indexer for Nautilus search
