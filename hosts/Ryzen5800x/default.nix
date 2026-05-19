@@ -36,6 +36,7 @@ in
     #../../modules/desktop-environments/cosmic.nix
     ../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
+    ../../modules/base/openrgb.nix
     ../../modules/base/auto-update.nix
     ../../modules/base/babylinux-ssh.nix        # babylinux — primary SSH access
     ../../modules/base/linuxury-ssh.nix         # linuxury  — emergency SSH only
@@ -229,18 +230,6 @@ in
   # =========================================================================
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [ glibc ];
-
-  # =========================================================================
-  # OpenRGB — RGB lighting control
-  #
-  # Controls RGB LEDs on the motherboard, RAM, and peripherals.
-  # The NixOS module installs the udev rules so OpenRGB can access
-  # USB and SMBus controllers without root.
-  # =========================================================================
-  services.hardware.openrgb = {
-    enable = true;
-    motherboard = "amd"; # Loads the i2c-piix4 SMBus driver for AMD motherboards
-  };
 
   # =========================================================================
   # Stability focused extras

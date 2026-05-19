@@ -29,6 +29,7 @@
     ../../modules/hardware/drivers.nix
     ../../modules/desktop-environments/cosmic.nix
     ../../modules/gaming/gaming.nix
+    ../../modules/base/openrgb.nix
     ../../modules/base/auto-update.nix
     ../../modules/base/linuxury-ssh.nix
     ../../modules/users/alex-packages.nix
@@ -187,18 +188,6 @@
   # Kernel
   # =========================================================================
   boot.kernelPackages = pkgs.linuxPackages_latest;
-
-  # =========================================================================
-  # OpenRGB — RGB lighting control
-  #
-  # Controls RGB LEDs on the motherboard, RAM, and peripherals.
-  # The NixOS module installs the udev rules so OpenRGB can access
-  # USB and SMBus controllers without root.
-  # =========================================================================
-  services.hardware.openrgb = {
-    enable = true;
-    motherboard = "amd"; # Loads the i2c-piix4 SMBus driver for AMD motherboards
-  };
 
   # =========================================================================
   # DNS filtering — Cloudflare 1.1.1.3

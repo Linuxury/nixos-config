@@ -52,6 +52,7 @@ in
     ../../modules/desktop-environments/mangowc.nix
     ../../modules/gaming/gaming.nix
     #../../modules/development/development.nix
+    ../../modules/base/openrgb.nix
     ../../modules/base/auto-update.nix
     #../../modules/services/local-llm.nix
     ../../modules/users/linuxury-packages.nix
@@ -384,18 +385,6 @@ in
     "udev.log_priority=3"
     "rd.systemd.show_status=false"
   ];
-
-  # =========================================================================
-  # OpenRGB — RGB lighting control
-  #
-  # Controls RGB LEDs on the motherboard, RAM, and peripherals.
-  # The NixOS module installs the udev rules so OpenRGB can access
-  # USB and SMBus controllers without root.
-  # =========================================================================
-  services.hardware.openrgb = {
-    enable = true;
-    motherboard = "amd"; # Loads the i2c-piix4 SMBus driver for AMD motherboards
-  };
 
   # =========================================================================
   # CoreCtrl — GPU and CPU control
