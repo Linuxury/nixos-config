@@ -166,18 +166,22 @@
       #   hostConfig   — Path to the host's config file in hosts/
       #   user         — The primary user on this machine
       #   userConfig   — Path to the user's Home Manager config in users/
-      #   wallpaperDir — Wallpaper subfolder from ~/assets/Wallpapers/
-      #                  Gets symlinked to ~/Pictures/Wallpapers
-      #                  Options: "4k", "3440x1440", "PikaOS"
+      #   wallpaperDir     — Wallpaper subfolder from ~/assets/Wallpapers/
+      #                      Gets symlinked to ~/Pictures/Wallpapers
+      #                      Options: "4k", "3440x1440", "PikaOS"
+      #   hypridleProfile  — Which hypridle config to activate on this host.
+      #                      Options: "desktop" (no suspend), "laptop" (suspend)
+      #                      Default: "laptop" (safe fallback)
       #   extraModules — Any additional modules specific to this host
       # -----------------------------------------------------------------------
       mkHost = {
         hostname,
         hostConfig,
         user,
-        userConfig   ? null,
-        wallpaperDir ? "4k",
-        extraModules ? []
+        userConfig       ? null,
+        wallpaperDir     ? "4k",
+        hypridleProfile  ? "laptop",
+        extraModules     ? []
       }:
         nixpkgs.lib.nixosSystem {
           # Pass inputs down so any module can access them if needed
@@ -225,7 +229,7 @@
                 # wallpaperDir tells the user's home.nix which wallpaper
                 # folder to symlink into ~/Pictures/Wallpapers.
                 # Servers skip this entirely since userConfig is null.
-                extraSpecialArgs = { inherit inputs wallpaperDir; };
+                extraSpecialArgs = { inherit inputs wallpaperDir hypridleProfile; };
                 # Wire up the user's Home Manager config if one exists.
                 # Servers won't have a userConfig so we skip it.
                 users = nixpkgs.lib.optionalAttrs (userConfig != null) {
@@ -255,11 +259,12 @@
         # ---------------------------------------------------------------------
 
         ThinkPad = mkHost {
-          hostname     = "ThinkPad";
-          hostConfig   = ./hosts/ThinkPad/default.nix;
-          user         = "linuxury";
-          userConfig   = ./users/linuxury/home.nix;
-          wallpaperDir = "4k";
+          hostname        = "ThinkPad";
+          hostConfig      = ./hosts/ThinkPad/default.nix;
+          user            = "linuxury";
+          userConfig      = ./users/linuxury/home.nix;
+          wallpaperDir    = "4k";
+          hypridleProfile = "laptop";
           extraModules = [
             # nixos-hardware profile for ThinkPad AMD laptops
             # Handles power management, thermal, etc automatically
@@ -268,11 +273,12 @@
         };
 
         Ryzen5900x = mkHost {
-          hostname     = "Ryzen5900x";
-          hostConfig   = ./hosts/Ryzen5900x/default.nix;
-          user         = "linuxury";
-          userConfig   = ./users/linuxury/home.nix;
-          wallpaperDir = "3440x1440";  # Ultrawide monitor
+          hostname        = "Ryzen5900x";
+          hostConfig      = ./hosts/Ryzen5900x/default.nix;
+          user            = "linuxury";
+          userConfig      = ./users/linuxury/home.nix;
+          wallpaperDir    = "3440x1440";  # Ultrawide monitor
+          hypridleProfile = "desktop";
         };
 
         # ---------------------------------------------------------------------

@@ -4,22 +4,20 @@
 # Machines: ThinkPad (laptop), Ryzen5900x (desktop)
 # Role: Admin, developer, power user
 #
-# wallpaperDir is injected via extraSpecialArgs in flake.nix, per-host:
-#   ThinkPad   → "4k"
-#   Ryzen5900x → "3440x1440"
-#
-# The wallpaperDir value gets symlinked:
-#   ~/nixos-config/assets/Wallpapers/<wallpaperDir> → ~/Pictures/Wallpapers
+# Per-host values are injected via extraSpecialArgs in flake.nix:
+#   wallpaperDir     ThinkPad → "4k" | Ryzen5900x → "3440x1440"
+#   hypridleProfile  ThinkPad → "laptop" | Ryzen5900x → "desktop"
 #
 # ===========================================================================
 
-# Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
+# wallpaperDir and hypridleProfile come from extraSpecialArgs in flake.nix
 {
   config,
   pkgs,
   inputs,
   lib,
   wallpaperDir,
+  hypridleProfile,
   ...
 }:
 
@@ -528,7 +526,7 @@
             sha256 = "1n4gl8f4csq4ngmw7dksiaxhlglsswgypynnjpzyzskn4c94c1c5";
           };
         })
-        # flow-dawn icon theme
+        # Flow Icons — provides flow-deep, flow-dim, flow-dawn themes (free v1.x)
         (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
           mktplcRef = {
             publisher = "thang-nm";
@@ -565,12 +563,13 @@
           };
         })
       ];
-    profiles.default.userSettings =
-      (builtins.fromJSON (builtins.readFile ../../dotfiles/vscodium/settings.json))
-      // {
-        "claudeCode.claudeProcessWrapper" = "/etc/profiles/per-user/${config.home.username}/bin/claude";
-      };
   };
+
+  # VSCodium settings — mkOutOfStoreSymlink keeps the file writable from the GUI
+  # while still tracking it in the repo. The claudeProcessWrapper is hardcoded in
+  # the dotfile since this home.nix is linuxury-only.
+  home.file.".config/VSCodium/User/settings.json".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/vscodium/settings.json";
 
   # =========================================================================
   # SSH agent
@@ -713,6 +712,15 @@
       cp "${../../dotfiles/mangowc/config.conf}" "$_mangowc_conf"
       chmod 644 "$_mangowc_conf"
     fi
+  '';
+
+  # hypridle — symlink the profile config into the .config/hypr directory.
+  # Since .config/hypr is a directory symlink to dotfiles/hypr/, we can't use
+  # home.file here. activation runs after writeBoundary and handles it cleanly.
+  # The symlink created here is gitignored (see .gitignore: dotfiles/hypr/hypridle.conf).
+  home.activation.hypridleConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    ln -sf "$HOME/nixos-config/dotfiles/hypr/hypridle-${hypridleProfile}.conf" \
+           "$HOME/nixos-config/dotfiles/hypr/hypridle.conf"
   '';
 
   # Personal packages live in modules/users/linuxury-packages.nix

@@ -29,6 +29,10 @@ secrets/*.pass
 *.tmp
 *.bak
 
+# hypridle.conf — generated symlink pointing to the host's profile (desktop/laptop)
+# Managed by home.activation.hypridleConf in home.nix; source of truth is hypridle-{profile}.conf
+dotfiles/hypr/hypridle.conf
+
 # Matugen-generated color files (change on every wallpaper switch — not part of config)
 dotfiles/hypr/colors.conf
 dotfiles/hypr/colors-hyprlock.conf

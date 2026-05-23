@@ -1,4 +1,5 @@
 {
+    "claudeCode.claudeProcessWrapper": "/etc/profiles/per-user/linuxury/bin/claude",
     "claudeCode.preferredLocation": "secondarySidebar",
     "workbench.preferredDarkColorTheme": "Experimental Dark",
     "workbench.iconTheme": "flow-deep",
