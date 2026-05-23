@@ -207,8 +207,9 @@ in
     # -----------------------------------------------------------------------
     # Screen locking + idle management
     # -----------------------------------------------------------------------
-    swaylock          # Wayland-native screen locker (works on any wlroots WM)
-    swayidle          # Idle daemon — triggers lock/DPMS; respects Wayland idle-inhibit
+    swaylock               # Wayland-native screen locker (works on any wlroots WM)
+    swayidle               # Idle daemon — triggers lock/DPMS; respects Wayland idle-inhibit
+    sway-audio-idle-inhibit # Inhibits idle while audio plays — keeps screen on during games
 
     # -----------------------------------------------------------------------
     # Audio

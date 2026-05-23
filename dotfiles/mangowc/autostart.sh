@@ -49,9 +49,13 @@ done
 # ---------------------------------------------------------------------------
 # Idle management — screen lock + display off
 #
-# swayidle respects the Wayland idle-inhibit protocol (zwp_idle_inhibit_manager_v1):
-# fullscreen games and video players that signal idle inhibit suppress these timers
-# automatically. No input from the user needed while gaming.
+# sway-audio-idle-inhibit creates a zwp_idle_inhibit_manager_v1 inhibitor
+# whenever PipeWire audio is active. This keeps the screen on during games
+# (Proton/XWayland games can't send Wayland idle-inhibit directly, and
+# xdg-desktop-portal-wlr doesn't implement the Inhibit portal interface,
+# so this is the only reliable bridge).
+#
+# swayidle timers are suppressed while any inhibitor is held.
 #
 # Timeouts:
 #   15 min → lock screen (swaylock)
@@ -59,6 +63,8 @@ done
 #   resume  → displays back on
 #   before-sleep → lock before systemd suspend
 # ---------------------------------------------------------------------------
+sway-audio-idle-inhibit &
+
 swayidle -w \
   timeout 900  'swaylock -f -c 000000' \
   timeout 1200 'wlr-randr --json | jq -r ".[].name" | xargs -I{} wlr-randr --output {} --off' \
