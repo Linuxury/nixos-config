@@ -1,15 +1,14 @@
 {
-    "claudeCode.claudeProcessWrapper": "/etc/profiles/per-user/linuxury/bin/claude",
-    "claudeCode.preferredLocation": "secondarySidebar",
-    "workbench.preferredDarkColorTheme": "Experimental Dark",
-    "workbench.iconTheme": "flow-deep",
-    "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
-    "editor.fontSize": 13,
-    "window.zoomLevel": 1.5,
-    "workbench.colorTheme": "Catppuccin Mocha",
-    "workbench.startupEditor": "none",
-    "workbench.statusBar.visible": false,
-    "git.ignoredRepositories": [
-        "/home/linuxury/Obsidian"
-    ]
+  "claudeCode.claudeProcessWrapper": "/etc/profiles/per-user/linuxury/bin/claude",
+  "claudeCode.preferredLocation": "secondarySidebar",
+  "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
+  "editor.fontSize": 13,
+  "git.ignoredRepositories": [
+    "/home/linuxury/Obsidian"
+  ],
+  "window.zoomLevel": 1.5,
+  "workbench.colorTheme": "Catppuccin Mocha",
+  "workbench.preferredDarkColorTheme": "Dark 2026",
+  "workbench.startupEditor": "none",
+  "workbench.statusBar.visible": false
 }
