@@ -227,4 +227,19 @@ in
     linuxury-admins ++ [ Media-Server ]
   );
 
+  # --------------------------------------------------------------------------
+  # flow-icons license key
+  #
+  # Commercial license for the flow-icons VSCodium extension.
+  # Injected into settings.json at HM activation — never stored in plaintext.
+  # After updating: nix run nixpkgs#ragenix -- -r
+  # --------------------------------------------------------------------------
+  "flow-icons-license.age".publicKeys = uniq (
+    linuxury-admins
+    ++ [
+      ThinkPad
+      Ryzen5900x
+    ]
+  );
+
 }

@@ -565,11 +565,33 @@
       ];
   };
 
-  # VSCodium settings — mkOutOfStoreSymlink keeps the file writable from the GUI
-  # while still tracking it in the repo. The claudeProcessWrapper is hardcoded in
-  # the dotfile since this home.nix is linuxury-only.
-  home.file.".config/VSCodium/User/settings.json".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/vscodium/settings.json";
+  # VSCodium settings — generated at activation so the license key can be
+  # injected from agenix without ever touching the tracked dotfile.
+  # Base settings live in dotfiles/vscodium/settings.json (no secrets).
+  # License key is read from /run/agenix/flow-icons-license if present.
+  home.activation.vscodiumSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _base="$HOME/nixos-config/dotfiles/vscodium/settings.json"
+    _target="$HOME/.config/VSCodium/User/settings.json"
+    _license="/run/agenix/flow-icons-license"
+
+    # Remove any existing symlink so we can write a real file
+    [ -L "$_target" ] && rm "$_target"
+
+    if [ -r "$_license" ]; then
+      ${pkgs.python3}/bin/python3 -c "
+import json, sys
+with open('$_base') as f:
+    s = json.load(f)
+with open('$_license') as f:
+    s['flow-icons.licenseKey'] = f.read().strip()
+with open('$_target', 'w') as f:
+    json.dump(s, f, indent=2)
+    f.write('\n')
+"
+    else
+      cp "$_base" "$_target"
+    fi
+  '';
 
   # =========================================================================
   # SSH agent

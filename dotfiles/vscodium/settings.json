@@ -8,6 +8,7 @@
   ],
   "window.zoomLevel": 1.5,
   "workbench.colorTheme": "Catppuccin Mocha",
+  "workbench.iconTheme": "flow-deep",
   "workbench.preferredDarkColorTheme": "Dark 2026",
   "workbench.startupEditor": "none",
   "workbench.statusBar.visible": false

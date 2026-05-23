@@ -300,6 +300,13 @@ in
     group = "users";
   };
 
+  age.secrets.flow-icons-license = {
+    file = ../../secrets/flow-icons-license.age;
+    mode = "0440";
+    owner = "root";
+    group = "users";
+  };
+
   # =========================================================================
   # Swap
   # =========================================================================
