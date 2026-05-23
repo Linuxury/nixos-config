@@ -47,6 +47,25 @@ wlr-randr --json 2>/dev/null | jq -c '.[]' 2>/dev/null | while read -r out; do
 done
 
 # ---------------------------------------------------------------------------
+# Idle management — screen lock + display off
+#
+# swayidle respects the Wayland idle-inhibit protocol (zwp_idle_inhibit_manager_v1):
+# fullscreen games and video players that signal idle inhibit suppress these timers
+# automatically. No input from the user needed while gaming.
+#
+# Timeouts:
+#   15 min → lock screen (swaylock)
+#   20 min → displays off (wlr-randr DPMS off)
+#   resume  → displays back on
+#   before-sleep → lock before systemd suspend
+# ---------------------------------------------------------------------------
+swayidle -w \
+  timeout 900  'swaylock -f -c 000000' \
+  timeout 1200 'wlr-randr --json | jq -r ".[].name" | xargs -I{} wlr-randr --output {} --off' \
+  resume       'wlr-randr --json | jq -r ".[].name" | xargs -I{} wlr-randr --output {} --on' \
+  before-sleep 'swaylock -f -c 000000' &
+
+# ---------------------------------------------------------------------------
 # Night light (color temperature by time of day)
 # ---------------------------------------------------------------------------
 run wlsunset -l 18.4 -L -66.1   # San Juan, PR — adjust to your location

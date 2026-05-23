@@ -205,9 +205,10 @@ in
     cliphist          # Clipboard history manager
 
     # -----------------------------------------------------------------------
-    # Screen locking
+    # Screen locking + idle management
     # -----------------------------------------------------------------------
     swaylock          # Wayland-native screen locker (works on any wlroots WM)
+    swayidle          # Idle daemon — triggers lock/DPMS; respects Wayland idle-inhibit
 
     # -----------------------------------------------------------------------
     # Audio
