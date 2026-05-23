@@ -200,9 +200,11 @@
 
       # Limit parallel build jobs — each heavy package (LLVM, chromium, Qt, etc.)
       # can consume 4–8 GB RAM per job. Without a cap, machines with 16–32 GB RAM
-      # OOM-kill the Nix daemon during auto-updates. Per-host configs can override
-      # with a higher value (e.g. Ryzen5900x sets max-jobs = 6 via nixBuildJobs).
-      max-jobs = lib.mkDefault 2;
+      # OOM-kill the Nix daemon during auto-updates.
+      # max-jobs = 2: only 2 derivations build in parallel (memory safety).
+      # cores = 0: each job uses all available CPU cores (max throughput per job).
+      max-jobs = 2;
+      cores = 0;
     };
 
     # Automatically clean up old generations and unused packages.

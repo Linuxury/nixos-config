@@ -17,17 +17,6 @@
 
 { config, pkgs, inputs, lib, ... }:
 
-let
-  # Logical CPU count (threads) on this machine.
-  # Used to cap parallel Nix builds — each large package (LLVM, chromium, etc.)
-  # can consume 4-8 GB RAM per job, so unconstrained builds cause OOM crashes.
-  numThreads = 16; # Ryzen 7 5800x: 8 cores / 16 threads
-
-  # Allow at most 1/4 of threads as parallel Nix build jobs.
-  # 16 / 4 = 4 — enough throughput while leaving RAM headroom.
-  nixBuildJobs = builtins.div numThreads 4;
-in
-
 {
   imports = [
     ../../modules/base/common.nix
@@ -44,11 +33,6 @@ in
     ../../modules/users/babylinux-packages.nix
     ../../modules/base/syncthing-babylinux.nix
   ];
-
-  # =========================================================================
-  # Nix build limits
-  # =========================================================================
-  nix.settings.max-jobs = nixBuildJobs;
 
   # =========================================================================
   # Host identity

@@ -196,10 +196,6 @@
                           # choose the least impactful ones for this CPU
   ];
 
-  # Limit Nix parallel builds so the system stays responsive
-  # Old hardware struggles when Nix tries to build many things at once
-  nix.settings.max-jobs = 2;
-
   # =========================================================================
   # Power management — important for older laptop battery
   #

@@ -22,18 +22,6 @@
   ...
 }:
 
-let
-  # Logical CPU count (threads) on this machine.
-  # Used to cap parallel Nix builds — each large package (LLVM, chromium, etc.)
-  # can consume 4-8 GB RAM per job, so unconstrained builds cause OOM crashes.
-  numThreads = 16; # Ryzen 7 PRO 7840U: 8 cores / 16 threads
-
-  # Allow at most 1/8 of threads as parallel Nix build jobs.
-  # 16 / 8 = 2 — large KDE/Plasma C++ packages can spike 2–4 GB each;
-  # more than 2 concurrent builds causes OOM on this 16 GB laptop.
-  nixBuildJobs = builtins.div numThreads 8;
-in
-
 {
   imports = [
     # -------------------------------------------------------------------------
@@ -64,11 +52,6 @@ in
     ../../modules/base/syncthing.nix
     ../../modules/base/ai-tools.nix
   ];
-
-  # =========================================================================
-  # Nix build limits
-  # =========================================================================
-  nix.settings.max-jobs = nixBuildJobs;
 
   # =========================================================================
   # Host identity
