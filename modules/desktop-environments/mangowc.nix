@@ -22,8 +22,9 @@ let
     exec ${pkgs.mangowc}/bin/mangowc
   '';
 
-  # Session .desktop — registers MangoWC with tuigreet's session picker.
-  mangowc-session = pkgs.writeTextDir "share/wayland-sessions/mangowc.desktop" ''
+  # Session .desktop — registers MangoWC with SDDM's session picker.
+  # passthru.providedSessions is required by services.displayManager.sessionPackages.
+  mangowc-session = (pkgs.writeTextDir "share/wayland-sessions/mangowc.desktop" ''
     [Desktop Entry]
     Name=MangoWC
     Comment=Lightweight Wayland Compositor (MangoWC + Noctalia)
@@ -31,10 +32,14 @@ let
     Type=Application
     DesktopNames=MangoWC
     Keywords=wayland;compositor;tiling
-  '';
+  '').overrideAttrs (_: { passthru.providedSessions = [ "mangowc" ]; });
 in
 
 {
+  imports = [
+    ../greeters/sddm-catppuccin.nix  # SDDM + Catppuccin Mocha/Mauve login screen
+  ];
+
   # =========================================================================
   # Shared Home Manager modules — cursor, icons, GTK theme, Nautilus extras
   #
@@ -72,39 +77,17 @@ in
   };
 
   # =========================================================================
-  # Login manager — greetd + tuigreet
+  # Login manager — SDDM + Catppuccin Mocha/Mauve (via sddm-catppuccin.nix)
   #
-  # greetd is a minimal login daemon (replaces dms-greeter/cosmic-greeter).
-  # tuigreet is a TUI frontend that runs directly on the TTY — no Wayland
-  # compositor required for the greeter itself.
-  #
-  # cage + qtgreet was attempted but cage 0.2.1 crashes with SIGABRT on
-  # RDNA3 (RX 7900 XTX) before it can open a display. tuigreet sidesteps
-  # this entirely since it never touches the GPU.
-  #
-  # --time        shows current time on the login screen
-  # --remember    pre-fills the last logged-in username
-  # --sessions    points tuigreet at the wayland-sessions directory so it
-  #               can offer MangoWC (and any other registered sessions)
+  # SDDM runs in Wayland mode using weston as the greeter compositor.
+  # weston is lightweight and GPU-agnostic — avoids the cage SIGABRT on RDNA3
+  # (RX 7900 XTX) that blocked cage-based greeters (qtgreet, regreet).
   # =========================================================================
-  services.greetd = {
-    enable = true;
-    settings = {
-      default_session = {
-        command = ''
-          ${pkgs.tuigreet}/bin/tuigreet \
-            --time \
-            --remember \
-            --asterisks \
-            --theme "border=#cba6f7;text=#cdd6f4;prompt=#cba6f7;time=#a6adc8;action=#89b4fa;button=#cba6f7;container=#1e1e2e;input=#cdd6f4" \
-            --sessions /run/current-system/sw/share/wayland-sessions
-        '';
-      };
-    };
-  };
 
-  # Make the MangoWC session visible to tuigreet's session picker
-  environment.pathsToLink = [ "/share/wayland-sessions" ];
+  # Register MangoWC as a selectable session in SDDM.
+  # services.displayManager.sessionPackages feeds into SDDM's SessionDir —
+  # different from environment.systemPackages which tuigreet used to scan.
+  services.displayManager.sessionPackages = [ mangowc-session ];
 
   # =========================================================================
   # XDG Desktop Portal — screen capture, file picker, screenshots, etc.
@@ -128,15 +111,9 @@ in
 
   # =========================================================================
   # Keyring — secret storage for apps (browser passwords, SSH keys, etc.)
-  # Unlocked automatically on login via PAM integration.
+  # Unlocked automatically on login via PAM integration in sddm-catppuccin.nix.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
-  # greetd (tuigreet) authenticates via the "greetd" PAM service — that is
-  # the service that must run the keyring unlock module so the keyring is open
-  # before any app (Helium, etc.) tries to access it.  The "login" entry
-  # covers TTY-only logins; both are needed to handle all auth paths.
-  security.pam.services.greetd.enableGnomeKeyring = true;
-  security.pam.services.login.enableGnomeKeyring = true;
 
   # =========================================================================
   # Bluetooth — desktop always-on (no suspend needed on desktop)
