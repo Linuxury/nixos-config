@@ -49,6 +49,7 @@ in
 {
   imports = [
     ../../modules/home/neovim.nix
+    ../../modules/home/helium.nix
   ];
 
   # =========================================================================
