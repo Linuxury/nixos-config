@@ -19,6 +19,11 @@ let
   mangowc-start = pkgs.writeShellScript "mangowc-start" ''
     export XCURSOR_THEME=BreezeX-Light
     export XCURSOR_SIZE=24
+    # On UEFI systems, simpledrm (EFI framebuffer) claims card0 before amdgpu.
+    # wlroots enumerates DRM devices and picks the first one — card0 — which has
+    # no GPU acceleration and may not be connected to any physical output.
+    # Pin MangoWC to card1 (amdgpu) so it renders on the actual GPU.
+    export WLR_DRM_DEVICES=/dev/dri/card1
     exec ${pkgs.mangowc}/bin/mangowc
   '';
 
