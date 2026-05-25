@@ -25,16 +25,30 @@ let
     # Pin MangoWC to card1 (amdgpu) so it renders on the actual GPU.
     export WLR_DRM_DEVICES=/dev/dri/card1
 
+    # Log to home dir — survives reboots (unlike /tmp tmpfs).
+    LOG="/home/linuxury/.local/share/mangowc-session.log"
+    mkdir -p "/home/linuxury/.local/share"
+    printf '\n=== %s ===\nXDG_SESSION_ID=%s\nXDG_VTNR=%s\n' \
+      "$(date)" "$XDG_SESSION_ID" "$XDG_VTNR" >> "$LOG"
+
     # SDDM creates our logind session but the VT switch (VT1→VT2) may not
     # complete before wlroots calls TakeControl() on logind. Without an active
     # VT, logind denies TakeControl → libseat fails → MangoWC exits in <100ms.
-    # Explicitly activate the session to trigger the VT switch first.
-    # $XDG_SESSION_ID is injected by pam_systemd via SDDM's PAM stack.
-    [ -n "$XDG_SESSION_ID" ] && \
-      /run/current-system/sw/bin/loginctl activate "$XDG_SESSION_ID" 2>/tmp/mangowc-startup.log \
-      || true
+    # Call loginctl activate AND poll /sys/class/tty/tty0/active until the
+    # kernel confirms the switch is done before handing off to MangoWC.
+    if [ -n "$XDG_SESSION_ID" ] && [ -n "$XDG_VTNR" ]; then
+      /run/current-system/sw/bin/loginctl activate "$XDG_SESSION_ID" >> "$LOG" 2>&1 || true
+      for i in $(seq 1 30); do
+        active=$(cat /sys/class/tty/tty0/active 2>/dev/null || echo "unknown")
+        printf 'VT poll %d: active=%s want=tty%s\n' "$i" "$active" "$XDG_VTNR" >> "$LOG"
+        [ "$active" = "tty''${XDG_VTNR}" ] && break
+        sleep 0.1
+      done
+    else
+      printf 'WARNING: XDG_SESSION_ID or XDG_VTNR not set — skipping VT activation\n' >> "$LOG"
+    fi
 
-    exec ${pkgs.mangowc}/bin/mangowc 2>>/tmp/mangowc-startup.log
+    exec ${pkgs.mangowc}/bin/mangowc >> "$LOG" 2>&1
   '';
 
   # Session .desktop — registers MangoWC with SDDM's session picker.
