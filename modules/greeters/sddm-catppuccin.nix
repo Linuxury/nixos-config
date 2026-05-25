@@ -40,13 +40,20 @@
   security.pam.services.sddm.enableGnomeKeyring = true;
   security.pam.services.login.enableGnomeKeyring = true;  # TTY login fallback
 
-  # sddm-greeter-qt6 runs inside weston's Wayland session. Without this, Qt6
-  # defaults to the xcb (X11) QPA plugin, fails to open a display (no Xorg on
-  # this system), and crashes immediately → black screen.
-  # KDE hosts override this in kde.nix (they set their own GreeterEnvironment
-  # with KWIN_DRM_DEVICES and QT_QPA_PLATFORMTHEME= alongside QT_QPA_PLATFORM).
+  # sddm-greeter-qt6 must run as a pure Wayland client inside weston.
+  #
+  # QT_QPA_PLATFORM=wayland   — forces Qt6 to use the Wayland QPA plugin
+  #                              instead of xcb (X11), which doesn't exist here.
+  # QT_QPA_PLATFORMTHEME=     — CRITICAL: disables the gtk3 platform theme plugin.
+  #                              Without this, Qt loads the gtk3 theme which calls
+  #                              gtk_init(); GTK tries X11, finds no display, and
+  #                              calls exit(1) → greeter crashes → black screen.
+  #                              (KDE uses the same workaround in kde.nix.)
+  #
+  # KDE overrides this via a plain assignment in kde.nix (priority 100 wins over
+  # mkDefault priority 1000) with its own compositor-specific vars.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    lib.mkDefault "QT_QPA_PLATFORM=wayland";
+    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=";
 
   # SDDM runs the greeter compositor (weston or kwin) as the sddm system user.
   # video: GPU access for rendering the login screen.
