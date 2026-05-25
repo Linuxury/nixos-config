@@ -24,7 +24,17 @@ let
     # no GPU acceleration and may not be connected to any physical output.
     # Pin MangoWC to card1 (amdgpu) so it renders on the actual GPU.
     export WLR_DRM_DEVICES=/dev/dri/card1
-    exec ${pkgs.mangowc}/bin/mangowc
+
+    # SDDM creates our logind session but the VT switch (VT1→VT2) may not
+    # complete before wlroots calls TakeControl() on logind. Without an active
+    # VT, logind denies TakeControl → libseat fails → MangoWC exits in <100ms.
+    # Explicitly activate the session to trigger the VT switch first.
+    # $XDG_SESSION_ID is injected by pam_systemd via SDDM's PAM stack.
+    [ -n "$XDG_SESSION_ID" ] && \
+      /run/current-system/sw/bin/loginctl activate "$XDG_SESSION_ID" 2>/tmp/mangowc-startup.log \
+      || true
+
+    exec ${pkgs.mangowc}/bin/mangowc 2>>/tmp/mangowc-startup.log
   '';
 
   # Session .desktop — registers MangoWC with SDDM's session picker.
