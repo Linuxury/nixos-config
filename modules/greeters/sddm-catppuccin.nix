@@ -22,7 +22,7 @@
 #   - services.gnome.gnome-keyring.enable (session-level concern, not greeter)
 # ===========================================================================
 
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   services.displayManager.sddm = {
@@ -39,6 +39,14 @@
   # etc.) can access it without prompting for a password after the desktop loads.
   security.pam.services.sddm.enableGnomeKeyring = true;
   security.pam.services.login.enableGnomeKeyring = true;  # TTY login fallback
+
+  # sddm-greeter-qt6 runs inside weston's Wayland session. Without this, Qt6
+  # defaults to the xcb (X11) QPA plugin, fails to open a display (no Xorg on
+  # this system), and crashes immediately → black screen.
+  # KDE hosts override this in kde.nix (they set their own GreeterEnvironment
+  # with KWIN_DRM_DEVICES and QT_QPA_PLATFORMTHEME= alongside QT_QPA_PLATFORM).
+  services.displayManager.sddm.settings.General.GreeterEnvironment =
+    lib.mkDefault "QT_QPA_PLATFORM=wayland";
 
   # SDDM runs the greeter compositor (weston or kwin) as the sddm system user.
   # video: GPU access for rendering the login screen.
