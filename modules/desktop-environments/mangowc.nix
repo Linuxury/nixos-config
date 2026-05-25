@@ -89,6 +89,15 @@ in
   # different from environment.systemPackages which tuigreet used to scan.
   services.displayManager.sessionPackages = [ mangowc-session ];
 
+  # On UEFI systems the EFI simple framebuffer registers as DRM minor 0 (card0),
+  # pushing amdgpu to minor 1 (card1). Weston defaults to card0, gets a
+  # non-accelerated stub that can't render, and dies immediately → black screen.
+  # Force card1 so the greeter compositor runs on the actual GPU.
+  # Drops the auto-generated weston.ini (libinput/xkb defaults are fine for
+  # a login screen).
+  services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
+    "${pkgs.weston}/bin/weston --shell=kiosk --drm-device=card1";
+
   # =========================================================================
   # XDG Desktop Portal — screen capture, file picker, screenshots, etc.
   #
