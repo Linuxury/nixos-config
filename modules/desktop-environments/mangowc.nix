@@ -17,6 +17,28 @@ let
   # greetd launches this directly, so MangoWC inherits XCURSOR_THEME
   # at startup (before systemd environment.d is sourced — too late otherwise).
   mangowc-start = pkgs.writeShellScript "mangowc-start" ''
+    # === DUAL LOGGING: journal (always) + file (persistent) ===
+    # Journal survives rollbacks and is readable without booting into the gen.
+    # File captures everything including MangoWC stderr.
+    LOG="/home/linuxury/.local/share/mangowc-session.log"
+    mkdir -p "/home/linuxury/.local/share"
+    # Redirect all further stdout+stderr to the log file.
+    exec 1>>"$LOG" 2>&1
+
+    # Also write a copy of the startup env to the journal (survives if file fails).
+    {
+      echo "=== mangowc-start $(date) ==="
+      echo "XDG_SESSION_ID=''${XDG_SESSION_ID:-UNSET}"
+      echo "XDG_VTNR=''${XDG_VTNR:-UNSET}"
+      echo "HOME=''${HOME:-UNSET}"
+      echo "VT_ACTIVE=$(cat /sys/class/tty/tty0/active 2>/dev/null || echo unknown)"
+    } | /run/current-system/sw/bin/systemd-cat -t mangowc-start 2>/dev/null || true
+
+    echo "=== $(date) ==="
+    echo "XDG_SESSION_ID=''${XDG_SESSION_ID:-UNSET}"
+    echo "XDG_VTNR=''${XDG_VTNR:-UNSET}"
+    echo "VT_ACTIVE=$(cat /sys/class/tty/tty0/active 2>/dev/null || echo unknown)"
+
     export XCURSOR_THEME=BreezeX-Light
     export XCURSOR_SIZE=24
     # On UEFI systems, simpledrm (EFI framebuffer) claims card0 before amdgpu.
@@ -25,30 +47,21 @@ let
     # Pin MangoWC to card1 (amdgpu) so it renders on the actual GPU.
     export WLR_DRM_DEVICES=/dev/dri/card1
 
-    # Log to home dir — survives reboots (unlike /tmp tmpfs).
-    LOG="/home/linuxury/.local/share/mangowc-session.log"
-    mkdir -p "/home/linuxury/.local/share"
-    printf '\n=== %s ===\nXDG_SESSION_ID=%s\nXDG_VTNR=%s\n' \
-      "$(date)" "$XDG_SESSION_ID" "$XDG_VTNR" >> "$LOG"
-
-    # SDDM creates our logind session but the VT switch (VT1→VT2) may not
-    # complete before wlroots calls TakeControl() on logind. Without an active
-    # VT, logind denies TakeControl → libseat fails → MangoWC exits in <100ms.
-    # Call loginctl activate AND poll /sys/class/tty/tty0/active until the
-    # kernel confirms the switch is done before handing off to MangoWC.
-    if [ -n "$XDG_SESSION_ID" ] && [ -n "$XDG_VTNR" ]; then
-      /run/current-system/sw/bin/loginctl activate "$XDG_SESSION_ID" >> "$LOG" 2>&1 || true
+    # Poll VT until active (or give up after 3s) — VT switch is async.
+    if [ -n "''${XDG_SESSION_ID:-}" ] && [ -n "''${XDG_VTNR:-}" ]; then
+      /run/current-system/sw/bin/loginctl activate "$XDG_SESSION_ID" || true
       for i in $(seq 1 30); do
         active=$(cat /sys/class/tty/tty0/active 2>/dev/null || echo "unknown")
-        printf 'VT poll %d: active=%s want=tty%s\n' "$i" "$active" "$XDG_VTNR" >> "$LOG"
+        echo "VT poll $i: active=$active want=tty''${XDG_VTNR}"
         [ "$active" = "tty''${XDG_VTNR}" ] && break
         sleep 0.1
       done
     else
-      printf 'WARNING: XDG_SESSION_ID or XDG_VTNR not set — skipping VT activation\n' >> "$LOG"
+      echo "WARNING: XDG_SESSION_ID or XDG_VTNR not set — skipping VT activation"
     fi
 
-    exec ${pkgs.mangowc}/bin/mangowc >> "$LOG" 2>&1
+    echo "Launching MangoWC..."
+    exec ${pkgs.mangowc}/bin/mangowc
   '';
 
   # Session .desktop — registers MangoWC with SDDM's session picker.
