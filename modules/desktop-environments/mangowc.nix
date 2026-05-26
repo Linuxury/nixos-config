@@ -61,7 +61,7 @@ let
     fi
 
     echo "Launching MangoWC..."
-    exec ${pkgs.mangowc}/bin/mangowc
+    exec ${pkgs.mangowc}/bin/mango
   '';
 
   # Session .desktop — registers MangoWC with SDDM's session picker.
