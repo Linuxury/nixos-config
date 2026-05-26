@@ -416,6 +416,7 @@
       "audio"
       "input"
       "gamemode"
+      "seat"   # seatd seat management (DRM/input handoff for Wayland compositors)
     ];
     shell = pkgs.zsh;
 

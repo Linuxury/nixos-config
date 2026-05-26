@@ -55,10 +55,14 @@
   services.displayManager.sddm.settings.General.GreeterEnvironment =
     lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=";
 
-  # SDDM runs the greeter compositor (weston or kwin) as the sddm system user.
-  # video: GPU access for rendering the login screen.
-  # input: keyboard/mouse input before any user session starts.
-  users.users.sddm.extraGroups = [ "video" "input" ];
+  # seatd manages seat (GPU/input device) access for Wayland compositors.
+  # With seatd running, libseat in weston and MangoWC/kwin uses seatd's backend
+  # instead of logind's. seatd handles DRM master handoff between compositors
+  # cleanly (greeter exits → user compositor takes over) without the VT race
+  # condition that occurs with the logind backend.
+  # The 'seat' group is required for any user/process that needs seat access.
+  services.seatd.enable = true;
+  users.users.sddm.extraGroups = [ "video" "input" "seat" ];
 
   # SDDM sets XDG_RUNTIME_DIR=/run/user/175 for the sddm user (uid 175 on NixOS)
   # but systemd-logind never creates it for greeter sessions — create it manually.
