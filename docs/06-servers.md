@@ -263,6 +263,7 @@ Connect from Minecraft: `MinisForum:25565` (or the Tailscale IP if hostname reso
 
 - Port: **5520** (UDP)
 - Data: `/data/gameservers/hytale/Server/`
+- Current version: **0.5.2** (Update 5, released May 26 2026)
 - Starts automatically at boot
 
 ```bash
@@ -320,16 +321,104 @@ sudo systemctl start hytale-server
 
 #### Hytale Updates
 
-Stop the service, download the latest version using the downloader tool (it handles incremental updates), replace the files, then start again:
+The preferred way is the `hytale-update` shell function available on linuxury's desktop. It SSHes into MinisForum and runs the full update sequence non-interactively:
+
+```bash
+hytale-update   # run from linuxury's desktop (Ryzen5900x or ThinkPad)
+```
+
+What it does:
+1. Stops the server
+2. Downloads and replaces the downloader binary (always refresh — it updates independently)
+3. Runs the downloader to fetch `server.zip`
+4. Unpacks the update, moves `Assets.zip` into `Server/`, clears `Server/update-staging`
+5. Starts the server and shows the last 20 log lines
+
+If you prefer to do it manually over SSH:
 
 ```bash
 sudo systemctl stop hytale-server
 cd /data/gameservers/hytale
-./hytale-downloader-linux-amd64 -download-path server.zip   # download latest version
-unzip -o server.zip -d .                                     # -o overwrites existing files
+
+# Always re-download the downloader first — it updates independently of the server
+wget -q -O hytale-downloader.zip https://downloader.hytale.com/hytale-downloader.zip
+unzip -o -q hytale-downloader.zip
+chmod +x hytale-downloader-linux-amd64
+rm -f hytale-downloader.zip
+
+# Download the server update
+./hytale-downloader-linux-amd64 -download-path server.zip -skip-update-check
+
+# Apply the update
+unzip -o server.zip -d .
 mv -f Assets.zip Server/
+rm -f server.zip
+rm -rf Server/update-staging   # clear staging area left by auto-update system
+
 sudo systemctl start hytale-server
 ```
+
+> 🔑 If the downloader exits with `oauth2: invalid_grant`, the downloader credentials have expired (they last ~90 days). See **OAuth Re-Authentication** below.
+
+#### OAuth Re-Authentication
+
+There are **two separate credential stores**. Each can expire independently.
+
+**Downloader credentials** (`~/.hytale-downloader-credentials.json`) — expire ~every 90 days. Used by the downloader binary to fetch server updates. Symptom: `hytale-update` (or manual downloader run) exits with `oauth2: invalid_grant`.
+
+```bash
+ssh -t MinisForum
+cd /data/gameservers/hytale
+rm .hytale-downloader-credentials.json
+./hytale-downloader-linux-amd64 -download-path /tmp/test.zip
+# Follow the device auth URL + code shown in the terminal
+# Ctrl+C once authenticated — credentials are now saved
+```
+
+**Server credentials** (`Server/auth.enc`) — persistent encrypted file. Used by the running server to authenticate with Hytale's backend. Symptom: server logs show auth errors or refuses player connections. Re-authenticate by running the server manually:
+
+```bash
+ssh -t MinisForum
+sudo systemctl stop hytale-server
+cd /data/gameservers/hytale/Server
+java -jar HytaleServer.jar --assets Assets.zip --bind 0.0.0.0:5520
+# At the server console:
+/auth login device
+# Follow the URL + code, then:
+/auth persistence Encrypted
+# Ctrl+C, then:
+sudo systemctl start hytale-server
+```
+
+#### Mod Management
+
+Mods live in `Server/mods/`. The server loads every file in that directory at startup — a broken mod crashes the server and causes a crash-loop (`systemd Restart=on-failure`).
+
+**To disable a mod without deleting it**, move it to `Server/mods/disabled/`:
+
+```bash
+ssh MinisForum
+cd /data/gameservers/hytale/Server/mods
+mkdir -p disabled
+mv SomeMod.jar disabled/            # single-file mod
+mv SomeModDir/ disabled/            # mod with a data directory
+```
+
+**To re-enable**, move it back:
+
+```bash
+mv disabled/SomeMod.jar .
+```
+
+**Currently disabled mods** (incompatible with 0.5.2 — check for updates before re-enabling):
+
+| Mod | Files | Reason |
+|-----|-------|--------|
+| `MinersHelmet` 1.0.3 | `Miners-Helmet-1.0.3.zip` | Item JSON format changed in 0.5.2; all helmet assets fail to decode |
+| `ReviveMe` | `ReviveMe.jar` + `ReviveMe/` dir | Plugin API changed; "Failed to start" → `mod_error` shutdown |
+| `HyCitizens` 1.6.0 | `HyCitizens-1.6.0.jar` + `HyCitizensData/` + `HyCitizensRoles/` | `CitizenInteraction` NPC builder removed in 0.5.2 |
+
+> 💡 When a mod update drops for any of the above, move it back from `disabled/`, run `hytale-update` (which will restart the server), and check the logs for errors.
 
 ### Samba
 

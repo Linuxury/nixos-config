@@ -290,6 +290,7 @@
   #
   # Uses Java 25 + QUIC/UDP on port 5520.
   # Server files live in /data/gameservers/hytale/Server/
+  # Current version: 0.5.2 (as of 2026-05-27)
   #
   # FIRST-TIME SETUP (run once as linuxury on MinisForum):
   #   cd /data/gameservers/hytale
@@ -297,10 +298,11 @@
   #   unzip hytale-downloader.zip
   #   chmod +x hytale-downloader-linux-amd64
   #   ./hytale-downloader-linux-amd64 -download-path server.zip
+  #   # → first run triggers OAuth2 device flow: visit URL shown + enter code
   #   unzip server.zip -d .
   #   mv Assets.zip Server/
   #
-  #   # Run manually once to authenticate:
+  #   # Run manually once to authenticate the SERVER (separate from downloader auth):
   #   cd Server
   #   java -jar HytaleServer.jar --assets Assets.zip --bind 0.0.0.0:5520
   #   # In the Hytale console:
@@ -330,11 +332,33 @@
   #   unzip -o server.zip -d . && mv -f Assets.zip Server/ && rm -f server.zip
   #   rm -rf Server/update-staging 2>/dev/null || true
   #   sudo systemctl start hytale-server
-  #   (auth credentials and server config survive updates)
+  #   (auth credentials, server config, and mods survive updates)
   #
   # NOTE: The downloader is versioned — always re-download it before updating.
   # NOTE: Exit code 8 = auto-update staged internally (new in Update 2).
   #       The hytale-update function clears staging so manual updates win cleanly.
+  #
+  # OAUTH RE-AUTH (downloader credentials expire ~every 90 days):
+  #   If hytale-update fails with "oauth2: invalid_grant":
+  #   ssh -t MinisForum
+  #   cd /data/gameservers/hytale
+  #   rm .hytale-downloader-credentials.json   ← delete the stale token
+  #   ./hytale-downloader-linux-amd64 -download-path server.zip
+  #   → follow device auth flow → credentials auto-saved → continue update manually
+  #   Note: server's auth.enc and downloader's .hytale-downloader-credentials.json
+  #         are SEPARATE — one expiring does not affect the other.
+  #
+  # MOD MANAGEMENT:
+  #   Mods live in Server/mods/. Incompatible mods (wrong server version) crash
+  #   the server at startup with "Asset validation FAILED" or "Failed to start <mod>".
+  #   Move broken mods to Server/mods/disabled/ until an update is available:
+  #     mv Server/mods/SomeMod-1.0.0.jar Server/mods/disabled/
+  #     sudo systemctl restart hytale-server
+  #   To re-enable after an update: move back from disabled/ to mods/ and restart.
+  #   Currently disabled (incompatible with 0.5.2, awaiting mod updates):
+  #     - Miners-Helmet-1.0.3.zip      (item JSON format changed)
+  #     - ReviveMe.jar + ReviveMe/     (plugin API changed)
+  #     - HyCitizens-1.6.0.jar + data  (CitizenInteraction builder broken)
   # =========================================================================
   systemd.services.hytale-server = {
     description = "Hytale Game Server";
