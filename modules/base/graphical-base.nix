@@ -82,13 +82,6 @@
   # without requiring a separate Qt configurator tool.
   environment.sessionVariables.QT_QPA_PLATFORMTHEME = "gtk2";
 
-  # Ensure flatpak desktop files/icons are discoverable by launchers
-  environment.sessionVariables.XDG_DATA_DIRS = [
-    "/var/lib/flatpak/exports/share"
-    "$HOME/.local/share/flatpak/exports/share"
-    "$XDG_DATA_DIRS"
-  ];
-
   # =========================================================================
   # Bluetooth
   #
