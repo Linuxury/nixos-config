@@ -8,8 +8,8 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - KDE Plasma 6 (active DE — SDDM)
-#   - Hyprland / Niri / GNOME (available — commented out, one at a time)
+#   - COSMIC Desktop (active DE — cosmic-greeter)
+#   - Hyprland / Niri / GNOME / KDE (available — commented out, one at a time)
 #   - Gaming
 #   - Development
 # ===========================================================================
@@ -39,12 +39,11 @@
     ../../modules/base/linuxury-ssh.nix
     ../../modules/base/linuxury-description.nix
     ../../modules/hardware/drivers.nix
-    #../../modules/desktop-environments/cosmic.nix
+    ../../modules/desktop-environments/cosmic.nix
     #../../modules/desktop-environments/hyprland.nix
     #../../modules/desktop-environments/niri.nix
-    # To test a full DE — comment out hyprland.nix above and uncomment one:
     #../../modules/desktop-environments/gnome.nix
-    ../../modules/desktop-environments/kde.nix
+    #../../modules/desktop-environments/kde.nix
     ../../modules/gaming/gaming.nix
     #../../modules/development/development.nix
     ../../modules/base/auto-update.nix

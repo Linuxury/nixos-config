@@ -28,6 +28,7 @@
   imports = [
     ../../modules/home/neovim.nix
     ../../modules/home/helium.nix
+    ../../modules/home/hytale.nix
   ];
 
   # =========================================================================
@@ -142,10 +143,6 @@
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
 
-    # ~/Documents/assets/flatpaks → nixos-config/assets/flatpaks (Hytale bundle)
-    "Documents/assets/flatpaks".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
   };
 
   # =========================================================================
@@ -206,57 +203,11 @@
   };
 
   # =========================================================================
-  # Hytale — automatic flatpak installation from bundled file
-  #
-  # Same approach as babylinux — installs from assets repo on first login.
-  #
-  # Note: Flatpak is disabled system-wide on Alex's machines via
-  # lib.mkForce false in the host config to prevent him installing
-  # random apps. We re-enable it specifically for Hytale only.
+  # Hytale — auto-install + overrides (see modules/home/hytale.nix)
+  # Note: Flatpak is disabled system-wide on Alex's machines except for Hytale.
   # This exception is handled in hosts/Alex-Desktop and hosts/Alex-Laptop.
-  #
-  # Notification messages use plain language — he's 6.
   # =========================================================================
-  systemd.user.services.hytale-flatpak-install = {
-    Unit = {
-      Description         = "Install Hytale launcher from bundled flatpak";
-      After               = [ "graphical-session.target" ];
-      Wants               = [ "graphical-session.target" ];
-      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hypixel.HytaleLauncher";
-    };
-
-    Service = {
-      Type      = "oneshot";
-      Restart   = "no";
-      ExecStart = "${pkgs.writeShellScript "install-hytale-alex" ''
-        FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
-
-        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
-          echo "Hytale already installed, skipping."
-          exit 0
-        fi
-
-        if [ ! -f "$FLATPAK_FILE" ]; then
-          echo "ERROR: Hytale flatpak not found at $FLATPAK_FILE"
-          echo "  Place hytale-launcher-latest.flatpak in ~/Documents/assets/flatpaks/ and reboot."
-          exit 1
-        fi
-
-        echo "Installing Hytale launcher..."
-        if $FLATPAK install --user --noninteractive "$FLATPAK_FILE"; then
-          echo "Hytale installed successfully."
-        else
-          echo "ERROR: Hytale install failed. Check journalctl --user -u hytale-flatpak-install"
-          exit 1
-        fi
-      ''}";
-    };
-
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
-  };
+  programs.hytale.enable = true;
 
   # =========================================================================
   # SSH agent — included for consistency

@@ -25,6 +25,7 @@
   imports = [
     ../../modules/home/neovim.nix
     ../../modules/home/helium.nix
+    ../../modules/home/hytale.nix
   ];
 
   # =========================================================================
@@ -114,12 +115,6 @@
     "d ${config.home.homeDirectory}/.agents/memory           0755 linuxury users -"
     "d ${config.home.homeDirectory}/.agents/backups          0755 linuxury users -"
     "d ${config.home.homeDirectory}/.agents/skills           0755 linuxury users -"
-
-    # Hytale flatpak bundle storage (moved out of ~/assets into ~/Documents)
-    # linuxury's Hytale service reads the bundle from here before falling
-    # back to the CDN download. Move the file here if you pre-downloaded it.
-    "d ${config.home.homeDirectory}/Documents/assets          0755 linuxury users -"
-    "d ${config.home.homeDirectory}/Documents/assets/flatpaks 0755 linuxury users -"
 
     # SSH directory with correct permissions
     "d ${config.home.homeDirectory}/.ssh  0700 linuxury users -"
@@ -600,92 +595,13 @@ with open('$_target', 'w') as f:
   services.ssh-agent.enable = true;
 
   # =========================================================================
-  # Hytale — automatic flatpak installation
-  #
-  # Hytale is not on Flathub yet. On first login the service tries to find
-  # a pre-downloaded bundle at ~/assets/flatpaks/ and falls back to fetching
-  # it directly from the developer's CDN if the file isn't there yet.
-  #
-  # Source: https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak
+  # Hytale — auto-install + overrides (see modules/home/hytale.nix)
   # =========================================================================
-  systemd.user.services.hytale-flatpak-install = {
-    Unit = {
-      Description = "Install Hytale launcher from flatpak";
-      After = [
-        "graphical-session.target"
-        "network-online.target"
-      ];
-      Wants = [
-        "graphical-session.target"
-        "network-online.target"
-      ];
-      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hypixel.HytaleLauncher";
-    };
-
-    Service = {
-      Type = "oneshot";
-      Restart = "no";
-      ExecStart = "${pkgs.writeShellScript "install-hytale-linuxury" ''
-        FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        CURL="${pkgs.curl}/bin/curl"
-        FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
-        HYTALE_URL="https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak"
-
-        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
-          echo "Hytale already installed, skipping."
-          exit 0
-        fi
-
-        # Ensure Flathub is available so flatpak can pull required runtimes
-        # (e.g. org.freedesktop.Platform) when installing the bundle.
-        $FLATPAK remote-add --user --if-not-exists flathub \
-          https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
-
-        # If the bundled file isn't present, download it from the official CDN.
-        # Bundle location: ~/Documents/assets/flatpaks/hytale-launcher-latest.flatpak
-        if [ ! -f "$FLATPAK_FILE" ]; then
-          echo "Local bundle not found — downloading from $HYTALE_URL"
-          mkdir -p "$(dirname "$FLATPAK_FILE")"
-          if ! $CURL -L --fail -o "$FLATPAK_FILE" "$HYTALE_URL"; then
-            echo "ERROR: Could not download Hytale. Check internet or clone the assets repo."
-            exit 1
-          fi
-        fi
-
-        echo "Installing Hytale launcher..."
-        $FLATPAK install --user --noninteractive "$FLATPAK_FILE" || true
-
-        # Remove the sideload origin remote — it has no appstream data and
-        # causes COSMIC Store's flatpak-user backend to fail on load.
-        # The installed app is unaffected; updates re-run this service.
-        $FLATPAK remote-delete --user --force hytalelauncher-origin 2>/dev/null || true
-
-        # Verify the app is actually present — covers fresh install and the
-        # edge case where flatpak returns non-zero because it was already installed.
-        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
-          echo "Hytale installed successfully."
-        else
-          echo "ERROR: Hytale install failed. Check journalctl --user -u hytale-flatpak-install"
-          exit 1
-        fi
-      ''}";
-    };
-
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
+  programs.hytale = {
+    enable      = true;
+    cdnFallback = true;  # Download from CDN if local bundle not found
   };
 
-  # =========================================================================
-  # Hytale — Flatpak rendering fix for COSMIC (Wayland)
-  #
-  # Hytale's Electron-based launcher renders blank content on COSMIC because
-  # it tries to use native Wayland GPU rendering, which behaves differently
-  # from KWin. Forcing XWayland mode (ELECTRON_OZONE_PLATFORM_HINT=x11) makes
-  # the renderer behave exactly as it does under KDE/X11 where it works fine.
-  #
-  # flatpak override is idempotent — safe to re-apply on every HM activation.
-  # =========================================================================
   home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p "$HOME/Obsidian"
   '';
@@ -716,12 +632,6 @@ with open('$_target', 'w') as f:
       printf '#!/bin/sh\nexec %s "$@"\n' "$CLAUDE_REAL" > "$ext_claude"
       chmod +x "$ext_claude"
     done
-  '';
-
-  home.activation.hytale-wayland-fix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    ${pkgs.flatpak}/bin/flatpak override --user \
-      --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
-      com.hypixel.HytaleLauncher 2>/dev/null || true
   '';
 
   # Seed MangoWC config on first install.

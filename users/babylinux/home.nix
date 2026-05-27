@@ -50,7 +50,10 @@ in
   imports = [
     ../../modules/home/neovim.nix
     ../../modules/home/helium.nix
+    ../../modules/home/hytale.nix
   ];
+
+  programs.hytale.enable = true;
 
   # =========================================================================
   # Home Manager basics
@@ -182,11 +185,6 @@ in
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
 
-    # ~/Documents/assets/flatpaks → nixos-config/assets/flatpaks (Hytale bundle)
-    "Documents/assets/flatpaks".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
-
     # SSH config
     ".ssh/config".text = ''
       # ===========================================================
@@ -288,59 +286,8 @@ in
   };
 
   # =========================================================================
-  # Hytale — automatic flatpak installation from bundled file
-  #
-  # Hytale is not on Flathub yet. We bundle the flatpak from the developer
-  # directly in the assets repo and install it automatically on first login.
-  #
-  # Source: https://launcher.hytale.com/builds/release/linux/amd64/hytale-launcher-latest.flatpak
-  # Store at: ~/nixos-config/assets/flatpaks/hytale-launcher-latest.flatpak
-  #
-  # When Hytale eventually lands on Flathub:
-  #   1. Remove assets/flatpaks/hytale-launcher-latest.flatpak
-  #   2. Replace this service with a proper flatpak declaration
-  #   3. Rebuild
+  # Hytale — auto-install + overrides (see modules/home/hytale.nix)
   # =========================================================================
-  systemd.user.services.hytale-flatpak-install = {
-    Unit = {
-      Description         = "Install Hytale launcher from bundled flatpak";
-      After               = [ "graphical-session.target" ];
-      Wants               = [ "graphical-session.target" ];
-      ConditionPathExists = "!%h/.local/share/flatpak/app/com.hypixel.HytaleLauncher";
-    };
-
-    Service = {
-      Type      = "oneshot";
-      Restart   = "no";
-      ExecStart = "${pkgs.writeShellScript "install-hytale" ''
-        FLATPAK="${pkgs.flatpak}/bin/flatpak"
-        FLATPAK_FILE="$HOME/Documents/assets/flatpaks/hytale-launcher-latest.flatpak"
-
-        if $FLATPAK info --user com.hypixel.HytaleLauncher &>/dev/null; then
-          echo "Hytale already installed, skipping."
-          exit 0
-        fi
-
-        if [ ! -f "$FLATPAK_FILE" ]; then
-          echo "ERROR: Hytale flatpak not found at $FLATPAK_FILE"
-          echo "  Place hytale-launcher-latest.flatpak in ~/Documents/assets/flatpaks/ and reboot."
-          exit 1
-        fi
-
-        echo "Installing Hytale launcher..."
-        if $FLATPAK install --user --noninteractive "$FLATPAK_FILE"; then
-          echo "Hytale installed successfully."
-        else
-          echo "ERROR: Hytale install failed. Check journalctl --user -u hytale-flatpak-install"
-          exit 1
-        fi
-      ''}";
-    };
-
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
-  };
 
   # =========================================================================
   # Cursor — BreezeX-Light
