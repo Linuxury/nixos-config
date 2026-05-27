@@ -49,11 +49,20 @@
   #                              gtk_init(); GTK tries X11, finds no display, and
   #                              calls exit(1) → greeter crashes → black screen.
   #                              (KDE uses the same workaround in kde.nix.)
+  # XCURSOR_THEME/SIZE        — In Wayland, the cursor image is provided by the
+  #                              client (greeter), not the compositor. Without a
+  #                              theme, Qt sends no cursor image → invisible cursor
+  #                              even though mouse events are flowing normally.
   #
   # KDE overrides this via a plain assignment in kde.nix (priority 100 wins over
   # mkDefault priority 1000) with its own compositor-specific vars.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=";
+    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24";
+
+  # Adwaita cursor theme — required by the greeter environment above.
+  # Available system-wide so sddm user can resolve XCURSOR_THEME=Adwaita
+  # via /run/current-system/sw/share/icons/Adwaita/cursors/.
+  environment.systemPackages = [ pkgs.adwaita-icon-theme ];
 
   # seatd manages seat (GPU/input device) access for Wayland compositors.
   # With seatd running, libseat in weston and MangoWC/kwin uses seatd's backend

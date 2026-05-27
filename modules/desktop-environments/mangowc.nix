@@ -137,8 +137,11 @@ in
   # Force card1 so the greeter compositor runs on the actual GPU.
   # Drops the auto-generated weston.ini (libinput/xkb defaults are fine for
   # a login screen).
+  # XCURSOR_THEME/SIZE: weston uses these for its hardware cursor layer (DRM
+  # plane cursor). Without them weston renders a blank hardware cursor on top
+  # of the Qt greeter's own invisible cursor → doubly invisible.
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
-    "${pkgs.weston}/bin/weston --shell=kiosk --drm-device=card1";
+    "env XCURSOR_THEME=Adwaita XCURSOR_SIZE=24 ${pkgs.weston}/bin/weston --shell=kiosk --drm-device=card1";
 
   # =========================================================================
   # XDG Desktop Portal — screen capture, file picker, screenshots, etc.
