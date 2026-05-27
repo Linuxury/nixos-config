@@ -22,6 +22,7 @@ Reference guide for the three headless servers: Media-Server, Radxa-X4, and Mini
 - [MinisForum](#minisforum)
   - [Minecraft Java](#minecraft-java)
   - [Hytale Server](#hytale-server)
+  - [World Reset](#world-reset)
   - [Samba](#samba-1)
 - [General Server Tasks](#general-server-tasks)
 
@@ -238,7 +239,7 @@ nru Radxa-X4   # rebuild Radxa-X4 to apply the new config
 
 [↑ Back to Contents](#-contents)
 
-**Role:** Game server host — Minecraft Java and a Hytale server placeholder.
+**Role:** Game server host — Minecraft Java and Hytale (active, running 0.5.2).
 
 **Storage:** `/data/gameservers/` — shared via Samba at `\\MinisForum\GameServers`.
 
@@ -419,6 +420,36 @@ mv disabled/SomeMod.jar .
 | `HyCitizens` 1.6.0 | `HyCitizens-1.6.0.jar` + `HyCitizensData/` + `HyCitizensRoles/` | `CitizenInteraction` NPC builder removed in 0.5.2 |
 
 > 💡 When a mod update drops for any of the above, move it back from `disabled/`, run `hytale-update` (which will restart the server), and check the logs for errors.
+
+#### World Reset
+
+[↑ MinisForum](#minisforum)
+
+World data lives in `Server/universe/worlds/default/`. Player data (inventory, progress) lives in `Server/universe/players/` — one UUID-named JSON file per player. These are independent: you can reset the world without touching player data, or wipe everything for a full fresh start.
+
+**Option A — Reset world only** (players keep their inventory and progress):
+
+```bash
+ssh MinisForum
+sudo systemctl stop hytale-server
+rm -rf /data/gameservers/hytale/Server/universe/worlds/default
+sudo systemctl start hytale-server
+```
+
+The server regenerates the world directory on boot with a new random seed.
+
+**Option B — Full fresh start** (wipes world + all player data + memories):
+
+```bash
+ssh MinisForum
+sudo systemctl stop hytale-server
+rm -rf /data/gameservers/hytale/Server/universe/
+sudo systemctl start hytale-server
+```
+
+`universe/` contains: `worlds/` (map chunks), `players/` (per-player JSON files), `memories.json` (discovered locations), and `mods/` (mod persistent data). Everything regenerates clean on next boot.
+
+> ⚠️ No confirmation prompt — both operations are immediate and irreversible.
 
 ### Samba
 
