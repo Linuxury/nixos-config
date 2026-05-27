@@ -318,14 +318,23 @@
   #   journalctl -u hytale-server -f        ← watch logs live
   #   (auto-starts on boot once files are present)
   #
-  # UPDATE:
+  # UPDATE (preferred — from desktop/laptop):
+  #   hytale-update        ← zsh function in linuxury's home.nix; handles everything
+  #
+  # UPDATE (manual — SSH to MinisForum):
   #   sudo systemctl stop hytale-server
   #   cd /data/gameservers/hytale
+  #   wget -O hytale-downloader.zip https://downloader.hytale.com/hytale-downloader.zip
+  #   unzip -o hytale-downloader.zip && chmod +x hytale-downloader-linux-amd64 && rm hytale-downloader.zip
   #   ./hytale-downloader-linux-amd64 -download-path server.zip
-  #   unzip -o server.zip -d .              ← -o overwrites old JAR
-  #   mv -f Assets.zip Server/
+  #   unzip -o server.zip -d . && mv -f Assets.zip Server/ && rm -f server.zip
+  #   rm -rf Server/update-staging 2>/dev/null || true
   #   sudo systemctl start hytale-server
   #   (auth credentials and server config survive updates)
+  #
+  # NOTE: The downloader is versioned — always re-download it before updating.
+  # NOTE: Exit code 8 = auto-update staged internally (new in Update 2).
+  #       The hytale-update function clears staging so manual updates win cleanly.
   # =========================================================================
   systemd.services.hytale-server = {
     description = "Hytale Game Server";
@@ -373,6 +382,24 @@
 
   networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 ];
   networking.firewall.allowedUDPPorts = [ 137 138 5520 ]; # 5520/udp — Hytale uses QUIC (UDP only)
+
+  # =========================================================================
+  # Sudo — NOPASSWD for Hytale service control
+  #
+  # Required by the `hytale-update` zsh function on linuxury's desktop/laptop.
+  # That function runs over SSH without a TTY, so sudo can't prompt interactively.
+  # Scoped tightly: only start/stop/restart for hytale-server, nothing else.
+  # =========================================================================
+  security.sudo.extraRules = [
+    {
+      users   = [ "linuxury" ];
+      commands = [
+        { command = "/run/current-system/sw/bin/systemctl start hytale-server";   options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/systemctl stop hytale-server";    options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/systemctl restart hytale-server"; options = [ "NOPASSWD" ]; }
+      ];
+    }
+  ];
 
   # =========================================================================
   # Tailscale — remote management

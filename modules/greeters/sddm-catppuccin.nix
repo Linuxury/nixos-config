@@ -53,11 +53,14 @@
   #                              client (greeter), not the compositor. Without a
   #                              theme, Qt sends no cursor image → invisible cursor
   #                              even though mouse events are flowing normally.
+  # XCURSOR_PATH              — xcursor defaults to /usr/share/icons which doesn't
+  #                              exist on NixOS. Adwaita lives in the Nix system path.
+  #                              Must be explicit or the theme lookup silently fails.
   #
   # KDE overrides this via a plain assignment in kde.nix (priority 100 wins over
   # mkDefault priority 1000) with its own compositor-specific vars.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24";
+    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons";
 
   # Adwaita cursor theme — required by the greeter environment above.
   # Available system-wide so sddm user can resolve XCURSOR_THEME=Adwaita

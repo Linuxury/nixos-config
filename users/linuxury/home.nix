@@ -406,7 +406,55 @@
     };
 
     # Shared shell initialization — env vars, PATH, fastfetch, nru function
-    initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
+    # Appended: linuxury-specific management functions (hytale-update, etc.)
+    initContent = (lib.fileContents ../../dotfiles/zsh/zshrc) + ''
+
+      # -----------------------------------------------------------------------
+      # hytale-update — update the Hytale game server on MinisForum over SSH
+      #
+      # Runs the full update sequence non-interactively:
+      #   1. Stop server
+      #   2. Re-download hytale-downloader (it's versioned — always update it)
+      #   3. Download server.zip from CDN
+      #   4. Extract and move Assets.zip into Server/
+      #   5. Clear any auto-update staging dir (prevents exit-code-8 restart loop)
+      #   6. Start server + print last 20 log lines
+      #
+      # Requires: NOPASSWD sudoers rule for hytale-server in MinisForum/default.nix
+      # -----------------------------------------------------------------------
+      hytale-update() {
+        echo "→ Connecting to MinisForum..."
+        ssh MinisForum bash << 'ENDSSH'
+          set -e
+          echo "=== [1/5] Stopping Hytale server ==="
+          sudo systemctl stop hytale-server
+
+          cd /data/gameservers/hytale
+
+          echo "=== [2/5] Updating downloader ==="
+          wget -q -O hytale-downloader.zip https://downloader.hytale.com/hytale-downloader.zip
+          unzip -o -q hytale-downloader.zip
+          chmod +x hytale-downloader-linux-amd64
+          rm -f hytale-downloader.zip
+
+          echo "=== [3/5] Downloading server update ==="
+          ./hytale-downloader-linux-amd64 -download-path server.zip
+
+          echo "=== [4/5] Applying update ==="
+          unzip -o server.zip -d .
+          mv -f Assets.zip Server/
+          rm -f server.zip
+          rm -rf Server/update-staging 2>/dev/null || true
+
+          echo "=== [5/5] Starting Hytale server ==="
+          sudo systemctl start hytale-server
+
+          echo ""
+          echo "=== Done. Last 20 log lines: ==="
+          journalctl -u hytale-server --no-pager -n 20
+ENDSSH
+      }
+    '';
   };
 
   # =========================================================================
