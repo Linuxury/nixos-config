@@ -140,8 +140,12 @@ in
   # XCURSOR_THEME/SIZE: weston uses these for its hardware cursor layer (DRM
   # plane cursor). Without them weston renders a blank hardware cursor on top
   # of the Qt greeter's own invisible cursor → doubly invisible.
+  # XCURSOR_PATH: xcursor defaults to /usr/share/icons which doesn't exist on
+  # NixOS. Must be set explicitly so weston can resolve XCURSOR_THEME=Adwaita.
+  # Note: GreeterEnvironment (in sddm-catppuccin.nix) also sets XCURSOR_PATH
+  # for the Qt greeter process — both need it as they are separate env contexts.
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
-    "env XCURSOR_THEME=Adwaita XCURSOR_SIZE=24 ${pkgs.weston}/bin/weston --shell=kiosk --drm-device=card1";
+    "env XCURSOR_THEME=Adwaita XCURSOR_SIZE=24 XCURSOR_PATH=/run/current-system/sw/share/icons ${pkgs.weston}/bin/weston --shell=kiosk --drm-device=card1";
 
   # =========================================================================
   # XDG Desktop Portal — screen capture, file picker, screenshots, etc.
