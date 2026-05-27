@@ -143,6 +143,35 @@ in
   # Missing paths (e.g. on a laptop not on home LAN) are silently skipped.
   # Applies to all users on all COSMIC hosts via sharedModules.
   # =========================================================================
+  # =========================================================================
+  # Blueman — hide from app launcher, keep running as background service
+  #
+  # COSMIC has its own Bluetooth panel applet; blueman-manager showing up
+  # alongside it creates a duplicate "Bluetooth Manager" entry. This override
+  # hides blueman-manager from launchers while keeping the daemon available
+  # (it can still be invoked directly and its tray icon still works).
+  # =========================================================================
+  home.file.".local/share/applications/blueman-manager.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=Bluetooth Manager
+    Exec=blueman-manager
+    Hidden=true
+  '';
+
+  # =========================================================================
+  # COSMIC Files — sidebar favorites
+  #
+  # COSMIC Files reads favorites from this RON file. Custom mount points
+  # use the Path() variant — the last path segment becomes the display name,
+  # so capitalized paths show as "Media-Server", "MinisForum", etc.
+  #
+  # Local drives appear automatically in COSMIC's Devices section —
+  # only network shares need explicit entries here.
+  #
+  # Missing paths (e.g. on a laptop not on home LAN) are silently skipped.
+  # Applies to all users on all COSMIC hosts via sharedModules.
+  # =========================================================================
   home.file.".config/cosmic/com.system76.CosmicFiles/v1/favorites" = {
     force = true;
     text = ''

@@ -16,19 +16,20 @@
 { ... }:
 
 {
-  xdg.desktopEntries.helium = {
-    name = "Helium";
-    genericName = "Web Browser";
-    exec = "helium --password-store=gnome-libsecret %U";
-    icon = "helium";
-    terminal = false;
-    categories = [ "Network" "WebBrowser" ];
-    mimeType = [
-      "text/html"
-      "text/xml"
-      "application/xhtml+xml"
-      "x-scheme-handler/http"
-      "x-scheme-handler/https"
-    ];
-  };
+  # Place the override in XDG_DATA_HOME (~/.local/share/applications/) so it
+  # shadows the system package's entry in XDG_DATA_DIRS. xdg.desktopEntries
+  # installs into the HM profile, which sits at the same XDG_DATA_DIRS
+  # priority as the system package — causing launchers to show two entries.
+  home.file.".local/share/applications/helium.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Version=1.5
+    Name=Helium
+    GenericName=Web Browser
+    Icon=helium
+    Exec=helium --password-store=gnome-libsecret %U
+    Terminal=false
+    Categories=Network;WebBrowser;
+    MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+  '';
 }
