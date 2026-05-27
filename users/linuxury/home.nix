@@ -421,6 +421,16 @@
       #   6. Start server + print last 20 log lines
       #
       # Requires: NOPASSWD sudoers rule for hytale-server in MinisForum/default.nix
+      #
+      # IF STEP 3 FAILS with "oauth2: invalid_grant" (credentials expired, ~every 90 days):
+      #   ssh -t MinisForum
+      #   cd /data/gameservers/hytale
+      #   rm .hytale-downloader-credentials.json
+      #   ./hytale-downloader-linux-amd64 -download-path server.zip
+      #   → follow the device auth flow (URL + code in browser)
+      #   → then manually finish: unzip -o server.zip -d . && mv -f Assets.zip Server/ && rm -f server.zip
+      #   → sudo systemctl start hytale-server
+      #   After re-auth, hytale-update works again until next expiry.
       # -----------------------------------------------------------------------
       hytale-update() {
         echo "→ Connecting to MinisForum..."
@@ -438,7 +448,14 @@
           rm -f hytale-downloader.zip
 
           echo "=== [3/5] Downloading server update ==="
-          ./hytale-downloader-linux-amd64 -download-path server.zip
+          if ! ./hytale-downloader-linux-amd64 -download-path server.zip -skip-update-check; then
+            echo ""
+            echo "ERROR: Download failed. If you see 'oauth2: invalid_grant', credentials expired."
+            echo "Fix: ssh -t MinisForum → rm /data/gameservers/hytale/.hytale-downloader-credentials.json"
+            echo "     → run downloader manually to re-auth, then finish update manually."
+            sudo systemctl start hytale-server
+            exit 1
+          fi
 
           echo "=== [4/5] Applying update ==="
           unzip -o server.zip -d .
