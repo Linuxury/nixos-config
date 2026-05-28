@@ -8,9 +8,9 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - MangoWC + Noctalia (active)
+#   - Hyprland + DMS (active)
+#   - MangoWC + Noctalia (disabled — VRR/wlroots assertion crash on RDNA3)
 #   - COSMIC (disabled)
-#   - Hyprland (disabled)
 #   - Niri (disabled)
 #   - Gaming
 #   - Development
@@ -36,9 +36,9 @@
     ../../modules/base/linuxury-description.nix
     ../../modules/hardware/drivers.nix
     #../../modules/desktop-environments/cosmic.nix
-    #../../modules/desktop-environments/hyprland.nix
+    ../../modules/desktop-environments/hyprland.nix
     #../../modules/desktop-environments/niri.nix
-    ../../modules/desktop-environments/mangowc.nix
+    #../../modules/desktop-environments/mangowc.nix
     ../../modules/gaming/gaming.nix
     #../../modules/development/development.nix
     ../../modules/base/openrgb.nix

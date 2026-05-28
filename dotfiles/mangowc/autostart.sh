@@ -30,11 +30,14 @@ run nm-applet --indicator   # Network Manager tray icon
 run cliphist wipe 2>/dev/null; wl-paste --watch cliphist store &
 
 # ---------------------------------------------------------------------------
-# Monitor output — max refresh rate + VRR (adaptive sync)
+# Monitor output — max refresh rate
 #
-# Queries all connected outputs, selects the highest-refresh mode for each,
-# and enables adaptive sync (VRR/FreeSync). Runs once at startup via wlr-randr.
+# Queries all connected outputs and selects the highest-refresh mode for each.
+# Runs once at startup via wlr-randr.
 # jq parses the JSON; refresh values from wlr-randr are in mHz (divide by 1000).
+#
+# NOTE: --adaptive-sync disabled — triggers wlr_backend_finish assertion crash
+# on AMD RDNA3 (RX 7900 XTX). Same root cause as the Hyprland DPMS crash.
 # ---------------------------------------------------------------------------
 wlr-randr --json 2>/dev/null | jq -c '.[]' 2>/dev/null | while read -r out; do
   name=$(printf '%s' "$out" | jq -r '.name')
@@ -42,8 +45,7 @@ wlr-randr --json 2>/dev/null | jq -c '.[]' 2>/dev/null | while read -r out; do
   height=$(printf '%s' "$out" | jq -r '.modes | max_by(.refresh) | .height')
   refresh=$(printf '%s' "$out" | jq -r '.modes | max_by(.refresh) | (.refresh / 1000 | floor)')
   wlr-randr --output "$name" \
-    --mode "${width}x${height}@${refresh}" \
-    --adaptive-sync enabled 2>/dev/null || true
+    --mode "${width}x${height}@${refresh}" 2>/dev/null || true
 done
 
 # ---------------------------------------------------------------------------
