@@ -19,19 +19,19 @@
 
 {
   imports = [
-    ../../modules/base/common.nix
-    ../../modules/base/graphical-base.nix
-    ../../modules/hardware/drivers.nix
-    #../../modules/desktop-environments/cosmic.nix
-    ../../modules/desktop-environments/kde.nix
-    ../../modules/gaming/gaming.nix
-    ../../modules/base/openrgb.nix
-    ../../modules/base/auto-update.nix
-    ../../modules/base/babylinux-ssh.nix        # babylinux — primary SSH access
-    ../../modules/base/linuxury-ssh.nix         # linuxury  — emergency SSH only
-    ../../modules/base/babylinux-description.nix
-    ../../modules/users/babylinux-packages.nix
-    ../../modules/base/syncthing-babylinux.nix
+    ../../modules/system/core/default.nix
+    ../../modules/system/graphical/default.nix
+    ../../modules/hardware/drivers/default.nix
+    #../../modules/desktops/cosmic/default.nix
+    ../../modules/desktops/kde/default.nix
+    ../../modules/gaming/default.nix
+    ../../modules/hardware/openrgb/default.nix
+    ../../modules/services/auto-update/default.nix
+    ../../modules/users/babylinux/ssh/default.nix  # babylinux — primary SSH access
+    ../../modules/users/linuxury/ssh/default.nix   # linuxury  — emergency SSH only
+    ../../modules/users/babylinux/description/default.nix
+    ../../modules/users/babylinux/packages/default.nix
+    ../../modules/services/syncthing-babylinux/default.nix
   ];
 
   # =========================================================================

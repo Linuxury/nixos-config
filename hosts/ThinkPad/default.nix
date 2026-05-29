@@ -34,22 +34,22 @@
     # -------------------------------------------------------------------------
     # Our shared modules — each one we wrote is pulled in here
     # -------------------------------------------------------------------------
-    ../../modules/base/common.nix
-    ../../modules/base/graphical-base.nix
-    ../../modules/base/linuxury-ssh.nix
-    ../../modules/base/linuxury-description.nix
-    ../../modules/hardware/drivers.nix
-    ../../modules/desktop-environments/cosmic.nix
-    #../../modules/desktop-environments/hyprland.nix
-    #../../modules/desktop-environments/niri.nix
-    #../../modules/desktop-environments/gnome.nix
-    #../../modules/desktop-environments/kde.nix
-    ../../modules/gaming/gaming.nix
+    ../../modules/system/core/default.nix
+    ../../modules/system/graphical/default.nix
+    ../../modules/users/linuxury/ssh/default.nix
+    ../../modules/users/linuxury/description/default.nix
+    ../../modules/hardware/drivers/default.nix
+    ../../modules/desktops/cosmic/default.nix
+    #../../modules/compositors/hyprland/default.nix
+    #../../modules/desktops/niri/default.nix
+    #../../modules/desktops/gnome/default.nix
+    #../../modules/desktops/kde/default.nix
+    ../../modules/gaming/default.nix
     #../../modules/development/development.nix
-    ../../modules/base/auto-update.nix
-    ../../modules/users/linuxury-packages.nix
-    ../../modules/base/syncthing.nix
-    ../../modules/base/ai-tools.nix
+    ../../modules/services/auto-update/default.nix
+    ../../modules/users/linuxury/packages/default.nix
+    ../../modules/services/syncthing/default.nix
+    ../../modules/services/ai-tools/default.nix
   ];
 
   # =========================================================================

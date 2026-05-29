@@ -34,14 +34,14 @@
 
 {
   imports = [
-    ../../modules/base/common.nix
-    ../../modules/base/linuxury-ssh.nix
-    ../../modules/base/auto-update.nix
-    ../../modules/base/server-shell.nix
-    ../../modules/hardware/drivers.nix
+    ../../modules/system/core/default.nix
+    ../../modules/users/linuxury/ssh/default.nix
+    ../../modules/services/auto-update/default.nix
+    ../../modules/system/server-shell/default.nix
+    ../../modules/hardware/drivers/default.nix
     ../../modules/services/samba.nix
-    ../../modules/base/syncthing.nix
-    ../../modules/base/ai-tools.nix
+    ../../modules/services/syncthing/default.nix
+    ../../modules/services/ai-tools/default.nix
   ];
 
   # =========================================================================

@@ -1,11 +1,14 @@
 # ===========================================================================
-# modules/desktop-environments/mangowc.nix — MangoWC + Noctalia Shell
+# modules/desktop-environments/mangowc.nix — MangoWC Wayland Compositor
 #
 # MangoWC is a lightweight wlroots/scenefx-based Wayland compositor.
-# Noctalia is the shell layer: bar, launcher, notifications, widgets.
 #
-# Login screen: greetd backend + tuigreet frontend (TUI, runs on TTY directly
-# — no Wayland compositor needed for the greeter, avoids cage SIGABRT on RDNA3).
+# Shell layer is separate — pick one in your host config:
+#   shell.noctalia.enable = true;  # Noctalia (default)
+#   shell.wayle.enable    = true;  # Wayle
+#   shell.dms.enable      = true;  # DankMaterialShell
+#
+# Login screen: SDDM + Catppuccin Mocha/Mauve (via sddm-catppuccin.nix).
 #
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
@@ -80,7 +83,18 @@ in
 {
   imports = [
     ../greeters/sddm-catppuccin.nix  # SDDM + Catppuccin Mocha/Mauve login screen
+
+    # Shell layer modules — one of these is enabled per host.
+    # Default: Noctalia (set below via mkDefault). Override in host config to switch:
+    #   shell.noctalia.enable = false;
+    #   shell.wayle.enable    = true;
+    ../shells/dms.nix
+    ../shells/wayle.nix
+    ../shells/noctalia.nix
   ];
+
+  # Default shell for MangoWC: Noctalia.
+  shell.noctalia.enable = lib.mkDefault true;
 
   # =========================================================================
   # Shared Home Manager modules — cursor, icons, GTK theme, Nautilus extras
@@ -104,19 +118,6 @@ in
   # =========================================================================
   services.gnome.tinysparql.enable = true;
   services.gnome.localsearch.enable  = true;
-
-  # =========================================================================
-  # Nix binary cache — pre-built Noctalia binaries (avoids local Qt compile)
-  #
-  # Noctalia publishes all packages to Cachix. Without this the first build
-  # would recompile Quickshell and its Qt dependencies from source (~30 min).
-  # =========================================================================
-  nix.settings = {
-    extra-substituters = [ "https://noctalia.cachix.org" ];
-    extra-trusted-public-keys = [
-      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
-    ];
-  };
 
   # =========================================================================
   # Login manager — SDDM + Catppuccin Mocha/Mauve (via sddm-catppuccin.nix)
@@ -206,13 +207,11 @@ in
   # =========================================================================
   environment.systemPackages = with pkgs; [
     # -----------------------------------------------------------------------
-    # Compositor + shell
+    # Compositor
     # -----------------------------------------------------------------------
     mangowc           # Wayland compositor (wlroots + scenefx based)
-    noctalia-shell    # Shell layer: bar, launcher, notifications, widgets
-    noctalia-qs       # Quickshell-based QtQuick toolkit used by noctalia-shell
 
-    # Session .desktop (registers MangoWC in QtGreet's session list)
+    # Session .desktop (registers MangoWC in SDDM's session list)
     mangowc-session
 
     # -----------------------------------------------------------------------

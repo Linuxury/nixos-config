@@ -2,11 +2,15 @@
 # modules/desktop-environments/hyprland.nix — Hyprland Wayland Compositor
 #
 # Hyprland is a dynamic tiling Wayland compositor with smooth animations
-# and a lot of customization potential.
+# and extensive customization potential.
 #
-# DankMaterialShell (DMS) provides the shell layer: bar, launcher,
-# notifications, OSD, sidebar, dynamic matugen theming, and wallpaper
-# management. dms-greeter replaces cosmic-greeter for the login screen.
+# Shell layer is separate — pick one in your host config:
+#   shell.dms.enable      = true;   # DankMaterialShell (default)
+#   shell.wayle.enable    = true;   # Wayle
+#   shell.noctalia.enable = true;   # Noctalia
+#
+# NOTE: When switching away from DMS, also add a greeter to your host config:
+#   imports = [ ../../modules/greeters/sddm-catppuccin.nix ];
 #
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
@@ -59,36 +63,28 @@ in
 
 {
   imports = [
-    # dms-greeter — NixOS-only module (cannot be in home-manager)
-    inputs.dms.nixosModules.greeter
+    # Shell layer modules — one of these is enabled per host.
+    # Default: DMS (set below via mkDefault). Override in host config to switch.
+    ../shells/dms.nix
+    ../shells/wayle.nix
+    ../shells/noctalia.nix
   ];
 
+  # Default shell: DMS. Override in host config to switch:
+  #   shell.dms.enable   = false;
+  #   shell.wayle.enable = true;
+  shell.dms.enable = lib.mkDefault true;
+
   # =========================================================================
-  # Inject DMS and supporting modules into every user's Home Manager config
+  # Shared Home Manager modules — injected into every user on this host.
+  # These are compositor-level concerns, not shell-specific.
   # =========================================================================
   home-manager.sharedModules = [
-    # DankMaterialShell shell layer — bar, launcher, notifications, OSD,
-    # sidebar, dynamic theming, wallpaper management
-    inputs.dms.homeModules.dank-material-shell
-    {
-      programs.dank-material-shell = {
-        enable = true;
-        systemd.enable = true;       # Auto-start with graphical session
-        enableDynamicTheming = true; # Matugen wallpaper-based color theming
-      };
-    }
-
-    # DankSearch — indexed filesystem search for the DMS launcher
-    inputs.danksearch.homeModules.default
-    {
-      programs.dsearch.enable = true;
-    }
-
     ../home/cosmic-theme.nix         # BreezeX-Light cursor + Tela-dark icons
     ../home/nautilus-bookmarks.nix   # GTK3 bookmarks + scripts for Nautilus
     ../services/hypr-matugen.nix     # matugen color sync on wallpaper change
     {
-      # Kitty — Hyprland handles transparency/blur, disable Kitty's own settings
+      # Kitty — Hyprland handles transparency/blur; disable Kitty's own settings
       home.file.".config/kitty/hyprland-overrides.conf".source =
         ../../dotfiles/kitty/hyprland-overrides.conf;
     }
@@ -101,8 +97,8 @@ in
   # which handles systemd session integration properly.
   # =========================================================================
   programs.hyprland = {
-    enable = true;
-    withUWSM = true;
+    enable      = true;
+    withUWSM    = true;
     xwayland.enable = true;
   };
 
@@ -130,10 +126,17 @@ in
   security.pam.services.hyprlock = {};
 
   # =========================================================================
-  # Hyprland companion tools
+  # Keyring — Secret storage for apps
   #
-  # DMS replaces: waybar, wofi/rofi, swaync, swayosd, awww.
-  # These are the remaining tools DMS does not provide.
+  # GNOME Keyring works fine outside of GNOME.
+  # PAM integration: greetd path handled by shells/dms.nix;
+  #                  login/TTY fallback always present here.
+  # =========================================================================
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.login.enableGnomeKeyring = true;
+
+  # =========================================================================
+  # Hyprland companion tools
   # =========================================================================
   environment.systemPackages = with pkgs; [
     # Cursor theme — needed by dms-greeter (runs before home-manager)
@@ -166,8 +169,8 @@ in
     libnotify
 
     # Theming
-    nwg-look           # GTK theme settings for Wayland compositors
-    qt6Packages.qt6ct  # Qt6 theme settings outside of KDE/GNOME
+    nwg-look            # GTK theme settings for Wayland compositors
+    qt6Packages.qt6ct   # Qt6 theme settings outside of KDE/GNOME
 
     # System tray / applets
     networkmanagerapplet  # WiFi tray icon
@@ -180,7 +183,6 @@ in
     brightnessctl
 
     # File manager — Nautilus (GNOME Files)
-    # Requires local .desktop override to strip DBusActivatable=true
     nautilus
     sushi           # Quick file preview — press Space on any file
     tinysparql      # Tracker3 — provides org.freedesktop.Tracker3 for Nautilus search
@@ -214,71 +216,8 @@ in
   };
 
   # =========================================================================
-  # Display Manager — dms-greeter (greetd backend)
-  #
-  # DankMaterialShell's native login screen. Automatically shares theme
-  # and wallpaper with the desktop session.
-  #
-  # configHome is derived from the host's first normal user — each machine
-  # has exactly one, so the greeter inherits the correct wallpaper and
-  # matugen color theme without any per-host configuration.
-  # =========================================================================
-  programs.dank-material-shell.greeter = {
-    enable = true;
-    compositor.name = "hyprland";
-    # Provide a full base config so the greeter's Hyprland instance picks up
-    # the cursor theme. Without this, the script generates a minimal config
-    # with no cursor settings, so the greeter defaults to the system cursor.
-    # DMS_RUN_GREETER and misc must be repeated here — the script only injects
-    # them automatically when no customConfig is provided.
-    compositor.customConfig = ''
-      env = DMS_RUN_GREETER,1
-      env = XCURSOR_THEME,BreezeX-Light
-      env = XCURSOR_SIZE,24
-      env = HYPRCURSOR_THEME,BreezeX-Light
-      env = HYPRCURSOR_SIZE,24
-
-      misc {
-          disable_hyprland_logo = true
-      }
-    '';
-  };
-
-  # Copy the primary user's DMS config into the greeter cache so it inherits
-  # the active wallpaper and matugen color theme.
-  # configHome/configFiles use types.path which doesn't survive evaluation,
-  # so we inject the copy logic directly into the preStart script instead.
-  systemd.services.greetd.preStart = lib.mkBefore (
-    let
-      normalUsers = lib.filterAttrs (_: u: u.isNormalUser) config.users.users;
-      primaryUser = lib.head (lib.attrNames normalUsers);
-      home = config.users.users.${primaryUser}.home;
-      cacheDir = "/var/lib/dms-greeter";
-    in
-    ''
-      for f in \
-        "${home}/.config/DankMaterialShell/settings.json" \
-        "${home}/.local/state/DankMaterialShell/session.json" \
-        "${home}/.cache/DankMaterialShell/dms-colors.json"; do
-        [ -f "$f" ] && cp --dereference "$f" ${cacheDir}/
-      done
-    ''
-  );
-
-  # =========================================================================
-  # Keyring — Secret storage for apps
-  #
-  # GNOME Keyring works fine outside of GNOME.
-  # dms-greeter (greetd) uses the greetd PAM service — not login.
-  # =========================================================================
-  services.gnome.gnome-keyring.enable = true;
-  security.pam.services.greetd.enableGnomeKeyring = true; # dms-greeter auth path
-  security.pam.services.login.enableGnomeKeyring = true;  # TTY login fallback
-
-  # =========================================================================
   # Tracker — file indexer for Nautilus search
   # =========================================================================
   services.gnome.tinysparql.enable = true;
   services.gnome.localsearch.enable = true;
-
 }
