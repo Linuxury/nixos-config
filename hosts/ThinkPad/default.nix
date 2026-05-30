@@ -45,7 +45,7 @@
     #../../modules/desktops/gnome/default.nix
     #../../modules/desktops/kde/default.nix
     ../../modules/gaming/default.nix
-    #../../modules/development/development.nix
+    #../../modules/development/default.nix
     ../../modules/services/auto-update/default.nix
     ../../modules/users/linuxury/packages/default.nix
     ../../modules/services/syncthing/default.nix

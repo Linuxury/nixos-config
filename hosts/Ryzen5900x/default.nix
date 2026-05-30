@@ -40,10 +40,10 @@
     #../../modules/desktops/niri/default.nix
     #../../modules/desktops/mangowc/default.nix
     ../../modules/gaming/default.nix
-    #../../modules/development/development.nix
+    #../../modules/development/default.nix
     ../../modules/hardware/openrgb/default.nix
     ../../modules/services/auto-update/default.nix
-    #../../modules/services/local-llm.nix
+    #../../modules/services/local-llm/default.nix
     ../../modules/users/linuxury/packages/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/ai-tools/default.nix

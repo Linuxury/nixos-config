@@ -27,8 +27,8 @@
     ../../modules/services/auto-update/default.nix
     ../../modules/system/server-shell/default.nix
     ../../modules/hardware/drivers/default.nix
-    ../../modules/services/samba.nix
-    ../../modules/services/vpn-qbittorrent.nix
+    ../../modules/services/samba/default.nix
+    ../../modules/services/vpn-qbittorrent/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/ai-tools/default.nix
   ];

@@ -26,25 +26,25 @@
   imports = [
     # Firefox with enforced policies — applies to every user on every
     # graphical host. Policies are declared once here rather than in
-    # each host config. See firefox.nix for full details.
-    ./firefox.nix
+    # each host config. See firefox/default.nix for full details.
+    ./firefox/default.nix
 
     # Fast-fail pre-check for the Torrents CIFS automount.
     # Self-activating: only applies to hosts that have /mnt/Torrents
     # in fileSystems. No-op on hosts without it.
-    ./torrents-precheck.nix
+    ./torrents-precheck/default.nix
 
     # AccountsService avatars — copies per-user icons from
     # /home/linuxury/Pictures/Avatar/ so they appear in the greeter.
-    ./user-avatars.nix
+    ./user-avatars/default.nix
 
     # LibreOffice via Flathub — installed on first login for every graphical
     # user. Skips gracefully on hosts where Flathub has been removed.
-    ./libreoffice.nix
+    ./libreoffice/default.nix
 
     # Fluxer via Flathub — self-hostable community platform replacing Discord.
     # Installed on first login for every graphical user.
-    ./fluxer.nix
+    ./fluxer/default.nix
   ];
 
   # =========================================================================

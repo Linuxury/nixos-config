@@ -1,0 +1,114 @@
+# ===========================================================================
+# modules/users/linuxury/neovim/default.nix — Neovim via normie-nvim (TheBlackDon)
+#
+# Uses normie-nvim from GitLab as a flake input (flake = false).
+# Instead of symlinking the Nix store path (read-only), an activation
+# script rsyncs the config into a real writable directory so lazy.nvim
+# can update lazy-lock.json without hitting a read-only filesystem error.
+#
+# Plugins: managed by lazy.nvim — downloads to ~/.local/share/nvim/lazy/
+#          on first launch. Mason is present but not used for binary installs
+#          on NixOS — LSP binaries below go on PATH from Nix instead.
+#
+# Custom additions (e.g. opencode.lua) live in dotfiles/nvim-extra/ and
+# are overlaid after the normie-nvim rsync — they survive upstream updates.
+#
+# To update to TheBlackDon's latest:
+#   nru   (flake update + rebuild)
+# ===========================================================================
+
+{
+  inputs,
+  pkgs,
+  lib,
+  ...
+}:
+
+{
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+    viAlias = true;
+    vimAlias = true;
+  };
+
+  # =========================================================================
+  # Sync normie-nvim config into a real writable directory
+  #
+  # xdg.configFile symlinks point into the read-only Nix store, which causes
+  # lazy.nvim to error when it tries to update lazy-lock.json. Using rsync
+  # in an activation script makes ~/.config/nvim a normal writable dir.
+  #
+  # On every rebuild: rsync copies changed files (fast, incremental).
+  # lazy-lock.json is included so plugin versions match TheBlackDon's pinned
+  # state after each update. Run :Lazy update inside nvim to go newer.
+  # =========================================================================
+  home.activation.normieNvim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    NVIM_DIR="$HOME/.config/nvim"
+
+    # If a symlink exists from the old xdg.configFile approach, remove it
+    if [ -L "$NVIM_DIR" ]; then
+      rm "$NVIM_DIR"
+    fi
+
+    mkdir -p "$NVIM_DIR"
+
+    ${pkgs.rsync}/bin/rsync -a --delete \
+      "${inputs.normie-nvim}/" "$NVIM_DIR/"
+
+    # Overlay custom additions (dotfiles/nvim-extra/) on top of normie-nvim.
+    # No --delete here — only adds/updates, never removes normie-nvim files.
+    ${pkgs.rsync}/bin/rsync -a \
+      "${../../../..}/dotfiles/nvim-extra/" "$NVIM_DIR/"
+
+    # Nix store files are read-only — make the whole config dir writable so
+    # lazy.nvim can update lazy-lock.json and plugins can write their state.
+    chmod -R u+w "$NVIM_DIR/"
+  '';
+
+  # =========================================================================
+  # LSP binaries — normie-nvim's lua/servers/ calls vim.lsp.enable() which
+  # looks for binaries on PATH. These Nix packages provide them, so Mason
+  # doesn't need to install anything on NixOS.
+  # =========================================================================
+  home.packages = with pkgs; [
+    # Nix
+    nil # nil_ls
+    alejandra # formatter (conform.lua)
+
+    # Lua
+    lua-language-server # lua_ls
+    stylua # formatter (conform.lua)
+
+    # Shell
+    bash-language-server # bashls
+
+    # Web
+    vscode-langservers-extracted # cssls + htmlls
+    typescript-language-server # ts_ls
+    tailwindcss-language-server # tailwindcss
+
+    # Python
+    pyright
+
+    # C/C++
+    clang-tools # clangd
+
+    # Hyprland config
+    hyprls # hyprls
+
+    # Treesitter parser compilation
+    gcc
+
+    # AI coding agent
+    opencode              # opencode CLI (used by opencode-nvim)
+    opencode-claude-auth  # plugin: reuse Claude Code OAuth creds in opencode
+    (pkgs.writeShellScriptBin "claude" ''
+      exec env SHELL=${pkgs.bash}/bin/bash ${pkgs.claude-code}/bin/claude "$@"
+    '')
+
+    # Telescope backends
+    fd
+    ripgrep
+  ];
+}

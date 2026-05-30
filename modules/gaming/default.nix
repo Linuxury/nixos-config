@@ -105,7 +105,7 @@
 in
 {
   imports = [
-    ./dmemcg-booster.nix
+    ./dmemcg-booster/default.nix
   ];
 
   services.dmemcg-booster.enable = true;
