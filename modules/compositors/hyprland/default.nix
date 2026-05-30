@@ -64,33 +64,38 @@ in
     ./services/swaync/default.nix
   ];
 
-  # BreezeX-Light cursor for the SDDM greeter.
+  # Switch SDDM greeter compositor from Weston to KWin.
   #
-  # Three-layer approach — belt, suspenders, and a clip:
-  #   1. GreeterEnvironment + [Theme] CursorTheme → Qt6 greeter process gets
-  #      XCURSOR_THEME, XCURSOR_PATH, XDG_DATA_DIRS for wl_pointer.set_cursor.
-  #   2. sddm.environment → Weston inherits SDDM's process env (XCURSOR_THEME
-  #      + XCURSOR_PATH) for any compositor-level cursor rendering.
-  #   3. tmpfiles symlinks in sddm user's home (~/.icons, ~/.local/share/icons)
-  #      so libXcursor finds the theme without relying on XCURSOR_PATH at all.
-  systemd.tmpfiles.rules = [
-    "L /var/lib/sddm/.icons/BreezeX-Light           - - - - /run/current-system/sw/share/icons/BreezeX-Light"
-    "L /var/lib/sddm/.local/share/icons/BreezeX-Light - - - - /run/current-system/sw/share/icons/BreezeX-Light"
-  ];
+  # Root cause of no-cursor: Weston sends wl_seat.capabilities(2) = keyboard
+  # only and never updates to include the pointer bit, even though libinput
+  # detects the keyboard-dongle devices (Keychron Ultra-Link, Lemokey Link)
+  # as pointer devices. Qt correctly sees no pointer capability and never
+  # creates a wl_pointer → wl_pointer.set_cursor is never called → no cursor,
+  # regardless of cursor theme. Confirmed via WAYLAND_DEBUG=1 trace.
+  #
+  # KWin properly advertises pointer capability for these combo devices and
+  # natively supports layer-shell-qt (auto-added by the NixOS SDDM module
+  # when compositor = "kwin"), which makes QT_WAYLAND_SHELL_INTEGRATION=
+  # layer-shell actually work.
+  services.displayManager.sddm.wayland.compositor = "kwin";
 
-  systemd.services.sddm.environment = {
-    XCURSOR_THEME = "BreezeX-Light";
-    XCURSOR_SIZE  = "24";
-    XCURSOR_PATH  = "/run/current-system/sw/share/icons";
-  };
-
-  services.displayManager.sddm.settings.General.GreeterEnvironment =
-    "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,WAYLAND_DEBUG=1,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
+  # Override the NixOS kwin GreeterEnvironment (which only sets layer-shell)
+  # with our complete set. lib.mkForce wins over the NixOS module's plain
+  # assignment so all vars are present.
+  services.displayManager.sddm.settings.General.GreeterEnvironment = lib.mkForce
+    "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,QT_WAYLAND_SHELL_INTEGRATION=layer-shell,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
 
   services.displayManager.sddm.settings.Theme = {
     CursorTheme = "BreezeX-Light";
     CursorSize  = "24";
   };
+
+  # Keep tmpfiles symlinks for sddm user home so libXcursor finds BreezeX-Light
+  # via the home dir path (~/.icons) in addition to XCURSOR_PATH.
+  systemd.tmpfiles.rules = [
+    "L /var/lib/sddm/.icons/BreezeX-Light            - - - - /run/current-system/sw/share/icons/BreezeX-Light"
+    "L /var/lib/sddm/.local/share/icons/BreezeX-Light - - - - /run/current-system/sw/share/icons/BreezeX-Light"
+  ];
 
   # =========================================================================
   # Shared Home Manager modules — injected into every user on this host.
