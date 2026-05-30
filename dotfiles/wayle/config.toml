@@ -1,0 +1,64 @@
+# ===========================================================================
+# dotfiles/wayle/config.toml — Wayle desktop shell configuration
+#
+# Static config. Wayle merges this with runtime.toml (GUI/CLI changes).
+# Values here are the declared baseline; runtime.toml overrides on top.
+#
+# To reset runtime overrides to these values:
+#   rm ~/.config/wayle/runtime.toml && systemctl --user restart wayle
+# ===========================================================================
+
+[general]
+font-sans = "JetBrainsMono Nerd Font Propo"
+font-mono = "JetBrainsMono Nerd Font Mono"
+
+# ---------------------------------------------------------------------------
+# Bar layout — ultrawide 3440x1440
+# ---------------------------------------------------------------------------
+[bar]
+button-variant = "basic"
+button-rounding = "md"
+
+[[bar.layout]]
+monitor = "*"
+show = true
+left = [
+    "hyprland-workspaces",
+    "window-title",
+]
+center = [
+    "clock",
+    "weather",
+]
+right = [
+    "systray",
+    "volume",
+    "dashboard",
+]
+
+# ---------------------------------------------------------------------------
+# Theming — matugen Material You palette (generated from current wallpaper)
+# Colors written to ~/.cache/wayle/matugen-colors.json by the wallpaper engine.
+# ---------------------------------------------------------------------------
+[styling]
+theme-provider = "matugen"
+
+# ---------------------------------------------------------------------------
+# Modules
+# ---------------------------------------------------------------------------
+[modules.weather]
+location = "Orlando"
+units = "imperial"
+
+# ---------------------------------------------------------------------------
+# Wallpaper — Wayle's built-in awww engine
+# engine-enabled = true   → Wayle renders wallpapers (replaces standalone awww)
+# cycling-directory       → ~/Pictures/Wallpapers is a symlink to
+#                           ~/nixos-config/assets/Wallpapers/<wallpaperDir>
+# ---------------------------------------------------------------------------
+[wallpaper]
+engine-enabled = true
+cycling-enabled = true
+cycling-directory = "/home/linuxury/Pictures/Wallpapers"
+cycling-mode = "shuffle"
+cycling-same-image = true

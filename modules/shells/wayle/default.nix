@@ -17,7 +17,10 @@
 { pkgs, lib, ... }:
 
 {
-  environment.systemPackages = [ pkgs.wayle ];
+  environment.systemPackages = with pkgs; [
+    wayle
+    awww   # Wayle's wallpaper engine backend (required for wallpaper cycling)
+  ];
 
   # =========================================================================
   # Home Manager — Wayle autostart + Hyprland shell-active.conf

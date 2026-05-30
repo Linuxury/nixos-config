@@ -184,6 +184,10 @@
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude/state.json";
 
 
+    # Wayle desktop shell — static config (runtime.toml stores GUI/CLI overrides)
+    ".config/wayle/config.toml".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/wayle/config.toml";
+
     # Nano — for quick root edits
     ".nanorc".source = ../../dotfiles/nano/.nanorc;
 

@@ -25,12 +25,15 @@
   ];
 
   # =========================================================================
-  # Color sync service — runs matugen when the wallpaper changes
+  # Color sync service — runs matugen when Wayle changes the wallpaper
   #
-  # wallpaper-service.ts writes last-matugen-wallpaper after setting awww.
-  # The path unit fires, this service extracts the dominant color and runs
-  # matugen. Deduplication skips the run if the same wallpaper was already
-  # processed (prevents double-fire if path unit triggers more than once).
+  # Wayle's awww engine sets the wallpaper and writes its own matugen palette
+  # to ~/.cache/wayle/matugen-colors.json. The path unit below watches that
+  # file. When it changes, this service asks Wayle for the current wallpaper
+  # path, extracts the dominant color, and runs our matugen for the remaining
+  # templates (hyprland colors, kitty, gtk, hyprlock, rofi).
+  #
+  # Deduplication skips the run if the same wallpaper was already processed.
   # =========================================================================
   systemd.user.services.matugen = {
     Unit = {
@@ -42,14 +45,18 @@
     Service = {
       Type        = "oneshot";
       ExecStart   = "${pkgs.writeShellScript "matugen" ''
-        LAST_FILE="$HOME/.local/share/last-matugen-wallpaper"
         PROC_FILE="$HOME/.local/share/last-matugen-processed"
         LOG="$HOME/.local/share/wallpaper-service.log"
 
         log() { echo "[$(date "+%H:%M:%S")] MATUGEN $*" >> "$LOG"; }
 
-        WALLPAPER=$(cat "$LAST_FILE" 2>/dev/null || echo "")
-        if [ -z "$WALLPAPER" ] || [ ! -f "$WALLPAPER" ]; then exit 0; fi
+        # Get current wallpaper path from Wayle
+        WALLPAPER=$(${pkgs.wayle}/bin/wayle wallpaper info 2>/dev/null \
+          | grep '^Current:' | sed 's/^Current:[[:space:]]*//')
+        if [ -z "$WALLPAPER" ] || [ "$WALLPAPER" = "(none)" ] || [ ! -f "$WALLPAPER" ]; then
+          log "No current wallpaper from Wayle"
+          exit 0
+        fi
 
         # Deduplication — skip if this wallpaper's colors are already applied
         LAST_PROC=$(cat "$PROC_FILE" 2>/dev/null || echo "")
@@ -71,22 +78,23 @@
   };
 
   # =========================================================================
-  # Path unit — triggers the service when the wallpaper path file changes
+  # Path unit — triggers the service when Wayle updates its matugen palette
+  # Wayle writes this file when the wallpaper changes (theme-provider=matugen).
   # =========================================================================
   systemd.user.paths.matugen = {
-    Unit.Description = "Watch last-matugen-wallpaper for wallpaper changes";
-    Path.PathChanged  = "%h/.local/share/last-matugen-wallpaper";
+    Unit.Description = "Watch Wayle matugen palette for wallpaper changes";
+    Path.PathChanged  = "%h/.cache/wayle/matugen-colors.json";
     Install.WantedBy  = [ "graphical-session.target" ];
   };
 
   # =========================================================================
   # Startup timer — ensures colors are applied at session start
-  # (covers the case where the wallpaper didn't change so the path unit
-  # doesn't fire, but config or templates may have been updated)
+  # Wayle needs a few seconds to initialize and set the first wallpaper,
+  # so 10s gives the engine time to run before we query it.
   # =========================================================================
   systemd.user.timers.matugen = {
     Unit.Description    = "Apply matugen colors on session start";
-    Timer.OnActiveSec   = "5s";
+    Timer.OnActiveSec   = "10s";
     Install.WantedBy    = [ "graphical-session.target" ];
   };
 
@@ -95,20 +103,13 @@
     mode = "dark"
     reload_apps = false
 
-    [templates.waybar]
-    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/waybar/colors.css.template"
-    output_path = "/home/linuxury/.config/waybar/colors.css"
-    post_hook = "pkill -USR2 waybar || true"
-
-    [templates.swaync]
-    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/swaync/colors.css.template"
-    output_path = "/home/linuxury/.config/swaync/colors.css"
-    post_hook = "swaync-client --reload-css || true"
+    # Wayle handles its own theming via theme-provider=matugen (writes
+    # ~/.cache/wayle/matugen-colors.json internally). These templates handle
+    # the rest of the Hyprland ecosystem.
 
     [templates.hyprland]
     input_path = "/home/linuxury/.config/matugen/templates/templates/hyprland-colors.conf"
     output_path = "/home/linuxury/.config/hypr/colors.conf"
-    # No post_hook — border colors are owned by dms/colors.conf (Noctalia accent)
 
     [templates.kitty]
     input_path = "/home/linuxury/.config/matugen/templates/templates/kitty-colors.conf"
