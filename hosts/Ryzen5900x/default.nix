@@ -8,7 +8,7 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - Hyprland + DMS (active)
+#   - Hyprland + Wayle + SDDM (active)
 #   - MangoWC + Noctalia (disabled — VRR/wlroots assertion crash on RDNA3)
 #   - COSMIC (disabled)
 #   - Niri (disabled)
@@ -39,17 +39,33 @@
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
 
-    # ── Compositor / Desktop Environment ────────────────────────────────────
-    # Wayland compositors: hyprland (tiling), mangowc (floating), niri (scrollable tiling).
-    # Full desktop environments: cosmic (System76), gnome, kde.
-    # Enable ONE — each manages its own greeter (greetd) and display session.
+    # ── Desktop Environments ─────────────────────────────────────────────────
+    # Full DEs — include their own shell and greeter. Enable ONE.
+    #../../modules/desktops/cosmic/default.nix
+    #../../modules/desktops/gnome/default.nix
+    #../../modules/desktops/kde/default.nix
+
+    # ── Wayland Compositors ──────────────────────────────────────────────────
+    # Bare compositors — no shell or greeter included. Enable ONE.
+    # Pair with a Shell and Greeter below.
     # mangowc disabled: VRR/wlroots assertion crash on RDNA3.
     ../../modules/compositors/hyprland/default.nix
     #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
-    #../../modules/desktops/cosmic/default.nix
-    #../../modules/desktops/gnome/default.nix
-    #../../modules/desktops/kde/default.nix
+
+    # ── Shell Layer ──────────────────────────────────────────────────────────
+    # Import ONE shell for the active compositor.
+    #   dms     — bundles its own greeter, no Greeters import needed
+    #   wayle   — needs greeters/sddm
+    #   noctalia — needs greeters/sddm
+    ../../modules/shells/wayle/default.nix
+    #../../modules/shells/dms/default.nix
+    #../../modules/shells/noctalia/default.nix
+
+    # ── Greeters ─────────────────────────────────────────────────────────────
+    # DMS bundles its own greeter — no import needed when using DMS.
+    # All other shells need an explicit greeter here.
+    ../../modules/greeters/sddm/default.nix
 
     # ── Gaming ──────────────────────────────────────────────────────────────
     # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
@@ -94,20 +110,9 @@
   networking.hostName = "Ryzen5900x";
 
   # =========================================================================
-  # Compositor shell — Hyprland UI shell selection
-  #
-  # The Hyprland module imports all three shells; enabling one here activates
-  # its greeter session entry and config. Only one should be true at a time.
+  # Default session — tells SDDM which session to pre-select at login
   # =========================================================================
-  shell.dms.enable      = true;   # DankMaterialShell  — active
-  # shell.wayle.enable   = true;  # Wayle              — alternative
-  # shell.noctalia.enable = true; # Noctalia            — alternative
-
-  # =========================================================================
-  # Default session — managed by greetd when mangowc.nix is active.
-  # Restore this if switching back to a display manager (SDDM, GDM, etc.).
-  # =========================================================================
-  # services.displayManager.defaultSession = "hyprland-session";
+  services.displayManager.defaultSession = "hyprland-session";
 
   # =========================================================================
   # Network — prefer ethernet, auto-disable WiFi when ethernet is up

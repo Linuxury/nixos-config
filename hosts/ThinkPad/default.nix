@@ -39,16 +39,30 @@
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
 
-    # ── Compositor / Desktop Environment ────────────────────────────────────
-    # Wayland compositors: hyprland (tiling), mangowc (floating), niri (scrollable tiling).
-    # Full desktop environments: cosmic (System76), gnome, kde.
-    # Enable ONE — each manages its own greeter (greetd) and display session.
+    # ── Desktop Environments ─────────────────────────────────────────────────
+    # Full DEs — include their own shell and greeter. Enable ONE.
     ../../modules/desktops/cosmic/default.nix
+    #../../modules/desktops/gnome/default.nix
+    #../../modules/desktops/kde/default.nix
+
+    # ── Wayland Compositors ──────────────────────────────────────────────────
+    # Bare compositors — no shell or greeter included. Enable ONE.
+    # Pair with a Shell and Greeter below.
     #../../modules/compositors/hyprland/default.nix
     #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
-    #../../modules/desktops/gnome/default.nix
-    #../../modules/desktops/kde/default.nix
+
+    # ── Shell Layer ──────────────────────────────────────────────────────────
+    # Full DEs above already include a shell — no import needed here.
+    # For Wayland compositors: import ONE shell.
+    #   dms     — bundles its own greeter, no Greeters import needed
+    #   wayle   — needs greeters/sddm
+    #   noctalia — needs greeters/sddm
+
+    # ── Greeters ─────────────────────────────────────────────────────────────
+    # Full DEs above bundle their own greeter — no import needed here.
+    # For Wayland compositors (non-DMS): import ONE greeter.
+    #../../modules/greeters/sddm/default.nix
 
     # ── Gaming ──────────────────────────────────────────────────────────────
     # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.

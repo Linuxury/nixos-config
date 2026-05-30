@@ -4,46 +4,53 @@
 # GTK4/Rust desktop shell: top bar, notification center, on-screen display,
 # wallpaper management. Compositor-agnostic via wlr-layer-shell.
 #
-# Requires: NixOS unstable or 25.11+ (pkgs.wayle 0.3.0)
-#           home-manager with services.wayle support
+# pkgs.wayle is available in nixpkgs unstable (0.3.0).
+# home-manager services.wayle module not yet merged — autostart is wired
+# manually via a systemd user service below.
 #
-# To enable:
-#   shell.wayle.enable = true;
+# Importing this module activates Wayle. No enable flag needed.
+# Wayle does not provide a login screen — add greeters/sddm to your host.
 #
-# NOTE: Wayle does not provide a login screen. When switching to Wayle from
-# DMS on Hyprland, add a greeter to your compositor module:
-#   imports = [ ../../greeters/sddm/default.nix ];
+# To switch shell: remove this import, add shells/dms or shells/noctalia.
 # ===========================================================================
 
-{ config, lib, pkgs, ... }:
-
-let cfg = config.shell.wayle; in
+{ pkgs, lib, ... }:
 
 {
-  options.shell.wayle.enable = lib.mkEnableOption "Wayle shell layer";
+  environment.systemPackages = [ pkgs.wayle ];
 
-  config = lib.mkIf cfg.enable {
+  # =========================================================================
+  # Home Manager — Wayle autostart + Hyprland shell-active.conf
+  # =========================================================================
+  home-manager.sharedModules = [
 
-    # =========================================================================
-    # Home Manager — Wayle service (injected into all users on this host)
-    # =========================================================================
-    home-manager.sharedModules = [
+    # Wayle shell — started as a systemd user service with the graphical session.
+    # Replace with `services.wayle.enable = true;` once the HM module lands.
+    ({ pkgs, lib, ... }: {
+      systemd.user.services.wayle = {
+        Unit = {
+          Description = "Wayle desktop shell";
+          After       = [ "graphical-session.target" ];
+          PartOf      = [ "graphical-session.target" ];
+        };
+        Service = {
+          Type      = "simple";
+          ExecStart = "${pkgs.wayle}/bin/wayle";
+          Restart   = "on-failure";
+        };
+        Install.WantedBy = [ "graphical-session.target" ];
+      };
+    })
 
-      # Wayle shell service — auto-starts with graphical session
-      {
-        services.wayle.enable = true;
-      }
+    # Clear shell-active.conf — Wayle does not need Hyprland source overrides.
+    # (DMS wrote dms/*.conf sources there; Wayle manages its own layer.)
+    ({ lib, ... }: {
+      home.activation.shellActiveConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-active.conf"
+        [ -d "$(dirname "$_target")" ] || exit 0
+        : > "$_target"
+      '';
+    })
 
-      # Clear shell-active.conf — Wayle does not need Hyprland source overrides.
-      # (DMS wrote dms/*.conf sources there; Wayle manages its own layer.)
-      ({ lib, ... }: {
-        home.activation.shellActiveConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          _target="$HOME/nixos-config/dotfiles/hypr/shell-active.conf"
-          [ -d "$(dirname "$_target")" ] || exit 0
-          : > "$_target"
-        '';
-      })
-
-    ];
-  };
+  ];
 }

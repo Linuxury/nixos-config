@@ -4,13 +4,10 @@
 # Hyprland is a dynamic tiling Wayland compositor with smooth animations
 # and extensive customization potential.
 #
-# Shell layer is separate — pick one in your host config:
-#   shell.dms.enable      = true;   # DankMaterialShell (default)
-#   shell.wayle.enable    = true;   # Wayle
-#   shell.noctalia.enable = true;   # Noctalia
-#
-# NOTE: When switching away from DMS, also add a greeter to your host config:
-#   imports = [ ../../greeters/sddm/default.nix ];
+# Shell layer and greeter are separate — import them in your host config:
+#   modules/shells/dms/default.nix       # DankMaterialShell (bundles greeter)
+#   modules/shells/wayle/default.nix     # Wayle (needs greeters/sddm)
+#   modules/shells/noctalia/default.nix  # Noctalia (needs greeters/sddm)
 #
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
@@ -63,20 +60,9 @@ in
 
 {
   imports = [
-    # Shell layer modules — one of these is enabled per host.
-    # Default: DMS (set below via mkDefault). Override in host config to switch.
-    ../../shells/dms/default.nix
-    ../../shells/wayle/default.nix
-    ../../shells/noctalia/default.nix
-
     # SwayNC — declares options.myModules.swaync.* and injects hm.nix
     ./services/swaync/default.nix
   ];
-
-  # Default shell: DMS. Override in host config to switch:
-  #   shell.dms.enable   = false;
-  #   shell.wayle.enable = true;
-  shell.dms.enable = lib.mkDefault true;
 
   # =========================================================================
   # Shared Home Manager modules — injected into every user on this host.
