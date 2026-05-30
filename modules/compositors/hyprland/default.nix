@@ -64,11 +64,9 @@ in
     ./services/swaync/default.nix
   ];
 
-  # BreezeX-Light installed system-wide so SDDM's Weston greeter can use it.
-  # The cursor theme for Weston is set via systemd.services.sddm.environment
-  # below — Weston inherits SDDM's process env and reads XCURSOR_THEME from it.
-  environment.systemPackages = [ breezex-cursors ];
-
+  # BreezeX-Light is in environment.systemPackages below (with all other tools).
+  # The cursor theme for Weston is set here — Weston inherits SDDM's process env
+  # and reads XCURSOR_THEME from it (GreeterEnvironment only reaches the Qt greeter).
   systemd.services.sddm.environment = {
     XCURSOR_THEME = "BreezeX-Light";
     XCURSOR_SIZE  = "24";
