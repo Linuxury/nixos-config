@@ -71,7 +71,7 @@ get_diff() {
   local curr="/run/current-system"
   if [[ -e "$prev" && -e "$curr" ]]; then
     nix store diff-closures "$prev" "$curr" 2>/dev/null | \
-      tail -20 | sed 's/\x1b\[[0-9;]*m//g' || true
+      sed 's/\x1b\[[0-9;]*m//g' || true
   fi
 }
 
