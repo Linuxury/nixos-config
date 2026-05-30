@@ -84,7 +84,7 @@ in
   # =========================================================================
   home-manager.sharedModules = [
     ./themes/default.nix                          # BreezeX-Light cursor + Tela-dark icons + GTK
-    ../../services/hypr-matugen/default.nix       # matugen color sync on wallpaper change
+    ./matugen/default.nix                          # matugen color sync on wallpaper change
     {
       # Kitty — Hyprland handles transparency/blur; disable Kitty's own settings
       home.file.".config/kitty/hyprland-overrides.conf".source =

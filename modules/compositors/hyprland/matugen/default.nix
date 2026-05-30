@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/services/hypr-matugen/default.nix — matugen color sync for Hyprland
+# modules/compositors/hyprland/matugen/default.nix — matugen color sync
 #
 # Same structural pattern as services/wallpaper-slideshow/default.nix (COSMIC):
 #   - wallpaper-service.ts writes ~/.local/share/last-matugen-wallpaper
@@ -32,7 +32,7 @@
   # matugen. Deduplication skips the run if the same wallpaper was already
   # processed (prevents double-fire if path unit triggers more than once).
   # =========================================================================
-  systemd.user.services.hypr-matugen = {
+  systemd.user.services.matugen = {
     Unit = {
       Description = "Apply matugen color theme for current Hyprland wallpaper";
       After       = [ "graphical-session.target" ];
@@ -41,7 +41,7 @@
     };
     Service = {
       Type        = "oneshot";
-      ExecStart   = "${pkgs.writeShellScript "hypr-matugen" ''
+      ExecStart   = "${pkgs.writeShellScript "matugen" ''
         LAST_FILE="$HOME/.local/share/last-matugen-wallpaper"
         PROC_FILE="$HOME/.local/share/last-matugen-processed"
         LOG="$HOME/.local/share/wallpaper-service.log"
@@ -73,7 +73,7 @@
   # =========================================================================
   # Path unit — triggers the service when the wallpaper path file changes
   # =========================================================================
-  systemd.user.paths.hypr-matugen = {
+  systemd.user.paths.matugen = {
     Unit.Description = "Watch last-matugen-wallpaper for wallpaper changes";
     Path.PathChanged  = "%h/.local/share/last-matugen-wallpaper";
     Install.WantedBy  = [ "graphical-session.target" ];
@@ -84,7 +84,7 @@
   # (covers the case where the wallpaper didn't change so the path unit
   # doesn't fire, but config or templates may have been updated)
   # =========================================================================
-  systemd.user.timers.hypr-matugen = {
+  systemd.user.timers.matugen = {
     Unit.Description    = "Apply matugen colors on session start";
     Timer.OnActiveSec   = "5s";
     Install.WantedBy    = [ "graphical-session.target" ];
@@ -130,10 +130,6 @@
     [templates.rofi-window]
     input_path = "/home/linuxury/nixos-config/dotfiles/hypr/rofi/window.rasi.template"
     output_path = "/home/linuxury/.config/rofi/window.rasi"
-
-    [templates.wofi]
-    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/wofi/colors.css.template"
-    output_path = "/home/linuxury/.config/wofi/colors.css"
 
     [templates.hyprlock]
     input_path = "/home/linuxury/.config/matugen/templates/templates/hyprlock-colors.conf"
