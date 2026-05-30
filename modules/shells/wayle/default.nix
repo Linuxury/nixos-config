@@ -35,7 +35,7 @@
         };
         Service = {
           Type      = "simple";
-          ExecStart = "${pkgs.wayle}/bin/wayle";
+          ExecStart = "${pkgs.wayle}/bin/wayle shell";
           Restart   = "on-failure";
         };
         Install.WantedBy = [ "graphical-session.target" ];
