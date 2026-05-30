@@ -65,12 +65,19 @@ in
   ];
 
   # BreezeX-Light cursor for the SDDM greeter.
-  # Two separate mechanisms — both are needed:
-  #   1. systemd.services.sddm.environment → Weston inherits SDDM's process env
-  #      and reads XCURSOR_THEME to render the compositor cursor.
-  #   2. GreeterEnvironment override → Qt6's cursor plugin reads XCURSOR_THEME +
-  #      XDG_DATA_DIRS to set cursor surfaces via wl_pointer.set_cursor.
-  #      Plain assignment wins over mkDefault in the sddm module.
+  #
+  # Three-layer approach — belt, suspenders, and a clip:
+  #   1. tmpfiles symlinks in sddm user's home (~/.icons, ~/.local/share/icons)
+  #      so libXcursor finds the theme without relying on XCURSOR_PATH at all.
+  #   2. sddm.environment → Weston inherits SDDM's process env (XCURSOR_THEME
+  #      + XCURSOR_PATH) for any compositor-level cursor rendering.
+  #   3. GreeterEnvironment + [Theme] CursorTheme → Qt6 greeter process gets
+  #      XCURSOR_THEME, XCURSOR_PATH, XDG_DATA_DIRS for wl_pointer.set_cursor.
+  systemd.tmpfiles.rules = [
+    "L /var/lib/sddm/.icons/BreezeX-Light           - - - - /run/current-system/sw/share/icons/BreezeX-Light"
+    "L /var/lib/sddm/.local/share/icons/BreezeX-Light - - - - /run/current-system/sw/share/icons/BreezeX-Light"
+  ];
+
   systemd.services.sddm.environment = {
     XCURSOR_THEME = "BreezeX-Light";
     XCURSOR_SIZE  = "24";

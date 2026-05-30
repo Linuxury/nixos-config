@@ -96,7 +96,17 @@
 
   # SDDM sets XDG_RUNTIME_DIR=/run/user/175 for the sddm user (uid 175 on NixOS)
   # but systemd-logind never creates it for greeter sessions — create it manually.
+  #
+  # ~/.icons and ~/.local/share/icons: libXcursor (used by libwayland-cursor and
+  # Qt6's cursor plugin) searches these dirs by default for cursor themes, before
+  # any XCURSOR_PATH lookup. Symlinking the theme here ensures cursor files are
+  # found even if XCURSOR_PATH handling differs between library versions.
+  # Compositor modules add their own theme symlink (e.g. BreezeX-Light).
   systemd.tmpfiles.rules = [
-    "d /run/user/175 0700 sddm sddm -"
+    "d /run/user/175                          0700 sddm sddm -"
+    "d /var/lib/sddm/.icons                   0755 sddm sddm -"
+    "d /var/lib/sddm/.local/share/icons       0755 sddm sddm -"
+    "L /var/lib/sddm/.icons/Adwaita           - - - - /run/current-system/sw/share/icons/Adwaita"
+    "L /var/lib/sddm/.local/share/icons/Adwaita - - - - /run/current-system/sw/share/icons/Adwaita"
   ];
 }
