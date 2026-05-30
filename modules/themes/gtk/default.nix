@@ -12,7 +12,7 @@
 #   compositors/hyprland/themes/default.nix  → + gtk-decoration-layout
 #   desktops/cosmic/themes/default.nix       → + CosmicTk files + favorites
 #   desktops/gnome/themes/default.nix        → (base is sufficient for GNOME)
-#   desktops/mangowc/themes/default.nix      → + gtk-decoration-layout + noctalia.css
+#   compositors/mangowc/themes/default.nix      → + gtk-decoration-layout + noctalia.css
 #
 # Extracted from the 4 separate theme modules to eliminate the BreezeX
 # derivation duplication. One sha256 to update, one place to change.

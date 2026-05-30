@@ -35,8 +35,8 @@
     ../../modules/hardware/drivers/default.nix
     #../../modules/desktops/cosmic/default.nix
     ../../modules/compositors/hyprland/default.nix
-    #../../modules/desktops/niri/default.nix
-    #../../modules/desktops/mangowc/default.nix
+    #../../modules/compositors/niri/default.nix
+    #../../modules/compositors/mangowc/default.nix
     ../../modules/gaming/default.nix
     #../../modules/development/default.nix
     ../../modules/services/auto-update/default.nix

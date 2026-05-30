@@ -39,7 +39,7 @@
     ../../modules/hardware/drivers/default.nix
     ../../modules/desktops/cosmic/default.nix
     #../../modules/compositors/hyprland/default.nix
-    #../../modules/desktops/niri/default.nix
+    #../../modules/compositors/niri/default.nix
     #../../modules/desktops/gnome/default.nix
     #../../modules/desktops/kde/default.nix
     ../../modules/gaming/default.nix

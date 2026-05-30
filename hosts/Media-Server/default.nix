@@ -14,7 +14,7 @@
 #   - AMD drivers
 #   - system/core/default.nix
 #   - services/samba/default.nix (single Media-Server share → /data)
-#   - freshrss.nix (migrated from Radxa-X4, local to this host)
+#   - freshrss/ (migrated from Radxa-X4, local to this host)
 # ===========================================================================
 
 { config, pkgs, inputs, lib, ... }:
@@ -29,7 +29,7 @@
     ../../modules/services/syncthing/default.nix
     ../../modules/services/auto-update/default.nix
     ../../modules/services/ai-tools/default.nix
-    ./freshrss.nix
+    ./freshrss/default.nix
     ../../modules/users/linuxury/ssh/default.nix
   ];
 

@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/desktops/mangowc/default.nix — MangoWC Wayland Compositor
+# modules/compositors/mangowc/default.nix — MangoWC Wayland Compositor
 #
 # MangoWC is a lightweight wlroots/scenefx-based Wayland compositor.
 #

@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/desktops/niri/default.nix — Niri Wayland Compositor
+# modules/compositors/niri/default.nix — Niri Wayland Compositor
 #
 # Niri is a scrollable-tiling Wayland compositor. Unlike Hyprland's
 # dynamic tiling, Niri arranges windows in an infinite horizontal scroll —

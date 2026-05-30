@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/desktops/mangowc/themes/default.nix — MangoWC theme
+# modules/compositors/mangowc/themes/default.nix — MangoWC theme
 #
 # Extends the shared GTK base with MangoWC + Noctalia-specific settings:
 #   - gtk-decoration-layout: Firefox and GTK CSD window buttons

@@ -61,7 +61,7 @@ in
 {
   # Agenix secret — same file, now decrypted for Media-Server's host key
   age.secrets.freshrss-admin-password = {
-    file  = ../../secrets/freshrss-admin-password.age;
+    file  = ../../../secrets/freshrss-admin-password.age;
     owner = "freshrss";
     mode  = "0400";
   };

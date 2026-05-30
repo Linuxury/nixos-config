@@ -31,7 +31,6 @@
     ../../modules/gaming/default.nix
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing/default.nix
-    ../../modules/services/ai-tools/default.nix
     ../../modules/users/linuxury/ssh/default.nix
     ../../modules/users/alex/packages/default.nix
     ../../modules/users/alex/description/default.nix
