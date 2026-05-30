@@ -22,13 +22,11 @@
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
     ../../modules/hardware/drivers/default.nix
-    ../../modules/hardware/openrgb/default.nix
     #../../modules/desktops/cosmic/default.nix
     ../../modules/desktops/kde/default.nix
     ../../modules/gaming/default.nix
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing-babylinux/default.nix
-    ../../modules/services/ai-tools/default.nix
     ../../modules/users/babylinux/ssh/default.nix  # babylinux — primary SSH access
     ../../modules/users/linuxury/ssh/default.nix   # linuxury  — emergency SSH only
     ../../modules/users/babylinux/description/default.nix
@@ -206,15 +204,6 @@
   boot.kernelParams = [
     "amdgpu.ppfeaturemask=0xffffffff"
   ];
-
-  # =========================================================================
-  # nix-ld — dynamic linker shim for prebuilt binaries
-  #
-  # Needed by opencode (Bun standalone binary). Without this,
-  # /lib64/ld-linux-x86-64.so.2 doesn't exist and the binary can't run.
-  # =========================================================================
-  programs.nix-ld.enable = true;
-  programs.nix-ld.libraries = with pkgs; [ glibc ];
 
   # =========================================================================
   # Stability focused extras

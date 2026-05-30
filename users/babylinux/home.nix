@@ -286,7 +286,7 @@ in
   };
 
   # =========================================================================
-  # Hytale — auto-install + overrides (see modules/home/hytale.nix)
+  # Hytale — auto-install + overrides (see modules/system/graphical/hytale/default.nix)
   # =========================================================================
 
   # =========================================================================

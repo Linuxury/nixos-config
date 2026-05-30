@@ -203,7 +203,7 @@
   };
 
   # =========================================================================
-  # Hytale — auto-install + overrides (see modules/home/hytale.nix)
+  # Hytale — auto-install + overrides (see modules/system/graphical/hytale/default.nix)
   # Note: Flatpak is disabled system-wide on Alex's machines except for Hytale.
   # This exception is handled in hosts/Alex-Desktop and hosts/Alex-Laptop.
   # =========================================================================

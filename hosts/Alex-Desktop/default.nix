@@ -27,7 +27,6 @@
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
     ../../modules/hardware/drivers/default.nix
-    ../../modules/hardware/openrgb/default.nix
     ../../modules/desktops/cosmic/default.nix
     ../../modules/gaming/default.nix
     ../../modules/services/auto-update/default.nix

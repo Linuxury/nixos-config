@@ -503,7 +503,7 @@ ENDSSH
   };
 
   # Neovim config is now managed by the normie-nvim activation script in
-  # modules/home/neovim.nix — no overrides needed here.
+  # modules/users/linuxury/neovim/default.nix — no overrides needed here.
 
   # Desktop entry — opens Neovim in Kitty
   xdg.desktopEntries.nvim = {
@@ -660,7 +660,7 @@ with open('$_target', 'w') as f:
   services.ssh-agent.enable = true;
 
   # =========================================================================
-  # Hytale — auto-install + overrides (see modules/home/hytale.nix)
+  # Hytale — auto-install + overrides (see modules/system/graphical/hytale/default.nix)
   # =========================================================================
   programs.hytale = {
     enable      = true;

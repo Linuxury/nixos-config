@@ -45,6 +45,11 @@
     # Fluxer via Flathub — self-hostable community platform replacing Discord.
     # Installed on first login for every graphical user.
     ./fluxer/default.nix
+
+    # OpenRGB — RGB lighting control server.
+    # Runs on every graphical host so RGB hardware (case fans, keyboard, RAM)
+    # is controlled consistently without per-host imports.
+    ../../hardware/openrgb/default.nix
   ];
 
   # =========================================================================
