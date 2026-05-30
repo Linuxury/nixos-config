@@ -34,6 +34,15 @@
     theme = "${pkgs.catppuccin-sddm}/share/sddm/themes/catppuccin-mocha-mauve";
   };
 
+  # NixOS only sets [Theme] CursorTheme when cfg.theme == "" (default SDDM theme).
+  # With a custom theme (catppuccin-sddm), it's omitted — and SDDM shows no cursor.
+  # Set it explicitly here so the greeter always has a cursor regardless of theme.
+  # Compositor modules override these to their preferred theme (e.g. BreezeX-Light).
+  services.displayManager.sddm.settings.Theme = {
+    CursorTheme = lib.mkDefault "Adwaita";
+    CursorSize  = lib.mkDefault "24";
+  };
+
   # SDDM authenticates via its own PAM service — "greetd" is not involved.
   # This unlocks the GNOME Keyring at login so apps (Proton Pass, SSH agent,
   # etc.) can access it without prompting for a password after the desktop loads.
