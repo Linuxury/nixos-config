@@ -61,7 +61,7 @@
   # (priority 100 wins over mkDefault priority 1000) with its own
   # compositor-specific vars.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    lib.mkDefault "QT_QPA_PLATFORM=wayland QT_QPA_PLATFORMTHEME= XCURSOR_THEME=Adwaita XCURSOR_SIZE=24 XCURSOR_PATH=/run/current-system/sw/share/icons";
+    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons";
 
   # Adwaita cursor theme — required by the greeter environment above.
   # Available system-wide so sddm user can resolve XCURSOR_THEME=Adwaita
