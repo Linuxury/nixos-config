@@ -78,7 +78,7 @@ in
   };
 
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XDG_DATA_DIRS=/run/current-system/sw/share";
+    "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
 
   # =========================================================================
   # Shared Home Manager modules — injected into every user on this host.

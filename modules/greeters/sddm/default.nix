@@ -58,7 +58,7 @@
   # Compositor modules override this via a plain assignment (priority 100 > mkDefault 1000).
   # KDE overrides it in desktops/kde/default.nix.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XDG_DATA_DIRS=/run/current-system/sw/share";
+    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
 
   # Weston (the greeter compositor) is launched by SDDM and inherits SDDM's own
   # process environment — NOT GreeterEnvironment. Weston reads XCURSOR_THEME and
