@@ -85,6 +85,19 @@ in
   services.displayManager.sddm.settings.General.GreeterEnvironment = lib.mkForce
     "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,QT_WAYLAND_SHELL_INTEGRATION=layer-shell,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
 
+  # KWin (SDDM compositor) uses logind directly for seat management — it does NOT
+  # talk to seatd. When KWin holds the DRM device via logind, seatd can never
+  # complete its initialisation and times out every 90 s (systemd kills it).
+  #
+  # Hyprland's aquamarine backend uses libseat with the "auto" mode: seatd first,
+  # then logind. After each seatd crash the socket disconnects, aquamarine logs
+  # "Couldn't dispatch libseat events" in a flood, and Hyprland eventually dies.
+  #
+  # Fix: force libseat to use the logind backend, skipping seatd entirely.
+  # Both KWin and Hyprland then talk to the same logind seat, which is exactly
+  # what logind was designed for.
+  environment.sessionVariables.LIBSEAT_BACKEND = "logind";
+
   services.displayManager.sddm.settings.Theme = {
     CursorTheme = "BreezeX-Light";
     CursorSize  = "24";
