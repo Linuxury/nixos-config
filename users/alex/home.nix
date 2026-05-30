@@ -26,7 +26,6 @@
 
 {
   imports = [
-    ../../modules/development/neovim/default.nix
     ../../modules/system/graphical/helium/default.nix
     ../../modules/system/graphical/hytale/default.nix
   ];

@@ -48,7 +48,6 @@ in
 
 {
   imports = [
-    ../../modules/development/neovim/default.nix
     ../../modules/system/graphical/helium/default.nix
     ../../modules/system/graphical/hytale/default.nix
   ];
@@ -351,101 +350,10 @@ EOF
   services.ssh-agent.enable = true;
 
   # =========================================================================
-  # VSCodium — declarative extensions
-  #
-  # Settings are managed via home.file (mkOutOfStoreSymlink) so the file
-  # stays writable from the GUI while still being tracked in the repo.
-  #
-  # Extensions fetched from Open VSX — not VS Marketplace (VSCodium ToS).
+  # VSCodium — available as a plain package, no extensions managed by Nix
+  # Extensions and settings are managed manually through the GUI.
   # =========================================================================
-  programs.vscode = {
-    enable = true;
-    package = pkgs.vscodium;
-    mutableExtensionsDir = true;
-    profiles.default.extensions =
-      (with pkgs.vscode-extensions; [
-        catppuccin.catppuccin-vsc
-        golang.go
-      ])
-      ++ [
-        # Claude Code — Open VSX linux-x64 variant
-        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-          mktplcRef = {
-            publisher = "anthropic";
-            name = "claude-code";
-            version = "2.1.120";
-          };
-          vsix = pkgs.fetchurl {
-            url = "https://open-vsx.org/api/Anthropic/claude-code/linux-x64/2.1.120/file/Anthropic.claude-code-2.1.120@linux-x64.vsix";
-            sha256 = "1n4gl8f4csq4ngmw7dksiaxhlglsswgypynnjpzyzskn4c94c1c5";
-          };
-        })
-        # flow-dawn icon theme
-        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-          mktplcRef = {
-            publisher = "thang-nm";
-            name = "flow-icons";
-            version = "1.3.2";
-          };
-          vsix = pkgs.fetchurl {
-            url = "https://open-vsx.org/api/thang-nm/flow-icons/1.3.2/file/thang-nm.flow-icons-1.3.2.vsix";
-            sha256 = "1lwsjawvhy3yzw7dl93ac4vyvfmcwbrs58s3wd2az1ld3d6m3drv";
-          };
-        })
-        # OpenCode AI assistant
-        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-          mktplcRef = {
-            publisher = "sst-dev";
-            name = "opencode";
-            version = "0.0.13";
-          };
-          vsix = pkgs.fetchurl {
-            url = "https://open-vsx.org/api/sst-dev/opencode/0.0.13/file/sst-dev.opencode-0.0.13.vsix";
-            sha256 = "1m301j2qbym3j2qnck76jyxakca3h1qiybc2r7wy7z11m98mg9z9";
-          };
-        })
-        # JetBrains-style file icons
-        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-          mktplcRef = {
-            publisher = "fogio";
-            name = "jetbrains-file-icon-theme";
-            version = "1.5.0";
-          };
-          vsix = pkgs.fetchurl {
-            url = "https://open-vsx.org/api/fogio/jetbrains-file-icon-theme/1.5.0/file/fogio.jetbrains-file-icon-theme-1.5.0.vsix";
-            sha256 = "1jdha38c61hlz5hj59xzq89zprcwa6qhfg9pkqlpn017b2ccc4x3";
-          };
-        })
-      ];
-    profiles.default.userSettings =
-      (builtins.fromJSON (builtins.readFile ../../dotfiles/vscodium/settings.json))
-      // {
-        "claudeCode.claudeProcessWrapper" = "/etc/profiles/per-user/${config.home.username}/bin/claude";
-      };
-  };
-
-  # =========================================================================
-  # VSCodium — Claude Code NixOS wrapper
-  #
-  # The Claude Code extension bundles a generic Linux binary that can't run
-  # on NixOS (dynamic linker mismatch). This replaces it with a thin wrapper
-  # that calls the Nix-installed claude binary if present.
-  # No-op if claude is not installed.
-  # =========================================================================
-  home.activation.vscodiumClaudeWrapper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    CLAUDE_REAL="/etc/profiles/per-user/${config.home.username}/bin/claude"
-    EXT_DIR="$HOME/.vscode-oss/extensions"
-
-    for ext_claude in "$EXT_DIR"/anthropic.claude-code-*/resources/native-binary/claude; do
-      [ -e "$ext_claude" ] || continue
-      case "$ext_claude" in /nix/store/*) continue;; esac
-      grep -q "exec $CLAUDE_REAL" "$ext_claude" 2>/dev/null && continue
-      [ -f "$ext_claude.orig" ] || mv "$ext_claude" "$ext_claude.orig"
-      [ -f "$ext_claude.orig" ] && rm -f "$ext_claude"
-      printf '#!/bin/sh\nexec %s "$@"\n' "$CLAUDE_REAL" > "$ext_claude"
-      chmod +x "$ext_claude"
-    done
-  '';
+  home.packages = [ pkgs.vscodium ];
 
   # =========================================================================
   # Obsidian vault directory
