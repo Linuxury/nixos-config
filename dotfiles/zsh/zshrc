@@ -58,7 +58,7 @@ _nixos_run() {
   if command -v nixos-log-rebuild &>/dev/null; then
     local outcome="success"
     [[ $exit_code -ne 0 ]] && outcome="failure"
-    nixos-log-rebuild --outcome "$outcome" --log "$tmplog" 2>/dev/null || true
+    nixos-log-rebuild --outcome "$outcome" --log "$tmplog" || true
   fi
 
   rm -f "$tmplog"
