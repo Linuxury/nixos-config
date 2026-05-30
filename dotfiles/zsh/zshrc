@@ -29,48 +29,50 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # via programs.zsh.zsh-abbr.abbreviations — they expand inline before running.
 # ---------------------------------------------------------------------------
 
-# Helper: hold a systemd sleep/idle inhibit lock while a command runs.
-# systemd-inhibit works as a regular user via D-Bus — no sudo needed.
-_with_inhibit() {
-  local reason="$1"; shift
-  systemd-inhibit --what=sleep:idle --who=nixos-rebuild --why="$reason" sleep infinity &>/dev/null &
+# ---------------------------------------------------------------------------
+# _nixos_run — core rebuild helper used by nr / nru / nrb / nrt
+#
+# - Holds a systemd sleep/idle inhibit lock for the full build duration
+# - Tees all output (stdout + stderr) to a temp log alongside nom
+# - After the build: calls nixos-log-rebuild to write warnings and a
+#   timestamped entry to ~/Obsidian/09 🔄 Updates/<hostname>.md and any
+#   actionable warnings as deduplicated rows in PENDING.md
+# ---------------------------------------------------------------------------
+_nixos_run() {
+  local tmplog exit_code
+  tmplog=$(mktemp /tmp/nixos-rebuild-XXXXXX.log)
+
+  # Start sleep/idle inhibit lock (prevents suspend mid-build)
+  systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
+    --why="NixOS rebuild in progress" sleep infinity &>/dev/null &
   local inhibit_pid=$!
-  "$@"
-  local exit_code=$?
+
+  # Run rebuild — tee to tmplog alongside nom for live output
+  "$@" 2>&1 | tee "$tmplog" | nom
+  exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
+
+  # Release inhibit lock
   kill $inhibit_pid 2>/dev/null
+
+  # Write warnings + update log to vault (non-blocking, never fails the shell)
+  if command -v nixos-log-rebuild &>/dev/null; then
+    local outcome="success"
+    [[ $exit_code -ne 0 ]] && outcome="failure"
+    nixos-log-rebuild --outcome "$outcome" --log "$tmplog" 2>/dev/null || true
+  fi
+
+  rm -f "$tmplog"
   return $exit_code
 }
 
 # Rebuild and switch to the current flake config.
 nr() {
-  _with_inhibit "NixOS rebuild in progress" \
-    sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
-}
-
-# Rebuild into boot + pull latest nixpkgs first, then reboot when done.
-# Use this for unattended updates — it applies on next boot and reboots automatically.
-nrb() {
-  echo "→ Pulling latest changes from $NIXOS_CONFIG..."
-  git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
-  git -C "$NIXOS_CONFIG" pull || return 1
-  nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-  _with_inhibit "NixOS update in progress" \
-    sudo nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
-  curl -s --max-time 10 \
-    -H "Title: Rebooting — $(hostname)" \
-    -H "Priority: high" \
-    -H "Tags: arrows_counterclockwise" \
-    -d "NixOS updated successfully. Rebooting in 10 seconds." \
-    "http://media-server:2586/nixos-updates" 2>/dev/null || true
-  echo "→ Rebooting in 10 seconds... (Ctrl+C to cancel)"
-  sleep 10
-  sudo reboot
+  _nixos_run sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)"
 }
 
 # Test rebuild — activates now without touching the boot entry (safe for risky changes).
 nrt() {
-  _with_inhibit "NixOS rebuild in progress" \
-    sudo nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  _nixos_run sudo nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)"
 }
 
 # Rebuild + pull latest nixpkgs before switching.
@@ -80,8 +82,7 @@ nru() {
   git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
   git -C "$NIXOS_CONFIG" pull || return 1
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-  _with_inhibit "NixOS update in progress" \
-    sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" |& nom
+  _nixos_run sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)"
   # Notify if a kernel update requires a reboot
   local current_kernel installed_kernel
   current_kernel=$(uname -r)
@@ -95,6 +96,25 @@ nru() {
       "http://media-server:2586/nixos-updates" 2>/dev/null || true
     echo "⚠ Reboot required — kernel updated to $installed_kernel"
   fi
+}
+
+# Rebuild into boot + pull latest nixpkgs first, then reboot when done.
+# Use this for unattended updates — applies on next boot then reboots.
+nrb() {
+  echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+  git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
+  git -C "$NIXOS_CONFIG" pull || return 1
+  nix flake update nixpkgs --flake "$NIXOS_CONFIG"
+  _nixos_run sudo nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)"
+  curl -s --max-time 10 \
+    -H "Title: Rebooting — $(hostname)" \
+    -H "Priority: high" \
+    -H "Tags: arrows_counterclockwise" \
+    -d "NixOS updated successfully. Rebooting in 10 seconds." \
+    "http://media-server:2586/nixos-updates" 2>/dev/null || true
+  echo "→ Rebooting in 10 seconds... (Ctrl+C to cancel)"
+  sleep 10
+  sudo reboot
 }
 
 # NixOS aliases — available to all users on all hosts

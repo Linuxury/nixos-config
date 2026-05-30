@@ -30,8 +30,10 @@
 { config, pkgs, lib, ... }:
 
 let
-  notifyScript = ./scripts/notify-update-result.sh;
-  cfg          = config.services.nixos-auto-update;
+  notifyScript     = ./scripts/notify-update-result.sh;
+  nixosLogRebuild  = pkgs.writeShellScriptBin "nixos-log-rebuild"
+    (builtins.readFile ./scripts/nixos-log-rebuild.sh);
+  cfg              = config.services.nixos-auto-update;
 in
 
 {
@@ -123,7 +125,7 @@ in
   systemd.services."notify-vault@" = {
     description = "Write update notification to Obsidian vault (%i)";
     # These packages are not in the minimal system service PATH — must be explicit
-    path = with pkgs; [ hostname coreutils gnugrep gnused gawk nix msmtp libnotify curl ];
+    path = with pkgs; [ hostname coreutils gnugrep gnused gawk nix msmtp libnotify curl nixosLogRebuild ];
     serviceConfig = {
       Type      = "oneshot";
       User      = cfg.primaryUser;
@@ -175,6 +177,9 @@ in
   #   8. Checks if a reboot is needed and notifies persistently
   # =========================================================================
   environment.systemPackages = [
+    # nixos-log-rebuild — post-rebuild warning capture and update log writer
+    nixosLogRebuild
+
     (pkgs.writeShellScriptBin "nixos-auto-update" ''
       #!/usr/bin/env bash
       set -euo pipefail
