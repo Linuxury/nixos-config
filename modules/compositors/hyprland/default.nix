@@ -64,14 +64,21 @@ in
     ./services/swaync/default.nix
   ];
 
-  # BreezeX-Light is in environment.systemPackages below (with all other tools).
-  # The cursor theme for Weston is set here — Weston inherits SDDM's process env
-  # and reads XCURSOR_THEME from it (GreeterEnvironment only reaches the Qt greeter).
+  # BreezeX-Light cursor for the SDDM greeter.
+  # Two separate mechanisms — both are needed:
+  #   1. systemd.services.sddm.environment → Weston inherits SDDM's process env
+  #      and reads XCURSOR_THEME to render the compositor cursor.
+  #   2. GreeterEnvironment override → Qt6's cursor plugin reads XCURSOR_THEME +
+  #      XDG_DATA_DIRS to set cursor surfaces via wl_pointer.set_cursor.
+  #      Plain assignment wins over mkDefault in the sddm module.
   systemd.services.sddm.environment = {
     XCURSOR_THEME = "BreezeX-Light";
     XCURSOR_SIZE  = "24";
     XCURSOR_PATH  = "/run/current-system/sw/share/icons";
   };
+
+  services.displayManager.sddm.settings.General.GreeterEnvironment =
+    "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XDG_DATA_DIRS=/run/current-system/sw/share";
 
   # =========================================================================
   # Shared Home Manager modules — injected into every user on this host.

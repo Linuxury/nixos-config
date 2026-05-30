@@ -42,18 +42,23 @@
 
   # sddm-greeter-qt6 must run as a pure Wayland client inside weston.
   #
-  # QT_QPA_PLATFORM=wayland   — forces Qt6 to use the Wayland QPA plugin
-  #                              instead of xcb (X11), which doesn't exist here.
-  # QT_QPA_PLATFORMTHEME=     — CRITICAL: disables the gtk3 platform theme plugin.
-  #                              Without this, Qt loads the gtk3 theme which calls
-  #                              gtk_init(); GTK tries X11, finds no display, and
-  #                              calls exit(1) → greeter crashes → black screen.
-  #                              (KDE uses the same workaround in desktops/kde.)
+  # GreeterEnvironment is comma-separated and only reaches the Qt greeter process
+  # (NOT weston — weston inherits SDDM's process env, see systemd.services.sddm below).
   #
-  # GreeterEnvironment is comma-separated and only reaches the Qt greeter process.
-  # KDE overrides this via a plain assignment in desktops/kde/default.nix.
+  # QT_QPA_PLATFORM=wayland   — forces Qt6 to use the Wayland QPA plugin.
+  # QT_QPA_PLATFORMTHEME=     — CRITICAL: disables the gtk3 platform theme plugin.
+  #                              Without this, Qt loads gtk3 → gtk_init() → tries X11
+  #                              → no display → exit(1) → greeter crashes → black screen.
+  # XCURSOR_THEME             — Qt6 Wayland cursor plugin reads this to select the theme.
+  # XCURSOR_SIZE              — Cursor size in pixels.
+  # XDG_DATA_DIRS             — Qt6's cursor plugin searches $XDG_DATA_DIRS/icons/ for
+  #                              themes. NOT XCURSOR_PATH (that's an X11/libXcursor var).
+  #                              Must point to the Nix system path or cursor stays invisible.
+  #
+  # Compositor modules override this via a plain assignment (priority 100 > mkDefault 1000).
+  # KDE overrides it in desktops/kde/default.nix.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=";
+    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XDG_DATA_DIRS=/run/current-system/sw/share";
 
   # Weston (the greeter compositor) is launched by SDDM and inherits SDDM's own
   # process environment — NOT GreeterEnvironment. Weston reads XCURSOR_THEME and
