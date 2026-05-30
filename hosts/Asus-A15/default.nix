@@ -30,12 +30,12 @@
     ../../modules/desktops/kde/default.nix
     ../../modules/gaming/default.nix
     ../../modules/services/auto-update/default.nix
+    ../../modules/services/syncthing-babylinux/default.nix
+    ../../modules/services/ai-tools/default.nix
     ../../modules/users/babylinux/ssh/default.nix  # babylinux — primary SSH access
     ../../modules/users/linuxury/ssh/default.nix   # linuxury  — emergency SSH only
     ../../modules/users/babylinux/description/default.nix
     ../../modules/users/babylinux/packages/default.nix
-    ../../modules/services/syncthing-babylinux/default.nix
-    ../../modules/services/ai-tools/default.nix
   ];
 
   # =========================================================================

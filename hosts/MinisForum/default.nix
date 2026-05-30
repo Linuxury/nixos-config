@@ -26,8 +26,8 @@
 #
 # Enabled modules:
 #   - Intel drivers
-#   - base/common.nix
-#   - samba.nix
+#   - system/core/default.nix
+#   - services/samba/default.nix
 # ===========================================================================
 
 { config, pkgs, inputs, lib, ... }:
@@ -35,13 +35,13 @@
 {
   imports = [
     ../../modules/system/core/default.nix
-    ../../modules/users/linuxury/ssh/default.nix
-    ../../modules/services/auto-update/default.nix
     ../../modules/system/server-shell/default.nix
     ../../modules/hardware/drivers/default.nix
     ../../modules/services/samba/default.nix
     ../../modules/services/syncthing/default.nix
+    ../../modules/services/auto-update/default.nix
     ../../modules/services/ai-tools/default.nix
+    ../../modules/users/linuxury/ssh/default.nix
   ];
 
   # =========================================================================

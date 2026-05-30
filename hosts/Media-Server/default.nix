@@ -12,9 +12,9 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - base/common.nix
-#   - samba.nix (single Media-Server share → /data)
-#   - freshrss.nix (migrated from Radxa-X4)
+#   - system/core/default.nix
+#   - services/samba/default.nix (single Media-Server share → /data)
+#   - freshrss.nix (migrated from Radxa-X4, local to this host)
 # ===========================================================================
 
 { config, pkgs, inputs, lib, ... }:
@@ -22,15 +22,15 @@
 {
   imports = [
     ../../modules/system/core/default.nix
-    ../../modules/users/linuxury/ssh/default.nix
-    ../../modules/services/auto-update/default.nix
     ../../modules/system/server-shell/default.nix
     ../../modules/hardware/drivers/default.nix
     ../../modules/services/samba/default.nix
     ../../modules/services/ntfy/default.nix
-    ./freshrss.nix
     ../../modules/services/syncthing/default.nix
+    ../../modules/services/auto-update/default.nix
     ../../modules/services/ai-tools/default.nix
+    ./freshrss.nix
+    ../../modules/users/linuxury/ssh/default.nix
   ];
 
   # =========================================================================

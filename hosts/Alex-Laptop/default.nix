@@ -27,10 +27,11 @@
     ../../modules/desktops/cosmic/default.nix
     ../../modules/gaming/default.nix
     ../../modules/services/auto-update/default.nix
-    ../../modules/users/linuxury/ssh/default.nix
-    ../../modules/users/alex/packages/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/ai-tools/default.nix
+    ../../modules/users/linuxury/ssh/default.nix
+    ../../modules/users/alex/packages/default.nix
+    ../../modules/users/alex/description/default.nix
   ];
 
   # =========================================================================
@@ -287,9 +288,9 @@
   # Alex's personal apps (freetube, krita, kdenlive, gcompris-qt,
   # libreoffice, hunspell) are declared in users/alex/home.nix.
   # Gaming packages (prismlauncher, jdk17) are in
-  # modules/gaming/gaming.nix (imported above).
-  # Graphical tools (kitty, showtime, etc.) are in modules/base/graphical-base.nix.
-  # Shell tools (fastfetch, btop) are in modules/base/common.nix.
+  # modules/gaming/default.nix (imported above).
+  # Graphical tools (kitty, showtime, etc.) are in modules/system/graphical/default.nix.
+  # Shell tools (fastfetch, btop) are in modules/system/core/default.nix.
   # =========================================================================
 
   # =========================================================================

@@ -36,8 +36,6 @@
     # -------------------------------------------------------------------------
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
-    ../../modules/users/linuxury/ssh/default.nix
-    ../../modules/users/linuxury/description/default.nix
     ../../modules/hardware/drivers/default.nix
     ../../modules/desktops/cosmic/default.nix
     #../../modules/compositors/hyprland/default.nix
@@ -47,9 +45,11 @@
     ../../modules/gaming/default.nix
     #../../modules/development/default.nix
     ../../modules/services/auto-update/default.nix
-    ../../modules/users/linuxury/packages/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/ai-tools/default.nix
+    ../../modules/users/linuxury/ssh/default.nix
+    ../../modules/users/linuxury/description/default.nix
+    ../../modules/users/linuxury/packages/default.nix
   ];
 
   # =========================================================================

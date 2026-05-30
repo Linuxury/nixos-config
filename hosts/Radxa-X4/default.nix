@@ -11,8 +11,8 @@
 #
 # Enabled modules:
 #   - Intel drivers
-#   - base/common.nix
-#   - samba.nix (shares for completed/incomplete torrents — see Item 3)
+#   - system/core/default.nix
+#   - services/samba/default.nix (shares for completed/incomplete torrents)
 #
 # FreshRSS was migrated to Media-Server — see hosts/Media-Server/freshrss.nix
 # Data migration steps documented in that file.
@@ -23,14 +23,14 @@
 {
   imports = [
     ../../modules/system/core/default.nix
-    ../../modules/users/linuxury/ssh/default.nix
-    ../../modules/services/auto-update/default.nix
     ../../modules/system/server-shell/default.nix
     ../../modules/hardware/drivers/default.nix
     ../../modules/services/samba/default.nix
     ../../modules/services/vpn-qbittorrent/default.nix
     ../../modules/services/syncthing/default.nix
+    ../../modules/services/auto-update/default.nix
     ../../modules/services/ai-tools/default.nix
+    ../../modules/users/linuxury/ssh/default.nix
   ];
 
   # =========================================================================
