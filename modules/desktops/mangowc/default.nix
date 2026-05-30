@@ -108,7 +108,7 @@ in
 
   # nautilus-bookmarks hardcodes /home/linuxury/ paths — scope to linuxury only.
   home-manager.users.linuxury = {
-    imports = [ ../../users/linuxury/nautilus/default.nix ];
+    imports = [ ../../system/graphical/nautilus/default.nix ];
   };
 
   # =========================================================================

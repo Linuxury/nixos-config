@@ -1,13 +1,12 @@
 # ===========================================================================
-# modules/users/linuxury/nautilus/default.nix — Bookmarks and scripts for Nautilus
+# modules/system/graphical/nautilus/default.nix — Bookmarks and scripts for Nautilus
 #
-# linuxury-specific: hardcodes /home/linuxury/ paths so this must NEVER be
-# added to home-manager.sharedModules (which applies to all users).
-# Import it via home-manager.users.linuxury in compositor/desktop modules.
+# Linuxury-specific: hardcodes /home/linuxury/ paths — import only from
+# users/linuxury/home.nix, not from home-manager.sharedModules.
 #
 # Nautilus reads sidebar bookmarks from ~/.config/gtk-3.0/bookmarks.
 # Samba shares appear as smb:// URIs — browsed via gvfs (enabled in
-# graphical/default.nix with Samba support).
+# system/graphical/default.nix with Samba support).
 #
 # Scripts live in ~/.local/share/nautilus/scripts/ and appear in the
 # right-click context menu under Scripts.

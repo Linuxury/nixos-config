@@ -23,7 +23,7 @@
 
 {
   imports = [
-    ../../modules/users/linuxury/neovim/default.nix
+    ../../modules/development/neovim/default.nix
     ../../modules/system/graphical/helium/default.nix
     ../../modules/system/graphical/hytale/default.nix
   ];
@@ -503,7 +503,7 @@ ENDSSH
   };
 
   # Neovim config is now managed by the normie-nvim activation script in
-  # modules/users/linuxury/neovim/default.nix — no overrides needed here.
+  # modules/development/neovim/default.nix — no overrides needed here.
 
   # Desktop entry — opens Neovim in Kitty
   xdg.desktopEntries.nvim = {

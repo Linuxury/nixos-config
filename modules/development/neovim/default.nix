@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/users/linuxury/neovim/default.nix — Neovim via normie-nvim (TheBlackDon)
+# modules/development/neovim/default.nix — Neovim via normie-nvim (TheBlackDon)
 #
 # Uses normie-nvim from GitLab as a flake input (flake = false).
 # Instead of symlinking the Nix store path (read-only), an activation
@@ -59,7 +59,7 @@
     # Overlay custom additions (dotfiles/nvim-extra/) on top of normie-nvim.
     # No --delete here — only adds/updates, never removes normie-nvim files.
     ${pkgs.rsync}/bin/rsync -a \
-      "${../../../..}/dotfiles/nvim-extra/" "$NVIM_DIR/"
+      "${../../..}/dotfiles/nvim-extra/" "$NVIM_DIR/"
 
     # Nix store files are read-only — make the whole config dir writable so
     # lazy.nvim can update lazy-lock.json and plugins can write their state.
