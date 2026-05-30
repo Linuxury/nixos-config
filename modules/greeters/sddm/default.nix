@@ -49,23 +49,26 @@
   #                              gtk_init(); GTK tries X11, finds no display, and
   #                              calls exit(1) → greeter crashes → black screen.
   #                              (KDE uses the same workaround in desktops/kde.)
-  # XCURSOR_THEME/SIZE        — In Wayland, the cursor image is provided by the
-  #                              client (greeter), not the compositor. Without a
-  #                              theme, Qt sends no cursor image → invisible cursor
-  #                              even though mouse events are flowing normally.
-  # XCURSOR_PATH              — xcursor defaults to /usr/share/icons which doesn't
-  #                              exist on NixOS. Adwaita lives in the Nix system path.
-  #                              Must be explicit or the theme lookup silently fails.
   #
-  # KDE overrides this via a plain assignment in desktops/kde/default.nix
-  # (priority 100 wins over mkDefault priority 1000) with its own
-  # compositor-specific vars.
+  # GreeterEnvironment is comma-separated and only reaches the Qt greeter process.
+  # KDE overrides this via a plain assignment in desktops/kde/default.nix.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons";
+    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=";
 
-  # Adwaita cursor theme — required by the greeter environment above.
-  # Available system-wide so sddm user can resolve XCURSOR_THEME=Adwaita
-  # via /run/current-system/sw/share/icons/Adwaita/cursors/.
+  # Weston (the greeter compositor) is launched by SDDM and inherits SDDM's own
+  # process environment — NOT GreeterEnvironment. Weston reads XCURSOR_THEME and
+  # XCURSOR_PATH from its environment to render the cursor for all Wayland clients.
+  # Setting them here (on the sddm systemd unit) makes them available to Weston.
+  #
+  # Compositor modules (e.g. hyprland) override these to their preferred theme.
+  # Adwaita is the safe fallback: always available via adwaita-icon-theme below.
+  systemd.services.sddm.environment = {
+    XCURSOR_THEME = lib.mkDefault "Adwaita";
+    XCURSOR_SIZE  = lib.mkDefault "24";
+    XCURSOR_PATH  = lib.mkDefault "/run/current-system/sw/share/icons";
+  };
+
+  # Adwaita cursor — fallback theme, always available system-wide.
   environment.systemPackages = [ pkgs.adwaita-icon-theme ];
 
   # seatd manages seat (GPU/input device) access for Wayland compositors.

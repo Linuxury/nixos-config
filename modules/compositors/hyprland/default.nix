@@ -64,6 +64,17 @@ in
     ./services/swaync/default.nix
   ];
 
+  # BreezeX-Light installed system-wide so SDDM's Weston greeter can use it.
+  # The cursor theme for Weston is set via systemd.services.sddm.environment
+  # below — Weston inherits SDDM's process env and reads XCURSOR_THEME from it.
+  environment.systemPackages = [ breezex-cursors ];
+
+  systemd.services.sddm.environment = {
+    XCURSOR_THEME = "BreezeX-Light";
+    XCURSOR_SIZE  = "24";
+    XCURSOR_PATH  = "/run/current-system/sw/share/icons";
+  };
+
   # =========================================================================
   # Shared Home Manager modules — injected into every user on this host.
   # These are compositor-level concerns, not shell-specific.
