@@ -26,23 +26,63 @@
 
 {
   imports = [
-    # -------------------------------------------------------------------------
-    # No nixos-hardware profile needed for a custom desktop build —
-    # generic AMD support is handled by our drivers module perfectly fine.
-    # -------------------------------------------------------------------------
+    # ── System ──────────────────────────────────────────────────────────────
+    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
+    # graphical: Wayland stack, PipeWire audio, XDG portals, graphical base pkgs.
+    # No nixos-hardware profile needed — generic AMD support via drivers module.
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
+
+    # ── Hardware ────────────────────────────────────────────────────────────
+    # drivers: GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI. Selected via hardware.gpu option.
+    # openrgb: RGB lighting control daemon (not applicable on this build).
     ../../modules/hardware/drivers/default.nix
-    #../../modules/desktops/cosmic/default.nix
+    #../../modules/hardware/openrgb/default.nix
+
+    # ── Compositor / Desktop Environment ────────────────────────────────────
+    # Wayland compositors: hyprland (tiling), mangowc (floating), niri (scrollable tiling).
+    # Full desktop environments: cosmic (System76), gnome, kde.
+    # Enable ONE — each manages its own greeter (greetd) and display session.
+    # mangowc disabled: VRR/wlroots assertion crash on RDNA3.
     ../../modules/compositors/hyprland/default.nix
-    #../../modules/compositors/niri/default.nix
     #../../modules/compositors/mangowc/default.nix
+    #../../modules/compositors/niri/default.nix
+    #../../modules/desktops/cosmic/default.nix
+    #../../modules/desktops/gnome/default.nix
+    #../../modules/desktops/kde/default.nix
+
+    # ── Gaming ──────────────────────────────────────────────────────────────
+    # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
     ../../modules/gaming/default.nix
+
+    # ── Development ─────────────────────────────────────────────────────────
+    # Neovim full IDE setup, language servers, dev toolchains, formatters.
     #../../modules/development/default.nix
+
+    # ── Services ────────────────────────────────────────────────────────────
+    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
+    # syncthing: Obsidian vault + nixos-config sync (linuxury pair).
+    # ai-tools: Claude Code, AI integrations.
+    # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
+    # local-llm: Ollama local model runner (disabled — needs 32 GB+ RAM).
+    # wallpaper-slideshow: matugen wallpaper rotation — COSMIC/non-Hyprland only.
+    # samba/ntfy/vpn-qbittorrent: server-side services, not for desktops.
+    # syncthing-babylinux: babylinux's separate sync pair (babylinux hosts only).
     ../../modules/services/auto-update/default.nix
-    #../../modules/services/local-llm/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/ai-tools/default.nix
+    #../../modules/services/snapper/default.nix
+    #../../modules/services/local-llm/default.nix
+    #../../modules/services/wallpaper-slideshow/default.nix
+    #../../modules/services/samba/default.nix
+    #../../modules/services/ntfy/default.nix
+    #../../modules/services/vpn-qbittorrent/default.nix
+    #../../modules/services/syncthing-babylinux/default.nix
+
+    # ── Users ───────────────────────────────────────────────────────────────
+    # ssh: authorized keys for this user on this host.
+    # description: GECOS display name (stored as agenix secret).
+    # packages: per-user package set.
     ../../modules/users/linuxury/ssh/default.nix
     ../../modules/users/linuxury/description/default.nix
     ../../modules/users/linuxury/packages/default.nix
@@ -52,6 +92,16 @@
   # Host identity
   # =========================================================================
   networking.hostName = "Ryzen5900x";
+
+  # =========================================================================
+  # Compositor shell — Hyprland UI shell selection
+  #
+  # The Hyprland module imports all three shells; enabling one here activates
+  # its greeter session entry and config. Only one should be true at a time.
+  # =========================================================================
+  shell.dms.enable      = true;   # DankMaterialShell  — active
+  # shell.wayle.enable   = true;  # Wayle              — alternative
+  # shell.noctalia.enable = true; # Noctalia            — alternative
 
   # =========================================================================
   # Default session — managed by greetd when mangowc.nix is active.

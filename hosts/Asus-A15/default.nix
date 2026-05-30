@@ -22,20 +22,68 @@
 
 {
   imports = [
+    # ── System ──────────────────────────────────────────────────────────────
+    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
+    # graphical: Wayland stack, PipeWire audio, XDG portals, graphical base pkgs.
     # nixos-hardware.nixosModules.asus-battery is passed via flake.nix extraModules
+    # (battery charge threshold + ASUS power management for this laptop model).
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
+
+    # ── Hardware ────────────────────────────────────────────────────────────
+    # drivers: GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI. Selected via hardware.gpu option.
+    # This host uses Nvidia hybrid (AMD iGPU + GTX 1660 Ti dGPU via PRIME offloading).
+    # openrgb: RGB lighting control daemon (not applicable on this laptop).
     ../../modules/hardware/drivers/default.nix
-    #../../modules/desktops/cosmic/default.nix
+    #../../modules/hardware/openrgb/default.nix
+
+    # ── Compositor / Desktop Environment ────────────────────────────────────
+    # Wayland compositors: hyprland (tiling), mangowc (floating), niri (scrollable tiling).
+    # Full desktop environments: cosmic (System76), gnome, kde.
+    # Enable ONE — each manages its own greeter (greetd) and display session.
     ../../modules/desktops/kde/default.nix
+    #../../modules/desktops/cosmic/default.nix
+    #../../modules/compositors/hyprland/default.nix
+    #../../modules/compositors/mangowc/default.nix
+    #../../modules/compositors/niri/default.nix
+    #../../modules/desktops/gnome/default.nix
+
+    # ── Gaming ──────────────────────────────────────────────────────────────
+    # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
     ../../modules/gaming/default.nix
+
+    # ── Development ─────────────────────────────────────────────────────────
+    # Neovim full IDE setup, language servers, dev toolchains, formatters.
+    # Kept off — this machine is kept clean and simple.
+    #../../modules/development/default.nix
+
+    # ── Services ────────────────────────────────────────────────────────────
+    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
+    # syncthing-babylinux: Obsidian vault + nixos-config sync (babylinux pair).
+    # ai-tools: Claude Code, AI integrations (disabled — insufficient RAM for local AI).
+    # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
+    # local-llm: Ollama local model runner (disabled — laptop RAM constraints).
+    # wallpaper-slideshow: matugen wallpaper rotation — COSMIC/non-Hyprland only.
+    # samba/ntfy/vpn-qbittorrent: server-side services, not for desktops.
+    # syncthing: linuxury's sync pair (linuxury hosts only).
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing-babylinux/default.nix
-    ../../modules/services/ai-tools/default.nix
-    ../../modules/users/babylinux/ssh/default.nix  # babylinux — primary SSH access
-    ../../modules/users/linuxury/ssh/default.nix   # linuxury  — emergency SSH only
+    #../../modules/services/ai-tools/default.nix
+    #../../modules/services/snapper/default.nix
+    #../../modules/services/local-llm/default.nix
+    #../../modules/services/wallpaper-slideshow/default.nix
+    #../../modules/services/samba/default.nix
+    #../../modules/services/ntfy/default.nix
+    #../../modules/services/vpn-qbittorrent/default.nix
+    #../../modules/services/syncthing/default.nix
+
+    # ── Users ───────────────────────────────────────────────────────────────
+    # babylinux: primary user — SSH, display name, packages.
+    # linuxury: emergency SSH access only (no packages, no description).
+    ../../modules/users/babylinux/ssh/default.nix
     ../../modules/users/babylinux/description/default.nix
     ../../modules/users/babylinux/packages/default.nix
+    ../../modules/users/linuxury/ssh/default.nix
   ];
 
   # =========================================================================

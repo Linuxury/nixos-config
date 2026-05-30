@@ -24,16 +24,64 @@
 
 {
   imports = [
+    # ── System ──────────────────────────────────────────────────────────────
+    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
+    # graphical: Wayland stack, PipeWire audio, XDG portals, graphical base pkgs.
+    # No nixos-hardware profile needed — generic AMD support via drivers module.
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
+
+    # ── Hardware ────────────────────────────────────────────────────────────
+    # drivers: GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI. Selected via hardware.gpu option.
+    # openrgb: RGB lighting control daemon (not applicable on this build).
     ../../modules/hardware/drivers/default.nix
+    #../../modules/hardware/openrgb/default.nix
+
+    # ── Compositor / Desktop Environment ────────────────────────────────────
+    # Wayland compositors: hyprland (tiling), mangowc (floating), niri (scrollable tiling).
+    # Full desktop environments: cosmic (System76), gnome, kde.
+    # Enable ONE — each manages its own greeter (greetd) and display session.
+    # COSMIC chosen: kid-friendly UI, parental controls integrate cleanly.
     ../../modules/desktops/cosmic/default.nix
+    #../../modules/compositors/hyprland/default.nix
+    #../../modules/compositors/mangowc/default.nix
+    #../../modules/compositors/niri/default.nix
+    #../../modules/desktops/gnome/default.nix
+    #../../modules/desktops/kde/default.nix
+
+    # ── Gaming ──────────────────────────────────────────────────────────────
+    # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
     ../../modules/gaming/default.nix
+
+    # ── Development ─────────────────────────────────────────────────────────
+    # Neovim full IDE setup, language servers, dev toolchains, formatters.
+    # Not for a 6-year-old — intentionally excluded.
+    #../../modules/development/default.nix
+
+    # ── Services ────────────────────────────────────────────────────────────
+    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
+    # syncthing: linuxury pair — admin access to sync config and vault entries.
+    # ai-tools: Claude Code, AI integrations (not appropriate for alex).
+    # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
+    # local-llm/samba/ntfy/vpn-qbittorrent: not applicable on this host.
+    # syncthing-babylinux: babylinux's sync pair (babylinux hosts only).
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing/default.nix
-    ../../modules/users/linuxury/ssh/default.nix
-    ../../modules/users/alex/packages/default.nix
+    #../../modules/services/ai-tools/default.nix
+    #../../modules/services/snapper/default.nix
+    #../../modules/services/local-llm/default.nix
+    #../../modules/services/wallpaper-slideshow/default.nix
+    #../../modules/services/samba/default.nix
+    #../../modules/services/ntfy/default.nix
+    #../../modules/services/vpn-qbittorrent/default.nix
+    #../../modules/services/syncthing-babylinux/default.nix
+
+    # ── Users ───────────────────────────────────────────────────────────────
+    # alex: primary user — display name, packages (no SSH key — kids don't SSH).
+    # linuxury: emergency SSH access + admin management.
     ../../modules/users/alex/description/default.nix
+    ../../modules/users/alex/packages/default.nix
+    ../../modules/users/linuxury/ssh/default.nix
   ];
 
   # =========================================================================

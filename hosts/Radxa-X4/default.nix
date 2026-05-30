@@ -22,14 +22,40 @@
 
 {
   imports = [
+    # ── System ──────────────────────────────────────────────────────────────
+    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
+    # server-shell: headless zsh config, aliases, zoxide/fzf/direnv.
+    # Replaces graphical — no Wayland, no display manager, no GUI packages.
     ../../modules/system/core/default.nix
     ../../modules/system/server-shell/default.nix
+
+    # ── Hardware ────────────────────────────────────────────────────────────
+    # drivers: Intel N100 UHD iGPU — basic support (headless, no transcoding needed).
+    # openrgb: RGB lighting control daemon (not applicable on a server).
     ../../modules/hardware/drivers/default.nix
+    #../../modules/hardware/openrgb/default.nix
+
+    # ── Services ────────────────────────────────────────────────────────────
+    # samba: file sharing — Torrents share at /data/torrents.
+    # vpn-qbittorrent: WireGuard VPN killswitch — all qBittorrent traffic routed
+    #   through Mullvad VPN; qBittorrent can't reach internet if VPN drops.
+    # syncthing: Obsidian vault sync (linuxury pair).
+    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
+    # ai-tools: Claude Code, AI integrations (admin tooling for linuxury).
+    # ntfy: push notification server (runs on Media-Server, not here).
+    # snapper: BTRFS snapshots (disabled — /data is ext4 on this host).
+    # syncthing-babylinux: babylinux's sync pair (babylinux hosts only).
     ../../modules/services/samba/default.nix
     ../../modules/services/vpn-qbittorrent/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/auto-update/default.nix
     ../../modules/services/ai-tools/default.nix
+    #../../modules/services/ntfy/default.nix
+    #../../modules/services/snapper/default.nix
+    #../../modules/services/syncthing-babylinux/default.nix
+
+    # ── Users ───────────────────────────────────────────────────────────────
+    # linuxury: SSH access + wheel/admin. Only user that manages this server.
     ../../modules/users/linuxury/ssh/default.nix
   ];
 

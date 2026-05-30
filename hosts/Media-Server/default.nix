@@ -21,15 +21,43 @@
 
 {
   imports = [
+    # ── System ──────────────────────────────────────────────────────────────
+    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
+    # server-shell: headless zsh config, aliases, zoxide/fzf/direnv.
+    # Replaces graphical — no Wayland, no display manager, no GUI packages.
     ../../modules/system/core/default.nix
     ../../modules/system/server-shell/default.nix
+
+    # ── Hardware ────────────────────────────────────────────────────────────
+    # drivers: AMD RX 480 — used for VAAPI hardware transcoding via Plex.
+    # openrgb: RGB lighting control daemon (not applicable on a server).
     ../../modules/hardware/drivers/default.nix
+    #../../modules/hardware/openrgb/default.nix
+
+    # ── Services ────────────────────────────────────────────────────────────
+    # samba: file sharing — Media-Server share at /data (media, shared, downloads).
+    # ntfy: push notification server — all hosts report updates and alerts here.
+    # syncthing: Obsidian vault sync (linuxury pair — vault lives at ~/Obsidian).
+    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
+    # ai-tools: Claude Code, AI integrations (admin tooling for linuxury).
+    # vpn-qbittorrent: WireGuard killswitch for qBittorrent (Radxa-X4 only).
+    # snapper: BTRFS snapshots (disabled — server uses ext4 data drives + mergerfs).
+    # syncthing-babylinux: babylinux's sync pair (babylinux hosts only).
     ../../modules/services/samba/default.nix
     ../../modules/services/ntfy/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/auto-update/default.nix
     ../../modules/services/ai-tools/default.nix
+    #../../modules/services/vpn-qbittorrent/default.nix
+    #../../modules/services/snapper/default.nix
+    #../../modules/services/syncthing-babylinux/default.nix
+
+    # ── Host-specific ────────────────────────────────────────────────────────
+    # Services unique to Media-Server: Plex, Arr stack, Immich, FreshRSS.
     ./freshrss/default.nix
+
+    # ── Users ───────────────────────────────────────────────────────────────
+    # linuxury: SSH access + wheel/admin. Only user that manages this server.
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
