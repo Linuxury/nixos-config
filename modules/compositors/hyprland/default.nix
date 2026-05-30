@@ -66,13 +66,17 @@ in
 
   # BreezeX-Light cursor for the SDDM greeter.
   #
-  # Three-layer approach — belt, suspenders, and a clip:
-  #   1. tmpfiles symlinks in sddm user's home (~/.icons, ~/.local/share/icons)
-  #      so libXcursor finds the theme without relying on XCURSOR_PATH at all.
-  #   2. sddm.environment → Weston inherits SDDM's process env (XCURSOR_THEME
-  #      + XCURSOR_PATH) for any compositor-level cursor rendering.
-  #   3. GreeterEnvironment + [Theme] CursorTheme → Qt6 greeter process gets
+  # Four-layer approach:
+  #   1. QT_WAYLAND_SHELL_INTEGRATION=layer-shell in GreeterEnvironment → Qt6
+  #      uses wlr-layer-shell, which receives wl_pointer focus in Weston kiosk
+  #      mode. Without this, the greeter surface gets no pointer focus and Qt
+  #      never calls wl_pointer.set_cursor → cursor stays invisible.
+  #   2. GreeterEnvironment + [Theme] CursorTheme → Qt6 greeter process gets
   #      XCURSOR_THEME, XCURSOR_PATH, XDG_DATA_DIRS for wl_pointer.set_cursor.
+  #   3. sddm.environment → Weston inherits SDDM's process env (XCURSOR_THEME
+  #      + XCURSOR_PATH) for any compositor-level cursor rendering.
+  #   4. tmpfiles symlinks in sddm user's home (~/.icons, ~/.local/share/icons)
+  #      so libXcursor finds the theme without relying on XCURSOR_PATH at all.
   systemd.tmpfiles.rules = [
     "L /var/lib/sddm/.icons/BreezeX-Light           - - - - /run/current-system/sw/share/icons/BreezeX-Light"
     "L /var/lib/sddm/.local/share/icons/BreezeX-Light - - - - /run/current-system/sw/share/icons/BreezeX-Light"
@@ -85,7 +89,7 @@ in
   };
 
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
+    "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,QT_WAYLAND_SHELL_INTEGRATION=layer-shell,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
 
   services.displayManager.sddm.settings.Theme = {
     CursorTheme = "BreezeX-Light";

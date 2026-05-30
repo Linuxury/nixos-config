@@ -54,20 +54,25 @@
   # GreeterEnvironment is comma-separated and only reaches the Qt greeter process
   # (NOT weston — weston inherits SDDM's process env, see systemd.services.sddm below).
   #
-  # QT_QPA_PLATFORM=wayland   — forces Qt6 to use the Wayland QPA plugin.
-  # QT_QPA_PLATFORMTHEME=     — CRITICAL: disables the gtk3 platform theme plugin.
-  #                              Without this, Qt loads gtk3 → gtk_init() → tries X11
-  #                              → no display → exit(1) → greeter crashes → black screen.
-  # XCURSOR_THEME             — Qt6 Wayland cursor plugin reads this to select the theme.
-  # XCURSOR_SIZE              — Cursor size in pixels.
-  # XDG_DATA_DIRS             — Qt6's cursor plugin searches $XDG_DATA_DIRS/icons/ for
-  #                              themes. NOT XCURSOR_PATH (that's an X11/libXcursor var).
-  #                              Must point to the Nix system path or cursor stays invisible.
+  # QT_QPA_PLATFORM=wayland              — forces Qt6 to use the Wayland QPA plugin.
+  # QT_QPA_PLATFORMTHEME=                — CRITICAL: disables the gtk3 platform theme plugin.
+  #                                         Without this, Qt loads gtk3 → gtk_init() → tries
+  #                                         X11 → no display → exit(1) → greeter crashes.
+  # QT_WAYLAND_SHELL_INTEGRATION=layer-shell — CRITICAL: makes the greeter surface use the
+  #                                         wlr-layer-shell protocol instead of xdg-shell.
+  #                                         Without this, the greeter surface doesn't receive
+  #                                         wl_pointer focus in Weston kiosk mode, so Qt never
+  #                                         calls wl_pointer.set_cursor → cursor invisible.
+  #                                         This matches what NixOS's upstream SDDM module sets.
+  # XCURSOR_THEME                        — cursor theme name for libwayland-cursor.
+  # XCURSOR_SIZE                         — cursor size in pixels.
+  # XCURSOR_PATH                         — libXcursor search path for cursor themes.
+  # XDG_DATA_DIRS                        — Qt6's cursor plugin also searches here for themes.
   #
   # Compositor modules override this via a plain assignment (priority 100 > mkDefault 1000).
   # KDE overrides it in desktops/kde/default.nix.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
-    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
+    lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,QT_WAYLAND_SHELL_INTEGRATION=layer-shell,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
 
   # Weston (the greeter compositor) is launched by SDDM and inherits SDDM's own
   # process environment — NOT GreeterEnvironment. Weston reads XCURSOR_THEME and
@@ -103,10 +108,14 @@
   # found even if XCURSOR_PATH handling differs between library versions.
   # Compositor modules add their own theme symlink (e.g. BreezeX-Light).
   systemd.tmpfiles.rules = [
-    "d /run/user/175                          0700 sddm sddm -"
-    "d /var/lib/sddm/.icons                   0755 sddm sddm -"
-    "d /var/lib/sddm/.local/share/icons       0755 sddm sddm -"
-    "L /var/lib/sddm/.icons/Adwaita           - - - - /run/current-system/sw/share/icons/Adwaita"
+    "d /run/user/175                            0700 sddm sddm -"
+    "d /var/lib/sddm/.icons                     0755 sddm sddm -"
+    # Declare each intermediate dir explicitly so systemd-tmpfiles doesn't hit
+    # "unsafe path transition" errors (happens when a parent is owned by root).
+    "d /var/lib/sddm/.local                     0755 sddm sddm -"
+    "d /var/lib/sddm/.local/share               0755 sddm sddm -"
+    "d /var/lib/sddm/.local/share/icons         0755 sddm sddm -"
+    "L /var/lib/sddm/.icons/Adwaita             - - - - /run/current-system/sw/share/icons/Adwaita"
     "L /var/lib/sddm/.local/share/icons/Adwaita - - - - /run/current-system/sw/share/icons/Adwaita"
   ];
 }
