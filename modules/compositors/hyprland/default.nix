@@ -87,7 +87,7 @@ in
 
   # KWin (SDDM compositor) uses logind directly for seat management — it does NOT
   # talk to seatd. When KWin holds the DRM device via logind, seatd can never
-  # complete its initialisation and times out every 90 s (systemd kills it).
+  # complete its initialisation and times out after 90 s (systemd kills it).
   #
   # Hyprland's aquamarine backend uses libseat with the "auto" mode: seatd first,
   # then logind. After each seatd crash the socket disconnects, aquamarine logs
@@ -96,7 +96,13 @@ in
   # Fix: force libseat to use the logind backend, skipping seatd entirely.
   # Both KWin and Hyprland then talk to the same logind seat, which is exactly
   # what logind was designed for.
+  #
+  # seatd must also be disabled: the greeters/sddm module enables it, but here
+  # KWin already holds the DRM device via logind so seatd can never start.
+  # It hangs for its full 90 s startup timeout, which blocks graphical.target,
+  # which blocks UWSM, causing a ~65 s delay before Hyprland launches.
   environment.sessionVariables.LIBSEAT_BACKEND = "logind";
+  services.seatd.enable = lib.mkForce false;
 
   services.displayManager.sddm.settings.Theme = {
     CursorTheme = "BreezeX-Light";
