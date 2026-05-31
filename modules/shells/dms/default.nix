@@ -110,5 +110,15 @@ in
       '';
     })
 
+    # Clear shell-autostart.conf — DMS self-starts via its HM systemd module
+    # (programs.dank-material-shell.systemd.enable = true), no exec-once needed.
+    ({ lib, ... }: {
+      home.activation.shellAutostartConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.conf"
+        [ -d "$(dirname "$_target")" ] || exit 0
+        : > "$_target"
+      '';
+    })
+
   ];
 }

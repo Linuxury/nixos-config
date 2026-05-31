@@ -55,5 +55,15 @@
       '';
     })
 
+    # Clear shell-autostart.conf — Wayle self-starts via its systemd user
+    # service (WantedBy=graphical-session.target), no exec-once needed.
+    ({ lib, ... }: {
+      home.activation.shellAutostartConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.conf"
+        [ -d "$(dirname "$_target")" ] || exit 0
+        : > "$_target"
+      '';
+    })
+
   ];
 }

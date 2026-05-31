@@ -55,5 +55,15 @@
       '';
     })
 
+    # Write shell-autostart.conf — Noctalia has no systemd service so it
+    # must be launched via exec-once. autostart.conf sources this file.
+    ({ lib, ... }: {
+      home.activation.shellAutostartConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.conf"
+        [ -d "$(dirname "$_target")" ] || exit 0
+        printf '%s\n' 'exec-once = noctalia-shell' > "$_target"
+      '';
+    })
+
   ];
 }
