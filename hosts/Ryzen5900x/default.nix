@@ -58,9 +58,9 @@
     #   dms     — bundles its own greeter, no Greeters import needed
     #   wayle   — needs greeters/sddm
     #   noctalia — needs greeters/sddm
-    ../../modules/shells/wayle/default.nix
+    #../../modules/shells/wayle/default.nix
     #../../modules/shells/dms/default.nix
-    #../../modules/shells/noctalia/default.nix
+    ../../modules/shells/noctalia/default.nix
 
     # ── Greeters ─────────────────────────────────────────────────────────────
     # DMS bundles its own greeter — no import needed when using DMS.
