@@ -46,8 +46,9 @@ let
       rev    = "52fd4a538fabea2331d9b9f956c2497ff5f9102c";
       sha256 = "0mi517w339hrdq79n2p7arb2kf6l85bv57kp542q9cykcagw6p4a";
     };
-    dontBuild     = true;
-    dontConfigure = true;
+    dontBuild        = true;
+    dontConfigure    = true;
+    nativeBuildInputs = [ pkgs.python3 ];
     installPhase  = ''
       runHook preInstall
       dest="$out/share/sddm/themes/hypr-sddm"
@@ -67,6 +68,86 @@ let
       fontFamily=Sans
       fontSize=12
       CONF
+
+      # Patch Main.qml: replace the Canvas+hidden-Image circular avatar with
+      # Rectangle { clip:true; radius } + visible Image.
+      #
+      # Root cause: Qt 6 Canvas.drawImage(img) silently draws nothing when img
+      # has visible:false — the texture is never uploaded to the GPU for hidden
+      # items, so the Canvas context has nothing to paint.  A clipped Rectangle
+      # with a *visible* Image is the idiomatic Qt 6 workaround.
+      MAIN_QML="$dest/Main.qml" python3 << 'PYPATCH'
+import os
+path = os.environ["MAIN_QML"]
+with open(path) as f:
+    content = f.read()
+
+# Locate the Canvas block by its unique id, then replace via brace counting.
+idx = content.find("id: avatarCanvas")
+if idx == -1:
+    print("WARN: id: avatarCanvas not found in Main.qml - skipping avatar patch")
+else:
+    # Walk back two newlines to reach the start of the "Canvas {" line.
+    line_start   = content.rfind("\n", 0, idx) + 1
+    canvas_start = content.rfind("\n", 0, line_start - 1) + 1
+
+    # Brace-count to find the matching closing brace of the Canvas block.
+    depth = 0
+    i     = content.index("{", canvas_start)
+    end   = -1
+    while i < len(content):
+        ch = content[i]
+        if   ch == "{": depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                end = i + 1
+                break
+        i += 1
+
+    # Consume the trailing newline so we don't leave a blank line.
+    if end != -1 and end < len(content) and content[end] == "\n":
+        end += 1
+
+    if end == -1:
+        print("WARN: Could not find end of Canvas block - skipping")
+    else:
+        replacement = (
+            "                    Rectangle {\n"
+            "                        id: avatarCircle\n"
+            "                        anchors.centerIn: parent; width: 96; height: 96\n"
+            "                        radius: 48\n"
+            "                        clip: true\n"
+            "                        color: \"transparent\"\n"
+            "\n"
+            "                        Image {\n"
+            "                            id: avatarImg\n"
+            "                            anchors.fill: parent\n"
+            "                            fillMode: Image.PreserveAspectCrop\n"
+            "                            smooth: true\n"
+            "\n"
+            "                            Component.onCompleted: {\n"
+            "                                var s = Qt.resolvedUrl(\"assets/avatar.jpg\");\n"
+            "                                if (typeof userModel !== \"undefined\" && userModel.count > 0) {\n"
+            "                                    var icon = userModel.data(userModel.index(container.userIndex, 0), Qt.UserRole + 3);\n"
+            "                                    if (icon && icon.toString().match(/\\.(jpg|jpeg|png|bmp|webp|svg)$/i))\n"
+            "                                        s = icon.toString();\n"
+            "                                }\n"
+            "                                source = s;\n"
+            "                            }\n"
+            "                        }\n"
+            "                    }\n"
+        )
+        content = content[:canvas_start] + replacement + content[end:]
+        # avatarFallback checked avatar.status — update to the new Image id.
+        content = content.replace(
+            "visible: avatar.status !== Image.Ready",
+            "visible: avatarImg.status !== Image.Ready"
+        )
+        with open(path, "w") as f:
+            f.write(content)
+        print("Patched Main.qml: Canvas avatar replaced with Rectangle+clip avatar")
+PYPATCH
 
       runHook postInstall
     '';
