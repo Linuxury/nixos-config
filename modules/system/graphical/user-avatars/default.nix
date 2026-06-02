@@ -42,11 +42,18 @@ in
     text = ''
       mkdir -p /var/lib/AccountsService/icons /var/lib/AccountsService/users
 
-      ${lib.concatStrings (lib.mapAttrsToList (username: avatarPath: ''
+      ${lib.concatStrings (lib.mapAttrsToList (username: avatarPath:
+        # Compute extension at Nix eval time so the bash script gets a plain
+        # literal. This avoids ${...} bash expansions inside Nix '' strings.
+        # Preserving the extension matters: hypr-sddm checks the icon path
+        # against /\.(jpg|jpeg|png|bmp|webp|svg)$/i before displaying it.
+        let ext = lib.last (lib.splitString "." (builtins.baseNameOf avatarPath));
+            dest = "/var/lib/AccountsService/icons/${username}.${ext}";
+        in ''
         if [ -f "${avatarPath}" ]; then
-          cp "${avatarPath}" "/var/lib/AccountsService/icons/${username}"
-          chmod 644 "/var/lib/AccountsService/icons/${username}"
-          printf '[User]\nIcon=/var/lib/AccountsService/icons/${username}\nSystemAccount=false\n' \
+          cp "${avatarPath}" "${dest}"
+          chmod 644 "${dest}"
+          printf '[User]\nIcon=${dest}\nSystemAccount=false\n' \
             > "/var/lib/AccountsService/users/${username}"
           chmod 644 "/var/lib/AccountsService/users/${username}"
         fi

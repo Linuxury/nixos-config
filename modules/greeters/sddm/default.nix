@@ -176,9 +176,15 @@ in
     "L /var/lib/sddm/.icons/Adwaita             - - - - /run/current-system/sw/share/icons/Adwaita"
     "L /var/lib/sddm/.local/share/icons/Adwaita - - - - /run/current-system/sw/share/icons/Adwaita"
 
-    # Wallpaper sync target — writable by any regular user (group users, mode 0775),
-    # readable by sddm which is "other" (r-x on dir + 0644 files from cp's umask).
-    # Any user running the matugen service can write here; last write wins at login.
-    "d /var/lib/sddm/wallpaper                  0775 root users -"
   ];
+
+  # Wallpaper sync target — writable by any regular user (group users, mode 0775),
+  # readable by sddm which is "other" (r-x on dir + 0644 files from cp's umask).
+  # Using activationScripts instead of tmpfiles because tmpfiles only runs at boot;
+  # activationScripts run on every nixos-rebuild switch, so the dir exists immediately.
+  system.activationScripts.sddm-wallpaper-dir = ''
+    mkdir -p /var/lib/sddm/wallpaper
+    chown root:users /var/lib/sddm/wallpaper
+    chmod 0775 /var/lib/sddm/wallpaper
+  '';
 }
