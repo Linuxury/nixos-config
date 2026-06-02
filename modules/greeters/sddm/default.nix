@@ -81,6 +81,9 @@ in
     wayland.enable = true;
     # Full store path avoids having to add hypr-sddm to systemPackages.
     theme = "${hypr-sddm}/share/sddm/themes/hypr-sddm";
+    # hypr-sddm's Main.qml imports QtQuick.VirtualKeyboard — not bundled with
+    # SDDM by default. extraPackages injects Qt packages into the greeter's env.
+    extraPackages = [ pkgs.qt6Packages.qtvirtualkeyboard ];
   };
 
   # NixOS only sets [Theme] CursorTheme when cfg.theme == "" (default SDDM theme).
