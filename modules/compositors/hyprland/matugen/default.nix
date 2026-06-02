@@ -48,7 +48,7 @@
         PROC_FILE="$HOME/.local/share/last-matugen-processed"
         LOG="$HOME/.local/share/wallpaper-service.log"
         CURRENT_WALLPAPER_FILE="$HOME/.local/share/current-wallpaper"
-        SDDM_WALLPAPER="/var/lib/sddm/wallpaper/background.jpg"
+        SDDM_WALLPAPER="/var/lib/sddm-wallpaper/background.jpg"
 
         log() { echo "[$(date "+%H:%M:%S")] MATUGEN $*" >> "$LOG"; }
 

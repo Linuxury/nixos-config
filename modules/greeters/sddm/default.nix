@@ -59,7 +59,7 @@ let
       # Colors are auto-derived from the wallpaper by the QML canvas extractor.
       cat > "$dest/theme.conf" << 'CONF'
       [General]
-      background=/var/lib/sddm/wallpaper/background.jpg
+      background=/var/lib/sddm-wallpaper/background.jpg
       primaryColor=#E3E3DC
       accentColor=#A9C78F
       backgroundColor=#1A1C18
@@ -178,13 +178,14 @@ in
 
   ];
 
-  # Wallpaper sync target — writable by any regular user (group users, mode 0775),
-  # readable by sddm which is "other" (r-x on dir + 0644 files from cp's umask).
-  # Using activationScripts instead of tmpfiles because tmpfiles only runs at boot;
-  # activationScripts run on every nixos-rebuild switch, so the dir exists immediately.
+  # Wallpaper sync target — lives at /var/lib/sddm-wallpaper/ (NOT inside
+  # /var/lib/sddm/ which is 0700 sddm:sddm and not traversable by regular users).
+  # 0775 root:users lets any logged-in user write the file; sddm reads as "other".
+  # activationScripts runs on every nixos-rebuild switch (unlike tmpfiles which
+  # only runs at boot), so the dir exists immediately after the first switch.
   system.activationScripts.sddm-wallpaper-dir = ''
-    mkdir -p /var/lib/sddm/wallpaper
-    chown root:users /var/lib/sddm/wallpaper
-    chmod 0775 /var/lib/sddm/wallpaper
+    mkdir -p /var/lib/sddm-wallpaper
+    chown root:users /var/lib/sddm-wallpaper
+    chmod 0775 /var/lib/sddm-wallpaper
   '';
 }
