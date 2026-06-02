@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/greeters/sddm/default.nix — SDDM + Catppuccin Mocha/Mauve theme
+# modules/greeters/sddm/default.nix — SDDM + hypr-sddm theme
 #
 # Provides a polished GUI login screen that works on any GPU without cage.
 #
@@ -11,7 +11,8 @@
 #
 # What this module owns:
 #   - SDDM enable + Wayland mode (weston compositor by default)
-#   - Catppuccin Mocha/Mauve theme
+#   - hypr-sddm theme (minimal blur, hyprlock-inspired aesthetic)
+#   - Wallpaper sync dir (/var/lib/sddm/wallpaper/) for live wallpaper updates
 #   - GNOME Keyring unlock via SDDM PAM service
 #   - sddm user video/input groups (needed for greeter GPU access)
 #   - /run/user/175 tmpfiles entry (SDDM runtime dir for the greeter session)
@@ -19,10 +20,58 @@
 # What each DE module still owns:
 #   - Registering its own session package (services.displayManager.sessionPackages)
 #   - Any compositor-specific SDDM overrides (KDE: CompositorCommand, GreeterEnvironment)
+#   - Copying the current wallpaper to /var/lib/sddm/wallpaper/background.jpg
+#     (handled by modules/compositors/hyprland/matugen/default.nix)
 #   - services.gnome.gnome-keyring.enable (session-level concern, not greeter)
 # ===========================================================================
 
 { pkgs, lib, ... }:
+
+let
+  # ---------------------------------------------------------------------------
+  # hypr-sddm — minimal SDDM theme inspired by hyprlock's design philosophy.
+  # Gaussian-blurred wallpaper, dark translucent card, stacked clock, no chrome.
+  #
+  # theme.conf bakes in an absolute background path (/var/lib/sddm/wallpaper/)
+  # rather than the store-relative default. The QML color extractor reads the
+  # wallpaper at runtime and derives the full palette automatically — no manual
+  # color config needed. hypr-matugen writes the wallpaper there on every change.
+  # ---------------------------------------------------------------------------
+  hypr-sddm = pkgs.stdenv.mkDerivation {
+    pname   = "hypr-sddm";
+    version = "unstable-2026-05-17";
+    src = pkgs.fetchFromGitHub {
+      owner  = "ADIOR-enigma";
+      repo   = "hypr-sddm";
+      rev    = "52fd4a538fabea2331d9b9f956c2497ff5f9102c";
+      sha256 = "0mi517w339hrdq79n2p7arb2kf6l85bv57kp542q9cykcagw6p4a";
+    };
+    dontBuild     = true;
+    dontConfigure = true;
+    installPhase  = ''
+      runHook preInstall
+      dest="$out/share/sddm/themes/hypr-sddm"
+      mkdir -p "$dest"
+      cp -r . "$dest/"
+
+      # Replace theme.conf: point background at the mutable sync path so
+      # every wallpaper change on the desktop is reflected at next login.
+      # Colors are auto-derived from the wallpaper by the QML canvas extractor.
+      cat > "$dest/theme.conf" << 'CONF'
+      [General]
+      background=/var/lib/sddm/wallpaper/background.jpg
+      primaryColor=#E3E3DC
+      accentColor=#A9C78F
+      backgroundColor=#1A1C18
+      textColor=#E3E3DC
+      fontFamily=Sans
+      fontSize=12
+      CONF
+
+      runHook postInstall
+    '';
+  };
+in
 
 {
   services.displayManager.sddm = {
@@ -30,8 +79,8 @@
     # Wayland mode — uses weston by default (safe on any GPU, no kwin needed).
     # KDE overrides the compositor command in desktops/kde/default.nix via mkForce.
     wayland.enable = true;
-    # Full store path avoids having to add catppuccin-sddm to systemPackages.
-    theme = "${pkgs.catppuccin-sddm}/share/sddm/themes/catppuccin-mocha-mauve";
+    # Full store path avoids having to add hypr-sddm to systemPackages.
+    theme = "${hypr-sddm}/share/sddm/themes/hypr-sddm";
   };
 
   # NixOS only sets [Theme] CursorTheme when cfg.theme == "" (default SDDM theme).
@@ -123,5 +172,10 @@
     "d /var/lib/sddm/.local/share/icons         0755 sddm sddm -"
     "L /var/lib/sddm/.icons/Adwaita             - - - - /run/current-system/sw/share/icons/Adwaita"
     "L /var/lib/sddm/.local/share/icons/Adwaita - - - - /run/current-system/sw/share/icons/Adwaita"
+
+    # Wallpaper sync target — writable by any regular user (group users, mode 0775),
+    # readable by sddm which is "other" (r-x on dir + 0644 files from cp's umask).
+    # Any user running the matugen service can write here; last write wins at login.
+    "d /var/lib/sddm/wallpaper                  0775 root users -"
   ];
 }

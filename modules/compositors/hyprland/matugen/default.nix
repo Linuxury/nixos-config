@@ -48,6 +48,8 @@
         PROC_FILE="$HOME/.local/share/last-matugen-processed"
         LOG="$HOME/.local/share/wallpaper-service.log"
 
+        SDDM_WALLPAPER="/var/lib/sddm/wallpaper/background.jpg"
+
         log() { echo "[$(date "+%H:%M:%S")] MATUGEN $*" >> "$LOG"; }
 
         # Get current wallpaper path from Wayle
@@ -72,6 +74,15 @@
         log "Color: $HEX"
         ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 \
           || log "WARN matugen failed"
+
+        # Sync wallpaper to SDDM theme dir so the login screen matches the desktop.
+        # Silently skips if /var/lib/sddm/wallpaper/ doesn't exist (non-Hyprland hosts).
+        if [ -d "$(dirname "$SDDM_WALLPAPER")" ]; then
+          cp "$WALLPAPER" "$SDDM_WALLPAPER" 2>/dev/null \
+            && log "SDDM wallpaper synced: $(basename "$WALLPAPER")" \
+            || log "WARN SDDM wallpaper sync failed"
+        fi
+
         log "Done"
       ''}";
     };
