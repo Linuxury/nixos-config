@@ -90,6 +90,12 @@
   # Adwaita cursor — fallback theme, always available system-wide.
   environment.systemPackages = [ pkgs.adwaita-icon-theme ];
 
+  # Prevent SDDM from being restarted mid-session during nixos-rebuild switch.
+  # nixpkgs is rolling — Qt6/KWin change often, which would otherwise kick the
+  # active Hyprland session to the login screen on every rebuild.
+  # SDDM changes take effect on the next reboot or manual service restart.
+  systemd.services.display-manager.restartIfChanged = false;
+
   # seatd manages seat (GPU/input device) access for Wayland compositors.
   # With seatd running, libseat in weston and MangoWC/kwin uses seatd's backend
   # instead of logind's. seatd handles DRM master handoff between compositors
