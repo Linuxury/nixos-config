@@ -47,16 +47,17 @@
       ExecStart   = "${pkgs.writeShellScript "matugen" ''
         PROC_FILE="$HOME/.local/share/last-matugen-processed"
         LOG="$HOME/.local/share/wallpaper-service.log"
-
+        CURRENT_WALLPAPER_FILE="$HOME/.local/share/current-wallpaper"
         SDDM_WALLPAPER="/var/lib/sddm/wallpaper/background.jpg"
 
         log() { echo "[$(date "+%H:%M:%S")] MATUGEN $*" >> "$LOG"; }
 
-        # Get current wallpaper path from Wayle
-        WALLPAPER=$(${pkgs.wayle}/bin/wayle wallpaper info 2>/dev/null \
-          | grep '^Current:' | sed 's/^Current:[[:space:]]*//')
-        if [ -z "$WALLPAPER" ] || [ "$WALLPAPER" = "(none)" ] || [ ! -f "$WALLPAPER" ]; then
-          log "No current wallpaper from Wayle"
+        # Read current wallpaper path from the shell-agnostic handoff file.
+        # Each shell (Noctalia, Wayle, etc.) writes this file when the wallpaper
+        # changes. This decouples matugen from any specific shell implementation.
+        WALLPAPER=$(cat "$CURRENT_WALLPAPER_FILE" 2>/dev/null | tr -d '\n')
+        if [ -z "$WALLPAPER" ] || [ ! -f "$WALLPAPER" ]; then
+          log "No current wallpaper (''${CURRENT_WALLPAPER_FILE} empty or target missing)"
           exit 0
         fi
 
@@ -89,12 +90,17 @@
   };
 
   # =========================================================================
-  # Path unit — triggers the service when Wayle updates its matugen palette
-  # Wayle writes this file when the wallpaper changes (theme-provider=matugen).
+  # Path unit — triggers the service when the current wallpaper changes
+  #
+  # Each shell writes ~/.local/share/current-wallpaper when the wallpaper
+  # changes. This is the shell-agnostic handoff file:
+  #   - Noctalia: set via hooks.wallpaperChange in settings.json (see
+  #     modules/shells/noctalia/default.nix home.activation.noctaliaHooks)
+  #   - Wayle: can be added as a post_hook in matugen config.toml if needed
   # =========================================================================
   systemd.user.paths.matugen = {
-    Unit.Description = "Watch Wayle matugen palette for wallpaper changes";
-    Path.PathChanged  = "%h/.cache/wayle/matugen-colors.json";
+    Unit.Description = "Watch current-wallpaper file for wallpaper changes";
+    Path.PathChanged  = "%h/.local/share/current-wallpaper";
     Install.WantedBy  = [ "graphical-session.target" ];
   };
 

@@ -35,9 +35,39 @@
   ];
 
   # =========================================================================
-  # Home Manager — color sync + Hyprland shell-active.conf
+  # Home Manager — color sync + Hyprland shell-active.conf + wallpaper hook
   # =========================================================================
   home-manager.sharedModules = [
+
+    # Patch ~/.config/noctalia/settings.json to wire the wallpaperChange hook.
+    # The hook writes the current wallpaper path to ~/.local/share/current-wallpaper,
+    # which triggers the matugen path unit and keeps SDDM in sync.
+    #
+    # $1 is string-replaced (not a shell var) with the wallpaper path by Noctalia
+    # before passing the command to sh -lc, so single-quoting it handles spaces.
+    # hooks.enabled must be true — Noctalia skips all hooks if it is false.
+    ({ pkgs, lib, ... }: {
+      home.activation.noctaliaHooks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _settings="$HOME/.config/noctalia/settings.json"
+        if [ -f "$_settings" ]; then
+          ${pkgs.python3}/bin/python3 - "$_settings" << 'PYEOF'
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    s = json.load(f)
+h = s.setdefault("hooks", {})
+hook_cmd = "printf '%s\\n' '$1' > $HOME/.local/share/current-wallpaper"
+changed = not h.get("enabled") or h.get("wallpaperChange") != hook_cmd
+if changed:
+    h["enabled"] = True
+    h["wallpaperChange"] = hook_cmd
+    with open(path, "w") as f:
+        json.dump(s, f, indent=2)
+    print("noctalia: wallpaper hook configured")
+PYEOF
+        fi
+      '';
+    })
 
     # Sync MangoWC focus border color with Noctalia's active accent (mPrimary).
     # Path unit watches ~/.config/noctalia/colors.json for changes.
