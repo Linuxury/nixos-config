@@ -55,6 +55,14 @@
       '';
     })
 
+    # Import Noctalia's generated color CSS into GTK4.
+    # Noctalia writes ~/.config/gtk-4.0/noctalia.css on each launch with
+    # the current accent colors. Importing it here makes GTK4 apps pick up
+    # the Noctalia palette without any manual CSS edits.
+    {
+      gtk.gtk4.extraCss = ''@import url("noctalia.css");'';
+    }
+
     # Write shell-autostart.conf — Noctalia has no systemd service so it
     # must be launched via exec-once. autostart.conf sources this file.
     ({ lib, ... }: {
