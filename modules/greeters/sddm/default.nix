@@ -41,74 +41,21 @@ let
     with open(path) as f:
         content = f.read()
 
-    # Locate the Canvas block by its unique id, then replace via brace counting.
-    # Qt 6 Canvas.drawImage(img) silently fails when img has visible:false —
-    # the texture is never uploaded to the GPU for hidden items.
-    # Rectangle { clip:true; radius } + a *visible* Image is the Qt 6 fix.
-    idx = content.find("id: avatarCanvas")
-    if idx == -1:
-        print("WARN: id: avatarCanvas not found — skipping avatar patch")
+    # Canvas.drawImage(img) silently fails in Qt 6 when img has visible:false —
+    # hidden items are skipped by the scene graph so their texture is never
+    # uploaded to the GPU.  Changing to opacity:0 keeps the item visible (texture
+    # resident) while remaining invisible to the user.  The Canvas circular crop
+    # then works correctly and the letter-circle fallback shows if no photo found.
+    old = "smooth: true; visible: false"
+    new = "smooth: true; opacity: 0"
+
+    if old not in content:
+        print("WARN: avatar Image property not found — skipping patch")
     else:
-        # Walk back two newlines to reach the start of the "Canvas {" line.
-        line_start   = content.rfind("\n", 0, idx) + 1
-        canvas_start = content.rfind("\n", 0, line_start - 1) + 1
-
-        # Brace-count to find the matching closing brace of the Canvas block.
-        depth = 0
-        i     = content.index("{", canvas_start)
-        end   = -1
-        while i < len(content):
-            ch = content[i]
-            if   ch == "{": depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth == 0:
-                    end = i + 1
-                    break
-            i += 1
-
-        # Consume the trailing newline so we don't leave a blank line.
-        if end != -1 and end < len(content) and content[end] == "\n":
-            end += 1
-
-        if end == -1:
-            print("WARN: Could not find end of Canvas block — skipping")
-        else:
-            replacement = (
-                "                    Rectangle {\n"
-                "                        id: avatarCircle\n"
-                "                        anchors.centerIn: parent; width: 96; height: 96\n"
-                "                        radius: 48\n"
-                "                        clip: true\n"
-                "                        color: \"transparent\"\n"
-                "\n"
-                "                        Image {\n"
-                "                            id: avatarImg\n"
-                "                            anchors.fill: parent\n"
-                "                            fillMode: Image.PreserveAspectCrop\n"
-                "                            smooth: true\n"
-                "\n"
-                "                            Component.onCompleted: {\n"
-                "                                var s = Qt.resolvedUrl(\"assets/avatar.jpg\");\n"
-                "                                if (typeof userModel !== \"undefined\" && userModel.count > 0) {\n"
-                "                                    var icon = userModel.data(userModel.index(container.userIndex, 0), Qt.UserRole + 3);\n"
-                "                                    if (icon && icon.toString().match(/\\.(jpg|jpeg|png|bmp|webp|svg)$/i))\n"
-                "                                        s = icon.toString();\n"
-                "                                }\n"
-                "                                source = s;\n"
-                "                            }\n"
-                "                        }\n"
-                "                    }\n"
-            )
-            content = content[:canvas_start] + replacement + content[end:]
-            # avatarFallback references avatar.status — update to the new Image id.
-            content = content.replace(
-                "visible: avatar.status !== Image.Ready",
-                "visible: avatarImg.status !== Image.Ready"
-            )
-            with open(path, "w") as f:
-                f.write(content)
-            print("Patched Main.qml: Canvas avatar replaced with Rectangle+clip")
+        content = content.replace(old, new, 1)
+        with open(path, "w") as f:
+            f.write(content)
+        print("Patched Main.qml: avatar Image visible:false -> opacity:0")
   '';
 
   # ---------------------------------------------------------------------------
