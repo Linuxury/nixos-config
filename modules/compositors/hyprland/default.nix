@@ -60,8 +60,10 @@ in
 
 {
   imports = [
-    # SwayNC — declares options.myModules.swaync.* and injects hm.nix
-    ./services/swaync/default.nix
+    # SwayNC is NOT auto-imported here — Noctalia handles notifications on this
+    # host. The module files are kept at ./services/swaync/ for reference if
+    # you ever switch shells. Import manually if you need it:
+    #   ./services/swaync/default.nix
   ];
 
   # Switch SDDM greeter compositor from Weston to KWin.

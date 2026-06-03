@@ -66,25 +66,33 @@
     # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
     ../../modules/gaming/default.nix
 
-    # ── Development ─────────────────────────────────────────────────────────
-    # Neovim full IDE setup, language servers, dev toolchains, formatters.
-    # Kept off — this machine is kept clean and simple.
-    #../../modules/development/default.nix
+    # ── Development — AI Tools ───────────────────────────────────────────────
+    # Not a development host — all development modules disabled.
+    #../../modules/development/ai-tools/default.nix
+    #../../modules/development/ai-tools/claude/default.nix
+    #../../modules/development/ai-tools/opencode/default.nix
+    #../../modules/development/ai-tools/local-llm/default.nix
+    #../../modules/development/ai-tools/odysseus/default.nix
+
+    # ── Development — Editors ────────────────────────────────────────────────
+    #../../modules/development/editors/neovim/default.nix
+    #../../modules/development/editors/vscodium/default.nix
+    #../../modules/development/editors/zed/default.nix
+
+    # ── Development — Languages ──────────────────────────────────────────────
+    #../../modules/development/languages/python/default.nix
+    #../../modules/development/languages/rust/default.nix
 
     # ── Services ────────────────────────────────────────────────────────────
     # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
     # syncthing-babylinux: Obsidian vault + nixos-config sync (babylinux pair).
-    # ai-tools: Claude Code, AI integrations (disabled — insufficient RAM for local AI).
     # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
-    # local-llm: Ollama local model runner (disabled — laptop RAM constraints).
     # wallpaper-slideshow: matugen wallpaper rotation — COSMIC/non-Hyprland only.
     # samba/ntfy/vpn-qbittorrent: server-side services, not for desktops.
     # syncthing: linuxury's sync pair (linuxury hosts only).
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing-babylinux/default.nix
-    #../../modules/services/ai-tools/default.nix
     #../../modules/services/snapper/default.nix
-    #../../modules/services/local-llm/default.nix
     #../../modules/services/wallpaper-slideshow/default.nix
     #../../modules/services/samba/default.nix
     #../../modules/services/ntfy/default.nix

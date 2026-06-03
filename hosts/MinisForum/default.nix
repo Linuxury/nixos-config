@@ -47,11 +47,37 @@
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
 
+    # ── Development — AI Tools ───────────────────────────────────────────────
+    # Base infrastructure — nix-ld (run prebuilt binaries), uv (MCP servers), ffmpeg.
+    # Import this alongside any AI tool below.
+    ../../modules/development/ai-tools/default.nix
+    #
+    # Claude Code — AI coding assistant (claude CLI + shell wrapper)
+    ../../modules/development/ai-tools/claude/default.nix
+    #
+    # OpenCode — terminal AI IDE (opencode CLI + config management)
+    #../../modules/development/ai-tools/opencode/default.nix
+    #
+    # Local LLM — Ollama with ROCm/CUDA GPU acceleration
+    #../../modules/development/ai-tools/local-llm/default.nix
+    #
+    # Odysseus — self-hosted AI workspace (OCI container, planned)
+    #../../modules/development/ai-tools/odysseus/default.nix
+
+    # ── Development — Editors ────────────────────────────────────────────────
+    # Headless server — no GUI editors needed.
+    #../../modules/development/editors/neovim/default.nix
+    #../../modules/development/editors/vscodium/default.nix
+    #../../modules/development/editors/zed/default.nix
+
+    # ── Development — Languages ──────────────────────────────────────────────
+    #../../modules/development/languages/python/default.nix
+    #../../modules/development/languages/rust/default.nix
+
     # ── Services ────────────────────────────────────────────────────────────
     # samba: file sharing — GameServers share at /data/gameservers.
     # syncthing: Obsidian vault sync (linuxury pair).
     # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
-    # ai-tools: Claude Code, AI integrations (admin tooling for linuxury).
     # ntfy: push notification server (runs on Media-Server, not here).
     # vpn-qbittorrent: WireGuard killswitch for qBittorrent (Radxa-X4 only).
     # snapper: BTRFS snapshots (disabled — /data is ext4 on this host).
@@ -59,7 +85,6 @@
     ../../modules/services/samba/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/auto-update/default.nix
-    ../../modules/services/ai-tools/default.nix
     #../../modules/services/ntfy/default.nix
     #../../modules/services/vpn-qbittorrent/default.nix
     #../../modules/services/snapper/default.nix

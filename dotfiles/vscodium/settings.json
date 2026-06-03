@@ -3,6 +3,7 @@
   "claudeCode.preferredLocation": "secondarySidebar",
   "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
   "editor.fontSize": 13,
+  "explorer.compactFolders": false,
   "git.ignoredRepositories": [
     "/home/linuxury/Obsidian"
   ],

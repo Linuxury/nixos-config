@@ -68,24 +68,51 @@
     # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
     ../../modules/gaming/default.nix
 
-    # ── Development ─────────────────────────────────────────────────────────
-    # Neovim full IDE setup, language servers, dev toolchains, formatters.
-    #../../modules/development/default.nix
+    # ── Development — AI Tools ───────────────────────────────────────────────
+    # Base infrastructure — nix-ld (run prebuilt binaries), uv (MCP servers), ffmpeg
+    # Import this alongside any AI tool below.
+    ../../modules/development/ai-tools/default.nix
+    #
+    # Claude Code — AI coding assistant (claude CLI + shell wrapper + VSCodium ext)
+    ../../modules/development/ai-tools/claude/default.nix
+    #
+    # OpenCode — AI terminal agent (opencode CLI + dotfiles + VSCodium ext)
+    ../../modules/development/ai-tools/opencode/default.nix
+    #
+    # Local LLM — on-demand Ollama with AMD ROCm GPU acceleration
+    # Disabled: laptop RAM/VRAM constraints make large models impractical
+    #../../modules/development/ai-tools/local-llm/default.nix
+    #
+    # Odysseus — self-hosted AI workspace (OCI containers: chromadb, searxng, ntfy)
+    #../../modules/development/ai-tools/odysseus/default.nix
+
+    # ── Development — Editors ────────────────────────────────────────────────
+    # Neovim — full IDE: normie-nvim config, all LSPs, opencode-nvim, claude wrapper
+    ../../modules/development/editors/neovim/default.nix
+    #
+    # VSCodium — GUI editor: Catppuccin theme, Claude Code + OpenCode extensions
+    ../../modules/development/editors/vscodium/default.nix
+    #
+    # Zed — fast Wayland-native editor (Rust), blurred background, vim mode
+    #../../modules/development/editors/zed/default.nix
+
+    # ── Development — Languages ──────────────────────────────────────────────
+    # Python — python3 with dev packages, poetry, ruff, httpie
+    ../../modules/development/languages/python/default.nix
+    #
+    # Rust — rustup toolchain manager, cargo-watch/edit/expand, just, cargo PATH
+    #../../modules/development/languages/rust/default.nix
 
     # ── Services ────────────────────────────────────────────────────────────
     # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
     # syncthing: Obsidian vault + nixos-config sync (linuxury pair).
-    # ai-tools: Claude Code, AI integrations.
     # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
-    # local-llm: Ollama local model runner (disabled — laptop RAM constraints).
     # wallpaper-slideshow: matugen wallpaper rotation — COSMIC/non-Hyprland only.
     # samba/ntfy/vpn-qbittorrent: server-side services, not for desktops.
     # syncthing-babylinux: babylinux's separate sync pair (babylinux hosts only).
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing/default.nix
-    ../../modules/services/ai-tools/default.nix
     #../../modules/services/snapper/default.nix
-    #../../modules/services/local-llm/default.nix
     #../../modules/services/wallpaper-slideshow/default.nix
     #../../modules/services/samba/default.nix
     #../../modules/services/ntfy/default.nix

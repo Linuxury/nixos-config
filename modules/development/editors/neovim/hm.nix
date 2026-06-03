@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/development/neovim/default.nix — Neovim via normie-nvim (TheBlackDon)
+# modules/development/editors/neovim/hm.nix — Neovim (Home Manager)
 #
 # Uses normie-nvim from GitLab as a flake input (flake = false).
 # Instead of symlinking the Nix store path (read-only), an activation
@@ -26,10 +26,10 @@
 
 {
   programs.neovim = {
-    enable = true;
+    enable        = true;
     defaultEditor = true;
-    viAlias = true;
-    vimAlias = true;
+    viAlias       = true;
+    vimAlias      = true;
   };
 
   # =========================================================================
@@ -59,7 +59,7 @@
     # Overlay custom additions (dotfiles/nvim-extra/) on top of normie-nvim.
     # No --delete here — only adds/updates, never removes normie-nvim files.
     ${pkgs.rsync}/bin/rsync -a \
-      "${../../..}/dotfiles/nvim-extra/" "$NVIM_DIR/"
+      "${../../../..}/dotfiles/nvim-extra/" "$NVIM_DIR/"
 
     # Nix store files are read-only — make the whole config dir writable so
     # lazy.nvim can update lazy-lock.json and plugins can write their state.
@@ -73,29 +73,29 @@
   # =========================================================================
   home.packages = with pkgs; [
     # Nix
-    nil # nil_ls
-    alejandra # formatter (conform.lua)
+    nil          # nil_ls
+    alejandra    # formatter (conform.lua)
 
     # Lua
-    lua-language-server # lua_ls
-    stylua # formatter (conform.lua)
+    lua-language-server  # lua_ls
+    stylua               # formatter (conform.lua)
 
     # Shell
-    bash-language-server # bashls
+    bash-language-server  # bashls
 
     # Web
-    vscode-langservers-extracted # cssls + htmlls
-    typescript-language-server # ts_ls
-    tailwindcss-language-server # tailwindcss
+    vscode-langservers-extracted  # cssls + htmlls
+    typescript-language-server    # ts_ls
+    tailwindcss-language-server   # tailwindcss
 
     # Python
     pyright
 
     # C/C++
-    clang-tools # clangd
+    clang-tools  # clangd
 
     # Hyprland config
-    hyprls # hyprls
+    hyprls  # hyprls
 
     # Treesitter parser compilation
     gcc
