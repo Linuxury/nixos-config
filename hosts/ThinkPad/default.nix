@@ -64,6 +64,13 @@
     # For Wayland compositors (non-DMS): import ONE greeter.
     #../../modules/greeters/sddm/default.nix
 
+    # ── Components ───────────────────────────────────────────────────────────
+    # Individual desktop components — only needed when using a bare compositor
+    # without a full shell (DMS/Noctalia/Wayle already bundle these).
+    #../../modules/components/bar/waybar/default.nix
+    #../../modules/components/launcher/wofi/default.nix
+    #../../modules/components/notifications/swaync/default.nix
+
     # ── Gaming ──────────────────────────────────────────────────────────────
     # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
     ../../modules/gaming/default.nix
