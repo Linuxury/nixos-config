@@ -45,12 +45,17 @@
       };
     })
 
-    # Clear shell-active.lua — Wayle does not need Hyprland config overrides.
+    # Write Wayle-specific Hyprland keybinds into shell-active.lua.
+    # These are shell-specific — wayle CLI is only available when this module is active.
     ({ lib, ... }: {
       home.activation.shellActiveConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         _target="$HOME/nixos-config/dotfiles/hypr/shell-active.lua"
         [ -d "$(dirname "$_target")" ] || exit 0
-        : > "$_target"
+        printf '%s\n' \
+          'local mod = "SUPER"' \
+          'hl.bind(mod .. " + W", hl.dsp.exec_cmd("wayle wallpaper next"))' \
+          'hl.bind(mod .. " + N", hl.dsp.exec_cmd("wayle notify dnd"))' \
+          > "$_target"
       '';
     })
 

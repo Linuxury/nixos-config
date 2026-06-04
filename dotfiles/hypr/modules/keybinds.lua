@@ -10,8 +10,6 @@
 local mod = "SUPER"
 
 -- ── Core apps ─────────────────────────────────────────────────────────────────
--- Launcher binds (SUPER+Space, SUPER+R, SUPER+V, SUPER+Tab) are injected by
--- modules/components/launcher/ when that component is enabled on the host.
 hl.bind(mod .. " + Return",        hl.dsp.exec_cmd("kitty"))
 hl.bind(mod .. " + E",             hl.dsp.exec_cmd("nautilus"))
 hl.bind(mod .. " + SHIFT + Return",hl.dsp.exec_cmd("kitty --class floating-term"))
@@ -97,12 +95,6 @@ hl.bind(mod .. " + Escape",        hl.dsp.exec_cmd("hyprlock"))
 -- Force suspend — ignores idle inhibitors (e.g. Firefox holding sleep open via YouTube)
 hl.bind(mod .. " + CTRL + Escape", hl.dsp.exec_cmd("systemctl suspend -i"))
 
--- ── Notifications ─────────────────────────────────────────────────────────────
-hl.bind(mod .. " + N", hl.dsp.exec_cmd("wayle notify dnd"))   -- Toggle Do Not Disturb
-
--- ── Clipboard history ────────────────────────────────────────────────────────
--- SUPER+V (cliphist + launcher picker) injected by modules/components/launcher/
-
 -- ── Audio — volume with OSD ────────────────────────────────────────────────
 -- Output (speaker)
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("~/.config/hypr/scripts/volume-osd.sh up"),          { locked = true, repeating = true })
@@ -124,14 +116,8 @@ hl.bind(mod .. " + SHIFT + A", hl.dsp.exec_cmd("~/.config/hypr/scripts/audio-swi
 hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl set +5%"), { repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"), { repeating = true })
 
--- ── Layout cycle + window switcher ────────────────────────────────────────────
--- SUPER+SHIFT+Space (waybar layout cycle) injected by modules/components/bar/
--- SUPER+Tab (rofi window switcher) injected by modules/components/launcher/
-
 -- ── Exit / reload ─────────────────────────────────────────────────────────────
 hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("~/.config/hypr/scripts/powermenu.sh"))
 hl.bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
 hl.bind(mod .. " + SHIFT + N", hl.dsp.exec_cmd("~/.config/hypr/scripts/nightlight.sh"))  -- Night light toggle
 
--- ── Wallpaper ─────────────────────────────────────────────────────────────────
-hl.bind(mod .. " + W", hl.dsp.exec_cmd("wayle wallpaper next"))
