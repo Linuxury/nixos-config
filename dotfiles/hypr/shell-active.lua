@@ -1,3 +1,0 @@
--- Shell-specific config overrides.
--- Written at HM activation by the active shell module (dms/default.nix).
--- Noctalia and Wayle leave this file empty.
