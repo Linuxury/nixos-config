@@ -61,9 +61,13 @@
           exit 0
         fi
 
-        # Deduplication — skip if this wallpaper's colors are already applied
+        # Deduplication — skip if this wallpaper's colors are already applied.
+        # Also check that colors.lua actually exists: HM activation can delete it
+        # (by rewriting ~/.config/hypr/) while the stamp still holds the same path,
+        # causing matugen to skip and leave colors.lua permanently missing.
+        COLORS_LUA="$HOME/.config/hypr/colors.lua"
         LAST_PROC=$(cat "$PROC_FILE" 2>/dev/null || echo "")
-        if [ -n "$LAST_PROC" ] && [ "$WALLPAPER" = "$LAST_PROC" ]; then exit 0; fi
+        if [ -n "$LAST_PROC" ] && [ "$WALLPAPER" = "$LAST_PROC" ] && [ -f "$COLORS_LUA" ]; then exit 0; fi
         echo "$WALLPAPER" > "$PROC_FILE"
 
         log "Applying: $(basename "$WALLPAPER")"
