@@ -80,6 +80,22 @@
         ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 \
           || log "WARN matugen failed"
 
+        # Apply border colors live — parse colors.lua and set via hyprctl keyword
+        # so Hyprland picks up the new palette without a full reload (which can
+        # crash Nautilus and Prism Launcher via inotify/socket races).
+        if [ -f "$COLORS_LUA" ]; then
+          _primary=$(grep '^primary '         "$COLORS_LUA" | grep -oP 'rgba\([^)]+\)')
+          _tertiary=$(grep '^tertiary '        "$COLORS_LUA" | grep -oP 'rgba\([^)]+\)')
+          _outline=$(grep '^outline_variant ' "$COLORS_LUA" | grep -oP 'rgba\([^)]+\)')
+          if [ -n "$_primary" ] && [ -n "$_tertiary" ] && [ -n "$_outline" ]; then
+            hyprctl keyword general:col.active_border   "$_primary $_tertiary 45deg" >> "$LOG" 2>&1
+            hyprctl keyword general:col.inactive_border "$_outline"                  >> "$LOG" 2>&1
+            log "Border colors applied"
+          else
+            log "WARN could not parse border colors from colors.lua"
+          fi
+        fi
+
         # Sync wallpaper to SDDM theme dir so the login screen matches the desktop.
         # Silently skips if /var/lib/sddm/wallpaper/ doesn't exist (non-Hyprland hosts).
         if [ -d "$(dirname "$SDDM_WALLPAPER")" ]; then
