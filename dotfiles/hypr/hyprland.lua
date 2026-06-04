@@ -22,6 +22,13 @@ require("modules.keybinds")
 --   shell-active.lua      = per-shell config overrides  (e.g. DMS colors/outputs)
 --   shell-autostart.lua   = per-shell exec-once launch  (e.g. noctalia-shell)
 -- Both files always exist (activation writes them, even if empty).
+--
+-- Component injections — written at HM activation when a modules/components/*
+-- module is imported by the host. Each file is optional (safe_dofile skips
+-- missing ones), so unused components leave no trace in the compositor state.
+--   components/bar.lua           — waybar keybinds (layout cycle)
+--   components/launcher.lua      — wofi/rofi keybinds + window rules
+--   components/notifications.lua — swaync layer rules
 local home = os.getenv("HOME")
 local function safe_dofile(path)
     local f = io.open(path, "r")
@@ -29,3 +36,6 @@ local function safe_dofile(path)
 end
 safe_dofile(home .. "/.config/hypr/shell-active.lua")
 safe_dofile(home .. "/.config/hypr/shell-autostart.lua")
+safe_dofile(home .. "/.config/hypr/components/bar.lua")
+safe_dofile(home .. "/.config/hypr/components/launcher.lua")
+safe_dofile(home .. "/.config/hypr/components/notifications.lua")

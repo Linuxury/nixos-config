@@ -1,5 +1,5 @@
 # ===========================================================================
-# modules/compositors/hyprland/services/swaync/hm.nix — SwayNC (Home Manager)
+# modules/components/notifications/swaync/hm.nix — SwayNC (Home Manager)
 #
 # Generates config.json dynamically based on host hardware capabilities
 # declared via NixOS options (options.myModules.swaync.*) in default.nix.

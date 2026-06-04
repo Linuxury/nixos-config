@@ -60,10 +60,11 @@ in
 
 {
   imports = [
-    # SwayNC is NOT auto-imported here — Noctalia handles notifications on this
-    # host. The module files are kept at ./services/swaync/ for reference if
-    # you ever switch shells. Import manually if you need it:
-    #   ./services/swaync/default.nix
+    # Desktop components (bar, launcher, notifications) are compositor-agnostic.
+    # Import them in your host config from modules/components/:
+    #   modules/components/bar/waybar/default.nix           — waybar
+    #   modules/components/launcher/wofi/default.nix        — wofi + rofi
+    #   modules/components/notifications/swaync/default.nix — swaync
   ];
 
   # Switch SDDM greeter compositor from Weston to KWin.

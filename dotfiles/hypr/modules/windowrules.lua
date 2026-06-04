@@ -69,9 +69,7 @@ hl.window_rule({
 })
 
 -- ── Launcher (wofi) ───────────────────────────────────────────────────────────
-hl.window_rule({ match = { class = "wofi" }, rounding = 10 })
-hl.window_rule({ match = { class = "wofi" }, float    = true })
-hl.window_rule({ match = { class = "wofi" }, center   = true })
+-- wofi window rules injected by modules/components/launcher/
 
 -- Powermenu variants
 hl.window_rule({ match = { class = "powermenu"       }, rounding = 10 })
@@ -104,6 +102,4 @@ hl.window_rule({ match = { class = ".*" },   idle_inhibit = "fullscreen" })
 hl.window_rule({ match = { class = "mpv" },  idle_inhibit = "focus"      })
 
 -- ── Layer rules ──────────────────────────────────────────────────────────────
--- SwayNC — slide from the right for both the control center and toasts
-hl.layer_rule({ match = { namespace = "swaync/control-center"      }, animation = "slide right" })
-hl.layer_rule({ match = { namespace = "swaync/notification-window" }, animation = "slide right" })
+-- swaync layer rules injected by modules/components/notifications/
