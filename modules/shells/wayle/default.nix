@@ -45,21 +45,20 @@
       };
     })
 
-    # Clear shell-active.conf — Wayle does not need Hyprland source overrides.
-    # (DMS wrote dms/*.conf sources there; Wayle manages its own layer.)
+    # Clear shell-active.lua — Wayle does not need Hyprland config overrides.
     ({ lib, ... }: {
       home.activation.shellActiveConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        _target="$HOME/nixos-config/dotfiles/hypr/shell-active.conf"
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-active.lua"
         [ -d "$(dirname "$_target")" ] || exit 0
         : > "$_target"
       '';
     })
 
-    # Clear shell-autostart.conf — Wayle self-starts via its systemd user
+    # Clear shell-autostart.lua — Wayle self-starts via its systemd user
     # service (WantedBy=graphical-session.target), no exec-once needed.
     ({ lib, ... }: {
       home.activation.shellAutostartConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.conf"
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.lua"
         [ -d "$(dirname "$_target")" ] || exit 0
         : > "$_target"
       '';

@@ -94,27 +94,27 @@ in
     inputs.danksearch.homeModules.default
     { programs.dsearch.enable = true; }
 
-    # Write DMS-specific Hyprland source overrides into shell-active.conf.
-    # hyprland.conf sources this file so DMS colors/cursor/outputs/keybinds
+    # Write DMS-specific Hyprland config overrides into shell-active.lua.
+    # hyprland.lua dofile()s this file so DMS colors/cursor/outputs/keybinds
     # are applied. On non-Hyprland compositors this file is unused.
     ({ lib, ... }: {
       home.activation.shellActiveConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        _target="$HOME/nixos-config/dotfiles/hypr/shell-active.conf"
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-active.lua"
         [ -d "$(dirname "$_target")" ] || exit 0
         printf '%s\n' \
-          'source = ./dms/colors.conf' \
-          'source = ./dms/cursor.conf' \
-          'source = ./dms/outputs.conf' \
-          'source = ./dms/binds.conf' \
+          'require("dms.colors")' \
+          'require("dms.cursor")' \
+          'require("dms.outputs")' \
+          'require("dms.binds")' \
           > "$_target"
       '';
     })
 
-    # Clear shell-autostart.conf — DMS self-starts via its HM systemd module
+    # Clear shell-autostart.lua — DMS self-starts via its HM systemd module
     # (programs.dank-material-shell.systemd.enable = true), no exec-once needed.
     ({ lib, ... }: {
       home.activation.shellAutostartConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.conf"
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.lua"
         [ -d "$(dirname "$_target")" ] || exit 0
         : > "$_target"
       '';

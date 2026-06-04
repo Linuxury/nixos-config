@@ -125,8 +125,8 @@
     # the rest of the Hyprland ecosystem.
 
     [templates.hyprland]
-    input_path = "/home/linuxury/.config/matugen/templates/templates/hyprland-colors.conf"
-    output_path = "/home/linuxury/.config/hypr/colors.conf"
+    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/colors.lua.template"
+    output_path = "/home/linuxury/.config/hypr/colors.lua"
 
     [templates.kitty]
     input_path = "/home/linuxury/.config/matugen/templates/templates/kitty-colors.conf"

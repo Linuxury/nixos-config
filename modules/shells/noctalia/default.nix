@@ -75,11 +75,11 @@ PYEOF
     # MangoWC is not running.
     ./color-sync/default.nix
 
-    # Clear shell-active.conf — Noctalia does not need Hyprland source
+    # Clear shell-active.lua — Noctalia does not need Hyprland config
     # overrides (it manages its own layer via wlr-layer-shell directly).
     ({ lib, ... }: {
       home.activation.shellActiveConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        _target="$HOME/nixos-config/dotfiles/hypr/shell-active.conf"
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-active.lua"
         [ -d "$(dirname "$_target")" ] || exit 0
         : > "$_target"
       '';
@@ -93,13 +93,17 @@ PYEOF
       gtk.gtk4.extraCss = ''@import url("noctalia.css");'';
     }
 
-    # Write shell-autostart.conf — Noctalia has no systemd service so it
-    # must be launched via exec-once. autostart.conf sources this file.
+    # Write shell-autostart.lua — Noctalia has no systemd service so it
+    # must be launched via exec-once. hyprland.lua dofile()s this file.
     ({ lib, ... }: {
       home.activation.shellAutostartConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.conf"
+        _target="$HOME/nixos-config/dotfiles/hypr/shell-autostart.lua"
         [ -d "$(dirname "$_target")" ] || exit 0
-        printf '%s\n' 'exec-once = noctalia-shell' > "$_target"
+        printf '%s\n' \
+          'hl.on("hyprland.start", function()' \
+          '    hl.exec_cmd("noctalia-shell")' \
+          'end)' \
+          > "$_target"
       '';
     })
 
