@@ -370,5 +370,38 @@ EOF
     mkdir -p "$HOME/Obsidian"
   '';
 
+  # =========================================================================
+  # SDDM wallpaper sync
+  #
+  # hypr-sddm reads /var/lib/sddm-wallpaper/background.jpg for its background
+  # and color extraction. On Hyprland hosts, hypr-matugen writes that file.
+  # On KDE hosts there is no such pipeline — this service fills the gap.
+  #
+  # Runs once at graphical session start: reads the current wallpaper from
+  # KDE Plasma's appletsrc config (Image=file:///path) and copies the first
+  # valid path it finds to the SDDM background dir. The dir is 0775 root:users
+  # so the user service can write there without sudo.
+  # =========================================================================
+  systemd.user.services.sddm-wallpaper-sync = {
+    Unit = {
+      Description = "Sync current KDE wallpaper to SDDM background dir";
+      After       = [ "graphical-session.target" ];
+      PartOf      = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type      = "oneshot";
+      ExecStart = pkgs.writeShellScript "sddm-wallpaper-sync" ''
+        CONFIG="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
+        SDDM_BG="/var/lib/sddm-wallpaper/background.jpg"
+        [ -f "$CONFIG" ] || exit 0
+        while IFS= read -r line; do
+          path="''${line#Image=file://}"
+          [ -f "$path" ] && cp -- "$path" "$SDDM_BG" && exit 0
+        done < <(grep '^Image=file://' "$CONFIG")
+      '';
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
   # Personal packages live in modules/users/babylinux-packages.nix
 }
