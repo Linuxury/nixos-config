@@ -30,6 +30,11 @@
     defaultEditor = true;
     viAlias       = true;
     vimAlias      = true;
+    # Explicitly false — HM 26.11 changed both defaults from true to false.
+    # Plugins managed by lazy.nvim; LSP binaries come from Nix PATH, not Mason.
+    # Revisit during neovim module redo if a plugin actually needs these.
+    withRuby    = false;
+    withPython3 = false;
   };
 
   # =========================================================================
