@@ -48,6 +48,16 @@
   # lazy-lock.json is included so plugin versions match TheBlackDon's pinned
   # state after each update. Run :Lazy update inside nvim to go newer.
   # =========================================================================
+  # HM 26.11+ generates ~/.config/nvim/init.lua as a managed file.
+  # The normie-nvim rsync (after writeBoundary) overwrites it with the real
+  # config, but checkLinkTargets runs first and aborts if it finds a
+  # pre-existing unmanaged init.lua left by the previous rsync.
+  # Removing it here lets HM write its managed version, which rsync then
+  # immediately replaces with normie-nvim's actual init.lua.
+  home.activation.preCleanNvimInitLua = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    rm -f "$HOME/.config/nvim/init.lua"
+  '';
+
   home.activation.normieNvim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     NVIM_DIR="$HOME/.config/nvim"
 
