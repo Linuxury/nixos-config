@@ -1,8 +1,18 @@
 # ===========================================================================
-# modules/system/graphical/user-avatars/default.nix — AccountsService user avatars
+# modules/system/graphical/user-avatars/default.nix — user avatar setup
 #
-# Sets user avatar icons via AccountsService so they appear in the greeter
-# (sddm, cosmic-greeter) and any other AccountsService-aware tool.
+# Writes avatar icons to two locations so every greeter can find them:
+#
+#   1. /var/lib/sddm-faces/${username}.face.icon
+#      SDDM's native FacesDir lookup — no accountsservice needed.
+#      NixOS builds SDDM without libaccountsservice, so this is the only
+#      path SDDM's UserModel actually reads.  The sddm module sets FacesDir
+#      to this directory.  Extension must end in .face.icon so SDDM finds
+#      it, and hypr-sddm's QML regex (patched to accept .icon) loads it.
+#
+#   2. /var/lib/AccountsService/icons/${username}.${ext}
+#      AccountsService — used by cosmic-greeter, gdm, and any D-Bus client
+#      querying org.freedesktop.Accounts.User.IconFile.
 #
 # Avatar source layout (nixos-config/assets/Avatar/ per user):
 #   linuxury.jpg     → linuxury
@@ -45,20 +55,23 @@ in
 
   system.activationScripts.user-avatars = {
     text = ''
+      mkdir -p /var/lib/sddm-faces
+      chmod 755 /var/lib/sddm-faces
       mkdir -p /var/lib/AccountsService/icons /var/lib/AccountsService/users
 
       ${lib.concatStrings (lib.mapAttrsToList (username: avatarPath:
-        # Compute extension at Nix eval time so the bash script gets a plain
-        # literal. This avoids ${...} bash expansions inside Nix '' strings.
-        # Preserving the extension matters: hypr-sddm checks the icon path
-        # against /\.(jpg|jpeg|png|bmp|webp|svg)$/i before displaying it.
-        let ext = lib.last (lib.splitString "." (builtins.baseNameOf avatarPath));
-            dest = "/var/lib/AccountsService/icons/${username}.${ext}";
+        let ext  = lib.last (lib.splitString "." (builtins.baseNameOf avatarPath));
+            # SDDM FacesDir: looks for ${username}.face.icon (no accountsservice needed)
+            sddm = "/var/lib/sddm-faces/${username}.face.icon";
+            # AccountsService: for cosmic-greeter, gdm, D-Bus clients
+            acct = "/var/lib/AccountsService/icons/${username}.${ext}";
         in ''
         if [ -f "${avatarPath}" ]; then
-          cp "${avatarPath}" "${dest}"
-          chmod 644 "${dest}"
-          printf '[User]\nIcon=${dest}\nSystemAccount=false\n' \
+          cp "${avatarPath}" "${sddm}"
+          chmod 644 "${sddm}"
+          cp "${avatarPath}" "${acct}"
+          chmod 644 "${acct}"
+          printf '[User]\nIcon=${acct}\nSystemAccount=false\n' \
             > "/var/lib/AccountsService/users/${username}"
           chmod 644 "/var/lib/AccountsService/users/${username}"
         fi

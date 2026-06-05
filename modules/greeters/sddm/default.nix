@@ -144,6 +144,12 @@ in
     extraPackages = [ pkgs.qt6Packages.qtvirtualkeyboard ];
   };
 
+  # NixOS builds SDDM without libaccountsservice — UserModel.icon never queries
+  # accounts-daemon.  Instead SDDM resolves avatars via FacesDir: it looks for
+  # ${FacesDir}/${username}.face.icon.  Point FacesDir at our mutable directory
+  # that user-avatars/default.nix populates on every nixos-rebuild switch.
+  services.displayManager.sddm.settings.Theme.FacesDir = "/var/lib/sddm-faces";
+
   # NixOS only sets [Theme] CursorTheme when cfg.theme == "" (default SDDM theme).
   # With a custom theme (catppuccin-sddm), it's omitted — and SDDM shows no cursor.
   # Set it explicitly here so the greeter always has a cursor regardless of theme.
