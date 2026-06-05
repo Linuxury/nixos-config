@@ -256,6 +256,28 @@ in
 
   ];
 
+  # SDDM reads /var/lib/sddm/state.conf AFTER /etc/sddm.conf.d/*.conf, so any
+  # [Theme] Current= entry written there overrides our declarative config.
+  # KDE's "Login Screen" settings panel (sddm-kcm) writes this key whenever
+  # the user opens System Settings → Startup → Login Screen, even without
+  # saving changes. Strip it on every nixos-rebuild switch so our theme wins.
+  # Activation runs as root which can write to sddm-owned files.
+  system.activationScripts.sddm-clear-theme-state = ''
+    STATE=/var/lib/sddm/state.conf
+    if [ -f "$STATE" ]; then
+      ${pkgs.python3}/bin/python3 - "$STATE" <<'PYEOF'
+import configparser, sys
+path = sys.argv[1]
+cfg = configparser.RawConfigParser()
+cfg.read(path)
+if cfg.has_option("Theme", "Current"):
+    cfg.remove_option("Theme", "Current")
+    with open(path, "w") as f:
+        cfg.write(f)
+PYEOF
+    fi
+  '';
+
   # Wallpaper sync target — lives at /var/lib/sddm-wallpaper/ (NOT inside
   # /var/lib/sddm/ which is 0700 sddm:sddm and not traversable by regular users).
   # 0775 root:users lets any logged-in user write the file; sddm reads as "other".
