@@ -38,6 +38,7 @@ let
   #
   # Patch 1: visible:false → opacity:0  (Qt 6 scene-graph texture fix)
   # Patch 2: extends avatar regex to also accept .icon extension
+  # Patch 3: Qt.UserRole + 3 → Qt.UserRole + 4  (SDDM 0.21 UserRoles enum fix)
   # ---------------------------------------------------------------------------
   mainQmlPatch = pkgs.writeText "hypr-sddm-avatar-patch.py" ''
     import sys
@@ -63,10 +64,9 @@ let
         print("Patched Main.qml: avatar Image visible:false -> opacity:0")
 
     # Patch 2: The icon regex only accepts standard image extensions, but SDDM
-    # maps ~/.face.icon as the primary user avatar path — the .icon extension
-    # is not in the list.  Adding it allows the standard SDDM ~/.face.icon
-    # convention to work alongside AccountsService paths (which already carry
-    # a proper image extension from user-avatars/default.nix).
+    # FacesDir avatars use the .face.icon extension by convention.  Adding it
+    # allows the FacesDir path (/var/lib/sddm-faces/<username>.face.icon) to
+    # pass the extension check and be loaded as an image.
     old2 = r"/\.(jpg|jpeg|png|bmp|webp|svg)$/i"
     new2 = r"/\.(jpg|jpeg|png|bmp|webp|svg|icon)$/i"
     if old2 not in content:
@@ -75,6 +75,20 @@ let
         content = content.replace(old2, new2, 1)
         modified = True
         print("Patched Main.qml: added .icon to avatar extension regex")
+
+    # Patch 3: hypr-sddm reads the icon path with Qt.UserRole + 3, but in
+    # SDDM 0.21's UserRoles enum that slot is HomeDirRole (returns the home
+    # directory path, e.g. /home/linuxury) — NOT the avatar path.  IconRole
+    # is Qt.UserRole + 4.  The QML was written against an older SDDM API where
+    # HomeDirRole didn't exist and the enum was offset by one.
+    old3 = "var icon = userModel.data(userModel.index(container.userIndex, 0), Qt.UserRole + 3);"
+    new3 = "var icon = userModel.data(userModel.index(container.userIndex, 0), Qt.UserRole + 4);"
+    if old3 not in content:
+        print("WARN: UserRole+3 icon lookup not found — skipping patch 3")
+    else:
+        content = content.replace(old3, new3, 1)
+        modified = True
+        print("Patched Main.qml: icon role Qt.UserRole+3 -> Qt.UserRole+4 (SDDM 0.21 enum fix)")
 
     if modified:
         with open(path, "w") as f:
