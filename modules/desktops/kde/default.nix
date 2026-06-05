@@ -90,7 +90,10 @@
     kdePackages.gwenview      # Image viewer
     kdePackages.plasma-browser-integration  # Browser integration for KDE
     kdePackages.qtstyleplugin-kvantum  # Kvantum theme engine for Qt apps
-    kdePackages.sddm-kcm               # SDDM config in System Settings → Colors & Themes
+    # sddm-kcm removed: it writes /etc/sddm.conf.d/kde_settings.conf with
+    # Current=breeze on every open of System Settings → Login Screen, which
+    # overrides our declarative theme (kde_settings.conf sorts after 00-nixos.conf).
+    # SDDM is configured declaratively in greeters/sddm/default.nix.
     ant-dark-kde                  # Ant-Dark KDE theme (Aurorae, Plasma, color scheme, Kvantum)
     breeze-chameleon-dark-icons   # Breeze Chameleon Dark icon theme (adaptive folder colors)
     darkly                    # Window decoration + application style (fork of Lightly)
@@ -98,6 +101,13 @@
     plasmusic-toolbar         # Now-playing + playback controls widget (Claudio Catterina)
     # shutdown_or_switch: not yet in nixpkgs — install via KDE Store (Kai Uwe Broulik / Davide Sandona)
   ];
+
+  # Remove kde_settings.conf if sddm-kcm previously wrote it.
+  # That file contains [Theme] Current=breeze and sorts after 00-nixos.conf,
+  # making it override our declarative theme on every boot.
+  system.activationScripts.remove-kde-sddm-settings = ''
+    rm -f /etc/sddm.conf.d/kde_settings.conf
+  '';
 
   # =========================================================================
   # TODO: plasma-foreground-booster (kdePackages.kcgroups)
