@@ -137,6 +137,10 @@
       config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/nixos-config/assets/Avatar";
 
+    # ~/.face.icon — SDDM reads this as the primary user avatar.
+    ".face.icon".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar/alexander.jpg";
+
     # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
     "Pictures/Fastfetch".source =
       config.lib.file.mkOutOfStoreSymlink

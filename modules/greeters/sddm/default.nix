@@ -29,10 +29,15 @@
 
 let
   # ---------------------------------------------------------------------------
-  # Patch script for Main.qml — extracted to writeText so it lives in its own
-  # Nix string (2-space minimum indent → correctly stripped by Nix) rather than
-  # inline in installPhase (where zero-indented Python lines would force Nix to
-  # strip zero spaces, breaking the CONF heredoc's end-marker recognition).
+  # Patch script for Main.qml — two patches applied in one pass.
+  #
+  # Extracted to writeText so it lives in its own Nix string (2-space minimum
+  # indent → correctly stripped by Nix) rather than inline in installPhase
+  # (where zero-indented Python lines would force Nix to strip zero spaces,
+  # breaking the CONF heredoc's end-marker recognition).
+  #
+  # Patch 1: visible:false → opacity:0  (Qt 6 scene-graph texture fix)
+  # Patch 2: extends avatar regex to also accept .icon extension
   # ---------------------------------------------------------------------------
   mainQmlPatch = pkgs.writeText "hypr-sddm-avatar-patch.py" ''
     import sys
@@ -41,21 +46,39 @@ let
     with open(path) as f:
         content = f.read()
 
-    # Canvas.drawImage(img) silently fails in Qt 6 when img has visible:false —
-    # hidden items are skipped by the scene graph so their texture is never
-    # uploaded to the GPU.  Changing to opacity:0 keeps the item visible (texture
-    # resident) while remaining invisible to the user.  The Canvas circular crop
-    # then works correctly and the letter-circle fallback shows if no photo found.
-    old = "smooth: true; visible: false"
-    new = "smooth: true; opacity: 0"
+    modified = False
 
-    if old not in content:
-        print("WARN: avatar Image property not found — skipping patch")
+    # Patch 1: Canvas.drawImage(img) silently fails in Qt 6 when img has
+    # visible:false — hidden items are skipped by the scene graph so their
+    # texture is never uploaded to the GPU.  Changing to opacity:0 keeps the
+    # item visible (texture resident) while remaining invisible to the user.
+    # The Canvas circular crop then works correctly.
+    old1 = "smooth: true; visible: false"
+    new1 = "smooth: true; opacity: 0"
+    if old1 not in content:
+        print("WARN: avatar Image visible:false not found — skipping patch 1")
     else:
-        content = content.replace(old, new, 1)
+        content = content.replace(old1, new1, 1)
+        modified = True
+        print("Patched Main.qml: avatar Image visible:false -> opacity:0")
+
+    # Patch 2: The icon regex only accepts standard image extensions, but SDDM
+    # maps ~/.face.icon as the primary user avatar path — the .icon extension
+    # is not in the list.  Adding it allows the standard SDDM ~/.face.icon
+    # convention to work alongside AccountsService paths (which already carry
+    # a proper image extension from user-avatars/default.nix).
+    old2 = r"/\.(jpg|jpeg|png|bmp|webp|svg)$/i"
+    new2 = r"/\.(jpg|jpeg|png|bmp|webp|svg|icon)$/i"
+    if old2 not in content:
+        print("WARN: avatar icon regex not found — skipping patch 2")
+    else:
+        content = content.replace(old2, new2, 1)
+        modified = True
+        print("Patched Main.qml: added .icon to avatar extension regex")
+
+    if modified:
         with open(path, "w") as f:
             f.write(content)
-        print("Patched Main.qml: avatar Image visible:false -> opacity:0")
   '';
 
   # ---------------------------------------------------------------------------
@@ -99,8 +122,8 @@ let
       fontSize=12
       CONF
 
-      # Patch Main.qml: replace Canvas+hidden-Image avatar with Rectangle+clip.
-      # See mainQmlPatch above for the full explanation.
+      # Apply both QML patches (visible:false → opacity:0, extend icon regex).
+      # See mainQmlPatch above for full explanation of each patch.
       python3 ${mainQmlPatch} "$dest/Main.qml"
 
       runHook postInstall

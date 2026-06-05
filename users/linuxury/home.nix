@@ -212,6 +212,12 @@
     "Pictures/Avatar".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar";
 
+    # ~/.face.icon — SDDM reads this as the primary user avatar.  Points
+    # directly to the repo asset (not through ~/Pictures/Avatar) so it exists
+    # even before ~/Pictures/Avatar is symlinked on first HM activation.
+    ".face.icon".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar/linuxury.jpg";
+
     # ~/Pictures/Minecraft → nixos-config/assets/Minecraft (skins, packs art)
     "Pictures/Minecraft".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Minecraft";

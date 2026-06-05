@@ -2,17 +2,20 @@
 # modules/system/graphical/user-avatars/default.nix — AccountsService user avatars
 #
 # Sets user avatar icons via AccountsService so they appear in the greeter
-# (dms-greeter, cosmic-greeter) and any other AccountsService-aware tool.
+# (sddm, cosmic-greeter) and any other AccountsService-aware tool.
 #
-# Each user has ~/Pictures/Avatar symlinked to their own nixos-config clone
-# (managed by Home Manager). Using per-user paths means this works on all
-# hosts — linuxury has no home on babylinux/alex machines so a shared path
-# would silently fail there.
-#
-# Avatar source layout (~/Pictures/Avatar/ per user):
+# Avatar source layout (nixos-config/assets/Avatar/ per user):
 #   linuxury.jpg     → linuxury
 #   babylinux.jpeg   → babylinux
 #   alexander.jpg    → alex
+#
+# Paths point directly to nixos-config/assets/Avatar/ rather than through
+# the HM-managed ~/Pictures/Avatar symlink.  NixOS system activationScripts
+# run BEFORE HM user activations — on the first rebuild the ~/Pictures/Avatar
+# symlink does not exist yet, so [ -f ] tests against that path fail silently
+# and no icons are ever written.  The direct repo path is always present as
+# long as the nixos-config repo is cloned (a prerequisite for rebuilding).
+# The [ -f ] guard below handles hosts where a given user has no repo clone.
 #
 # Imported by: modules/system/graphical/default.nix
 # ===========================================================================
@@ -20,11 +23,13 @@
 { config, pkgs, lib, ... }:
 
 let
-  # Map each username to its avatar file in their own ~/Pictures/Avatar/
+  # Map each username to their avatar in the nixos-config assets directory.
+  # Using the direct repo path avoids the HM-symlink timing race described
+  # in the header comment above.
   avatarMap = {
-    linuxury  = "/home/linuxury/Pictures/Avatar/linuxury.jpg";
-    babylinux = "/home/babylinux/Pictures/Avatar/babylinux.jpeg";
-    alex      = "/home/alex/Pictures/Avatar/alexander.jpg";
+    linuxury  = "/home/linuxury/nixos-config/assets/Avatar/linuxury.jpg";
+    babylinux = "/home/babylinux/nixos-config/assets/Avatar/babylinux.jpeg";
+    alex      = "/home/alex/nixos-config/assets/Avatar/alexander.jpg";
   };
 
   # Only act on users that are defined as normal users on this host
