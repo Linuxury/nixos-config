@@ -56,11 +56,13 @@
   # SDDM strips its own environment before launching kwin_wayland, so env vars
   # set on display-manager.service never reach kwin. Use CompositorCommand.
   #
-  # - KWIN_DRM_DEVICES: On Ryzen 7840U the NPU (amdxdna) claims DRM minor 0,
-  #   pushing amdgpu to card1. kwin defaults to card0, finds nothing, exits 1.
-  # - QT_QPA_PLATFORMTHEME=: Clear it for the greeter kwin too (same crash).
+  # QT_QPA_PLATFORMTHEME=: Clear it for the greeter kwin (same gtk2 crash as above).
+  #
+  # Do NOT hardcode KWIN_DRM_DEVICES here — card numbering is machine-specific.
+  # On hosts where the GPU is not at card0 (e.g. APU+NPU where NPU claims card0),
+  # override this in the host config with lib.mkForce and add KWIN_DRM_DEVICES.
   services.displayManager.sddm.settings.Wayland.CompositorCommand = lib.mkForce
-    "env KWIN_DRM_DEVICES=/dev/dri/card1 QT_QPA_PLATFORMTHEME= ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
+    "env QT_QPA_PLATFORMTHEME= ${pkgs.kdePackages.kwin}/bin/kwin_wayland --no-global-shortcuts --no-kactivities --no-lockscreen --locale1";
 
   # =========================================================================
   # XDG Portal for KDE
