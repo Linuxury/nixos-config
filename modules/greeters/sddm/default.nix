@@ -259,13 +259,21 @@ in
   # SDDM reads /var/lib/sddm/state.conf AFTER /etc/sddm.conf.d/*.conf, so any
   # [Theme] Current= entry written there overrides our declarative config.
   # KDE's "Login Screen" settings panel (sddm-kcm) writes this key whenever
-  # the user opens System Settings → Startup → Login Screen, even without
-  # saving changes. Strip it on every nixos-rebuild switch so our theme wins.
-  # Activation runs as root which can write to sddm-owned files.
-  system.activationScripts.sddm-clear-theme-state = ''
-    STATE=/var/lib/sddm/state.conf
-    if [ -f "$STATE" ]; then
-      ${pkgs.python3}/bin/python3 - "$STATE" <<'PYEOF'
+  # the user opens System Settings → Login Screen, and SDDM itself re-writes
+  # state.conf on every logout — so an activation script is too early (the
+  # user logs out after nru and SDDM re-writes breeze before reboot).
+  # A systemd oneshot runs on every boot, before display-manager, so it always
+  # strips the override regardless of what happened at last logout.
+  systemd.services.sddm-clear-theme-state = {
+    description = "Strip [Theme] Current override from SDDM state.conf";
+    before  = [ "display-manager.service" ];
+    wantedBy = [ "display-manager.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "sddm-clear-theme" ''
+        STATE=/var/lib/sddm/state.conf
+        [ -f "$STATE" ] || exit 0
+        ${pkgs.python3}/bin/python3 - "$STATE" <<'PYEOF'
 import configparser, sys
 path = sys.argv[1]
 cfg = configparser.RawConfigParser()
@@ -275,8 +283,9 @@ if cfg.has_option("Theme", "Current"):
     with open(path, "w") as f:
         cfg.write(f)
 PYEOF
-    fi
-  '';
+      '';
+    };
+  };
 
   # Wallpaper sync target — lives at /var/lib/sddm-wallpaper/ (NOT inside
   # /var/lib/sddm/ which is 0700 sddm:sddm and not traversable by regular users).
