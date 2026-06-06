@@ -40,7 +40,7 @@ _fmt_nvd() {
   local section=""
   while IFS= read -r line; do
     # Skip store path header comparison lines and blank lines
-    [[ "$line" == "<<<" * || "$line" == ">>>" * ]] && continue
+    [[ "$line" == '<<<'* || "$line" == '>>>'* ]] && continue
     [[ -z "${line// }" ]] && continue
 
     # Strip /nix/store/HASH- prefixes — show names, not hashes
