@@ -37,47 +37,49 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # Strips /nix/store/HASH- paths so only package names and versions show.
 # ---------------------------------------------------------------------------
 _fmt_nvd() {
-  local section=""
+  local section="" pkg ver name old_v new_v
   while IFS= read -r line; do
     # Skip store path header comparison lines and blank lines
     [[ "$line" == '<<<'* || "$line" == '>>>'* ]] && continue
     [[ -z "${line// }" ]] && continue
 
-    # Strip /nix/store/HASH- prefixes — show names, not hashes
-    local clean
-    clean=$(printf '%s' "$line" | sed 's|/nix/store/[a-z0-9]\{32,\}-||g')
+    # Long-form section headers (nvd long-form output)
+    if [[ "$line" == 'Added packages:'   ]]; then section="added";   printf "\n"; continue; fi
+    if [[ "$line" == 'Removed packages:' ]]; then section="removed"; printf "\n"; continue; fi
+    if [[ "$line" == 'Version changes:'* ]]; then section="version"; printf "\n"; continue; fi
+    if [[ "$line" == 'Closure size:'*    ]]; then printf "  %s\n" "$line"; continue; fi
 
-    # Long-form section headers
-    if   [[ "$clean" == Added*   ]]; then section="added";   echo ""; continue; fi
-    if   [[ "$clean" == Removed* ]]; then section="removed"; echo ""; continue; fi
-    if   [[ "$clean" == Version* ]]; then section="version"; echo ""; continue; fi
-
-    # Short-form prefixes — strip prefix and set section
-    if   [[ "$clean" == "[A]"* ]]; then section="added";   clean="${clean#\[A\] }"; fi
-    if   [[ "$clean" == "[R]"* ]]; then section="removed"; clean="${clean#\[R\] }"; fi
-    if   [[ "$clean" == "[U]"* ]]; then section="version"; clean="${clean#\[U\] }"; fi
-    if   [[ "$clean" == "[D]"* ]]; then section="version"; clean="${clean#\[D\] }"; fi
-
-    # Closure size line — pass through
-    if [[ "$clean" == Closure* ]]; then printf "  %s\n" "$clean"; continue; fi
-
-    # Strip leading whitespace and list bullets
-    local pkg
-    pkg=$(printf '%s' "$clean" | sed 's/^[[:space:]-]*//')
-    [[ -z "$pkg" ]] && continue
+    # Short-form prefix lines — e.g. "[A.]  #3  abc123...-kitty  0.36.0"
+    # "[A.]" → added, "[R.]" → removed, "[C.]" / "[D.]" → version change
+    case "$line" in
+      '[A.'*) section="added"   ;;
+      '[R.'*) section="removed" ;;
+      '[C.'*|'[D.'*|'[U.'*) section="version" ;;
+    esac
 
     case "$section" in
-      added)
-        printf "    %-36s  ==>  added\n" "$pkg"
-        ;;
-      removed)
-        printf "    %-36s  ==>  removed\n" "$pkg"
+      added|removed)
+        # Strip "[X.]  #N  " prefix, then strip bare 32-char hash-
+        pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z]\.\]  #[0-9]+  //; s/^[a-z0-9]{32,}-//')
+        [[ -z "$pkg" ]] && continue
+        ver="${pkg##*  }"
+        pkg="${pkg%%  *}"
+        if [[ "$ver" == '<none>' || "$ver" == "$pkg" ]]; then
+          printf "    %-36s  ==>  %s\n" "$pkg" "$section"
+        else
+          printf "    %-36s  ==>  %s  %s\n" "$pkg" "$section" "$ver"
+        fi
         ;;
       version)
-        if [[ "$pkg" == *"→"* ]]; then
-          # Handles both "kitty: 0.35 → 0.36" and "kitty 0.35 → 0.36"
-          printf '%s' "$pkg" | \
-            sed -E 's|^([^: ]+)[: ]+([^ ]+) → ([^ ]+)$|    \1  ==>  updated  ==>  \2 → \3|'
+        # Strip "[X.]  " prefix
+        pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z]\.\]  //')
+        [[ -z "$pkg" ]] && continue
+        if [[ "$pkg" == *' -> '* ]]; then
+          # nvd format: "pkgname: oldver -> newver"
+          name="${pkg%%:*}"
+          old_v="${${pkg#*: }%% ->*}"
+          new_v="${pkg##*-> }"
+          printf "    %-36s  ==>  updated  ==>  %s → %s\n" "$name" "$old_v" "$new_v"
         else
           printf "    %s\n" "$pkg"
         fi
