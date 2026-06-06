@@ -112,43 +112,39 @@ _nixos_run() {
   echo "══════════════════════════════════════════════════════════"
   echo ""
 
-  # Start sleep/idle inhibit lock (prevents suspend mid-build).
-  # unsetopt MONITOR suppresses zsh's "[N] PID" job-start notification —
-  # { } 2>/dev/null doesn't work because interactive zsh writes it to the tty
-  # directly. MONITOR is restored immediately after backgrounding.
-  # disown removes the job from the table so the done notification never fires.
-  unsetopt MONITOR
-  systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
-    --why="NixOS rebuild in progress" sleep infinity &>/dev/null &
-  inhibit_pid=$!
-  setopt MONITOR
-  disown $inhibit_pid 2>/dev/null
-
-  # Run rebuild — tee saves full output to log for debugging.
+  # Run rebuild under a sleep/idle inhibit lock so the machine won't suspend
+  # mid-build. systemd-inhibit wraps the command directly — no background job,
+  # no "[N] PID" job notification. The lock releases automatically when the
+  # command exits, regardless of exit code.
+  #
   # Filtered from terminal display (still in log):
   #   - agenix/decryption messages
   #   - nix build noise: "building the system configuration...",
   #     "these N derivations will be built:", indented .drv paths,
   #     "building '/nix/store/...'..." per-derivation lines
   # Activation output (restarting units, warnings, errors) passes through.
-  # nom dropped — it adds a 23s timeout when nothing needs to be built.
-  "$@" 2>&1 | tee "$tmplog" | grep -v -E \
+  systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
+    --why="NixOS rebuild in progress" \
+    "$@" 2>&1 | tee "$tmplog" | grep -v -E \
     "(\[agenix\]|decrypting '|^building the system configuration|^these [0-9]+ derivations will be built:|^\s+/nix/store/[a-z0-9]+-.*\.drv$|^building '/nix/store/)"
   exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
 
-  # Release inhibit lock
-  kill $inhibit_pid 2>/dev/null
-
-  # Package diff — only shown on successful switch (not test/boot)
+  # Package diff — only shown on successful switch with real package changes.
+  # Captured first: if _fmt_nvd produces only the Closure size line (no actual
+  # package adds/removes/updates), the block is skipped entirely.
   if [[ $exit_code -eq 0 ]] && command -v nvd &>/dev/null; then
-    local new_system
+    local new_system diff_output pkg_lines
     new_system=$(readlink -f /run/current-system 2>/dev/null)
     if [[ -n "$old_system" && "$old_system" != "$new_system" ]]; then
-      echo ""
-      echo "─── Package Changes ──────────────────────────────────────"
-      nvd diff "$old_system" "$new_system" | _fmt_nvd
-      echo "──────────────────────────────────────────────────────────"
-      echo ""
+      diff_output=$(nvd diff "$old_system" "$new_system" | _fmt_nvd)
+      pkg_lines=$(printf '%s\n' "$diff_output" | grep -v '^  Closure')
+      if [[ -n "${pkg_lines// }" ]]; then
+        echo ""
+        echo "─── Package Changes ──────────────────────────────────────"
+        printf '%s\n' "$diff_output"
+        echo "──────────────────────────────────────────────────────────"
+        echo ""
+      fi
     fi
   fi
 
