@@ -18,7 +18,7 @@
 # derivation duplication. One sha256 to update, one place to change.
 # ===========================================================================
 
-{ pkgs, config, ... }:
+{ pkgs, config, lib, ... }:
 
 let
   # =========================================================================
@@ -117,4 +117,16 @@ in
   dconf.settings."org/gnome/desktop/wm/preferences" = {
     button-layout = ":minimize,maximize,close";
   };
+
+  # =========================================================================
+  # gtk.css conflict guard
+  #
+  # libcosmic apps (COSMIC Files, Settings, etc.) write
+  # ~/.config/gtk-4.0/cosmic/{dark,light}.css and symlink gtk.css → cosmic/dark.css
+  # on every launch, clobbering HM's managed file. Removing it before HM's
+  # checkLinkTargets phase lets HM recreate its own symlink cleanly.
+  # =========================================================================
+  home.activation.clearGtkCss = lib.hm.dag.entryBefore ["checkLinkTargets"] ''
+    rm -f "${config.home.homeDirectory}/.config/gtk-4.0/gtk.css"
+  '';
 }
