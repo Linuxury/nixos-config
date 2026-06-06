@@ -1,8 +1,8 @@
 # ===========================================================================
 # modules/system/graphical/firefox/default.nix — Firefox
 #
-# Installs Firefox with default settings for all graphical hosts.
-# Imported by system/graphical/default.nix.
+# Installs Firefox with no managed policies — pure out-of-box experience.
+# Imported per-host via the host imports list.
 # ===========================================================================
 
 { ... }:

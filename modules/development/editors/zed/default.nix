@@ -7,7 +7,7 @@
 # Enable per host by importing this module:
 #   ../../modules/development/editors/zed/default.nix
 #
-# All configuration is managed inside Zed itself (Settings → Open Settings).
+# Configuration is managed inside Zed itself (Settings → Open Settings).
 # ===========================================================================
 
 { pkgs, ... }:
