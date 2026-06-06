@@ -109,11 +109,12 @@ _nixos_run() {
   echo ""
 
   # Start sleep/idle inhibit lock (prevents suspend mid-build).
-  # disown removes it from the job table so zsh doesn't print job notifications.
+  # disown (no args) removes the most recent background job from the job table
+  # so zsh doesn't print start/stop notifications. $! still holds the PID for kill.
   systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
     --why="NixOS rebuild in progress" sleep infinity &>/dev/null &
   local inhibit_pid=$!
-  disown $inhibit_pid
+  disown
 
   # Run rebuild — tee saves full output to log for debugging;
   # agenix/decryption messages are filtered from terminal display only.
