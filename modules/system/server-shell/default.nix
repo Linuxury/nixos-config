@@ -121,8 +121,8 @@
       # Prompt helper — displays a formatted (y/n) prompt, returns 0 for yes.
       _nru_prompt() {
         local reply
-        printf "\n  %s  %s  (y/n)  " "$1" "$2"
-        read -r reply
+        printf "\n  %s  %s  (y/n)  " "$1" "$2" > /dev/tty
+        read -r reply < /dev/tty
         [[ "''${reply:l}" == y ]]
       }
 

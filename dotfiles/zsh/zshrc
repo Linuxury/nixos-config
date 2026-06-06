@@ -108,14 +108,17 @@ _nixos_run() {
   echo "══════════════════════════════════════════════════════════"
   echo ""
 
-  # Start sleep/idle inhibit lock (prevents suspend mid-build)
+  # Start sleep/idle inhibit lock (prevents suspend mid-build).
+  # disown removes it from the job table so zsh doesn't print job notifications.
   systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
     --why="NixOS rebuild in progress" sleep infinity &>/dev/null &
   local inhibit_pid=$!
+  disown $inhibit_pid
 
   # Run rebuild — tee saves full output to log for debugging;
-  # agenix/decryption messages are filtered from terminal display only
-  "$@" 2>&1 | tee "$tmplog" | grep -v -E "(agenix|decrypting secret)" | nom
+  # agenix/decryption messages are filtered from terminal display only.
+  # Pattern matches "[agenix]" prefix lines and "decrypting '..." path lines.
+  "$@" 2>&1 | tee "$tmplog" | grep -v -E "(\[agenix\]|decrypting ')" | nom
   exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
 
   # Release inhibit lock
@@ -161,8 +164,10 @@ nrt() {
 # ---------------------------------------------------------------------------
 _nru_prompt() {
   local symbol="$1" msg="$2" reply
-  printf "\n  %s  %s  (y/n)  " "$symbol" "$msg"
-  read -r reply
+  # Read from /dev/tty explicitly — nom alters terminal state and a plain
+  # 'read' after the pipeline may have no tty to read from.
+  printf "\n  %s  %s  (y/n)  " "$symbol" "$msg" > /dev/tty
+  read -r reply < /dev/tty
   [[ "${reply:l}" == y ]]
 }
 
