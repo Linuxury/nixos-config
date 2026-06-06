@@ -89,13 +89,19 @@
         sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
       }
 
-      # Rebuild into boot + pull latest nixpkgs first, then reboot when done
+      # Rebuild into boot + pull latest nixpkgs first, then reboot when done.
+      # Kept on servers for unattended updates — no interactive prompt over SSH.
       nrb() {
         echo "→ Pulling latest changes from $NIXOS_CONFIG..."
         git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
         git -C "$NIXOS_CONFIG" pull || return 1
         nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-        sudo nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
+        sudo nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs || return 1
+        if ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
+          git -C "$NIXOS_CONFIG" add flake.lock
+          git -C "$NIXOS_CONFIG" commit -m "flake: update nixpkgs ($(date +%Y-%m-%d))"
+          git -C "$NIXOS_CONFIG" push
+        fi
         curl -s --max-time 10 \
           -H "Title: Rebooting — $(hostname)" \
           -H "Priority: high" \
@@ -112,26 +118,67 @@
         sudo nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
       }
 
-      # Rebuild + pull latest nixpkgs before switching
-      nru() {
-        echo "→ Pulling latest changes from $NIXOS_CONFIG..."
-        git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
-        git -C "$NIXOS_CONFIG" pull || return 1
-        nix flake update nixpkgs --flake "$NIXOS_CONFIG"
+      # Prompt helper — displays a formatted (y/n) prompt, returns 0 for yes.
+      _nru_prompt() {
+        local reply
+        printf "\n  %s  %s  (y/n)  " "$1" "$2"
+        read -r reply
+        [[ "''${reply:l}" == y ]]
+      }
+
+      # Internal — runs the rebuild and shows the post-result interactive prompt.
+      # Separate so retry doesn't re-run the git pull / flake update.
+      _nru_rebuild() {
         sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
-        # Notify if a kernel update requires a reboot
+        local exit_code=$?
+
+        if [[ $exit_code -ne 0 ]]; then
+          if _nru_prompt "✗" "Rebuild Failed :: Retry Rebuild?"; then
+            _nru_rebuild
+          fi
+          return $exit_code
+        fi
+
+        echo "✓ Rebuild successful"
+
+        if ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
+          echo "→ Pushing updated flake.lock..."
+          git -C "$NIXOS_CONFIG" add flake.lock
+          git -C "$NIXOS_CONFIG" commit -m "flake: update nixpkgs ($(date +%Y-%m-%d))"
+          git -C "$NIXOS_CONFIG" push
+        fi
+
         local current_kernel installed_kernel
         current_kernel=$(uname -r)
         installed_kernel=$(ls /run/current-system/kernel-modules/lib/modules/ 2>/dev/null | head -1)
+
         if [[ -n "$installed_kernel" && "$current_kernel" != "$installed_kernel" ]]; then
+          echo "⚠ Kernel updated: $current_kernel → $installed_kernel"
           curl -s --max-time 10 \
             -H "Title: Reboot Required — $(hostname)" \
             -H "Priority: high" \
             -H "Tags: warning,arrows_counterclockwise" \
             -d "Kernel updated (''${installed_kernel}). Reboot when convenient." \
             "http://media-server:2586/nixos-updates" 2>/dev/null || true
-          echo "⚠ Reboot required — kernel updated to $installed_kernel"
+          if _nru_prompt "⚠" "Rebuild Clean :: Requires Reboot :: Do it now?"; then
+            sudo reboot
+          fi
+        else
+          if _nru_prompt "✓" "Rebuild Clean :: Close Terminal?"; then
+            exit 0
+          fi
         fi
+      }
+
+      # Rebuild + pull latest nixpkgs before switching.
+      # Commits and pushes the updated flake.lock so all hosts stay in sync.
+      nru() {
+        echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+        git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
+        git -C "$NIXOS_CONFIG" pull || return 1
+        echo "→ Updating nixpkgs..."
+        nix flake update nixpkgs --flake "$NIXOS_CONFIG"
+        _nru_rebuild
       }
     '';
   };

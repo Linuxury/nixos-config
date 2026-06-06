@@ -267,6 +267,10 @@
 
     # Node.js — needed for MCP servers (npx) and Claude Code hooks
     nodejs
+
+    # Nix version diff — shows added/removed/updated packages between two
+    # system closures. Used by _nixos_run to display what changed after rebuild.
+    nvd
   ];
 
   # ===========================================================================

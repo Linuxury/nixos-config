@@ -30,29 +30,109 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
+# _fmt_nvd — formats nvd diff output into readable package change lines.
+#
+# Handles both nvd long-form output ("Added packages:", "Version changes:")
+# and short-form ("[A]", "[U]", "[R]", "[D]" prefixes).
+# Strips /nix/store/HASH- paths so only package names and versions show.
+# ---------------------------------------------------------------------------
+_fmt_nvd() {
+  local section=""
+  while IFS= read -r line; do
+    # Skip store path header comparison lines and blank lines
+    [[ "$line" == "<<<" * || "$line" == ">>>" * ]] && continue
+    [[ -z "${line// }" ]] && continue
+
+    # Strip /nix/store/HASH- prefixes — show names, not hashes
+    local clean
+    clean=$(printf '%s' "$line" | sed 's|/nix/store/[a-z0-9]\{32,\}-||g')
+
+    # Long-form section headers
+    if   [[ "$clean" == Added*   ]]; then section="added";   echo ""; continue; fi
+    if   [[ "$clean" == Removed* ]]; then section="removed"; echo ""; continue; fi
+    if   [[ "$clean" == Version* ]]; then section="version"; echo ""; continue; fi
+
+    # Short-form prefixes — strip prefix and set section
+    if   [[ "$clean" == "[A]"* ]]; then section="added";   clean="${clean#\[A\] }"; fi
+    if   [[ "$clean" == "[R]"* ]]; then section="removed"; clean="${clean#\[R\] }"; fi
+    if   [[ "$clean" == "[U]"* ]]; then section="version"; clean="${clean#\[U\] }"; fi
+    if   [[ "$clean" == "[D]"* ]]; then section="version"; clean="${clean#\[D\] }"; fi
+
+    # Closure size line — pass through
+    if [[ "$clean" == Closure* ]]; then printf "  %s\n" "$clean"; continue; fi
+
+    # Strip leading whitespace and list bullets
+    local pkg
+    pkg=$(printf '%s' "$clean" | sed 's/^[[:space:]-]*//')
+    [[ -z "$pkg" ]] && continue
+
+    case "$section" in
+      added)
+        printf "    %-36s  ==>  added\n" "$pkg"
+        ;;
+      removed)
+        printf "    %-36s  ==>  removed\n" "$pkg"
+        ;;
+      version)
+        if [[ "$pkg" == *"→"* ]]; then
+          # Handles both "kitty: 0.35 → 0.36" and "kitty 0.35 → 0.36"
+          printf '%s' "$pkg" | \
+            sed -E 's|^([^: ]+)[: ]+([^ ]+) → ([^ ]+)$|    \1  ==>  updated  ==>  \2 → \3|'
+        else
+          printf "    %s\n" "$pkg"
+        fi
+        ;;
+    esac
+  done
+}
+
+# ---------------------------------------------------------------------------
 # _nixos_run — core rebuild helper used by nr / nru / nrb / nrt
 #
+# - Shows a clean build header with hostname
 # - Holds a systemd sleep/idle inhibit lock for the full build duration
 # - Tees all output (stdout + stderr) to a temp log alongside nom
-# - After the build: calls nixos-log-rebuild to write warnings and a
-#   timestamped entry to ~/Obsidian/09 🔄 Updates/<hostname>.md and any
-#   actionable warnings as deduplicated rows in PENDING.md
+# - Filters agenix/decryption messages from the terminal (still in log)
+# - After the build: shows a package diff via nvd and calls nixos-log-rebuild
+#   to write warnings and a timestamped entry to ~/Obsidian/09 🔄 Updates/
 # ---------------------------------------------------------------------------
 _nixos_run() {
-  local tmplog exit_code
+  local tmplog exit_code old_system
   tmplog=$(mktemp /tmp/nixos-rebuild-XXXXXX.log)
+  old_system=$(readlink -f /run/current-system 2>/dev/null)
+
+  # Build header
+  echo ""
+  echo "══════════════════════════════════════════════════════════"
+  printf "  ↻  Rebuilding  %s\n" "$(hostname)"
+  echo "══════════════════════════════════════════════════════════"
+  echo ""
 
   # Start sleep/idle inhibit lock (prevents suspend mid-build)
   systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
     --why="NixOS rebuild in progress" sleep infinity &>/dev/null &
   local inhibit_pid=$!
 
-  # Run rebuild — tee to tmplog alongside nom for live output
-  "$@" 2>&1 | tee "$tmplog" | nom
+  # Run rebuild — tee saves full output to log for debugging;
+  # agenix/decryption messages are filtered from terminal display only
+  "$@" 2>&1 | tee "$tmplog" | grep -v -E "(agenix|decrypting secret)" | nom
   exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
 
   # Release inhibit lock
   kill $inhibit_pid 2>/dev/null
+
+  # Package diff — only shown on successful switch (not test/boot)
+  if [[ $exit_code -eq 0 ]] && command -v nvd &>/dev/null; then
+    local new_system
+    new_system=$(readlink -f /run/current-system 2>/dev/null)
+    if [[ -n "$old_system" && "$old_system" != "$new_system" ]]; then
+      echo ""
+      echo "─── Package Changes ──────────────────────────────────────"
+      nvd diff "$old_system" "$new_system" | _fmt_nvd
+      echo "──────────────────────────────────────────────────────────"
+      echo ""
+    fi
+  fi
 
   # Write warnings + update log to vault (non-blocking, never fails the shell)
   if command -v nixos-log-rebuild &>/dev/null; then
@@ -75,46 +155,78 @@ nrt() {
   _nixos_run sudo nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)"
 }
 
-# Rebuild + pull latest nixpkgs before switching.
-# Pulls latest git changes first so the build always reflects what's in the repo.
-nru() {
-  echo "→ Pulling latest changes from $NIXOS_CONFIG..."
-  git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
-  git -C "$NIXOS_CONFIG" pull || return 1
-  nix flake update nixpkgs --flake "$NIXOS_CONFIG"
+# ---------------------------------------------------------------------------
+# _nru_prompt — displays a formatted (y/n) prompt, returns 0 for yes.
+# Usage: _nru_prompt "✓" "message" && do_something
+# ---------------------------------------------------------------------------
+_nru_prompt() {
+  local symbol="$1" msg="$2" reply
+  printf "\n  %s  %s  (y/n)  " "$symbol" "$msg"
+  read -r reply
+  [[ "${reply:l}" == y ]]
+}
+
+# ---------------------------------------------------------------------------
+# _nru_rebuild — runs the rebuild and shows the post-result interactive prompt.
+# Kept separate from nru so that a retry skips the git pull / flake update.
+# ---------------------------------------------------------------------------
+_nru_rebuild() {
   _nixos_run sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)"
-  # Notify if a kernel update requires a reboot
+  local exit_code=$?
+
+  if [[ $exit_code -ne 0 ]]; then
+    if _nru_prompt "✗" "Rebuild Failed :: Retry Rebuild?"; then
+      _nru_rebuild
+    fi
+    return $exit_code
+  fi
+
+  echo "✓ Rebuild successful"
+
+  # Push the updated flake.lock so other hosts get the same nixpkgs pin
+  if ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
+    echo "→ Pushing updated flake.lock..."
+    git -C "$NIXOS_CONFIG" add flake.lock
+    git -C "$NIXOS_CONFIG" commit -m "flake: update nixpkgs ($(date +%Y-%m-%d))"
+    git -C "$NIXOS_CONFIG" push
+  fi
+
+  # Check if a kernel update requires a reboot
   local current_kernel installed_kernel
   current_kernel=$(uname -r)
   installed_kernel=$(ls /run/current-system/kernel-modules/lib/modules/ 2>/dev/null | head -1)
+
   if [[ -n "$installed_kernel" && "$current_kernel" != "$installed_kernel" ]]; then
+    echo "⚠ Kernel updated: $current_kernel → $installed_kernel"
     curl -s --max-time 10 \
       -H "Title: Reboot Required — $(hostname)" \
       -H "Priority: high" \
       -H "Tags: warning,arrows_counterclockwise" \
       -d "Kernel updated (${installed_kernel}). Reboot when convenient." \
       "http://media-server:2586/nixos-updates" 2>/dev/null || true
-    echo "⚠ Reboot required — kernel updated to $installed_kernel"
+    if _nru_prompt "⚠" "Rebuild Clean :: Requires Reboot :: Do it now?"; then
+      sudo reboot
+    fi
+  else
+    if _nru_prompt "✓" "Rebuild Clean :: Close Terminal?"; then
+      exit 0
+    fi
   fi
 }
 
-# Rebuild into boot + pull latest nixpkgs first, then reboot when done.
-# Use this for unattended updates — applies on next boot then reboots.
-nrb() {
+# Rebuild + pull latest nixpkgs before switching.
+# Pulls latest git changes, bumps nixpkgs in flake.lock, rebuilds, commits
+# the updated flake.lock, then prompts based on result:
+#   clean        → offer to close terminal
+#   needs reboot → offer to reboot now
+#   failed       → offer to retry (without re-pulling or re-updating)
+nru() {
   echo "→ Pulling latest changes from $NIXOS_CONFIG..."
   git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
   git -C "$NIXOS_CONFIG" pull || return 1
+  echo "→ Updating nixpkgs..."
   nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-  _nixos_run sudo nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)"
-  curl -s --max-time 10 \
-    -H "Title: Rebooting — $(hostname)" \
-    -H "Priority: high" \
-    -H "Tags: arrows_counterclockwise" \
-    -d "NixOS updated successfully. Rebooting in 10 seconds." \
-    "http://media-server:2586/nixos-updates" 2>/dev/null || true
-  echo "→ Rebooting in 10 seconds... (Ctrl+C to cancel)"
-  sleep 10
-  sudo reboot
+  _nru_rebuild
 }
 
 # NixOS aliases — available to all users on all hosts
