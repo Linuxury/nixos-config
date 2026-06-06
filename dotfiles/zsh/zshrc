@@ -111,12 +111,14 @@ _nixos_run() {
   echo ""
 
   # Start sleep/idle inhibit lock (prevents suspend mid-build).
-  # disown (no args) removes the most recent background job from the job table
-  # so zsh doesn't print start/stop notifications. $! still holds the PID for kill.
-  systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
-    --why="NixOS rebuild in progress" sleep infinity &>/dev/null &
-  local inhibit_pid=$!
-  disown
+  # Wrapped in { } 2>/dev/null: zsh prints the "[N] PID" job-start notification
+  # to stderr — redirecting the group suppresses it. disown then removes the job
+  # from the table so the "[N] + done" notification never fires either.
+  { systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
+      --why="NixOS rebuild in progress" sleep infinity &>/dev/null &
+    inhibit_pid=$!
+    disown
+  } 2>/dev/null
 
   # Run rebuild — tee saves full output to log for debugging;
   # agenix/decryption messages are filtered from terminal display only.
@@ -182,11 +184,16 @@ _nru_rebuild() {
   _nixos_run sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)"
   local exit_code=$?
 
-  if [[ $exit_code -ne 0 ]]; then
+  if [[ $exit_code -eq 1 ]]; then
+    # Exit code 1 = build failure — worth retrying (e.g. network blip fetching a tarball)
     if _nru_prompt "✗" "Rebuild Failed :: Retry Rebuild?"; then
       _nru_rebuild
     fi
     return $exit_code
+  elif [[ $exit_code -ne 0 ]]; then
+    # Exit code 4 = unit activation warnings (e.g. fwupd-refresh timeout) — build succeeded,
+    # retrying won't help. Continue to post-rebuild prompts.
+    echo "⚠ Rebuild succeeded with unit warnings (exit $exit_code)"
   fi
 
   echo "✓ Rebuild successful"
