@@ -112,6 +112,10 @@ _nixos_run() {
   echo "══════════════════════════════════════════════════════════"
   echo ""
 
+  # Status line — visible during the silent build phase so the terminal
+  # doesn't look frozen while nix evaluates and builds derivations.
+  printf "  → Building...\n\n"
+
   # Run rebuild under a sleep/idle inhibit lock so the machine won't suspend
   # mid-build. systemd-inhibit wraps the command directly — no background job,
   # no "[N] PID" job notification. The lock releases automatically when the
@@ -130,15 +134,17 @@ _nixos_run() {
   exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
 
   # Package diff — only shown on successful switch with real package changes.
-  # Captured first: if _fmt_nvd produces only the Closure size line (no actual
-  # package adds/removes/updates), the block is skipped entirely.
+  # _fmt_nvd output is captured first; blank lines and the Closure size line
+  # are stripped to check whether any actual packages changed. If nothing
+  # remains, the block is skipped entirely — no "Package Changes" section
+  # for config-only rebuilds that don't touch any packages.
   if [[ $exit_code -eq 0 ]] && command -v nvd &>/dev/null; then
     local new_system diff_output pkg_lines
     new_system=$(readlink -f /run/current-system 2>/dev/null)
     if [[ -n "$old_system" && "$old_system" != "$new_system" ]]; then
       diff_output=$(nvd diff "$old_system" "$new_system" | _fmt_nvd)
-      pkg_lines=$(printf '%s\n' "$diff_output" | grep -v '^  Closure')
-      if [[ -n "${pkg_lines// }" ]]; then
+      pkg_lines=$(printf '%s\n' "$diff_output" | grep -v '^  Closure' | grep -v '^[[:space:]]*$')
+      if [[ -n "$pkg_lines" ]]; then
         echo ""
         echo "─── Package Changes ──────────────────────────────────────"
         printf '%s\n' "$diff_output"
