@@ -58,7 +58,7 @@
     ../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/services/kdeconnect/default.nix
-    #../../modules/system/graphical/zen-browser/default.nix
+    ../../modules/system/graphical/zen-browser/default.nix
 
     # ==============================================================
     # Desktop Environment — enable ONE (includes shell + greeter)
@@ -117,8 +117,8 @@
     ../../modules/development/ai-tools/claude/default.nix
     ../../modules/development/ai-tools/opencode/default.nix
     ../../modules/development/ai-tools/local-llm/default.nix
-    #../../modules/development/ai-tools/lm-studio/default.nix
-    #../../modules/development/ai-tools/odysseus/default.nix
+    ../../modules/development/ai-tools/lm-studio/default.nix
+    ../../modules/development/ai-tools/odysseus/default.nix
 
     # ==============================================================
     # Development — Editors
@@ -128,7 +128,7 @@
     # ==============================================================
     ../../modules/development/editors/neovim/default.nix
     ../../modules/development/editors/vscodium/default.nix
-    #../../modules/development/editors/zed/default.nix
+    ../../modules/development/editors/zed/default.nix
 
     # ==============================================================
     # Development — Languages
