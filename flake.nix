@@ -126,6 +126,18 @@
     # -------------------------------------------------------------------------
     helium-browser.url = "github:schembriaiden/helium-browser-nix-flake";
 
+    # -------------------------------------------------------------------------
+    # zen-browser — Nix flake for Zen Browser
+    #
+    # Zen is a Firefox-based browser with a focus on privacy and a minimal UI.
+    # Not in nixpkgs — packaged via community flake (prebuilt binaries).
+    # Enable per host: programs.zenBrowser.enable = true;
+    # -------------------------------------------------------------------------
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   # ===========================================================================

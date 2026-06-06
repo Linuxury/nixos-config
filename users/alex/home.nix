@@ -26,7 +26,6 @@
 
 {
   imports = [
-    ../../modules/system/graphical/helium/default.nix
     ../../modules/system/graphical/hytale/default.nix
   ];
 

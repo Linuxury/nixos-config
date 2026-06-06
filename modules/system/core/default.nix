@@ -300,6 +300,21 @@
   '';
 
   # =========================================================================
+  # BLUETOOTH
+  #
+  # Enabled system-wide — desktops, laptops, and servers that have a BT
+  # adapter. powerOnBoot = false leaves the adapter off until the user
+  # turns it on, avoiding unnecessary radio activity at startup.
+  # btusb loaded at boot so /sys/class/bluetooth exists before bluetoothd
+  # evaluates its ConditionPathIsDirectory check.
+  # blueman is the DE-agnostic GUI manager — works on COSMIC, Hyprland, KDE.
+  # =========================================================================
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = lib.mkDefault false;
+  services.blueman.enable = true;
+  boot.kernelModules = lib.mkAfter [ "btusb" ];
+
+  # =========================================================================
   # FWUPD — firmware update daemon
   #
   # Lets you update firmware (BIOS, SSD, peripherals) via LVFS directly

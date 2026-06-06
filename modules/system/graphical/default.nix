@@ -11,6 +11,10 @@
 # Servers stay clean — they never import this file, so they never get
 # Wayland tools, terminal emulators, or media players they can't use.
 #
+# The following are intentionally NOT imported here — they are per-host:
+#   firefox, helium, libreoffice, fluxer, openrgb, kdeconnect,
+#   lemokey-keychron, zen-browser, zed, lm-studio.
+#
 # Import placement: hosts/<name>/default.nix
 #   imports = [
 #     system/core/default.nix
@@ -24,11 +28,6 @@
 
 {
   imports = [
-    # Firefox with enforced policies — applies to every user on every
-    # graphical host. Policies are declared once here rather than in
-    # each host config. See firefox/default.nix for full details.
-    ./firefox/default.nix
-
     # Fast-fail pre-check for the Torrents CIFS automount.
     # Self-activating: only applies to hosts that have /mnt/Torrents
     # in fileSystems. No-op on hosts without it.
@@ -37,19 +36,6 @@
     # AccountsService avatars — copies per-user icons from
     # /home/linuxury/Pictures/Avatar/ so they appear in the greeter.
     ./user-avatars/default.nix
-
-    # LibreOffice via Flathub — installed on first login for every graphical
-    # user. Skips gracefully on hosts where Flathub has been removed.
-    ./libreoffice/default.nix
-
-    # Fluxer via Flathub — self-hostable community platform replacing Discord.
-    # Installed on first login for every graphical user.
-    ./fluxer/default.nix
-
-    # OpenRGB — RGB lighting control server.
-    # Runs on every graphical host so RGB hardware (case fans, keyboard, RAM)
-    # is controlled consistently without per-host imports.
-    ../../hardware/openrgb/default.nix
   ];
 
   # =========================================================================
@@ -86,49 +72,6 @@
   # qt6gtk2 reads GTK3 settings at runtime, so Qt apps blend with the desktop
   # without requiring a separate Qt configurator tool.
   environment.sessionVariables.QT_QPA_PLATFORMTHEME = "gtk2";
-
-  # =========================================================================
-  # Bluetooth
-  #
-  # Enables the bluez stack (kernel + userspace) and the blueman GUI manager.
-  # blueman is DE-agnostic — it works on COSMIC, Hyprland, KDE, and anything
-  # else. powerOnBoot = false leaves the adapter off until the user turns it
-  # on, avoiding unnecessary radio activity on hosts that rarely use it.
-  # =========================================================================
-  hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = lib.mkDefault false;
-  services.blueman.enable = true;
-
-  # Load btusb at boot so /sys/class/bluetooth exists before bluetoothd
-  # evaluates its ConditionPathIsDirectory check. Without this, the service
-  # silently skips itself on machines where the module isn't loaded early.
-  boot.kernelModules = [ "btusb" ];
-
-  # =========================================================================
-  # Lemokey / Keychron peripherals — WebHID access
-  #
-  # The Lemokey web launcher (launcher.lemokey.com) uses the WebHID API to
-  # configure keyboards and mice directly from the browser. By default,
-  # /dev/hidraw* nodes are root-only. TAG+="uaccess" tells systemd-logind
-  # to grant the active logged-in user a session-scoped ACL on matching
-  # nodes — no MODE=0666 needed, and no static group to manage.
-  #
-  # VID 362d = Lemokey (Hall Effect keyboards — P1 HE, etc.)
-  # VID 3434 = Keychron (QMK keyboards + Keychron M-series mice)
-  # =========================================================================
-  services.udev.extraRules = ''
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="362d", TAG+="uaccess"
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="3434", TAG+="uaccess"
-  '';
-
-  # =========================================================================
-  # KDE Connect — Phone/desktop integration
-  #
-  # Lets your phone and desktop share clipboard, notifications, files,
-  # and more. Works on any DE — the name is misleading, it's DE-agnostic.
-  # The NixOS module opens the required firewall ports (1714-1764) automatically.
-  # =========================================================================
-  programs.kdeconnect.enable = true;
 
   # Required for dconf/GSettings to work on non-GNOME desktops.
   # Installs the D-Bus service activation entry so that `dconf load`
@@ -184,11 +127,6 @@
     # Shell tools
     # -----------------------------------------------------------------------
     eza   # Modern ls replacement — colors, icons, git status, dir grouping
-
-    # -----------------------------------------------------------------------
-    # Browsers
-    # -----------------------------------------------------------------------
-    inputs.helium-browser.packages.${pkgs.stdenv.hostPlatform.system}.helium  # Privacy-focused Chromium browser
 
     # -----------------------------------------------------------------------
     # Network share client

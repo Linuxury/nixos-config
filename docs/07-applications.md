@@ -309,7 +309,7 @@ When the wallpaper changes, the matugen pipeline regenerates `~/.config/nvim/col
 | Indent guides | Enabled | Visual structure |
 | Cursor | Modal (block in normal, bar in insert) | Clear mode indicator |
 
-`base16_transparent` is chosen specifically because it has no background fill — it blends with the Kitty/Ghostty blur effect rather than drawing a solid box over it.
+`base16_transparent` is chosen specifically because it has no background fill — it blends with the Kitty terminal's blur effect rather than drawing a solid box over it.
 
 → [Continue to Zed](#zed)
 
@@ -527,12 +527,11 @@ Installed on all graphical machines via `graphical-base.nix`:
 | Colorscheme resets after rebuild | `~/.config/nvim/colors/matugen.lua` is written by matugen on the first wallpaper change — trigger a wallpaper cycle to regenerate it, then restart Neovim |
 | which-key popup too slow | `timeoutlen` is 400 ms in `options.lua` — lower it if needed |
 
-### Ghostty / Kitty
+### Kitty
 
 | Problem | Fix |
 |---------|-----|
 | Colors look wrong after wallpaper change | Run `systemctl --user restart wallpaper-color-sync` to force a refresh. Check `~/.local/share/last-matugen-wallpaper` if it keeps reverting |
-| Ghostty shaders not loading | Confirm shader files exist in `dotfiles/ghostty/shaders/` and the symlink at `~/.config/ghostty/shaders/` is in place |
 
 ### Syncthing
 
