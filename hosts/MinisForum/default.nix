@@ -34,54 +34,56 @@
 
 {
   imports = [
-    # ── System ──────────────────────────────────────────────────────────────
-    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
-    # server-shell: headless zsh config, aliases, zoxide/fzf/direnv.
-    # Replaces graphical — no Wayland, no display manager, no GUI packages.
+    # ==============================================================
+    # System
+    #   core         — locale, fonts, nix daemon, base CLI, boot defaults
+    #   server-shell — headless zsh, aliases, zoxide/fzf/direnv
+    # ==============================================================
     ../../modules/system/core/default.nix
     ../../modules/system/server-shell/default.nix
 
-    # ── Hardware ────────────────────────────────────────────────────────────
-    # drivers: Intel Iris Xe iGPU — basic display support (headless, no transcoding).
-    # openrgb: RGB lighting control daemon (not applicable on a server).
+    # ==============================================================
+    # Hardware
+    #   drivers — Intel Iris Xe iGPU + basic support
+    # ==============================================================
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
 
-    # ── Development — AI Tools ───────────────────────────────────────────────
-    # Base infrastructure — nix-ld (run prebuilt binaries), uv (MCP servers), ffmpeg.
-    # Import this alongside any AI tool below.
+    # ==============================================================
+    # Development — AI Tools
+    #   ai-tools  — base: nix-ld, uv, ffmpeg (import alongside tools below)
+    #   claude    — Claude Code CLI
+    #   opencode  — OpenCode CLI
+    #   local-llm — Ollama + GPU acceleration
+    #   odysseus  — self-hosted AI workspace
+    # ==============================================================
     ../../modules/development/ai-tools/default.nix
-    #
-    # Claude Code — AI coding assistant (claude CLI + shell wrapper)
     ../../modules/development/ai-tools/claude/default.nix
-    #
-    # OpenCode — terminal AI IDE (opencode CLI + config management)
     #../../modules/development/ai-tools/opencode/default.nix
-    #
-    # Local LLM — Ollama with ROCm/CUDA GPU acceleration
     #../../modules/development/ai-tools/local-llm/default.nix
-    #
-    # Odysseus — self-hosted AI workspace (OCI container, planned)
     #../../modules/development/ai-tools/odysseus/default.nix
 
-    # ── Development — Editors ────────────────────────────────────────────────
-    # Headless server — no GUI editors needed.
+    # ==============================================================
+    # Development — Editors (headless — no GUI editors)
+    # ==============================================================
     #../../modules/development/editors/neovim/default.nix
     #../../modules/development/editors/vscodium/default.nix
     #../../modules/development/editors/zed/default.nix
 
-    # ── Development — Languages ──────────────────────────────────────────────
+    # ==============================================================
+    # Development — Languages
+    #   python — python3, poetry, ruff, httpie
+    #   rust   — rustup toolchain, cargo tools, just
+    # ==============================================================
     #../../modules/development/languages/python/default.nix
     #../../modules/development/languages/rust/default.nix
 
-    # ── Services ────────────────────────────────────────────────────────────
-    # samba: file sharing — GameServers share at /data/gameservers.
-    # syncthing: Obsidian vault sync (linuxury pair).
-    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
-    # ntfy: push notification server (runs on Media-Server, not here).
-    # vpn-qbittorrent: WireGuard killswitch for qBittorrent (Radxa-X4 only).
-    # snapper: BTRFS snapshots (disabled — /data is ext4 on this host).
-    # syncthing-babylinux: babylinux's sync pair (babylinux hosts only).
+    # ==============================================================
+    # Services
+    #   samba       — GameServers share at /data/gameservers
+    #   syncthing   — vault + nixos-config sync (linuxury pair)
+    #   auto-update — weekly nixos-rebuild from GitHub
+    # ==============================================================
     ../../modules/services/samba/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/auto-update/default.nix
@@ -90,25 +92,27 @@
     #../../modules/services/snapper/default.nix
     #../../modules/services/syncthing-babylinux/default.nix
 
-    # ── Users ───────────────────────────────────────────────────────────────
-    # linuxury: SSH access + wheel/admin. Only user that manages this server.
+    # ==============================================================
+    # Users
+    #   ssh — authorized keys for this host
+    # ==============================================================
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Host identity
-  # =========================================================================
+  # ==============================================================
   networking.hostName = "MinisForum";
 
-  # =========================================================================
+  # ==============================================================
   # GPU driver selection
   # Intel Iris Xe integrated graphics
-  # =========================================================================
+  # ==============================================================
   hardware.gpu = "intel";
 
-  # =========================================================================
+  # ==============================================================
   # Filesystem — BTRFS with subvolumes, no LUKS on server
-  # =========================================================================
+  # ==============================================================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/nixos";
@@ -159,25 +163,25 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Swap
-  # =========================================================================
+  # ==============================================================
   swapDevices = [{
     device = "/swap/swapfile";
   }];
 
-  # =========================================================================
+  # ==============================================================
   # Kernel — latest stable
   # Servers benefit from stability over bleeding edge
-  # =========================================================================
+  # ==============================================================
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # =========================================================================
+  # ==============================================================
   # Server optimizations
   #
   # Servers have different performance priorities than desktops.
   # These tweaks favor throughput and stability over interactivity.
-  # =========================================================================
+  # ==============================================================
   boot.kernel.sysctl = {
     # Network performance
     "net.core.rmem_max"          = 134217728;  # Increase receive buffer
@@ -191,18 +195,18 @@
                                                # that watch many files
   };
 
-  # =========================================================================
+  # ==============================================================
   # Disable audio — servers don't need it
   # Overrides the PipeWire setup in common.nix
-  # =========================================================================
+  # ==============================================================
   services.pipewire.enable = lib.mkForce false;
 
-  # =========================================================================
+  # ==============================================================
   # Disable suspend/sleep — servers must stay on
   #
   # A server that suspends is useless. These settings ensure the machine
   # never sleeps regardless of inactivity.
-  # =========================================================================
+  # ==============================================================
   systemd.targets.sleep.enable      = false;
   systemd.targets.suspend.enable    = false;
   systemd.targets.hibernate.enable  = false;
@@ -216,12 +220,12 @@
     IdleAction                   = "ignore";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Server packages
   #
   # Minimal set — only what you need to manage and monitor the server.
   # Services get their own packages when we configure them.
-  # =========================================================================
+  # ==============================================================
   environment.systemPackages = with pkgs; [
     # Monitoring
     htop          # Already in common.nix but worth noting
@@ -247,19 +251,19 @@
     unzip          # Extract server zip
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Agenix secrets
-  # =========================================================================
+  # ==============================================================
   age.secrets.smb-credentials = {
     file = ../../secrets/smb-credentials.age;
     mode = "0400";
     owner = "root";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Media-Server Samba share — for Obsidian vault and shared files
   # Automounts on first access, disconnects after 60s idle.
-  # =========================================================================
+  # ==============================================================
   fileSystems."/mnt/Media-Server" = {
     device = "//10.0.0.3/Media-Server";
     fsType = "cifs";
@@ -275,12 +279,12 @@
     ];
   };
 
-  # =========================================================================
+  # ==============================================================
   # Game server directories
   #
   # Crafty owns everything under crafty/ — Docker mounts these as volumes.
   # Hytale runs directly under hytale/Server/ (downloaded via hytale-downloader).
-  # =========================================================================
+  # ==============================================================
   systemd.tmpfiles.rules = [
     "d /mnt/Media-Server                    0755 linuxury users -"
     "d /data                                  0755 root     users -"
@@ -298,7 +302,7 @@
     "d /data/gameservers/hytale/Server        0775 linuxury users -"
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Crafty Controller — web-based Minecraft server manager
   #
   # Runs in Docker. Manages Minecraft servers only (Java + Bedrock).
@@ -314,7 +318,7 @@
   #
   # To add more Minecraft ports (e.g. a second server on 25566):
   #   Add "25566:25566" to ports below and 25566 to allowedTCPPorts.
-  # =========================================================================
+  # ==============================================================
   virtualisation.docker.enable = true;
 
   virtualisation.oci-containers = {
@@ -336,7 +340,7 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Hytale server — official binary, direct systemd service
   #
   # Uses Java 25 + QUIC/UDP on port 5520.
@@ -410,7 +414,7 @@
   #     - Miners-Helmet-1.0.3.zip      (item JSON format changed)
   #     - ReviveMe.jar + ReviveMe/     (plugin API changed)
   #     - HyCitizens-1.6.0.jar + data  (CitizenInteraction builder broken)
-  # =========================================================================
+  # ==============================================================
   systemd.services.hytale-server = {
     description = "Hytale Game Server";
     after       = [ "network-online.target" ];
@@ -436,13 +440,13 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Samba — GameServers share for managing server files
   #
   # Access: \\MinisForum\GameServers
   # Mount on client with: sudo mount /mnt/MinisForum
   # (Add CIFS mount to each client host's fileSystems config)
-  # =========================================================================
+  # ==============================================================
   services.samba.settings = {
     "GameServers" = {
       path             = "/data/gameservers";
@@ -458,13 +462,13 @@
   networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 ];
   networking.firewall.allowedUDPPorts = [ 137 138 5520 ]; # 5520/udp — Hytale uses QUIC (UDP only)
 
-  # =========================================================================
+  # ==============================================================
   # Sudo — NOPASSWD for Hytale service control
   #
   # Required by the `hytale-update` zsh function on linuxury's desktop/laptop.
   # That function runs over SSH without a TTY, so sudo can't prompt interactively.
   # Scoped tightly: only start/stop/restart for hytale-server, nothing else.
-  # =========================================================================
+  # ==============================================================
   security.sudo.extraRules = [
     {
       users   = [ "linuxury" ];
@@ -476,22 +480,22 @@
     }
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Tailscale — remote management
   # After first boot: sudo tailscale up
-  # =========================================================================
+  # ==============================================================
   # First-boot checklist:
   #   1. sudo tailscale up
   #   2. sudo smbpasswd -a linuxury && sudo smbpasswd -a babylinux
   #   3. git clone git@github.com:Linuxury/nixos-config.git ~/nixos-config
   #   4. sudo chown -R linuxury:users ~/nixos-config   ← required if cloned as root
-  # =========================================================================
+  # ==============================================================
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = [ "--advertise-tags=tag:ssh" ];
 
-  # =========================================================================
+  # ==============================================================
   # Users
-  # =========================================================================
+  # ==============================================================
   users.users = {
     linuxury = {
       isNormalUser = true;

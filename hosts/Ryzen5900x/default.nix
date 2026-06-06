@@ -26,100 +26,124 @@
 
 {
   imports = [
-    # ── System ──────────────────────────────────────────────────────────────
-    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
-    # graphical: Wayland stack, PipeWire audio, XDG portals, graphical base pkgs.
-    # No nixos-hardware profile needed — generic AMD support via drivers module.
+    # ==============================================================
+    # System
+    #   core     — locale, fonts, nix daemon, base CLI, boot defaults
+    #   graphical — Wayland stack, PipeWire audio, XDG portals, base pkgs
+    # ==============================================================
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
 
-    # ── Hardware ────────────────────────────────────────────────────────────
-    # drivers: GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI. Selected via hardware.gpu option.
-    # openrgb: RGB lighting control daemon (not applicable on this build).
+    # ==============================================================
+    # Hardware
+    #   drivers          — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
+    #   openrgb          — RGB lighting control daemon
+    #   lemokey-keychron — WebHID udev rules for Lemokey + Keychron keyboards
+    # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    #../../modules/hardware/openrgb/default.nix
+    ../../modules/hardware/openrgb/default.nix
+    ../../modules/hardware/peripherals/lemokey-keychron/default.nix
 
-    # ── Desktop Environments ─────────────────────────────────────────────────
-    # Full DEs — include their own shell and greeter. Enable ONE.
+    # ==============================================================
+    # Graphical Apps — all optional, comment out to remove
+    #   firefox     — primary browser
+    #   helium      — secondary browser (Firefox-based)
+    #   libreoffice — office suite
+    #   fluxer      — Discord client
+    #   kdeconnect  — phone integration
+    #   zen-browser — privacy-focused Firefox fork
+    # ==============================================================
+    ../../modules/system/graphical/firefox/default.nix
+    ../../modules/system/graphical/helium/default.nix
+    ../../modules/system/graphical/libreoffice/default.nix
+    ../../modules/system/graphical/fluxer/default.nix
+    ../../modules/services/kdeconnect/default.nix
+    #../../modules/system/graphical/zen-browser/default.nix
+
+    # ==============================================================
+    # Desktop Environment — enable ONE (includes shell + greeter)
+    # ==============================================================
     #../../modules/desktops/cosmic/default.nix
     #../../modules/desktops/gnome/default.nix
     #../../modules/desktops/kde/default.nix
 
-    # ── Wayland Compositors ──────────────────────────────────────────────────
-    # Bare compositors — no shell or greeter included. Enable ONE.
-    # Pair with a Shell and Greeter below.
-    # mangowc disabled: VRR/wlroots assertion crash on RDNA3.
+    # ==============================================================
+    # Compositor — enable ONE, pair with Shell + Greeter below
+    #   mangowc disabled — VRR/wlroots assertion crash on RDNA3
+    # ==============================================================
     ../../modules/compositors/hyprland/default.nix
     #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
 
-    # ── Shell Layer ──────────────────────────────────────────────────────────
-    # Import ONE shell for the active compositor.
-    #   dms     — bundles its own greeter, no Greeters import needed
-    #   wayle   — needs greeters/sddm
+    # ==============================================================
+    # Shell — enable ONE for the active compositor
+    #   dms      — bundles its own greeter, skip Greeter section
+    #   wayle    — needs greeters/sddm
     #   noctalia — needs greeters/sddm
+    # ==============================================================
     #../../modules/shells/wayle/default.nix
     #../../modules/shells/dms/default.nix
     ../../modules/shells/noctalia/default.nix
 
-    # ── Greeters ─────────────────────────────────────────────────────────────
-    # DMS bundles its own greeter — no import needed when using DMS.
-    # All other shells need an explicit greeter here.
+    # ==============================================================
+    # Greeter — skip if using dms (it bundles its own)
+    # ==============================================================
     ../../modules/greeters/sddm/default.nix
 
-    # ── Components ───────────────────────────────────────────────────────────
-    # Individual desktop components — only needed when using a bare compositor
-    # without a full shell (DMS/Noctalia/Wayle already bundle these).
+    # ==============================================================
+    # Components — individual desktop components
+    #   only needed with bare compositors not using a full shell
+    # ==============================================================
     #../../modules/components/bar/waybar/default.nix
     #../../modules/components/launcher/wofi/default.nix
     #../../modules/components/notifications/swaync/default.nix
 
-    # ── Gaming ──────────────────────────────────────────────────────────────
-    # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
+    # ==============================================================
+    # Gaming
+    #   Steam, Proton/Wine, Lutris, MangoHud, gamemode, controllers
+    # ==============================================================
     ../../modules/gaming/default.nix
 
-    # ── Development — AI Tools ───────────────────────────────────────────────
-    # Base infrastructure — nix-ld (run prebuilt binaries), uv (MCP servers), ffmpeg
-    # Import this alongside any AI tool below.
+    # ==============================================================
+    # Development — AI Tools
+    #   ai-tools  — base: nix-ld, uv, ffmpeg (import alongside tools below)
+    #   claude    — Claude Code CLI + VSCodium extension
+    #   opencode  — OpenCode CLI + VSCodium extension
+    #   local-llm — Ollama + AMD ROCm (7900 XTX — 24 GB VRAM)
+    #   lm-studio — GUI LLM runner (requires ai-tools)
+    #   odysseus  — self-hosted AI workspace
+    # ==============================================================
     ../../modules/development/ai-tools/default.nix
-    #
-    # Claude Code — AI coding assistant (claude CLI + shell wrapper + VSCodium ext)
     ../../modules/development/ai-tools/claude/default.nix
-    #
-    # OpenCode — AI terminal agent (opencode CLI + dotfiles + VSCodium ext)
     ../../modules/development/ai-tools/opencode/default.nix
-    #
-    # Local LLM — on-demand Ollama with AMD ROCm GPU acceleration
-    # 7900 XTX (24 GB VRAM) handles qwen2.5:14b at ~70 TPS, 32b at ~35 TPS
     ../../modules/development/ai-tools/local-llm/default.nix
-    #
-    # Odysseus — self-hosted AI workspace (OCI containers: chromadb, searxng, ntfy)
+    #../../modules/development/ai-tools/lm-studio/default.nix
     #../../modules/development/ai-tools/odysseus/default.nix
 
-    # ── Development — Editors ────────────────────────────────────────────────
-    # Neovim — full IDE: normie-nvim config, all LSPs, opencode-nvim, claude wrapper
+    # ==============================================================
+    # Development — Editors
+    #   neovim   — full IDE: normie-nvim, LSPs, opencode-nvim, claude wrapper
+    #   vscodium — GUI editor: Catppuccin theme, Claude Code + OpenCode extensions
+    #   zed      — fast Wayland-native editor (Rust), vim mode
+    # ==============================================================
     ../../modules/development/editors/neovim/default.nix
-    #
-    # VSCodium — GUI editor: Catppuccin theme, Claude Code + OpenCode extensions
     ../../modules/development/editors/vscodium/default.nix
-    #
-    # Zed — fast Wayland-native editor (Rust), blurred background, vim mode
     #../../modules/development/editors/zed/default.nix
 
-    # ── Development — Languages ──────────────────────────────────────────────
-    # Python — python3 with dev packages, poetry, ruff, httpie
+    # ==============================================================
+    # Development — Languages
+    #   python — python3, poetry, ruff, httpie
+    #   rust   — rustup toolchain, cargo tools, just
+    # ==============================================================
     ../../modules/development/languages/python/default.nix
-    #
-    # Rust — rustup toolchain manager, cargo-watch/edit/expand, just, cargo PATH
     ../../modules/development/languages/rust/default.nix
 
-    # ── Services ────────────────────────────────────────────────────────────
-    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
-    # syncthing: Obsidian vault + nixos-config sync (linuxury pair).
-    # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
-    # wallpaper-slideshow: matugen wallpaper rotation — COSMIC/non-Hyprland only.
-    # samba/ntfy/vpn-qbittorrent: server-side services, not for desktops.
-    # syncthing-babylinux: babylinux's separate sync pair (babylinux hosts only).
+    # ==============================================================
+    # Services
+    #   auto-update — weekly nixos-rebuild from GitHub
+    #   syncthing   — vault + nixos-config sync (linuxury pair)
+    #   snapper     — BTRFS automatic snapshots
+    # ==============================================================
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing/default.nix
     #../../modules/services/snapper/default.nix
@@ -129,26 +153,28 @@
     #../../modules/services/vpn-qbittorrent/default.nix
     #../../modules/services/syncthing-babylinux/default.nix
 
-    # ── Users ───────────────────────────────────────────────────────────────
-    # ssh: authorized keys for this user on this host.
-    # description: GECOS display name (stored as agenix secret).
-    # packages: per-user package set.
+    # ==============================================================
+    # Users
+    #   ssh         — authorized keys for this host
+    #   description — GECOS display name (agenix secret)
+    #   packages    — per-user package set
+    # ==============================================================
     ../../modules/users/linuxury/ssh/default.nix
     ../../modules/users/linuxury/description/default.nix
     ../../modules/users/linuxury/packages/default.nix
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Host identity
-  # =========================================================================
+  # ==============================================================
   networking.hostName = "Ryzen5900x";
 
-  # =========================================================================
+  # ==============================================================
   # Local LLM — AMD ROCm configuration for the RX 7900 XTX
   #
   # gfxVersion: RDNA3 (gfx1100) reports as 11.0.0
   # Find yours: rocminfo | grep gfx
-  # =========================================================================
+  # ==============================================================
   services.localLlm = {
     enable     = true;
     user       = "linuxury";
@@ -156,19 +182,19 @@
     gfxVersion = "11.0.0";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Default session — tells SDDM which session to pre-select at login
-  # =========================================================================
+  # ==============================================================
   services.displayManager.defaultSession = "hyprland-session";
 
-  # =========================================================================
+  # ==============================================================
   # Network — prefer ethernet, auto-disable WiFi when ethernet is up
   #
   # Having both interfaces active on the same subnet causes duplicate packets
   # and routing confusion, which breaks browsers even on fast connections.
   # This dispatcher script disables WiFi as soon as ethernet connects, and
   # re-enables it if ethernet goes down (e.g. cable unplugged).
-  # =========================================================================
+  # ==============================================================
   networking.networkmanager.dispatcherScripts = [
     {
       source = pkgs.writeText "wifi-ethernet-exclusive" ''
@@ -191,16 +217,16 @@
     }
   ];
 
-  # =========================================================================
+  # ==============================================================
   # GPU driver selection
-  # =========================================================================
+  # ==============================================================
   hardware.gpu = "amd";
 
-  # =========================================================================
+  # ==============================================================
   # Filesystem — BTRFS with subvolumes
   #
   # Desktop has no LUKS — BTRFS sits directly on the partition.
-  # =========================================================================
+  # ==============================================================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/nixos";
@@ -372,7 +398,7 @@
 
   };
 
-  # =========================================================================
+  # ==============================================================
   # Drive ownership — ensure linuxury owns the XFS drive roots
   #
   # tmpfiles.d alone is unreliable here: it may run before the drives are
@@ -380,7 +406,7 @@
   # the XFS root inode. The systemd service below explicitly waits for the
   # mount units to complete, then chowns the filesystem root correctly.
   # tmpfiles rules are kept to create the directories on first boot if needed.
-  # =========================================================================
+  # ==============================================================
   systemd.tmpfiles.rules = [
     "d /mnt/Warehouse    0755 linuxury users -"
     "d /mnt/Games        0755 linuxury users -"
@@ -412,9 +438,9 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Agenix secrets
-  # =========================================================================
+  # ==============================================================
   age.secrets.smb-credentials = {
     file = ../../secrets/smb-credentials.age;
     mode = "0400";
@@ -435,29 +461,29 @@
     group = "users";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Swap
-  # =========================================================================
+  # ==============================================================
   swapDevices = [
     {
       device = "/swap/swapfile";
     }
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Kernel — Zen
   #
   # Zen patches mainline with lower-latency preemption, scheduler tweaks,
   # and throughput optimizations — ideal for a gaming desktop.
-  # =========================================================================
+  # ==============================================================
   boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
 
-  # =========================================================================
+  # ==============================================================
   # AMD Radeon RX 7900 XTX specific settings
   #
   # The 7900 XTX is an RDNA3 card. These settings unlock its full
   # potential on Linux.
-  # =========================================================================
+  # ==============================================================
 
   # amdgpu must be loaded in the initrd so Plymouth can initialize the GPU
   # early enough to display its splash screen. Without this, Plymouth falls
@@ -478,7 +504,7 @@
     "rd.systemd.show_status=false"
   ];
 
-  # =========================================================================
+  # ==============================================================
   # CoreCtrl — GPU and CPU control
   #
   # CoreCtrl gives you a GUI to manage AMD GPU power profiles,
@@ -487,16 +513,16 @@
   #
   # The polkit rule below lets you use CoreCtrl without needing
   # to enter your password every time it applies settings.
-  # =========================================================================
+  # ==============================================================
   programs.corectrl.enable = true;
   hardware.amdgpu.overdrive.enable = true;
 
-  # =========================================================================
+  # ==============================================================
   # Multi-monitor support
   #
   # arandr gives a GUI for arranging monitors.
   # autorandr remembers and restores monitor layouts automatically.
-  # =========================================================================
+  # ==============================================================
   environment.systemPackages = with pkgs; [
     arandr # GUI monitor arrangement tool
     autorandr # Automatic monitor layout switching
@@ -505,9 +531,9 @@
     # corectrl is installed by programs.corectrl.enable above
   ];
 
-  # =========================================================================
+  # ==============================================================
   # User account
-  # =========================================================================
+  # ==============================================================
   users.users.linuxury = {
     isNormalUser = true;
     extraGroups = [
@@ -523,10 +549,10 @@
 
   };
 
-  # =========================================================================
+  # ==============================================================
   # Tailscale — system daemon required for Home Manager's tailscale service
   # After first boot: sudo tailscale up
-  # =========================================================================
+  # ==============================================================
   services.tailscale.enable = true;
 
   programs.zsh.enable = true;

@@ -22,55 +22,57 @@
 
 {
   imports = [
-    # ── System ──────────────────────────────────────────────────────────────
-    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
-    # server-shell: headless zsh config, aliases, zoxide/fzf/direnv.
-    # Replaces graphical — no Wayland, no display manager, no GUI packages.
+    # ==============================================================
+    # System
+    #   core         — locale, fonts, nix daemon, base CLI, boot defaults
+    #   server-shell — headless zsh, aliases, zoxide/fzf/direnv
+    # ==============================================================
     ../../modules/system/core/default.nix
     ../../modules/system/server-shell/default.nix
 
-    # ── Hardware ────────────────────────────────────────────────────────────
-    # drivers: Intel N100 UHD iGPU — basic support (headless, no transcoding needed).
-    # openrgb: RGB lighting control daemon (not applicable on a server).
+    # ==============================================================
+    # Hardware
+    #   drivers — Intel N100 UHD iGPU + basic support
+    # ==============================================================
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
 
-    # ── Development — AI Tools ───────────────────────────────────────────────
-    # Base infrastructure — nix-ld (run prebuilt binaries), uv (MCP servers), ffmpeg.
-    # Import this alongside any AI tool below.
+    # ==============================================================
+    # Development — AI Tools
+    #   ai-tools  — base: nix-ld, uv, ffmpeg (import alongside tools below)
+    #   claude    — Claude Code CLI
+    #   opencode  — OpenCode CLI
+    #   local-llm — Ollama + GPU acceleration
+    #   odysseus  — self-hosted AI workspace
+    # ==============================================================
     ../../modules/development/ai-tools/default.nix
-    #
-    # Claude Code — AI coding assistant (claude CLI + shell wrapper)
     ../../modules/development/ai-tools/claude/default.nix
-    #
-    # OpenCode — terminal AI IDE (opencode CLI + config management)
     #../../modules/development/ai-tools/opencode/default.nix
-    #
-    # Local LLM — Ollama with ROCm/CUDA GPU acceleration
     #../../modules/development/ai-tools/local-llm/default.nix
-    #
-    # Odysseus — self-hosted AI workspace (OCI container, planned)
     #../../modules/development/ai-tools/odysseus/default.nix
 
-    # ── Development — Editors ────────────────────────────────────────────────
-    # Headless server — no GUI editors needed.
+    # ==============================================================
+    # Development — Editors (headless — no GUI editors)
+    # ==============================================================
     #../../modules/development/editors/neovim/default.nix
     #../../modules/development/editors/vscodium/default.nix
     #../../modules/development/editors/zed/default.nix
 
-    # ── Development — Languages ──────────────────────────────────────────────
+    # ==============================================================
+    # Development — Languages
+    #   python — python3, poetry, ruff, httpie
+    #   rust   — rustup toolchain, cargo tools, just
+    # ==============================================================
     #../../modules/development/languages/python/default.nix
     #../../modules/development/languages/rust/default.nix
 
-    # ── Services ────────────────────────────────────────────────────────────
-    # samba: file sharing — Torrents share at /data/torrents.
-    # vpn-qbittorrent: WireGuard VPN killswitch — all qBittorrent traffic routed
-    #   through Mullvad VPN; qBittorrent can't reach internet if VPN drops.
-    # syncthing: Obsidian vault sync (linuxury pair).
-    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
-    # ntfy: push notification server (runs on Media-Server, not here).
-    # snapper: BTRFS snapshots (disabled — /data is ext4 on this host).
-    # syncthing-babylinux: babylinux's sync pair (babylinux hosts only).
+    # ==============================================================
+    # Services
+    #   samba           — Torrents share at /data/torrents
+    #   vpn-qbittorrent — WireGuard killswitch for qBittorrent (Mullvad)
+    #   syncthing       — vault + nixos-config sync (linuxury pair)
+    #   auto-update     — weekly nixos-rebuild from GitHub
+    # ==============================================================
     ../../modules/services/samba/default.nix
     ../../modules/services/vpn-qbittorrent/default.nix
     ../../modules/services/syncthing/default.nix
@@ -79,17 +81,19 @@
     #../../modules/services/snapper/default.nix
     #../../modules/services/syncthing-babylinux/default.nix
 
-    # ── Users ───────────────────────────────────────────────────────────────
-    # linuxury: SSH access + wheel/admin. Only user that manages this server.
+    # ==============================================================
+    # Users
+    #   ssh — authorized keys for this host
+    # ==============================================================
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Host identity
-  # =========================================================================
+  # ==============================================================
   networking.hostName = "Radxa-X4";
 
-  # =========================================================================
+  # ==============================================================
   # Network interface configuration
   #
   # enp2s0 (Ethernet) — LAN only, static IP, no default gateway.
@@ -100,7 +104,7 @@
   # wlp1s0 (WiFi) — internet-facing, managed by NetworkManager (DHCP).
   #   Provides the default route, which is what WireGuard uses for its
   #   VPN handshake traffic via the masquerade in vpn-qbittorrent.nix.
-  # =========================================================================
+  # ==============================================================
   networking.networkmanager.unmanaged = [ "enp2s0" ];
   networking.interfaces.enp2s0 = {
     useDHCP = false;  # LAN only — no DHCP, no default route via Ethernet
@@ -114,15 +118,15 @@
   networking.enableIPv6 = false;
   boot.kernel.sysctl."net.ipv6.conf.wlp1s0.disable_ipv6" = 1;
 
-  # =========================================================================
+  # ==============================================================
   # GPU driver selection
   # Intel UHD integrated graphics (Alder Lake N)
-  # =========================================================================
+  # ==============================================================
   hardware.gpu = "intel";
 
-  # =========================================================================
+  # ==============================================================
   # Filesystem — BTRFS with subvolumes, no LUKS on server
-  # =========================================================================
+  # ==============================================================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/nixos";
@@ -192,21 +196,21 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Swap
-  # =========================================================================
+  # ==============================================================
   swapDevices = [{
     device = "/swap/swapfile";
   }];
 
-  # =========================================================================
+  # ==============================================================
   # Kernel
-  # =========================================================================
+  # ==============================================================
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # =========================================================================
+  # ==============================================================
   # Intel N100 specific settings
-  # =========================================================================
+  # ==============================================================
   boot.kernelParams = [
     "intel_pstate=active"
   ];
@@ -215,9 +219,9 @@
   hardware.enableRedistributableFirmware = true;  # required for Intel WiFi firmware
   powerManagement.powertop.enable = true;
 
-  # =========================================================================
+  # ==============================================================
   # GPIO — Radxa X4 specific
-  # =========================================================================
+  # ==============================================================
   environment.systemPackages = with pkgs; [
     iotop
     nethogs
@@ -234,14 +238,14 @@
     minicom
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Disable audio — server doesn't need it
-  # =========================================================================
+  # ==============================================================
   services.pipewire.enable = lib.mkForce false;
 
-  # =========================================================================
+  # ==============================================================
   # Disable suspend/sleep
-  # =========================================================================
+  # ==============================================================
   systemd.targets.sleep.enable        = false;
   systemd.targets.suspend.enable      = false;
   systemd.targets.hibernate.enable    = false;
@@ -255,9 +259,9 @@
     IdleAction                   = "ignore";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Server network optimizations
-  # =========================================================================
+  # ==============================================================
   boot.kernel.sysctl = {
     "net.core.rmem_max"           = 134217728;
     "net.core.wmem_max"           = 134217728;
@@ -267,10 +271,10 @@
     "fs.inotify.max_user_watches" = 524288;
   };
 
-  # =========================================================================
+  # ==============================================================
   # Tailscale — management access via Ethernet
   # Auth key stored in agenix — no manual "tailscale up" or URL needed.
-  # =========================================================================
+  # ==============================================================
   age.secrets.tailscale-auth-radxa = {
     file = ../../secrets/tailscale-auth-radxa.age;
     mode = "0400";
@@ -308,7 +312,7 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # qBittorrent with WireGuard killswitch
   #
   # Architecture:
@@ -326,7 +330,7 @@
   #   2. On first access change the default password: admin / adminadmin
   #   3. Set download paths to /data/torrents/incomplete and /data/torrents/complete
   #   4. Configure qBittorrent in Sonarr/Radarr as remote download client
-  # =========================================================================
+  # ==============================================================
   age.secrets.wireguard-vpnunlimited = {
     file = ../../secrets/wireguard-vpnunlimited.age;
     path = "/etc/wireguard/vpnunlimited.conf";
@@ -354,11 +358,11 @@
     "d /data/torrents/incomplete         0775 linuxury users -"
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Samba — share torrent directories for file management
   #
   # Access: \\Radxa-X4\Torrents
-  # =========================================================================
+  # ==============================================================
   services.samba.settings = {
     # Bind Samba to Ethernet only — never listens on WiFi or the veth pair.
     # "bind interfaces only" prevents nmbd/smbd from accepting connections
@@ -382,9 +386,9 @@
   networking.firewall.allowedTCPPorts = [ 445 139 ];
   networking.firewall.allowedUDPPorts = [ 137 138 ];
 
-  # =========================================================================
+  # ==============================================================
   # Users
-  # =========================================================================
+  # ==============================================================
   users.users = {
     linuxury = {
       isNormalUser = true;

@@ -21,54 +21,57 @@
 
 {
   imports = [
-    # ── System ──────────────────────────────────────────────────────────────
-    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
-    # server-shell: headless zsh config, aliases, zoxide/fzf/direnv.
-    # Replaces graphical — no Wayland, no display manager, no GUI packages.
+    # ==============================================================
+    # System
+    #   core         — locale, fonts, nix daemon, base CLI, boot defaults
+    #   server-shell — headless zsh, aliases, zoxide/fzf/direnv
+    # ==============================================================
     ../../modules/system/core/default.nix
     ../../modules/system/server-shell/default.nix
 
-    # ── Hardware ────────────────────────────────────────────────────────────
-    # drivers: AMD RX 480 — used for VAAPI hardware transcoding via Plex.
-    # openrgb: RGB lighting control daemon (not applicable on a server).
+    # ==============================================================
+    # Hardware
+    #   drivers — AMD RX 480, used for VAAPI hardware transcoding
+    # ==============================================================
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
 
-    # ── Development — AI Tools ───────────────────────────────────────────────
-    # Base infrastructure — nix-ld (run prebuilt binaries), uv (MCP servers), ffmpeg.
-    # Import this alongside any AI tool below.
+    # ==============================================================
+    # Development — AI Tools
+    #   ai-tools  — base: nix-ld, uv, ffmpeg (import alongside tools below)
+    #   claude    — Claude Code CLI
+    #   opencode  — OpenCode CLI
+    #   local-llm — Ollama + GPU acceleration
+    #   odysseus  — self-hosted AI workspace
+    # ==============================================================
     ../../modules/development/ai-tools/default.nix
-    #
-    # Claude Code — AI coding assistant (claude CLI + SHELL wrapper)
     ../../modules/development/ai-tools/claude/default.nix
-    #
-    # OpenCode — terminal AI IDE (opencode CLI + config management)
     #../../modules/development/ai-tools/opencode/default.nix
-    #
-    # Local LLM — Ollama with ROCm/CUDA GPU acceleration
     #../../modules/development/ai-tools/local-llm/default.nix
-    #
-    # Odysseus — self-hosted AI workspace (OCI container, planned)
     #../../modules/development/ai-tools/odysseus/default.nix
 
-    # ── Development — Editors ────────────────────────────────────────────────
-    # Headless server — no GUI editors needed.
+    # ==============================================================
+    # Development — Editors (headless — no GUI editors)
+    # ==============================================================
     #../../modules/development/editors/neovim/default.nix
     #../../modules/development/editors/vscodium/default.nix
     #../../modules/development/editors/zed/default.nix
 
-    # ── Development — Languages ──────────────────────────────────────────────
+    # ==============================================================
+    # Development — Languages
+    #   python — python3, poetry, ruff, httpie
+    #   rust   — rustup toolchain, cargo tools, just
+    # ==============================================================
     #../../modules/development/languages/python/default.nix
     #../../modules/development/languages/rust/default.nix
 
-    # ── Services ────────────────────────────────────────────────────────────
-    # samba: file sharing — Media-Server share at /data (media, shared, downloads).
-    # ntfy: push notification server — all hosts report updates and alerts here.
-    # syncthing: Obsidian vault sync (linuxury pair — vault lives at ~/Obsidian).
-    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
-    # vpn-qbittorrent: WireGuard killswitch for qBittorrent (Radxa-X4 only).
-    # snapper: BTRFS snapshots (disabled — server uses ext4 data drives + mergerfs).
-    # syncthing-babylinux: babylinux's sync pair (babylinux hosts only).
+    # ==============================================================
+    # Services
+    #   samba       — Media-Server share at /data (media, shared, downloads)
+    #   ntfy        — push notification server for all hosts
+    #   syncthing   — vault + nixos-config sync (linuxury pair)
+    #   auto-update — weekly nixos-rebuild from GitHub
+    # ==============================================================
     ../../modules/services/samba/default.nix
     ../../modules/services/ntfy/default.nix
     ../../modules/services/syncthing/default.nix
@@ -77,29 +80,33 @@
     #../../modules/services/snapper/default.nix
     #../../modules/services/syncthing-babylinux/default.nix
 
-    # ── Host-specific ────────────────────────────────────────────────────────
-    # Services unique to Media-Server: Plex, Arr stack, Immich, FreshRSS.
+    # ==============================================================
+    # Host-specific
+    #   freshrss — RSS reader (migrated from Radxa-X4)
+    # ==============================================================
     ./freshrss/default.nix
 
-    # ── Users ───────────────────────────────────────────────────────────────
-    # linuxury: SSH access + wheel/admin. Only user that manages this server.
+    # ==============================================================
+    # Users
+    #   ssh — authorized keys for this host
+    # ==============================================================
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Host identity
-  # =========================================================================
+  # ==============================================================
   networking.hostName = "Media-Server";
 
-  # =========================================================================
+  # ==============================================================
   # GPU driver selection
   # AMD RX 480 — used for VAAPI hardware transcoding via Plex
-  # =========================================================================
+  # ==============================================================
   hardware.gpu = "amd";
 
-  # =========================================================================
+  # ==============================================================
   # PostgreSQL with pgvector — for AI Memory database
-  # =========================================================================
+  # ==============================================================
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_16;
@@ -108,9 +115,9 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Filesystem — NVMe OS drive with BTRFS subvolumes
-  # =========================================================================
+  # ==============================================================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/nixos";
@@ -206,29 +213,29 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Swap
-  # =========================================================================
+  # ==============================================================
   swapDevices = [{
     device = "/swap/swapfile";
   }];
 
-  # =========================================================================
+  # ==============================================================
   # Kernel
-  # =========================================================================
+  # ==============================================================
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   boot.kernelParams = [
     "amdgpu.ppfeaturemask=0xffffffff"
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Hardware video transcoding — VAAPI
   #
   # The RX 480 handles hardware transcoding for Plex.
   # Run `vainfo` after first boot to verify VAAPI is working.
   # In Plex settings enable Hardware-Accelerated Transcoding.
-  # =========================================================================
+  # ==============================================================
   hardware.graphics = {
     enable      = true;
     enable32Bit = true;
@@ -237,13 +244,13 @@
     ];
   };
 
-  # =========================================================================
+  # ==============================================================
   # Service groups
   #
   # These groups control file permissions across all media services.
   # Each service runs under its own user but shares the media group
   # for read/write access to /data/media and related folders.
-  # =========================================================================
+  # ==============================================================
   users.groups = {
     media        = { gid = 995; members = [ "plex" "sonarr" "radarr" "lidarr" "readarr" "bazarr" "prowlarr" "linuxury" "babylinux" ]; };
     arr-services = {};  # Shared group for all arr services
@@ -252,12 +259,12 @@
     immich       = { members = [ "linuxury" "babylinux" ]; };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Storage directory structure
   #
   # systemd-tmpfiles creates and manages these directories at boot.
   # They are recreated automatically if accidentally deleted.
-  # =========================================================================
+  # ==============================================================
   systemd.tmpfiles.rules = [
     # Media library — Plex and Arr services read from here
     "d /data/media                        0775 root media        -"
@@ -306,15 +313,15 @@
 
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Samba credentials for mounting Radxa-X4's Torrents share
-  # =========================================================================
+  # ==============================================================
   age.secrets.smb-credentials = {
     file = ../../secrets/smb-credentials.age;
     mode = "0400";
   };
 
-  # =========================================================================
+  # ==============================================================
   # CIFS mount — Radxa-X4 Torrents share
   #
   # Mounted directly at /data/downloads so it appears as the "downloads"
@@ -328,7 +335,7 @@
   #
   # Automounts on first access, disconnects after 60s idle.
   # nofail: non-fatal if Radxa-X4 is offline.
-  # =========================================================================
+  # ==============================================================
   fileSystems."/data/downloads" = {
     device  = "//10.0.0.5/Torrents";
     fsType  = "cifs";
@@ -341,7 +348,7 @@
     ];
   };
 
-  # =========================================================================
+  # ==============================================================
   # Plex Media Server
   #
   # Web UI available at http://Media-Server:32400/web after first boot.
@@ -351,7 +358,7 @@
   #   2. Enable Hardware-Accelerated Transcoding in settings
   #   3. Point libraries at /data/media/movies, /data/media/tv etc
   #   4. Point Plex transcoder at jellyfin-ffmpeg for VAAPI support
-  # =========================================================================
+  # ==============================================================
   services.plex = {
     enable       = true;
     openFirewall = true;
@@ -364,7 +371,7 @@
   # UMask 0002 means Plex creates files/dirs as 664/775 instead of 644/755.
   systemd.services.plex.serviceConfig.UMask = "0002";
 
-  # =========================================================================
+  # ==============================================================
   # Arr stack — automated media management
   #
   # Web UIs after first boot:
@@ -374,7 +381,7 @@
   #   Lidarr   → http://Media-Server:8686
   #   Readarr  → http://Media-Server:8787
   #   Bazarr   → http://Media-Server:6767
-  # =========================================================================
+  # ==============================================================
   services.sonarr = {
     enable  = true;
     user    = "sonarr";
@@ -415,7 +422,7 @@
     group  = "arr-services";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Immich — Self-hosted photo and video management
   #
   # Web UI available at http://Media-Server:2283 after first boot.
@@ -423,7 +430,7 @@
   # After first boot:
   #   1. Create admin account at the web UI
   #   2. Configure external library at /data/photos/library
-  # =========================================================================
+  # ==============================================================
   services.immich = {
     enable        = true;
     openFirewall  = true;
@@ -437,11 +444,11 @@
   systemd.services.immich-server.serviceConfig.UMask        = lib.mkForce "0022";
   systemd.services.immich-microservices.serviceConfig.UMask = lib.mkForce "0022";
 
-  # =========================================================================
+  # ==============================================================
   # Open firewall ports for all services
   #
   # Syncthing (22000/tcp+udp, 21027/udp) is handled by the base syncthing module.
-  # =========================================================================
+  # ==============================================================
   networking.firewall.allowedTCPPorts = [
     32400 # Plex
     8989  # Sonarr
@@ -453,20 +460,20 @@
     2283  # Immich
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Give Plex access to GPU for transcoding
-  # =========================================================================
+  # ==============================================================
   users.groups.render.members = [ "plex" ];
   users.groups.video.members  = [ "plex" ];
 
-  # =========================================================================
+  # ==============================================================
   # Disable audio
-  # =========================================================================
+  # ==============================================================
   services.pipewire.enable    = lib.mkForce false;
 
-  # =========================================================================
+  # ==============================================================
   # Disable suspend/sleep
-  # =========================================================================
+  # ==============================================================
   systemd.targets.sleep.enable        = false;
   systemd.targets.suspend.enable      = false;
   systemd.targets.hibernate.enable    = false;
@@ -480,9 +487,9 @@
     IdleAction                   = "ignore";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Server network optimizations
-  # =========================================================================
+  # ==============================================================
   boot.kernel.sysctl = {
     "net.core.rmem_max"               = 134217728;
     "net.core.wmem_max"               = 134217728;
@@ -494,9 +501,9 @@
     "net.core.default_qdisc"          = "fq";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Packages
-  # =========================================================================
+  # ==============================================================
   environment.systemPackages = with pkgs; [
     # Monitoring
     libva-utils  # vainfo — verify VAAPI hardware transcoding
@@ -521,7 +528,7 @@
     cifs-utils       # Required for CIFS/SMB mounts
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Samba shares
   #
   # Global Samba config (security, protocol, discovery) is in samba.nix.
@@ -542,7 +549,7 @@
   #   macOS:    smb://Media-Server/Media-Server  and  smb://Media-Server/Downloads
   #   Linux:    smb://Media-Server/Media-Server  and  smb://Media-Server/Downloads
   #   fstab:    //10.0.0.3/Media-Server → /mnt/Media-Server
-  # =========================================================================
+  # ==============================================================
   services.samba.settings = {
 
     "Media-Server" = {
@@ -569,9 +576,9 @@
 
   };
 
-  # =========================================================================
+  # ==============================================================
   # Users — three family accounts for Samba
-  # =========================================================================
+  # ==============================================================
   users.users = {
     linuxury = {
       isNormalUser = true;
@@ -592,10 +599,10 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Tailscale — remote access to FreshRSS and management
   # After first boot: sudo tailscale up
-  # =========================================================================
+  # ==============================================================
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = [ "--advertise-tags=tag:ssh" ];
 }

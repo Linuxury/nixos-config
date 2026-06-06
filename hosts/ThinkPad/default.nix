@@ -24,99 +24,124 @@
 
 {
   imports = [
-    # ── System ──────────────────────────────────────────────────────────────
-    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
-    # graphical: Wayland stack, PipeWire audio, XDG portals, graphical base pkgs.
-    # nixos-hardware: ThinkPad T14s Gen 4 AMD — thermal management, power quirks,
-    # fingerprint reader, fan control, and hardware enablement for this model.
+    # ==============================================================
+    # System
+    #   nixos-hardware — ThinkPad T14s AMD Gen4: thermal, power, fingerprint
+    #   core           — locale, fonts, nix daemon, base CLI, boot defaults
+    #   graphical      — Wayland stack, PipeWire audio, XDG portals, base pkgs
+    # ==============================================================
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t14s-amd-gen4
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
 
-    # ── Hardware ────────────────────────────────────────────────────────────
-    # drivers: GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI. Selected via hardware.gpu option.
-    # openrgb: RGB lighting control daemon (not applicable on a laptop).
+    # ==============================================================
+    # Hardware
+    #   drivers          — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
+    #   lemokey-keychron — WebHID udev rules for Lemokey + Keychron keyboards
+    # ==============================================================
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
+    ../../modules/hardware/peripherals/lemokey-keychron/default.nix
 
-    # ── Desktop Environments ─────────────────────────────────────────────────
-    # Full DEs — include their own shell and greeter. Enable ONE.
+    # ==============================================================
+    # Graphical Apps — all optional, comment out to remove
+    #   firefox     — primary browser
+    #   helium      — secondary browser (Firefox-based)
+    #   libreoffice — office suite
+    #   fluxer      — Discord client
+    #   kdeconnect  — phone integration
+    #   zen-browser — privacy-focused Firefox fork
+    # ==============================================================
+    ../../modules/system/graphical/firefox/default.nix
+    ../../modules/system/graphical/helium/default.nix
+    ../../modules/system/graphical/libreoffice/default.nix
+    ../../modules/system/graphical/fluxer/default.nix
+    ../../modules/services/kdeconnect/default.nix
+    #../../modules/system/graphical/zen-browser/default.nix
+
+    # ==============================================================
+    # Desktop Environment — enable ONE (includes shell + greeter)
+    # ==============================================================
     ../../modules/desktops/cosmic/default.nix
     #../../modules/desktops/gnome/default.nix
     #../../modules/desktops/kde/default.nix
 
-    # ── Wayland Compositors ──────────────────────────────────────────────────
-    # Bare compositors — no shell or greeter included. Enable ONE.
-    # Pair with a Shell and Greeter below.
+    # ==============================================================
+    # Compositor — enable ONE, pair with Shell + Greeter below
+    # ==============================================================
     #../../modules/compositors/hyprland/default.nix
     #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
 
-    # ── Shell Layer ──────────────────────────────────────────────────────────
-    # Full DEs above already include a shell — no import needed here.
-    # For Wayland compositors: import ONE shell.
-    #   dms     — bundles its own greeter, no Greeters import needed
-    #   wayle   — needs greeters/sddm
+    # ==============================================================
+    # Shell — enable ONE for the active compositor
+    #   dms      — bundles its own greeter, skip Greeter section
+    #   wayle    — needs greeters/sddm
     #   noctalia — needs greeters/sddm
+    # ==============================================================
+    #../../modules/shells/wayle/default.nix
+    #../../modules/shells/dms/default.nix
+    #../../modules/shells/noctalia/default.nix
 
-    # ── Greeters ─────────────────────────────────────────────────────────────
-    # Full DEs above bundle their own greeter — no import needed here.
-    # For Wayland compositors (non-DMS): import ONE greeter.
+    # ==============================================================
+    # Greeter — skip if using dms or a full DE (they bundle their own)
+    # ==============================================================
     #../../modules/greeters/sddm/default.nix
 
-    # ── Components ───────────────────────────────────────────────────────────
-    # Individual desktop components — only needed when using a bare compositor
-    # without a full shell (DMS/Noctalia/Wayle already bundle these).
+    # ==============================================================
+    # Components — individual desktop components
+    #   only needed with bare compositors not using a full shell
+    # ==============================================================
     #../../modules/components/bar/waybar/default.nix
     #../../modules/components/launcher/wofi/default.nix
     #../../modules/components/notifications/swaync/default.nix
 
-    # ── Gaming ──────────────────────────────────────────────────────────────
-    # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
+    # ==============================================================
+    # Gaming
+    #   Steam, Proton/Wine, Lutris, MangoHud, gamemode, controllers
+    # ==============================================================
     ../../modules/gaming/default.nix
 
-    # ── Development — AI Tools ───────────────────────────────────────────────
-    # Base infrastructure — nix-ld (run prebuilt binaries), uv (MCP servers), ffmpeg
-    # Import this alongside any AI tool below.
+    # ==============================================================
+    # Development — AI Tools
+    #   ai-tools  — base: nix-ld, uv, ffmpeg (import alongside tools below)
+    #   claude    — Claude Code CLI + VSCodium extension
+    #   opencode  — OpenCode CLI + VSCodium extension
+    #   local-llm — Ollama + ROCm (disabled — laptop VRAM too limited)
+    #   lm-studio — GUI LLM runner (requires ai-tools)
+    #   odysseus  — self-hosted AI workspace
+    # ==============================================================
     ../../modules/development/ai-tools/default.nix
-    #
-    # Claude Code — AI coding assistant (claude CLI + shell wrapper + VSCodium ext)
     ../../modules/development/ai-tools/claude/default.nix
-    #
-    # OpenCode — AI terminal agent (opencode CLI + dotfiles + VSCodium ext)
     ../../modules/development/ai-tools/opencode/default.nix
-    #
-    # Local LLM — on-demand Ollama with AMD ROCm GPU acceleration
-    # Disabled: laptop RAM/VRAM constraints make large models impractical
     #../../modules/development/ai-tools/local-llm/default.nix
-    #
-    # Odysseus — self-hosted AI workspace (OCI containers: chromadb, searxng, ntfy)
+    #../../modules/development/ai-tools/lm-studio/default.nix
     #../../modules/development/ai-tools/odysseus/default.nix
 
-    # ── Development — Editors ────────────────────────────────────────────────
-    # Neovim — full IDE: normie-nvim config, all LSPs, opencode-nvim, claude wrapper
+    # ==============================================================
+    # Development — Editors
+    #   neovim   — full IDE: normie-nvim, LSPs, opencode-nvim, claude wrapper
+    #   vscodium — GUI editor: Catppuccin theme, Claude Code + OpenCode extensions
+    #   zed      — fast Wayland-native editor (Rust), vim mode
+    # ==============================================================
     ../../modules/development/editors/neovim/default.nix
-    #
-    # VSCodium — GUI editor: Catppuccin theme, Claude Code + OpenCode extensions
     ../../modules/development/editors/vscodium/default.nix
-    #
-    # Zed — fast Wayland-native editor (Rust), blurred background, vim mode
     #../../modules/development/editors/zed/default.nix
 
-    # ── Development — Languages ──────────────────────────────────────────────
-    # Python — python3 with dev packages, poetry, ruff, httpie
+    # ==============================================================
+    # Development — Languages
+    #   python — python3, poetry, ruff, httpie
+    #   rust   — rustup toolchain, cargo tools, just
+    # ==============================================================
     ../../modules/development/languages/python/default.nix
-    #
-    # Rust — rustup toolchain manager, cargo-watch/edit/expand, just, cargo PATH
     #../../modules/development/languages/rust/default.nix
 
-    # ── Services ────────────────────────────────────────────────────────────
-    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
-    # syncthing: Obsidian vault + nixos-config sync (linuxury pair).
-    # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
-    # wallpaper-slideshow: matugen wallpaper rotation — COSMIC/non-Hyprland only.
-    # samba/ntfy/vpn-qbittorrent: server-side services, not for desktops.
-    # syncthing-babylinux: babylinux's separate sync pair (babylinux hosts only).
+    # ==============================================================
+    # Services
+    #   auto-update — weekly nixos-rebuild from GitHub
+    #   syncthing   — vault + nixos-config sync (linuxury pair)
+    #   snapper     — BTRFS automatic snapshots
+    # ==============================================================
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing/default.nix
     #../../modules/services/snapper/default.nix
@@ -126,33 +151,35 @@
     #../../modules/services/vpn-qbittorrent/default.nix
     #../../modules/services/syncthing-babylinux/default.nix
 
-    # ── Users ───────────────────────────────────────────────────────────────
-    # ssh: authorized keys for this user on this host.
-    # description: GECOS display name (stored as agenix secret).
-    # packages: per-user package set.
+    # ==============================================================
+    # Users
+    #   ssh         — authorized keys for this host
+    #   description — GECOS display name (agenix secret)
+    #   packages    — per-user package set
+    # ==============================================================
     ../../modules/users/linuxury/ssh/default.nix
     ../../modules/users/linuxury/description/default.nix
     ../../modules/users/linuxury/packages/default.nix
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Host identity
-  # =========================================================================
+  # ==============================================================
   networking.hostName = "ThinkPad";
 
-  # =========================================================================
+  # ==============================================================
   # GPU driver selection — tells drivers.nix which profile to use
-  # =========================================================================
+  # ==============================================================
   hardware.gpu = "amd";
 
-  # =========================================================================
+  # ==============================================================
   # SwayNC Control Panel — hardware capabilities (Hyprland only)
   # Uncomment when hyprland.nix is active.
   #
   # Verify device names on first boot:
   #   ls /sys/class/backlight/   → confirm backlightDevice
   #   ls /sys/class/leds/ | grep kbd → confirm kbBacklightDevice
-  # =========================================================================
+  # ==============================================================
   # myModules.swaync.hasBacklight      = true;
   # myModules.swaync.backlightDevice   = "amdgpu_bl1";  # typical AMD ThinkPad T14s
   # myModules.swaync.hasKbBacklight    = true;
@@ -160,7 +187,7 @@
   # myModules.swaync.hasWifi           = true;
   # myModules.swaync.hasBluetooth      = true;
 
-  # =========================================================================
+  # ==============================================================
   # LUKS — Full disk encryption
   #
   # The BTRFS partition sits inside a LUKS container.
@@ -168,7 +195,7 @@
   # The label "nixos-luks" refers to the raw encrypted partition.
   # After unlocking, it becomes available as /dev/mapper/cryptroot
   # which is where our BTRFS filesystem lives.
-  # =========================================================================
+  # ==============================================================
   boot.initrd.luks.devices."cryptroot" = {
     # We reference by label so it works regardless of whether the drive
     # is nvme0n1, nvme1n1, or any other device name
@@ -184,12 +211,12 @@
   # as a tiny line at the top of the screen instead of a centered graphical UI.
   boot.initrd.kernelModules = [ "amdgpu" ];
 
-  # =========================================================================
+  # ==============================================================
   # Filesystem — BTRFS with subvolumes
   #
   # All subvolumes live on the LUKS container (cryptroot).
   # Labels reference what we set during installation.
-  # =========================================================================
+  # ==============================================================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/nixos";
@@ -333,25 +360,25 @@
 
   };
 
-  # =========================================================================
+  # ==============================================================
   # CIFS tools — required for Samba/SMB mounts
-  # =========================================================================
+  # ==============================================================
   environment.systemPackages = with pkgs; [
     cifs-utils
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Mount point directory
-  # =========================================================================
+  # ==============================================================
   systemd.tmpfiles.rules = [
     "d /mnt/Media-Server 0755 linuxury users -"
     "d /mnt/MinisForum   0755 linuxury users -"
     "d /mnt/Torrents     0755 linuxury users -"
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Agenix secrets
-  # =========================================================================
+  # ==============================================================
   age.secrets.smb-credentials = {
     file = ../../secrets/smb-credentials.age;
     mode = "0400";
@@ -372,30 +399,30 @@
     group = "users";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Swap
-  # =========================================================================
+  # ==============================================================
   swapDevices = [
     {
       device = "/swap/swapfile";
     }
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Kernel — Zen
   #
   # Zen patches mainline with lower-latency preemption, scheduler tweaks,
   # and throughput optimizations — great for both gaming and day-to-day
   # desktop responsiveness on a laptop.
-  # =========================================================================
+  # ==============================================================
   boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
 
-  # =========================================================================
+  # ==============================================================
   # Power management — critical for laptop battery life
   #
   # TLP is a comprehensive power management tool that automatically
   # applies optimized settings for battery vs AC power.
-  # =========================================================================
+  # ==============================================================
   services.tlp = {
     enable = true;
     settings = {
@@ -421,12 +448,12 @@
   # Prevent TLP and power-profiles-daemon from conflicting
   services.power-profiles-daemon.enable = false;
 
-  # =========================================================================
+  # ==============================================================
   # Touchpad — libinput
   #
   # libinput is the modern input driver for touchpads on Linux.
   # These settings give a comfortable laptop touchpad experience.
-  # =========================================================================
+  # ==============================================================
   services.libinput = {
     enable = true;
     touchpad = {
@@ -438,7 +465,7 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Fingerprint reader — fprintd
   #
   # The T14s G4 has a fingerprint reader supported by fprintd.
@@ -448,7 +475,7 @@
   # Then you can use your fingerprint for:
   #   - sudo authentication
   #   - login screen authentication
-  # =========================================================================
+  # ==============================================================
   services.fprintd.enable = true;
 
   # Allow PAM (authentication system) to use fingerprint as an auth method.
@@ -459,17 +486,17 @@
     polkit-1.fprintAuth = true;
   };
 
-  # =========================================================================
+  # ==============================================================
   # Firmware — required for WiFi (Qualcomm QCNFA765 / ath12k)
   #
   # Without linux-firmware, the ath12k driver loads but finds no firmware
   # files and refuses to bind — leaving the WiFi adapter invisible to the
   # system. enableRedistributableFirmware pulls in linux-firmware which
   # contains the WCN7850/ath12k blobs needed for this card.
-  # =========================================================================
+  # ==============================================================
   hardware.enableRedistributableFirmware = true;
 
-  # =========================================================================
+  # ==============================================================
   # Laptop specific kernel modules
   #
   # thinkpad_acpi — fan control, hotkeys, LED control, battery events
@@ -479,12 +506,12 @@
   # (NATACPI interface). TLP 1.4+ uses that automatically — no acpi_call
   # needed. Loading it caused ACPI method execution during TLP restarts
   # (e.g. on nixos-rebuild switch) which could freeze the system.
-  # =========================================================================
+  # ==============================================================
   boot.kernelModules = [ "thinkpad_acpi" ];
 
-  # =========================================================================
+  # ==============================================================
   # Lid and power button behavior
-  # =========================================================================
+  # ==============================================================
   services.logind = {
     settings.Login = {
       HandleLidSwitch = "suspend"; # Suspend when lid closes
@@ -495,12 +522,12 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # User account
   #
   # This defines your system user. The password is set separately
   # (never put passwords in config files — use passwd after first boot).
-  # =========================================================================
+  # ==============================================================
   users.users.linuxury = {
     isNormalUser = true;
     extraGroups = [
@@ -514,15 +541,15 @@
     shell = pkgs.zsh;
   };
 
-  # =========================================================================
+  # ==============================================================
   # Tailscale — system daemon required for Home Manager's tailscale service
   # After first boot: sudo tailscale up
-  # =========================================================================
+  # ==============================================================
   services.tailscale.enable = true;
 
-  # =========================================================================
+  # ==============================================================
   # Zsh — enable system-wide so it's available as a login shell
   # Actual configuration lives in users/linuxury/home.nix
-  # =========================================================================
+  # ==============================================================
   programs.zsh.enable = true;
 }

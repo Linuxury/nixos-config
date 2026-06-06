@@ -22,74 +22,120 @@
 
 {
   imports = [
-    # ── System ──────────────────────────────────────────────────────────────
-    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
-    # graphical: Wayland stack, PipeWire audio, XDG portals, graphical base pkgs.
-    # nixos-hardware.nixosModules.asus-battery is passed via flake.nix extraModules
-    # (battery charge threshold + ASUS power management for this laptop model).
+    # ==============================================================
+    # System
+    #   core     — locale, fonts, nix daemon, base CLI, boot defaults
+    #   graphical — Wayland stack, PipeWire audio, XDG portals, base pkgs
+    # ==============================================================
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
 
-    # ── Hardware ────────────────────────────────────────────────────────────
-    # drivers: GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI. Selected via hardware.gpu option.
-    # This host uses Nvidia hybrid (AMD iGPU + GTX 1660 Ti dGPU via PRIME offloading).
-    # openrgb: RGB lighting control daemon (not applicable on this laptop).
+    # ==============================================================
+    # Hardware
+    #   drivers — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
+    # ==============================================================
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
 
-    # ── Desktop Environments ─────────────────────────────────────────────────
-    # Full DEs — include their own shell and greeter. Enable ONE.
+    # ==============================================================
+    # Graphical Apps — all optional, comment out to remove
+    #   firefox     — primary browser
+    #   helium      — secondary browser (Firefox-based)
+    #   libreoffice — office suite
+    #   fluxer      — Discord client
+    #   kdeconnect  — phone integration
+    #   zen-browser — privacy-focused Firefox fork
+    # ==============================================================
+    ../../modules/system/graphical/firefox/default.nix
+    ../../modules/system/graphical/helium/default.nix
+    ../../modules/system/graphical/libreoffice/default.nix
+    ../../modules/system/graphical/fluxer/default.nix
+    ../../modules/services/kdeconnect/default.nix
+    #../../modules/system/graphical/zen-browser/default.nix
+
+    # ==============================================================
+    # Desktop Environment — enable ONE (includes shell + greeter)
+    # ==============================================================
     ../../modules/desktops/kde/default.nix
     #../../modules/desktops/cosmic/default.nix
     #../../modules/desktops/gnome/default.nix
 
-    # ── Wayland Compositors ──────────────────────────────────────────────────
-    # Bare compositors — no shell or greeter included. Enable ONE.
-    # Pair with a Shell and Greeter below.
+    # ==============================================================
+    # Compositor — enable ONE, pair with Shell + Greeter below
+    # ==============================================================
     #../../modules/compositors/hyprland/default.nix
     #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
 
-    # ── Shell Layer ──────────────────────────────────────────────────────────
-    # Full DEs above already include a shell — no import needed here.
-    # For Wayland compositors: import ONE shell.
-    #   dms     — bundles its own greeter, no Greeters import needed
-    #   wayle   — needs greeters/sddm
+    # ==============================================================
+    # Shell — enable ONE for the active compositor
+    #   dms      — bundles its own greeter, skip Greeter section
+    #   wayle    — needs greeters/sddm
     #   noctalia — needs greeters/sddm
+    # ==============================================================
+    #../../modules/shells/wayle/default.nix
+    #../../modules/shells/dms/default.nix
+    #../../modules/shells/noctalia/default.nix
 
-    # ── Greeters ─────────────────────────────────────────────────────────────
-    # Full DEs above bundle their own greeter — no import needed here.
-    # For Wayland compositors (non-DMS): import ONE greeter.
+    # ==============================================================
+    # Greeter — skip if using dms or a full DE (they bundle their own)
+    # ==============================================================
     #../../modules/greeters/sddm/default.nix
 
-    # ── Gaming ──────────────────────────────────────────────────────────────
-    # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
+    # ==============================================================
+    # Components — individual desktop components
+    #   only needed with bare compositors not using a full shell
+    # ==============================================================
+    #../../modules/components/bar/waybar/default.nix
+    #../../modules/components/launcher/wofi/default.nix
+    #../../modules/components/notifications/swaync/default.nix
+
+    # ==============================================================
+    # Gaming
+    #   Steam, Proton/Wine, Lutris, MangoHud, gamemode, controllers
+    # ==============================================================
     ../../modules/gaming/default.nix
 
-    # ── Development — AI Tools ───────────────────────────────────────────────
-    # Not a development host — all development modules disabled.
+    # ==============================================================
+    # Development — AI Tools (not a development host)
+    #   ai-tools  — base: nix-ld, uv, ffmpeg (import alongside tools below)
+    #   claude    — Claude Code CLI + VSCodium extension
+    #   opencode  — OpenCode CLI + VSCodium extension
+    #   local-llm — Ollama + AMD ROCm GPU acceleration
+    #   lm-studio — GUI LLM runner (requires ai-tools)
+    #   odysseus  — self-hosted AI workspace
+    # ==============================================================
     #../../modules/development/ai-tools/default.nix
     #../../modules/development/ai-tools/claude/default.nix
     #../../modules/development/ai-tools/opencode/default.nix
     #../../modules/development/ai-tools/local-llm/default.nix
+    #../../modules/development/ai-tools/lm-studio/default.nix
     #../../modules/development/ai-tools/odysseus/default.nix
 
-    # ── Development — Editors ────────────────────────────────────────────────
+    # ==============================================================
+    # Development — Editors (not a development host)
+    #   neovim   — full IDE: normie-nvim, LSPs, opencode-nvim, claude wrapper
+    #   vscodium — GUI editor: Catppuccin theme, Claude Code + OpenCode extensions
+    #   zed      — fast Wayland-native editor (Rust), vim mode
+    # ==============================================================
     #../../modules/development/editors/neovim/default.nix
     #../../modules/development/editors/vscodium/default.nix
     #../../modules/development/editors/zed/default.nix
 
-    # ── Development — Languages ──────────────────────────────────────────────
+    # ==============================================================
+    # Development — Languages (not a development host)
+    #   python — python3, poetry, ruff, httpie
+    #   rust   — rustup toolchain, cargo tools, just
+    # ==============================================================
     #../../modules/development/languages/python/default.nix
     #../../modules/development/languages/rust/default.nix
 
-    # ── Services ────────────────────────────────────────────────────────────
-    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
-    # syncthing-babylinux: Obsidian vault + nixos-config sync (babylinux pair).
-    # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
-    # wallpaper-slideshow: matugen wallpaper rotation — COSMIC/non-Hyprland only.
-    # samba/ntfy/vpn-qbittorrent: server-side services, not for desktops.
-    # syncthing: linuxury's sync pair (linuxury hosts only).
+    # ==============================================================
+    # Services
+    #   auto-update         — weekly nixos-rebuild from GitHub
+    #   syncthing-babylinux — vault + nixos-config sync (babylinux pair)
+    #   snapper             — BTRFS automatic snapshots
+    # ==============================================================
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing-babylinux/default.nix
     #../../modules/services/snapper/default.nix
@@ -99,28 +145,31 @@
     #../../modules/services/vpn-qbittorrent/default.nix
     #../../modules/services/syncthing/default.nix
 
-    # ── Users ───────────────────────────────────────────────────────────────
-    # babylinux: primary user — SSH, display name, packages.
-    # linuxury: emergency SSH access only (no packages, no description).
+    # ==============================================================
+    # Users
+    #   ssh         — authorized keys for this host
+    #   description — GECOS display name (agenix secret)
+    #   packages    — per-user package set
+    # ==============================================================
     ../../modules/users/babylinux/ssh/default.nix
     ../../modules/users/babylinux/description/default.nix
     ../../modules/users/babylinux/packages/default.nix
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Host identity
-  # =========================================================================
+  # ==============================================================
   networking.hostName = "Asus-A15";
 
-  # =========================================================================
+  # ==============================================================
   # GPU driver selection
   # Nvidia hybrid triggers the PRIME offload setup in drivers.nix
-  # =========================================================================
+  # ==============================================================
   # TODO: switch back to "nvidia-hybrid" once PCI bus IDs are filled in above
   hardware.gpu = "amd";
 
-  # =========================================================================
+  # ==============================================================
   # PRIME PCI Bus IDs
   #
   # These values are placeholders — you MUST replace them with the
@@ -136,7 +185,7 @@
   # Convert to Nix format: "05:00.0" becomes "PCI:5:0:0"
   # Then fill in below and remove this comment block.
   # This is tracked in docs/manual-steps.md
-  # =========================================================================
+  # ==============================================================
   # hardware.nvidia.prime = {
   #   amdgpuBusId = "PCI:FILL:IN"; # AMD iGPU — replace with actual ID
   #   nvidiaBusId = "PCI:FILL:IN"; # Nvidia dGPU — replace with actual ID
@@ -147,17 +196,17 @@
 
   services.displayManager.defaultSession = "plasma";
 
-  # =========================================================================
+  # ==============================================================
   # LUKS — Full disk encryption
-  # =========================================================================
+  # ==============================================================
   boot.initrd.luks.devices."cryptroot" = {
     device = "/dev/disk/by-label/nixos-luks";
     allowDiscards = true;
   };
 
-  # =========================================================================
+  # ==============================================================
   # Filesystem — BTRFS with subvolumes on top of LUKS
-  # =========================================================================
+  # ==============================================================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/nixos";
@@ -250,9 +299,9 @@
 
   };
 
-  # =========================================================================
+  # ==============================================================
   # Mount point directory + CIFS tools
-  # =========================================================================
+  # ==============================================================
   systemd.tmpfiles.rules = [
     "d /mnt/Media-Server 0755 babylinux users -"
     "d /mnt/MinisForum   0755 babylinux users -"
@@ -263,38 +312,38 @@
     cifs-utils
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Agenix secrets
-  # =========================================================================
+  # ==============================================================
   age.secrets.smb-credentials = {
     file  = ../../secrets/smb-credentials.age;
     mode  = "0400";
     owner = "root";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Swap
-  # =========================================================================
+  # ==============================================================
   swapDevices = [{
     device = "/swap/swapfile";
   }];
 
-  # =========================================================================
+  # ==============================================================
   # Kernel
-  # =========================================================================
+  # ==============================================================
   boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;
 
-  # =========================================================================
+  # ==============================================================
   # Asus TUF specific kernel modules
   #
   # asus-wmi and asus-nb-wmi handle Asus-specific hardware:
   #   - Keyboard backlight control
   #   - Fan boost modes
   #   - ROG/TUF hotkeys
-  # =========================================================================
+  # ==============================================================
   boot.kernelModules = [ "asus-wmi" "asus-nb-wmi" ];
 
-  # =========================================================================
+  # ==============================================================
   # asusctl — Asus laptop control daemon
   #
   # asusctl gives you control over Asus-specific features:
@@ -304,16 +353,16 @@
   #
   # After first boot set battery limit with:
   #   asusctl -c 80
-  # =========================================================================
+  # ==============================================================
   services.asusd.enable = true;
 
-  # =========================================================================
+  # ==============================================================
   # Power management for hybrid laptop
   #
   # supergfxctl works alongside asusctl to manage GPU switching.
   # It handles powering down the Nvidia GPU when not in use which
   # is critical for battery life on hybrid graphics laptops.
-  # =========================================================================
+  # ==============================================================
   services.supergfxd.enable = true;
 
   # TLP for general power management
@@ -333,9 +382,9 @@
 
   services.power-profiles-daemon.enable = false;
 
-  # =========================================================================
+  # ==============================================================
   # Touchpad
-  # =========================================================================
+  # ==============================================================
   services.libinput = {
     enable = true;
     touchpad = {
@@ -347,9 +396,9 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Lid and power button behavior
-  # =========================================================================
+  # ==============================================================
   services.logind.settings.Login = {
     HandleLidSwitch              = "suspend";   # Suspend on lid close
     HandleLidSwitchExternalPower = "suspend";   # Even on AC
@@ -358,9 +407,9 @@
     IdleActionSec                = "20min";
   };
 
-  # =========================================================================
+  # ==============================================================
   # User account
-  # =========================================================================
+  # ==============================================================
   users.users.babylinux = {
     isNormalUser = true;
     extraGroups  = [

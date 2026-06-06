@@ -21,72 +21,107 @@
 
 {
   imports = [
-    # ── System ──────────────────────────────────────────────────────────────
-    # core: locale, fonts, nix daemon, base CLI packages, boot defaults.
-    # graphical: Wayland stack, PipeWire audio, XDG portals, graphical base pkgs.
-    # No nixos-hardware profile — generic AMD APU support via drivers module.
+    # ==============================================================
+    # System
+    #   core     — locale, fonts, nix daemon, base CLI, boot defaults
+    #   graphical — Wayland stack, PipeWire audio, XDG portals, base pkgs
+    # ==============================================================
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
 
-    # ── Hardware ────────────────────────────────────────────────────────────
-    # drivers: GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI. Selected via hardware.gpu option.
-    # openrgb: RGB lighting control daemon (not applicable on a laptop).
+    # ==============================================================
+    # Hardware
+    #   drivers — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
+    # ==============================================================
     ../../modules/hardware/drivers/default.nix
     #../../modules/hardware/openrgb/default.nix
 
-    # ── Desktop Environments ─────────────────────────────────────────────────
-    # Full DEs — include their own shell and greeter. Enable ONE.
-    # COSMIC chosen: kid-friendly UI, parental controls integrate cleanly.
+    # ==============================================================
+    # Graphical Apps — all optional, comment out to remove
+    #   firefox     — primary browser (locked down via policies)
+    #   helium      — secondary browser (Firefox-based)
+    #   libreoffice — office suite
+    #   fluxer      — Discord client
+    #   kdeconnect  — phone integration
+    # ==============================================================
+    ../../modules/system/graphical/firefox/default.nix
+    ../../modules/system/graphical/helium/default.nix
+    ../../modules/system/graphical/libreoffice/default.nix
+    ../../modules/system/graphical/fluxer/default.nix
+    #../../modules/services/kdeconnect/default.nix
+
+    # ==============================================================
+    # Desktop Environment — enable ONE (includes shell + greeter)
+    # ==============================================================
     ../../modules/desktops/cosmic/default.nix
     #../../modules/desktops/gnome/default.nix
     #../../modules/desktops/kde/default.nix
 
-    # ── Wayland Compositors ──────────────────────────────────────────────────
-    # Bare compositors — no shell or greeter included. Enable ONE.
-    # Pair with a Shell and Greeter below.
+    # ==============================================================
+    # Compositor — enable ONE, pair with Shell + Greeter below
+    # ==============================================================
     #../../modules/compositors/hyprland/default.nix
     #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
 
-    # ── Shell Layer ──────────────────────────────────────────────────────────
-    # Full DEs above already include a shell — no import needed here.
-    # For Wayland compositors: import ONE shell.
-    #   dms     — bundles its own greeter, no Greeters import needed
-    #   wayle   — needs greeters/sddm
+    # ==============================================================
+    # Shell — enable ONE for the active compositor
+    #   dms      — bundles its own greeter, skip Greeter section
+    #   wayle    — needs greeters/sddm
     #   noctalia — needs greeters/sddm
+    # ==============================================================
+    #../../modules/shells/wayle/default.nix
+    #../../modules/shells/dms/default.nix
+    #../../modules/shells/noctalia/default.nix
 
-    # ── Greeters ─────────────────────────────────────────────────────────────
-    # Full DEs above bundle their own greeter — no import needed here.
-    # For Wayland compositors (non-DMS): import ONE greeter.
+    # ==============================================================
+    # Greeter — skip if using dms or a full DE (they bundle their own)
+    # ==============================================================
     #../../modules/greeters/sddm/default.nix
 
-    # ── Gaming ──────────────────────────────────────────────────────────────
-    # Steam, Proton/Wine, Lutris, MangoHud, gamemode, controller support.
+    # ==============================================================
+    # Components — individual desktop components
+    #   only needed with bare compositors not using a full shell
+    # ==============================================================
+    #../../modules/components/bar/waybar/default.nix
+    #../../modules/components/launcher/wofi/default.nix
+    #../../modules/components/notifications/swaync/default.nix
+
+    # ==============================================================
+    # Gaming
+    #   Steam, Proton/Wine, Lutris, MangoHud, gamemode, controllers
+    # ==============================================================
     ../../modules/gaming/default.nix
 
-    # ── Development — AI Tools ───────────────────────────────────────────────
-    # Not a development host — all development modules disabled.
+    # ==============================================================
+    # Development — AI Tools (not a development host)
+    # ==============================================================
     #../../modules/development/ai-tools/default.nix
     #../../modules/development/ai-tools/claude/default.nix
     #../../modules/development/ai-tools/opencode/default.nix
     #../../modules/development/ai-tools/local-llm/default.nix
+    #../../modules/development/ai-tools/lm-studio/default.nix
     #../../modules/development/ai-tools/odysseus/default.nix
 
-    # ── Development — Editors ────────────────────────────────────────────────
+    # ==============================================================
+    # Development — Editors (not a development host)
+    # ==============================================================
     #../../modules/development/editors/neovim/default.nix
     #../../modules/development/editors/vscodium/default.nix
     #../../modules/development/editors/zed/default.nix
 
-    # ── Development — Languages ──────────────────────────────────────────────
+    # ==============================================================
+    # Development — Languages (not a development host)
+    # ==============================================================
     #../../modules/development/languages/python/default.nix
     #../../modules/development/languages/rust/default.nix
 
-    # ── Services ────────────────────────────────────────────────────────────
-    # auto-update: weekly nixos-rebuild from GitHub + Obsidian update log.
-    # syncthing: linuxury pair — admin access to sync config and vault entries.
-    # snapper: BTRFS automatic snapshots — timeline + pre/post around updates.
-    # samba/ntfy/vpn-qbittorrent: server-side services, not applicable here.
-    # syncthing-babylinux: babylinux's sync pair (babylinux hosts only).
+    # ==============================================================
+    # Services
+    #   auto-update — weekly nixos-rebuild from GitHub
+    #   syncthing   — linuxury pair (admin access to sync config + vault)
+    #   snapper     — BTRFS automatic snapshots
+    # ==============================================================
     ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing/default.nix
     #../../modules/services/snapper/default.nix
@@ -96,32 +131,35 @@
     #../../modules/services/vpn-qbittorrent/default.nix
     #../../modules/services/syncthing-babylinux/default.nix
 
-    # ── Users ───────────────────────────────────────────────────────────────
-    # alex: primary user — display name, packages (no SSH key — kids don't SSH).
-    # linuxury: emergency SSH access + admin management.
+    # ==============================================================
+    # Users
+    #   alex: description — GECOS display name (agenix secret)
+    #   alex: packages    — per-user package set
+    #   linuxury: ssh     — emergency admin access + Syncthing
+    # ==============================================================
     ../../modules/users/alex/description/default.nix
     ../../modules/users/alex/packages/default.nix
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Host identity
-  # =========================================================================
+  # ==============================================================
   networking.hostName = "Alex-Laptop";
 
   services.nixos-auto-update.primaryUser = "alex";
 
-  # =========================================================================
+  # ==============================================================
   # GPU driver selection
   #
   # AMD A-10 APU uses integrated Radeon graphics.
   # Same amdgpu driver as dedicated cards — works fine.
-  # =========================================================================
+  # ==============================================================
   hardware.gpu = "amd";
 
-  # =========================================================================
+  # ==============================================================
   # Filesystem — BTRFS with subvolumes
-  # =========================================================================
+  # ==============================================================
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/nixos";
@@ -217,9 +255,9 @@
 
   };
 
-  # =========================================================================
+  # ==============================================================
   # Mount point directory + CIFS tools
-  # =========================================================================
+  # ==============================================================
   systemd.tmpfiles.rules = [
     "d /mnt/Media-Server 0755 alex users -"
     "d /mnt/MinisForum   0755 alex users -"
@@ -230,48 +268,48 @@
     cifs-utils
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Agenix secrets
-  # =========================================================================
+  # ==============================================================
   age.secrets.smb-credentials = {
     file  = ../../secrets/smb-credentials.age;
     mode  = "0400";
     owner = "root";
   };
 
-  # =========================================================================
+  # ==============================================================
   # Swap
-  # =========================================================================
+  # ==============================================================
   swapDevices = [{
     device = "/swap/swapfile";
   }];
 
-  # =========================================================================
+  # ==============================================================
   # Kernel
   #
   # Using latest stable rather than testing on this older hardware.
   # Older AMD APUs are very well supported and stable — no need
   # to risk RC kernel instability on a kid's school laptop.
-  # =========================================================================
+  # ==============================================================
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # =========================================================================
+  # ==============================================================
   # Performance tweaks for older hardware
   #
   # The A-10 APU is older and lower powered. These tweaks help it
   # run more smoothly with limited resources.
-  # =========================================================================
+  # ==============================================================
   boot.kernelParams = [
     "amdgpu.ppfeaturemask=0xffffffff"
     "mitigations=auto"    # Keep security mitigations but let kernel
                           # choose the least impactful ones for this CPU
   ];
 
-  # =========================================================================
+  # ==============================================================
   # Power management — important for older laptop battery
   #
   # Older batteries benefit even more from conservative power management.
-  # =========================================================================
+  # ==============================================================
   services.tlp = {
     enable = true;
     settings = {
@@ -293,9 +331,9 @@
 
   services.power-profiles-daemon.enable = false;
 
-  # =========================================================================
+  # ==============================================================
   # Touchpad
-  # =========================================================================
+  # ==============================================================
   services.libinput = {
     enable = true;
     touchpad = {
@@ -307,9 +345,9 @@
     };
   };
 
-  # =========================================================================
+  # ==============================================================
   # Lid and power button behavior
-  # =========================================================================
+  # ==============================================================
   services.logind.settings.Login = {
     HandleLidSwitch              = "suspend";
     HandleLidSwitchExternalPower = "suspend";
@@ -318,9 +356,9 @@
     IdleActionSec                = "15min";
   };
 
-  # =========================================================================
+  # ==============================================================
   # DNS filtering — same as Alex-Desktop
-  # =========================================================================
+  # ==============================================================
   networking.nameservers = [ "1.1.1.3" "1.0.0.3" ];
   # mkForce needed because services.resolved sets this to "systemd-resolved"
   networking.networkmanager.dns = lib.mkForce "none";
@@ -329,10 +367,10 @@
     settings.Resolve.FallbackDNS = [ "1.1.1.3" "1.0.0.3" ];
   };
 
-  # =========================================================================
+  # ==============================================================
   # Flatpak — infrastructure kept, all remotes removed
   # Same approach as Alex-Desktop — see comment there for full explanation.
-  # =========================================================================
+  # ==============================================================
   system.activationScripts.removeFlatpakRemotes.text = ''
     for remote in $(${pkgs.flatpak}/bin/flatpak remote-list --system \
                     --columns=name 2>/dev/null | tail -n +1); do
@@ -341,9 +379,9 @@
     done
   '';
 
-  # =========================================================================
+  # ==============================================================
   # Login time restrictions — same schedule as desktop
-  # =========================================================================
+  # ==============================================================
   security.pam.services.login.text = lib.mkAfter ''
     account required pam_time.so
   '';
@@ -352,7 +390,7 @@
     login;*;alex;Mo-Fr0800-2100|Sa-Su0800-2200
   '';
 
-  # =========================================================================
+  # ==============================================================
   # Packages
   #
   # Alex's personal apps (freetube, krita, kdenlive, gcompris-qt,
@@ -361,11 +399,11 @@
   # modules/gaming/default.nix (imported above).
   # Graphical tools (kitty, showtime, etc.) are in modules/system/graphical/default.nix.
   # Shell tools (fastfetch, btop) are in modules/system/core/default.nix.
-  # =========================================================================
+  # ==============================================================
 
-  # =========================================================================
+  # ==============================================================
   # User account — no wheel, same restrictions as desktop
-  # =========================================================================
+  # ==============================================================
   users.users.alex = {
     isNormalUser = true;
     extraGroups  = [
