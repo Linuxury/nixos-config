@@ -260,6 +260,31 @@
   };
 
   # ==============================================================
+  # Daily reboot at midnight
+  #
+  # Resolves recurring WiFi/network state issues that accumulate
+  # over time and are fixed by a clean restart. Persistent = true
+  # means if the machine was off at midnight it reboots on next boot.
+  # ==============================================================
+  systemd.services.daily-reboot = {
+    description = "Daily scheduled reboot";
+    serviceConfig = {
+      Type       = "oneshot";
+      ExecStart  = "/run/current-system/sw/bin/systemctl reboot";
+    };
+  };
+
+  systemd.timers.daily-reboot = {
+    description = "Daily reboot timer — midnight";
+    wantedBy    = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar      = "daily";   # 00:00:00 local time
+      Persistent      = true;      # catch up if machine was off at midnight
+      RandomizedDelaySec = "5min"; # jitter so it doesn't always land at exactly 00:00
+    };
+  };
+
+  # ==============================================================
   # Server network optimizations
   # ==============================================================
   boot.kernel.sysctl = {
