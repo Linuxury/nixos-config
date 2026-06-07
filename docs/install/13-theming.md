@@ -1,78 +1,34 @@
 # Theming
 
-How the dynamic theming pipeline works — wallpaper rotation, matugen color generation, and desktop customization. The system automatically adapts terminal, editor, and app colors to match the current wallpaper without any manual steps.
+How the dynamic theming pipeline works per desktop environment — wallpaper handling, matugen color generation, and appearance configuration. Each DE/compositor has its own pipeline; pick the section that matches the host you're working on.
 
 ---
 
 ## Contents
 
-- [Overview](#overview)
+- [Desktop Map](#desktop-map)
 - [Wallpapers](#wallpapers)
-- [matugen](#matugen)
 - [COSMIC Pipeline — wallpaper-color-sync](#cosmic-pipeline--wallpaper-color-sync)
 - [Hyprland Pipeline — matugen service](#hyprland-pipeline--matugen-service)
+- [KDE Plasma — babylinux](#kde-plasma--babylinux)
 - [COSMIC Configuration](#cosmic-configuration)
 - [Cursor and Icons](#cursor-and-icons)
 - [What NOT to Do](#what-not-to-do)
 
 ---
 
-## Overview
+## Desktop Map
 
-There are two separate theming pipelines — one for COSMIC (babylinux and alex) and one for Hyprland (linuxury). Both follow the same pattern: when the wallpaper changes, the dominant color is extracted via ImageMagick, passed to matugen, and all configured templates are regenerated automatically.
+Each host runs a specific DE or compositor. Use this table to find the right theming section:
 
-### COSMIC pipeline
-
-```
-COSMIC wallpaper slideshow rotation
-        ↓
-wallpaper-color-sync (systemd path unit watches COSMIC config dir)
-        ↓
-Reads current wallpaper path from COSMIC's config
-        ↓
-Checks last-run cache — skips if wallpaper hasn't changed
-        ↓
-Extracts dominant color via ImageMagick: convert img -resize 1x1 info:
-        ↓
-matugen color hex "#<HEX>" generates a full Material You color palette
-        ↓
-Writes colors to template outputs:
-  ~/.config/starship-colors.toml        (Starship prompt)
-  ~/.config/gtk-4.0/colors.css          (GTK4 apps)
-  ~/.config/matugen/themes/matugen_cosmic.theme.ron  (COSMIC appearance)
-  ~/.config/kitty/colors.conf           (Kitty terminal)
-  ~/.config/btop/themes/matugen.theme   (btop)
-  ~/.config/zed/themes/matugen.json     (Zed editor)
-  ~/.config/mango/config.conf           (MangoWC bar)
-```
-
-### Hyprland pipeline
-
-```
-Noctalia/Wayle shell changes wallpaper
-        ↓
-Writes current wallpaper path to ~/.local/share/current-wallpaper
-        ↓
-matugen (systemd path unit watches that file)
-        ↓
-Checks last-run cache — skips if wallpaper hasn't changed
-        ↓
-Extracts dominant color via ImageMagick
-        ↓
-matugen color hex "#<HEX>" generates a full Material You color palette
-        ↓
-Writes colors to template outputs:
-  ~/.config/hypr/colors.lua             (Hyprland border/accent colors)
-  ~/.config/kitty/colors.conf           (Kitty terminal)
-  ~/.config/gtk-4.0/colors.css          (GTK4 apps)
-  ~/.config/gtk-4.0/libadwaita-matugen.css  (libadwaita apps)
-  ~/.config/rofi/window.rasi            (Rofi launcher)
-  ~/.config/hypr/colors-hyprlock.conf   (Hyprlock screen lock)
-        ↓
-apply_borders: updates Hyprland border colors live via hyprctl keyword
-        ↓
-Syncs wallpaper to SDDM login screen (/var/lib/sddm-wallpaper/background.jpg)
-```
+| Host | Owner | Desktop | Theming pipeline |
+|------|-------|---------|-----------------|
+| ThinkPad | linuxury | COSMIC | [COSMIC pipeline](#cosmic-pipeline--wallpaper-color-sync) |
+| Ryzen5900x | linuxury | Hyprland + Noctalia | [Hyprland pipeline](#hyprland-pipeline--matugen-service) |
+| Ryzen5800x | babylinux | KDE Plasma 6 | [KDE Plasma](#kde-plasma--babylinux) |
+| Asus-A15 | babylinux | KDE Plasma 6 | [KDE Plasma](#kde-plasma--babylinux) |
+| Alex-Desktop | alex | COSMIC | [COSMIC pipeline](#cosmic-pipeline--wallpaper-color-sync) |
+| Alex-Laptop | alex | COSMIC | [COSMIC pipeline](#cosmic-pipeline--wallpaper-color-sync) |
 
 ---
 
@@ -80,7 +36,7 @@ Syncs wallpaper to SDDM login screen (/var/lib/sddm-wallpaper/background.jpg)
 
 ### Source locations
 
-All users symlink wallpapers from the nixos-config repo — no separate assets directory needed:
+All users symlink wallpapers from the nixos-config repo:
 
 | User | Wallpaper source | Symlinked to |
 |------|-----------------|--------------|
@@ -97,51 +53,44 @@ The `<dir>` is the `wallpaperDir` from `flake.nix`:
 | Ryzen5800x, Asus-A15 | `4k` |
 | Alex-Desktop, Alex-Laptop | `PikaOS` |
 
-### Setting the wallpaper — COSMIC
-
-Set wallpapers and configure the slideshow via **COSMIC Settings → Desktop → Wallpaper**. COSMIC handles the rotation interval and order.
-
-> Do not edit COSMIC's wallpaper config files directly. COSMIC writes them in RON (Rusty Object Notation) format. Any manual edit — even a minor formatting change — can corrupt the file and cause `cosmic-session` to enter exponential backoff restart loops. Use the COSMIC Settings GUI only.
-
-### Setting the wallpaper — Hyprland
-
-Wallpapers are managed by the active shell (Noctalia or Wayle). Change the wallpaper through the shell's wallpaper picker or configuration — not by editing config files directly.
-
----
-
-## matugen
-
-**matugen** is a Material You color scheme generator. It takes a dominant color (extracted from the wallpaper via ImageMagick) and produces a full color palette, then writes that palette into template files.
-
-Material You is the design language used in Android 12+ — the idea is that the whole system's color scheme derives from a single source image rather than a static theme choice.
-
-### Templates
-
-Templates are cloned from the community template repo at activation time:
-
-```
-~/.config/matugen/templates/   ← git clone of InioX/matugen-themes
-```
-
-Home Manager auto-clones this directory if it's missing (via `home.activation.matugenTemplates`). You don't need to clone it manually.
-
-**matugen config:** `~/.config/matugen/config.toml` — written declaratively by Home Manager with `force = true` so it always reflects the current config.
-
-### Seed files
-
-One empty seed file is pre-created by Home Manager activation before matugen first runs:
-
-- `~/.config/kitty/colors.conf`
-
-This must exist before matugen runs — otherwise matugen errors trying to write to a nonexistent path. Home Manager creates it so the pipeline works from the first wallpaper change.
-
 ---
 
 ## COSMIC Pipeline — wallpaper-color-sync
 
-Module: `modules/services/wallpaper-slideshow/default.nix`
+**Applies to:** ThinkPad (linuxury), Alex-Desktop, Alex-Laptop (alex)
 
-Two systemd user units work together to trigger matugen when the wallpaper changes.
+Module: `modules/services/wallpaper-slideshow/default.nix` — injected into every user on every COSMIC host automatically via `home-manager.sharedModules` in `modules/desktops/cosmic/default.nix`.
+
+### How it works
+
+```
+COSMIC wallpaper slideshow rotation
+        ↓
+wallpaper-color-sync (systemd path unit watches COSMIC config dir)
+        ↓
+Reads current wallpaper path from COSMIC's per-output or "all" config file
+        ↓
+Checks last-run cache — skips if wallpaper hasn't changed
+        ↓
+Extracts dominant color via ImageMagick: convert img -resize 1x1 -format "%[hex:u]" info:
+        ↓
+matugen color hex "#<HEX>" generates a full Material You color palette
+        ↓
+Writes colors to template outputs:
+  ~/.config/starship-colors.toml                     (Starship prompt)
+  ~/.config/gtk-4.0/colors.css                       (GTK4 apps)
+  ~/.config/matugen/themes/matugen_cosmic.theme.ron  (COSMIC appearance)
+  ~/.config/kitty/colors.conf                        (Kitty terminal)
+  ~/.config/btop/themes/matugen.theme                (btop)
+  ~/.config/zed/themes/matugen.json                  (Zed editor)
+  ~/.config/mango/config.conf                        (MangoWC bar)
+```
+
+### Setting the wallpaper
+
+Set wallpapers and configure the slideshow via **COSMIC Settings → Desktop → Wallpaper**. COSMIC handles the rotation interval and order.
+
+> Do not edit COSMIC's wallpaper config files directly. COSMIC writes them in RON (Rusty Object Notation) format. Any manual edit — even a minor formatting change — can corrupt the file and cause `cosmic-session` to enter exponential backoff restart loops. Use the COSMIC Settings GUI only.
 
 ### wallpaper-color-sync.path
 
@@ -149,7 +98,7 @@ Watches `~/.config/cosmic/com.system76.CosmicBackground/v1/` for file changes. W
 
 ### wallpaper-color-sync.timer
 
-Fires 30 seconds after session start, then every 10 minutes. This catches wallpaper rotations where COSMIC rotates through a directory source without writing a new config file (which wouldn't trigger the path unit).
+Fires 30 seconds after session start, then every 10 minutes. Catches wallpaper rotations where COSMIC rotates through a directory source without writing a new config file.
 
 ### What the service does
 
@@ -175,7 +124,7 @@ journalctl --user -u wallpaper-color-sync -f     # follow live logs
 systemctl --user restart wallpaper-color-sync   # force a run immediately
 ```
 
-If colors are stuck on an old wallpaper (the cache is preventing a re-run):
+If colors are stuck on an old wallpaper:
 
 ```bash
 rm ~/.local/share/last-matugen-wallpaper        # clear the cache
@@ -186,46 +135,67 @@ systemctl --user restart wallpaper-color-sync   # run matugen unconditionally
 
 ## Hyprland Pipeline — matugen service
 
-Module: `modules/compositors/hyprland/matugen/default.nix`
+**Applies to:** Ryzen5900x (linuxury, Noctalia shell)
+
+Module: `modules/compositors/hyprland/matugen/default.nix` — injected via `home-manager.sharedModules` in `modules/compositors/hyprland/default.nix`.
+
+### How it works
+
+```
+Noctalia shell changes wallpaper
+        ↓
+Writes current wallpaper path to ~/.local/share/current-wallpaper
+        ↓
+matugen.path (systemd path unit watches that file)
+        ↓
+Checks last-run cache — skips if wallpaper hasn't changed (and colors.lua exists)
+        ↓
+Extracts dominant color via ImageMagick
+        ↓
+matugen color hex "#<HEX>" generates a full Material You color palette
+        ↓
+Writes colors to template outputs:
+  ~/.config/hypr/colors.lua                    (Hyprland border/accent colors)
+  ~/.config/kitty/colors.conf                  (Kitty terminal)
+  ~/.config/gtk-4.0/colors.css                 (GTK4 apps)
+  ~/.config/gtk-4.0/libadwaita-matugen.css     (libadwaita apps)
+  ~/.config/rofi/window.rasi                   (Rofi launcher)
+  ~/.config/hypr/colors-hyprlock.conf          (Hyprlock screen lock)
+        ↓
+apply_borders: updates Hyprland active/inactive border colors live via hyprctl keyword
+        ↓
+Syncs wallpaper to SDDM login screen (/var/lib/sddm-wallpaper/background.jpg)
+```
 
 ### matugen.path
 
-Watches `~/.local/share/current-wallpaper` for changes. Each wallpaper shell (Noctalia, Wayle) writes this file when the wallpaper changes. This decouples matugen from any specific shell implementation.
+Watches `~/.local/share/current-wallpaper`. The Noctalia shell writes this file when the wallpaper changes, decoupling matugen from any specific shell implementation.
 
 ### matugen.timer
 
-Fires 10 seconds after session start. Gives the wallpaper shell time to initialize and set the first wallpaper before matugen queries it.
-
-### What the service does
-
-1. Reads `~/.local/share/current-wallpaper`
-2. Compares it to `~/.local/share/last-matugen-processed` — if they match AND `colors.lua` exists, applies border colors and exits
-3. Extracts the dominant color using ImageMagick
-4. Runs `matugen color hex "#<HEX>"` — writes all template outputs
-5. Applies Hyprland border colors live via `hyprctl keyword` (no full reload needed)
-6. Syncs the wallpaper to `/var/lib/sddm-wallpaper/background.jpg` for the login screen
-7. Saves the wallpaper path to `~/.local/share/last-matugen-processed`
-
-Service logs: `~/.local/share/wallpaper-service.log`
+Fires 10 seconds after session start. Gives the shell time to initialize and set the first wallpaper before matugen queries it.
 
 ### noctalia-color-sync (Noctalia shell only)
 
 Module: `modules/shells/noctalia/color-sync/default.nix` — imported automatically by the Noctalia shell module.
 
-A separate path unit watches `~/.config/noctalia/colors.json`. Noctalia writes that file whenever it derives a new accent color from the wallpaper. The service reads the `mPrimary` hex from that JSON and patches MangoWC's `focuscolor` in `~/.config/mango/config.conf` directly, then reloads the compositor config via `mmsg -d reload_config`.
+A separate path unit watches `~/.config/noctalia/colors.json`. Noctalia writes that file whenever it derives a new accent color from the wallpaper. The service reads `mPrimary` from the JSON and patches MangoWC's `focuscolor` in `~/.config/mango/config.conf` directly, then reloads via `mmsg -d reload_config`.
 
-This is a faster, targeted update — it sets the focus border immediately when the accent changes without waiting for the full matugen run to complete.
+This is a faster, targeted update — it sets the focus border immediately on accent change without waiting for the full matugen run.
+
+### GTK4 Noctalia accent CSS
+
+Noctalia also writes `~/.config/gtk-4.0/noctalia.css` with the current accent color. Both the Hyprland and MangoWC theme modules import it via `gtk.gtk4.extraCss = '@import url("noctalia.css");'` so GTK4 apps follow the active accent.
+
+### Checking the service
 
 ```bash
-systemctl --user status noctalia-color-sync   # check service status
+systemctl --user status matugen                  # check matugen service
+systemctl --user status noctalia-color-sync      # check focus-border sync
+journalctl --user -u matugen -f                  # follow live matugen logs
 ```
 
-### Checking the matugen service
-
-```bash
-systemctl --user status matugen           # check current status
-journalctl --user -u matugen -f           # follow live logs
-```
+Service logs: `~/.local/share/wallpaper-service.log`
 
 ### Forcing a color refresh
 
@@ -236,15 +206,87 @@ systemctl --user restart matugen           # run matugen unconditionally
 
 ---
 
+## KDE Plasma — babylinux
+
+**Applies to:** Ryzen5800x, Asus-A15 (babylinux)
+
+KDE Plasma manages its own theming — there is no matugen pipeline on these hosts. Wallpapers and colors are set through KDE System Settings.
+
+### Appearance configuration
+
+| Setting | Value |
+|---------|-------|
+| Icon theme | `breeze-chameleon-dark` |
+| Color scheme | `BreezeDark` |
+| Look and feel | `org.kde.breezedark.desktop` |
+| Window decoration / app style | `darkly` |
+| Cursor theme | `BreezeX-Light` (size 24) |
+| Qt theme engine | Kvantum (`ant-dark-kde`) |
+
+These are written by a Home Manager activation script (`home.activation.initKdeConfig`) to `kdeglobals` and `kcminputrc` if the files don't already exist — KDE manages them from there.
+
+### SDDM wallpaper sync
+
+KDE has its own login-screen wallpaper sync service:
+
+- Service name: `sddm-wallpaper-sync`
+- Triggers: once at graphical-session.target start
+- Reads the current wallpaper from `~/.config/plasma-org.kde.plasma.desktop-appletsrc`
+- Writes it to `/var/lib/sddm-wallpaper/background.jpg`
+
+This keeps the SDDM login screen in sync with the KDE desktop wallpaper after each login.
+
+### Setting the wallpaper
+
+Set wallpapers through **KDE System Settings → Wallpaper** or by right-clicking the desktop. KDE handles its own rotation and display.
+
+---
+
+## matugen — Shared Setup
+
+The following applies to all hosts that use a matugen pipeline (COSMIC and Hyprland):
+
+### Templates
+
+Templates are cloned from the community template repo at activation time:
+
+```
+~/.config/matugen/templates/   ← git clone of InioX/matugen-themes
+```
+
+Home Manager auto-clones this directory if it's missing (via `home.activation.matugenTemplates`). You don't need to clone it manually.
+
+**matugen config:** `~/.config/matugen/config.toml` — written declaratively by Home Manager with `force = true` so it always reflects the current config.
+
+### Seed files
+
+One empty seed file is pre-created by Home Manager activation before matugen first runs:
+
+- `~/.config/kitty/colors.conf`
+
+This must exist before matugen runs — otherwise matugen errors trying to write to a nonexistent path.
+
+---
+
 ## COSMIC Configuration
 
-COSMIC settings are written declaratively via `home.file` in `modules/desktops/cosmic/themes/default.nix`. These are plain text files placed at the appropriate paths under `~/.config/cosmic/`.
+**Applies to:** ThinkPad (linuxury), Alex-Desktop, Alex-Laptop (alex)
 
-> These files are written at build/activation time. Do not edit them manually while COSMIC is running — COSMIC holds the files open and manual edits cause parse errors.
+Module: `modules/desktops/cosmic/themes/default.nix` — injected via `home-manager.sharedModules` in `modules/desktops/cosmic/default.nix`.
+
+### COSMIC appearance config files
+
+Written declaratively at activation time:
+
+```
+~/.config/cosmic/com.system76.CosmicTk/v1/icon_theme    → "Tela-dark"
+~/.config/cosmic/com.system76.CosmicTk/v1/cursor_theme  → "BreezeX-Light"
+~/.config/cosmic/com.system76.CosmicTk/v1/cursor_size   → 24
+```
 
 ### Files sidebar favorites
 
-Defined in the shared COSMIC themes module (`modules/desktops/cosmic/themes/default.nix`). All three users get the same favorites:
+All COSMIC users get the same favorites from the shared themes module:
 
 ```ron
 [
@@ -260,14 +302,7 @@ Defined in the shared COSMIC themes module (`modules/desktops/cosmic/themes/defa
 ]
 ```
 
-Only network shares appear in this file. Local drives show up automatically in COSMIC's **Devices** section and don't need explicit entries.
-
-Mount path capitalization matters for display — the last path segment becomes the label shown in the sidebar:
-
-```
-/mnt/Media-Server    ✓ (displays as "Media-Server")
-/mnt/media-server    ✗ (would display as "media-server")
-```
+Only network shares appear in this file. Local drives show up automatically in COSMIC's **Devices** section. Mount path capitalization matters — the last path segment becomes the display label.
 
 ### Adding a new share
 
@@ -299,24 +334,29 @@ Then rebuild: `nr`
 
 ## Cursor and Icons
 
-Cursor and icon theme are defined in the shared GTK base module (`modules/themes/gtk/default.nix`), which is imported by every compositor and desktop theme module. All users and all desktops get the same cursor.
+Cursor and base GTK theme are defined in `modules/themes/gtk/default.nix`, imported by every compositor and desktop theme module.
 
-### Cursor
+### Cursor — all hosts
 
 - **Theme:** BreezeX-Light
-- **Source:** Custom Nix derivation fetching `BreezeX.tar.xz` from the `ful1e5/BreezeX_Cursor` GitHub releases (v2.0.1)
-- **Applied via:** `home.pointerCursor` in `modules/themes/gtk/default.nix` — sets `XCURSOR_THEME`/`XCURSOR_SIZE` in the systemd user environment, creates `~/.icons/default/index.theme` for X11 fallback, and writes GTK cursor config
+- **Source:** Custom Nix derivation fetching `BreezeX.tar.xz` from `ful1e5/BreezeX_Cursor` GitHub releases (v2.0.1)
+- **Applied via:** `home.pointerCursor` — sets `XCURSOR_THEME`/`XCURSOR_SIZE` in the systemd user environment, creates `~/.icons/default/index.theme` for X11 fallback
 - **Size:** 24
 
-### GTK theme
+### GTK theme — COSMIC and Hyprland hosts
 
-- **Theme:** adw-gtk3-dark (`pkgs.adw-gtk3`) — applied to GTK3 and GTK4 apps
-- **Dark mode:** enabled via both GTK settings and dconf (`color-scheme = prefer-dark`) for libadwaita apps
+- **GTK theme:** adw-gtk3-dark (`pkgs.adw-gtk3`)
+- **Icon theme:** Tela-dark (`pkgs.tela-icon-theme`)
+- **Dark mode:** enabled via GTK settings and dconf (`color-scheme = prefer-dark`) for libadwaita apps
 
-### Icon theme
+### Icon and color theme — KDE hosts (babylinux)
 
-- **Theme:** Tela-dark (`pkgs.tela-icon-theme`)
-- Note: COSMIC Files uses symbolic icons only — colored icon themes make no visual difference in the file manager. Tela-dark is a general preference for GTK apps that do respect icon themes.
+KDE manages its own theming layer on top of the shared cursor:
+
+- **Icon theme:** breeze-chameleon-dark (adaptive folder colors)
+- **Color scheme:** BreezeDark
+- **Window decoration:** darkly
+- **GTK integration:** KDE manages GTK theming directly (`gtk.enable = false` on the pointer cursor config); `QT_QPA_PLATFORMTHEME = "kde"` set system-wide
 
 ---
 
@@ -325,7 +365,7 @@ Cursor and icon theme are defined in the shared GTK base module (`modules/themes
 | Don't | Why |
 |-------|-----|
 | Manually edit `~/.config/cosmic/com.system76.CosmicBackground/v1/*` | RON format is strict; any parse error causes `cosmic-session` exponential backoff restart loops |
-| Run `matugen color hex` directly with a wrong hex | The feedback loop prevention file caches the wrong wallpaper path, preventing future runs |
-| Change the wallpaper by editing COSMIC config files | Set it through **COSMIC Settings → Desktop → Wallpaper** only |
-| Run `matugen` while the service is also running | Two concurrent runs can produce partially-written template files |
+| Run `matugen color hex` directly with a wrong hex | The deduplication stamp caches the wrong path, preventing the next real run |
+| Change the wallpaper on COSMIC by editing config files | Use **COSMIC Settings → Desktop → Wallpaper** only |
+| Run `matugen` while the service is also running | Two concurrent runs produce partially-written template files |
 | Edit `~/.config/matugen/config.toml` manually | The file has `force = true` — Home Manager overwrites it on every rebuild |
