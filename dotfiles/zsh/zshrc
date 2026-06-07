@@ -50,17 +50,18 @@ _fmt_nvd() {
     if [[ "$line" == 'Closure size:'*    ]]; then printf "  %s\n" "$line"; continue; fi
 
     # Short-form prefix lines — e.g. "[A.]  #3  abc123...-kitty  0.36.0"
-    # "[A.]" → added, "[R.]" → removed, "[C.]" / "[D.]" → version change
+    # "[A.]" → added, "[R.]" → removed, "[C.]"/"[C*]" / "[D*]" / "[U*]" → version change
+    # nvd 0.2.4 uses [C*] (asterisk) instead of [C.] (dot) for closure changes
     case "$line" in
-      '[A.'*) section="added"   ;;
-      '[R.'*) section="removed" ;;
-      '[C.'*|'[D.'*|'[U.'*) section="version" ;;
+      '[A.'*|'[A*'*) section="added"   ;;
+      '[R.'*|'[R*'*) section="removed" ;;
+      '[C.'*|'[C*'*|'[D.'*|'[D*'*|'[U.'*|'[U*'*) section="version" ;;
     esac
 
     case "$section" in
       added|removed)
         # Strip "[X.]  #N  " prefix, then strip bare 32-char hash-
-        pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z]\.\]  #[0-9]+  //; s/^[a-z0-9]{32,}-//')
+        pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z][.*]\]  #[0-9]+  //; s/^[a-z0-9]{32,}-//')
         [[ -z "$pkg" ]] && continue
         ver="${pkg##*  }"
         pkg="${pkg%%  *}"
@@ -73,14 +74,23 @@ _fmt_nvd() {
         fi
         ;;
       version)
-        # Strip "[X.]  " prefix
-        pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z]\.\]  //')
+        # Strip "[X*]  " or "[X.]  " prefix (nvd 0.2.4 uses asterisk in third position)
+        pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z][.*]\]  //')
+        [[ -z "$pkg" ]] && continue
+        # Strip "#NNN  " index prefix (nvd 0.2.4 includes a sequence number)
+        pkg=$(printf '%s' "$pkg" | sed -E 's/^#[0-9]+  +//')
         [[ -z "$pkg" ]] && continue
         if [[ "$pkg" == *' -> '* ]]; then
-          # nvd format: "pkgname: oldver -> newver"
-          name="${pkg%%:*}"
-          old_v="${${pkg#*: }%% ->*}"
-          new_v="${pkg##*-> }"
+          # nvd 0.2.4 format: "pkgname   oldver -> newver" (space-aligned, no colon)
+          name="${pkg%% *}"
+          rest="${pkg#"$name"}"
+          rest="${rest#"${rest%%[! ]*}"}"   # trim leading alignment spaces
+          old_v="${rest%% -> *}"
+          new_v="${rest##* -> }"
+          # Skip count-only closure changes (x3 → x2) — same version, different instance count
+          old_vset=$(printf '%s' "$old_v" | sed -E 's/ x[0-9]+//g')
+          new_vset=$(printf '%s' "$new_v" | sed -E 's/ x[0-9]+//g')
+          [[ "$old_vset" == "$new_vset" ]] && continue
           printf "    %-36s  ==>  updated  ==>  %s → %s\n" "$name" "$old_v" "$new_v"
         else
           printf "    %s\n" "$pkg"
