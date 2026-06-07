@@ -183,9 +183,9 @@ _nru_prompt() {
   local symbol="$1" msg="$2" reply
   # Read from /dev/tty explicitly — nom alters terminal state and a plain
   # 'read' after the pipeline may have no tty to read from.
-  printf "\n  %s  %s  (y/n)  " "$symbol" "$msg" > /dev/tty
+  printf "\n  %s  %s  (Y/n)  " "$symbol" "$msg" > /dev/tty
   read -r reply < /dev/tty
-  [[ "${reply:l}" == y ]]
+  [[ -z "$reply" || "${reply:l}" == y ]]
 }
 
 # ---------------------------------------------------------------------------
