@@ -23,9 +23,28 @@ hl.bind(mod .. " + SHIFT + comma", hl.dsp.layout("swapcol l"))         -- Swap c
 hl.bind(mod .. " + SHIFT + period",hl.dsp.layout("swapcol r"))         -- Swap column right
 
 -- ── Layout switching ──────────────────────────────────────────────────────────
--- Cycles through installed layouts on the current workspace: scrolling → dwindle → master
-hl.bind(mod .. " + backslash",       hl.dsp.exec_cmd("hyprctl dispatch cyclelayout 1"))   -- Cycle forward
-hl.bind(mod .. " + SHIFT + backslash", hl.dsp.exec_cmd("hyprctl dispatch cyclelayout -1"))  -- Cycle backward
+-- Cycles the global layout: scrolling → dwindle → master (and back).
+-- Pure Lua — hyprctl dispatch cyclelayout is broken in 0.55 Lua mode (IPC wraps
+-- dispatch args as Lua, making "cyclelayout 1" invalid syntax).
+-- hl.config updates general.layout live; all workspaces without an overriding
+-- workspace_rule follow the global setting immediately.
+local _LAYOUTS = {
+    { name = "scrolling", label = "Scrolling", icon = "⇄"  },  -- horizontal arrow  — columns you scroll through
+    { name = "dwindle",   label = "Dwindle",   icon = "󰕰"  },  -- view_grid_outline  — binary space partitioning
+    { name = "master",    label = "Master",    icon = "󰕲"  },  -- view_dashboard_variant — master pane + stack
+}
+local _layout_i = 1   -- starts at scrolling (matches general.layout default)
+
+local function _cycle_layout(delta)
+    _layout_i = ((_layout_i - 1 + delta) % #_LAYOUTS) + 1
+    local l = _LAYOUTS[_layout_i]
+    hl.config({ general = { layout = l.name } })
+    -- -h synchronous tag: replaces the previous layout notification instead of stacking
+    hl.exec_cmd("notify-send -t 1500 -a 'Hyprland' -h 'string:x-canonical-private-synchronous:layout-cycle' '" .. l.icon .. "  Layout Changed' 'Switched to " .. l.label .. "'")
+end
+
+hl.bind(mod .. " + backslash",         function() _cycle_layout(1)  end)   -- forward
+hl.bind(mod .. " + SHIFT + backslash", function() _cycle_layout(-1) end)   -- backward
 
 -- ── Window management ─────────────────────────────────────────────────────────
 hl.bind(mod .. " + Q",             hl.dsp.window.close())

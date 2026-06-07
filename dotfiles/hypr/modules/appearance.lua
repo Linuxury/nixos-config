@@ -100,10 +100,16 @@ hl.config({
     },
 })
 
--- ── Workspace layout assignments ──────────────────────────────────────────────
-hl.workspace_rule({ workspace = "1", layout = "scrolling", default = true })
-hl.workspace_rule({ workspace = "2", layout = "dwindle"                   })
-hl.workspace_rule({ workspace = "3", layout = "master"                    })
+-- ── Workspace rules ──────────────────────────────────────────────────────────
+-- Persist workspaces 1–9 so they always exist (Noctalia displays all persistent
+-- workspaces even when empty). No layout pin — use Super+backslash to cycle.
+for i = 1, 9 do
+    hl.workspace_rule({
+        workspace  = tostring(i),
+        persistent = true,
+        default    = (i == 1),   -- workspace 1 is the landing workspace on each monitor
+    })
+end
 
 -- ── Render + misc ─────────────────────────────────────────────────────────────
 hl.config({
