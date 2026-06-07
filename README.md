@@ -79,19 +79,30 @@ nixos-config/
 
 ## 📚 Documentation
 
+**Installation — pick one based on your hardware:**
+
+| # | File | Boot mode | Encryption |
+|---|------|-----------|------------|
+| 01 | [Getting Started](docs/01-getting-started.md) | — | — |
+| 02 | [Install: UEFI](docs/02-install-uefi.md) | UEFI | None |
+| 03 | [Install: LUKS](docs/03-install-luks.md) | UEFI | LUKS full-disk |
+| 04 | [Install: Legacy BIOS](docs/04-install-legacy-bios.md) | Legacy BIOS | None |
+| 05 | [Install: Legacy BIOS + LUKS](docs/05-install-legacy-luks.md) | Legacy BIOS | LUKS full-disk |
+
+**Reference:**
+
 | # | File | What it covers |
 |---|------|----------------|
-| 01 | [Installation Guide](docs/01-installation.md) | ISO → partitioning → LUKS/plain → BTRFS → flake install |
-| 02 | [First Boot](docs/02-first-boot.md) | Tailscale, SSH keys, secrets registration, assets, per-host steps |
-| 03 | [Flake & Module Reference](docs/03-flake-guide.md) | Config structure, mkHost, adding hosts and packages |
-| 04 | [Secrets Management](docs/04-secrets.md) | ragenix workflow, secrets.nix, creating and re-keying secrets |
-| 05 | [Maintenance](docs/05-maintenance.md) | Rebuilds, updates, snapshots, rollback, garbage collection |
-| 06 | [Server Management](docs/06-servers.md) | Media-Server, Radxa-X4, MinisForum — services and operations |
-| 07 | [Applications](docs/07-applications.md) | Neovim IDE, Kitty, Ghostty, Zsh, Helix, Zed, and more |
-| 08 | [Gaming](docs/08-gaming.md) | Proton-GE, Steam, MangoHud, launch options |
-| 09 | [Theming](docs/09-theming.md) | matugen pipeline, wallpaper rotation, color sync |
-| 10 | [Desktop Environment](docs/10-de-wm.md) | COSMIC DE config, sidebar favorites, Flatpak |
-| 11 | [Troubleshooting](docs/11-troubleshooting.md) | Common failures and fixes across all areas |
+| 06 | [First Boot](docs/06-first-boot.md) | Tailscale, SSH keys, secrets, assets, per-host steps |
+| 07 | [Flake & Module Reference](docs/07-flake-guide.md) | Config structure, mkHost, adding hosts and packages |
+| 08 | [Secrets Management](docs/08-secrets.md) | ragenix workflow, secrets.nix, creating and re-keying secrets |
+| 09 | [Maintenance](docs/09-maintenance.md) | Rebuilds, updates, snapshots, rollback, garbage collection |
+| 10 | [Server Management](docs/10-servers.md) | Media-Server, Radxa-X4, MinisForum — services and operations |
+| 11 | [Applications](docs/11-applications.md) | Neovim IDE, Kitty, Ghostty, Zsh, Helix, Zed, and more |
+| 12 | [Gaming](docs/12-gaming.md) | Proton-GE, Steam, MangoHud, launch options |
+| 13 | [Theming](docs/13-theming.md) | matugen pipeline, COSMIC / Hyprland / KDE color sync |
+| 14 | [Desktop Environment](docs/14-de-wm.md) | COSMIC DE config, sidebar favorites, Flatpak |
+| 15 | [Troubleshooting](docs/15-troubleshooting.md) | Common failures and fixes across all areas |
 
 ---
 
