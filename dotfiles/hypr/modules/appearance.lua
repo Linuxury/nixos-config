@@ -93,9 +93,8 @@ hl.config({
     },
     scrolling = {
         fullscreen_on_one_column = false,
-        column_width             = 0.5,    -- 50%: two columns fill the screen exactly.
-                                           -- For single-column use press Super+period to
-                                           -- cycle up to 66.7% (colresize +conf).
+        column_width             = 0.67,   -- 67%: default for new columns; layout-hooks.lua
+                                           -- dynamically adjusts to 50% when 2+ windows exist.
         direction                = "right",
     },
 })
