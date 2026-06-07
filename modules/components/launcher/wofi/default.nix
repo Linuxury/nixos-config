@@ -6,14 +6,14 @@
 #
 # When imported, this module:
 #   1. Adds wofi and rofi-wayland to system packages.
-#   2. Writes ~/.config/hypr/components/launcher.lua at HM activation:
+#   2. Symlinks dotfiles/wofi/ → ~/.config/wofi/  (all users)
+#              dotfiles/rofi/ → ~/.config/rofi/  (all users)
+#   3. Writes ~/.config/hypr/components/launcher.lua at HM activation:
 #      - Launcher keybinds (SUPER+Space, SUPER+R)
 #      - Clipboard history picker (SUPER+V via cliphist + wofi)
 #      - Window switcher (SUPER+Tab via rofi)
 #      - Wofi window rules (float, center, rounding)
 #      The file is only loaded when Hyprland is the active compositor.
-#
-# TODO: add home-manager module for wofi style.css and rofi window.rasi
 # ===========================================================================
 
 { pkgs, lib, ... }:
@@ -23,7 +23,13 @@
     environment.systemPackages = with pkgs; [ wofi rofi-wayland ];
 
     home-manager.sharedModules = [
-      ({ lib, ... }: {
+      ({ config, lib, ... }: {
+
+        home.file.".config/wofi".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/wofi";
+        home.file.".config/rofi".source =
+          config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/rofi";
+
         home.activation.launcherHyprConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           _target="$HOME/.config/hypr/components/launcher.lua"
           _dir="$(dirname "$_target")"

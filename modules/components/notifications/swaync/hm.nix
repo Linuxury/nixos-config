@@ -174,4 +174,12 @@ in {
   home.file.".config/swaync/config.json" = {
     text = builtins.toJSON swayncConfig;
   };
+
+  # CSS files — symlinked so live edits take effect without a rebuild.
+  # config.json is HM-managed (generated), so the entire dir cannot be
+  # symlinked; CSS files are symlinked individually instead.
+  home.file.".config/swaync/style.css".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/swaync/style.css";
+  home.file.".config/swaync/colors.css".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/swaync/colors.css";
 }
