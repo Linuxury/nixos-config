@@ -1,18 +1,19 @@
 # ===========================================================================
 # modules/system/server-shell/default.nix — Zsh config for headless servers
 #
-# Provides the same NixOS aliases as desktop hosts (nr, nru, nrb, etc.)
-# and the same quality-of-life tools (zoxide, fzf, direnv, starship,
-# fastfetch) configured at the NixOS system level (no Home Manager on servers).
+# Provides the same shell environment as desktop hosts by sourcing the shared
+# dotfiles/zsh/zshrc directly. All nru/nr/nrt functions, aliases, and
+# management tooling stay in one place — changes propagate everywhere.
 #
-# Desktop-only tools intentionally excluded:
-#   - snapper     (BTRFS snapshots — servers don't import snapper.nix)
-#   - zsh-abbr    (overkill for servers — plain aliases used instead)
+# Server-specific additions (not in zshrc):
+#   - TERM fallback (silences "can't find terminal definition" on SSH login)
+#   - age-edit / age-rekey aliases (desktop uses zsh-abbr; servers use aliases)
 #
-# Writes to /etc/zsh/ (system-level), so it applies to ALL users on the
-# machine without needing Home Manager.
+# nrb intentionally removed — nru's interactive reboot prompt covers manual
+# headless updates; the auto-update module handles unattended rebuilds.
 #
-# Import this in: Radxa-X4, MinisForum, Media-Server (any headless host).
+# Writes to /etc/zsh/ (system-level), applies to ALL users without Home Manager.
+# Import in: Radxa-X4, MinisForum, Media-Server, any headless host.
 # ===========================================================================
 
 { pkgs, lib, config, ... }:
@@ -37,12 +38,11 @@
     nix-direnv.enable = true;
   };
 
-  # Fastfetch — system info on shell start
+  # Fastfetch — system info on shell start (same as desktop)
   environment.systemPackages = [ pkgs.fastfetch ];
 
-  # Fall back to xterm-256color for terminals the server doesn't have terminfo for.
-  # Runs in /etc/zsh/zshenv — before NixOS's set-environment script — so it
-  # silences "can't find terminal definition" errors on SSH login.
+  # TERM fallback — runs in /etc/zsh/zshenv before NixOS's set-environment
+  # script, silencing "can't find terminal definition" errors on SSH login.
   programs.zsh.shellInit = ''
     if [ -n "$TERM" ] && ! infocmp "$TERM" >/dev/null 2>&1; then
       export TERM=xterm-256color
@@ -50,136 +50,20 @@
   '';
 
   programs.zsh = {
-    enable = true;
-    autosuggestions.enable   = true;
+    enable                 = true;
+    autosuggestions.enable  = true;
     syntaxHighlighting.enable = true;
 
     shellAliases = {
-      # Roll back to the previous generation
-      nrr   = "sudo nixos-rebuild switch --rollback";
-
-      # Garbage collect — removes generations older than 30 days
-      ngc   = "sudo nix-collect-garbage --delete-older-than 30d";
-
-      # List all system generations
-      ngens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-
-      # agenix secret management — run from secrets/ dir (secrets.nix lives there)
+      # agenix secret management — run from secrets/ dir (secrets.nix lives there).
+      # Desktop hosts use zsh-abbr for these; servers use plain aliases.
       age-edit  = "nix run github:ryantm/agenix -- -e";
       age-rekey = "nix run github:ryantm/agenix -- -r";
     };
 
-    interactiveShellInit = ''
-      # Ensure NixOS setuid wrappers always take priority
-      typeset -U path
-      path=(/run/wrappers/bin $path)
-
-      # Default editor
-      export EDITOR=nvim
-      export VISUAL=nvim
-
-      # Canonical path to the nixos-config repo
-      export NIXOS_CONFIG=$HOME/nixos-config
-
-      # System info on login
-      fastfetch
-
-      # Rebuild and switch to the current flake config
-      nr() {
-        sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
-      }
-
-      # Rebuild into boot + pull latest nixpkgs first, then reboot when done.
-      # Kept on servers for unattended updates — no interactive prompt over SSH.
-      nrb() {
-        echo "→ Pulling latest changes from $NIXOS_CONFIG..."
-        git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
-        git -C "$NIXOS_CONFIG" pull || return 1
-        nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-        sudo nixos-rebuild boot --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs || return 1
-        if ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
-          git -C "$NIXOS_CONFIG" add flake.lock
-          git -C "$NIXOS_CONFIG" commit -m "flake: update nixpkgs ($(date +%Y-%m-%d))"
-          git -C "$NIXOS_CONFIG" push
-        fi
-        curl -s --max-time 10 \
-          -H "Title: Rebooting — $(hostname)" \
-          -H "Priority: high" \
-          -H "Tags: arrows_counterclockwise" \
-          -d "NixOS updated successfully. Rebooting in 10 seconds." \
-          "http://media-server:2586/nixos-updates" 2>/dev/null || true
-        echo "→ Rebooting in 10 seconds... (Ctrl+C to cancel)"
-        sleep 10
-        sudo reboot
-      }
-
-      # Test build without activating — catches errors safely
-      nrt() {
-        sudo nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
-      }
-
-      # Prompt helper — displays a formatted (y/n) prompt, returns 0 for yes.
-      _nru_prompt() {
-        local reply
-        printf "\n  %s  %s  (y/n)  " "$1" "$2" > /dev/tty
-        read -r reply < /dev/tty
-        [[ "''${reply:l}" == y ]]
-      }
-
-      # Internal — runs the rebuild and shows the post-result interactive prompt.
-      # Separate so retry doesn't re-run the git pull / flake update.
-      _nru_rebuild() {
-        sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)" --print-build-logs
-        local exit_code=$?
-
-        if [[ $exit_code -ne 0 ]]; then
-          if _nru_prompt "✗" "Rebuild Failed :: Retry Rebuild?"; then
-            _nru_rebuild
-          fi
-          return $exit_code
-        fi
-
-        echo "✓ Rebuild successful"
-
-        if ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
-          echo "→ Pushing updated flake.lock..."
-          git -C "$NIXOS_CONFIG" add flake.lock
-          git -C "$NIXOS_CONFIG" commit -m "flake: update nixpkgs ($(date +%Y-%m-%d))"
-          git -C "$NIXOS_CONFIG" push
-        fi
-
-        local current_kernel installed_kernel
-        current_kernel=$(uname -r)
-        installed_kernel=$(ls /run/current-system/kernel-modules/lib/modules/ 2>/dev/null | head -1)
-
-        if [[ -n "$installed_kernel" && "$current_kernel" != "$installed_kernel" ]]; then
-          echo "⚠ Kernel updated: $current_kernel → $installed_kernel"
-          curl -s --max-time 10 \
-            -H "Title: Reboot Required — $(hostname)" \
-            -H "Priority: high" \
-            -H "Tags: warning,arrows_counterclockwise" \
-            -d "Kernel updated (''${installed_kernel}). Reboot when convenient." \
-            "http://media-server:2586/nixos-updates" 2>/dev/null || true
-          if _nru_prompt "⚠" "Rebuild Clean :: Requires Reboot :: Do it now?"; then
-            sudo reboot
-          fi
-        else
-          if _nru_prompt "✓" "Rebuild Clean :: Close Terminal?"; then
-            exit 0
-          fi
-        fi
-      }
-
-      # Rebuild + pull latest nixpkgs before switching.
-      # Commits and pushes the updated flake.lock so all hosts stay in sync.
-      nru() {
-        echo "→ Pulling latest changes from $NIXOS_CONFIG..."
-        git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
-        git -C "$NIXOS_CONFIG" pull || return 1
-        echo "→ Updating nixpkgs..."
-        nix flake update nixpkgs --flake "$NIXOS_CONFIG"
-        _nru_rebuild
-      }
-    '';
+    # Shared init — same zshrc as desktop hosts.
+    # lib.fileContents embeds the file content at eval time; shell ${...}
+    # references are not interpreted by Nix, only by zsh at runtime.
+    interactiveShellInit = lib.fileContents ../../../dotfiles/zsh/zshrc;
   };
 }
