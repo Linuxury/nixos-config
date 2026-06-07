@@ -208,7 +208,19 @@ Fires 10 seconds after session start. Gives the wallpaper shell time to initiali
 
 Service logs: `~/.local/share/wallpaper-service.log`
 
-### Checking the service
+### noctalia-color-sync (Noctalia shell only)
+
+Module: `modules/shells/noctalia/color-sync/default.nix` — imported automatically by the Noctalia shell module.
+
+A separate path unit watches `~/.config/noctalia/colors.json`. Noctalia writes that file whenever it derives a new accent color from the wallpaper. The service reads the `mPrimary` hex from that JSON and patches MangoWC's `focuscolor` in `~/.config/mango/config.conf` directly, then reloads the compositor config via `mmsg -d reload_config`.
+
+This is a faster, targeted update — it sets the focus border immediately when the accent changes without waiting for the full matugen run to complete.
+
+```bash
+systemctl --user status noctalia-color-sync   # check service status
+```
+
+### Checking the matugen service
 
 ```bash
 systemctl --user status matugen           # check current status
