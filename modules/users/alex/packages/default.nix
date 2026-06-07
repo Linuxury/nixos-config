@@ -16,7 +16,7 @@
     gcompris        # 100+ educational activities — ages 2-10
 
     # Creative
-    krita           # Digital painting and drawing
+    # krita        # Disabled: cmake 4.1.x SIGILL on Alex-Desktop (old CPU, x86-64-v2 baseline)
 
     # Media
     freetube        # YouTube without ads, algorithm, or shorts
