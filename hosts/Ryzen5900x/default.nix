@@ -53,8 +53,8 @@
     #   kdeconnect  — phone integration
     #   zen-browser — privacy-focused Firefox fork
     # ==============================================================
-    ../../modules/system/graphical/firefox/default.nix
-    ../../modules/system/graphical/helium/default.nix
+    #../../modules/system/graphical/firefox/default.nix
+    #../../modules/system/graphical/helium/default.nix
     ../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/services/kdeconnect/default.nix
