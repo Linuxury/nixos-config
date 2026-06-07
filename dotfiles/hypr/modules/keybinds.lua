@@ -22,6 +22,11 @@ hl.bind(mod .. " + CTRL + left",   hl.dsp.layout("move -col"))         -- Scroll
 hl.bind(mod .. " + SHIFT + comma", hl.dsp.layout("swapcol l"))         -- Swap column left
 hl.bind(mod .. " + SHIFT + period",hl.dsp.layout("swapcol r"))         -- Swap column right
 
+-- ── Layout switching ──────────────────────────────────────────────────────────
+-- Cycles through installed layouts on the current workspace: scrolling → dwindle → master
+hl.bind(mod .. " + backslash",       hl.dsp.exec_cmd("hyprctl dispatch cyclelayout 1"))   -- Cycle forward
+hl.bind(mod .. " + SHIFT + backslash", hl.dsp.exec_cmd("hyprctl dispatch cyclelayout -1"))  -- Cycle backward
+
 -- ── Window management ─────────────────────────────────────────────────────────
 hl.bind(mod .. " + Q",             hl.dsp.window.close())
 hl.bind(mod .. " + F",             hl.dsp.window.fullscreen())

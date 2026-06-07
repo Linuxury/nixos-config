@@ -93,7 +93,9 @@ hl.config({
     },
     scrolling = {
         fullscreen_on_one_column = false,
-        column_width             = 0.67,
+        column_width             = 0.5,    -- 50%: two columns fill the screen exactly.
+                                           -- For single-column use press Super+period to
+                                           -- cycle up to 66.7% (colresize +conf).
         direction                = "right",
     },
 })
