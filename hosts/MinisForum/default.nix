@@ -499,15 +499,15 @@
   users.users = {
     linuxury = {
       isNormalUser = true;
-      uid          = 1000;  # Pinned — primary admin; NixOS assigns UIDs alphabetically
-                            # without pins (alex=1000, babylinux=1001, linuxury=1002)
+      uid          = 1002;  # Pinned to actual UID on disk — users were created
+                            # alphabetically before pins existed (alex got 1000 first)
       extraGroups  = [ "wheel" "networkmanager" "docker" ];
       shell        = pkgs.zsh;
     };
 
     babylinux = {
       isNormalUser  = true;
-      uid           = 1001;  # Pinned — second user
+      uid           = 1001;  # Pinned to actual UID on disk
       # No wheel — wife doesn't need server admin access
       extraGroups   = [ "networkmanager" "docker" ];
       shell         = pkgs.zsh;
@@ -515,7 +515,7 @@
 
     alex = {
       isNormalUser  = true;
-      uid           = 1002;  # Pinned — third user (kid account)
+      uid           = 1000;  # Pinned to actual UID on disk — got 1000 (first alphabetically)
       # No wheel — kid definitely doesn't need server access
       extraGroups   = [];
       shell         = pkgs.zsh;
