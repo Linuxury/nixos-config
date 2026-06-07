@@ -35,6 +35,19 @@ grep -A1 "mkHost" ~/nixos-config/flake.nix | grep hostname   # prints all valid 
 
 ---
 
+### nixos-install fails: "repository is not owned by current user"
+
+Running `nixos-install` as root against a flake cloned as another user triggers git's ownership safety check. Git refuses to open repositories not owned by the current user.
+
+Fix — add the repo to git's safe directory list, then retry:
+
+```bash
+git config --global --add safe.directory /mnt/home/$NIXUSER/nixos-config
+nixos-install --flake /mnt/home/$NIXUSER/nixos-config#$HOST --no-root-passwd
+```
+
+---
+
 ### Rebuild fails with hash mismatch or fixed-output derivation error
 
 A Nix fetch got a different file than expected — remote content changed or a network error returned partial data. Refresh the lock file and rebuild:

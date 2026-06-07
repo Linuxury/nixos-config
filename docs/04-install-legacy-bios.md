@@ -349,6 +349,13 @@ nixos-install \
   --no-root-passwd
 ```
 
+If you get `repository is not owned by current user`, git is refusing to read a repo cloned as another user. Add it to the safe directory list and retry:
+
+```bash
+git config --global --add safe.directory /mnt/home/$NIXUSER/nixos-config
+nixos-install --flake /mnt/home/$NIXUSER/nixos-config#$HOST --no-root-passwd
+```
+
 You will see a lot of output as packages download and build — that is normal. If the command exits with an error, scroll up past the activation output to find the actual build failure — it appears well before the end of the output.
 
 ---
