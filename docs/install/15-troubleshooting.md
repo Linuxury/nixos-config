@@ -11,6 +11,8 @@ Common failures, their causes, and how to fix them. Organized by area. For deepe
 - [Network / Tailscale / Samba](#network--tailscale--samba)
 - [Theming / matugen](#theming--matugen)
 - [COSMIC / Desktop](#cosmic--desktop)
+- [Hyprland](#hyprland)
+- [KDE / Desktop](#kde--desktop)
 - [Gaming](#gaming)
 - [Servers](#servers)
 - [SSH](#ssh)
@@ -61,6 +63,17 @@ A file that Home Manager wants to manage already exists on disk and isn't a syml
 
 ```bash
 mv ~/.config/conflicting-file ~/.config/conflicting-file.bak
+nr
+```
+
+---
+
+### checkLinkTargets fails for ~/.config/gtk-4.0/gtk.css (COSMIC hosts)
+
+libcosmic apps (COSMIC Files, Settings, etc.) write `~/.config/gtk-4.0/gtk.css` on every launch by symlinking it to `cosmic/dark.css`. This clobbers Home Manager's managed file. The config includes a pre-activation cleanup (`home.activation.clearGtkCss`) that removes it before HM's link check — if this triggers after a HM upgrade or clean install, just rebuild:
+
+```bash
+rm -f ~/.config/gtk-4.0/gtk.css
 nr
 ```
 
@@ -187,6 +200,19 @@ systemctl --user restart wallpaper-color-sync         # force matugen to run
 
 ---
 
+### Hyprland: border colors or terminal colors missing after `nr`
+
+Home Manager activation rewrites the `~/.config/hypr/` symlink, which deletes `colors.lua`. The matugen deduplication stamp still holds the same wallpaper path, so matugen sees "already processed" and skips — leaving `colors.lua` permanently missing until the wallpaper changes.
+
+Fix: clear the stamp and restart matugen manually:
+
+```bash
+rm ~/.local/share/last-matugen-processed
+systemctl --user restart matugen
+```
+
+---
+
 ## COSMIC / Desktop
 
 See [14-de-wm.md](14-de-wm.md) for full COSMIC DE documentation.
@@ -212,6 +238,67 @@ Missing paths (e.g. a server that's off) are silently skipped — this is expect
 ### Display scaling looks wrong after first boot
 
 COSMIC stores display settings per-monitor by EDID. Open **COSMIC Settings → Displays** and set your preferred scaling — it's remembered for that monitor.
+
+---
+
+## Hyprland
+
+### Login takes ~65 seconds after entering password (Ryzen5900x)
+
+KWin (SDDM's greeter compositor) grabs the DRM device via logind. When seatd is also running, it can never start and hangs for its full 90s timeout — blocking `graphical.target`, which blocks UWSM, which delays Hyprland.
+
+This is already fixed in the config (`services.seatd.enable = lib.mkForce false` + `LIBSEAT_BACKEND=logind`). If the delay reappears after a rebuild, verify these are still set:
+
+```bash
+systemctl status seatd          # should be inactive/disabled
+echo $LIBSEAT_BACKEND           # should print "logind"
+journalctl -b | grep -i seatd   # look for repeated timeout messages
+```
+
+If seatd is running, a full rebuild should restore the override.
+
+---
+
+### Hyprland crashes or fails to start after logging out of a KDE session
+
+When Hyprland's libseat auto-detection tries seatd first (the default), and seatd isn't available because KWin already holds the seat via logind, the connection fails repeatedly. The config forces `LIBSEAT_BACKEND=logind` to skip seatd entirely.
+
+If Hyprland fails to start or exits immediately, check:
+
+```bash
+journalctl -b | grep -iE "hyprland|libseat|aquamarine"
+echo $LIBSEAT_BACKEND   # must be "logind"
+```
+
+If `LIBSEAT_BACKEND` is not set, the session environment wasn't applied — rebuild and re-login.
+
+---
+
+### SDDM greeter has no cursor (invisible on login screen)
+
+This was caused by using Weston as the SDDM Wayland compositor. Weston never advertised pointer capability (`wl_seat.capabilities`) to Qt for keyboard dongle devices (Keychron Ultra-Link, Lemokey Link), so Qt never created a `wl_pointer` object — no cursor regardless of any theme or env var.
+
+The fix (already in config): SDDM uses KWin as its compositor (`services.displayManager.sddm.wayland.compositor = "kwin"`). If the cursor disappears again after a rebuild, confirm this is still set:
+
+```bash
+grep -r "compositor" /etc/sddm.conf.d/   # should show kwin, not weston
+```
+
+---
+
+## KDE / Desktop
+
+### SDDM login screen reverts to Breeze theme after opening System Settings
+
+Opening **System Settings → Login Screen** causes `sddm-kcm` to write `/etc/sddm.conf.d/kde_settings.conf` containing `[Theme] Current=breeze`. This file sorts after `00-nixos.conf` and overrides the declarative theme on every boot.
+
+The config includes an activation script that deletes this file on every rebuild. If the theme reverts, rebuild to clean it up:
+
+```bash
+sudo nixos-rebuild switch --flake ~/nixos-config#Ryzen5800x   # or Asus-A15
+```
+
+Do not use **System Settings → Login Screen** to change the SDDM theme — configure it declaratively in `greeters/sddm/default.nix` instead.
 
 ---
 
@@ -283,6 +370,36 @@ sudo chown -R linuxury:users ~/nixos-config
 
 ---
 
+### MinisForum: files owned by wrong user after rebuild
+
+If UIDs shift between rebuilds (e.g. after adding or removing a user), files that were written under the old UID are no longer owned by the expected user. UIDs are now pinned in `hosts/MinisForum/default.nix` (linuxury=1000, babylinux=1001, alex=1002) to prevent this. If it happens again:
+
+```bash
+id linuxury          # check current UID
+ls -ln /data         # check numeric ownership of files
+sudo chown -R 1000:users /data/relevant-dir   # fix ownership using pinned UID
+```
+
+---
+
+### Radxa-X4: qBittorrent downloads stop / connection drops when a SOCKS5 proxy is configured
+
+qBittorrent crashes when a proxy is enabled in its settings. The VPN killswitch already routes all traffic through Mullvad — an additional SOCKS5 proxy is redundant and causes the crash. Leave the proxy settings blank in qBittorrent's preferences.
+
+---
+
+### Radxa-X4: Tailscale goes offline silently after a network blip
+
+Tailscale can lose its tunnel after a brief network interruption and not recover on its own. The config includes a watchdog timer that runs `tailscale ping` every 5 minutes and restarts `tailscaled` if it fails. If the node appears offline in `tailscale status` from another machine:
+
+```bash
+ssh linuxury@<ip>
+sudo systemctl restart tailscaled
+sudo tailscale status   # verify re-connection
+```
+
+---
+
 ## SSH
 
 ### SSH key not accepted by GitHub
@@ -315,6 +432,22 @@ cat ~/.ssh/id_ed25519.pub          # copy this and add to GitHub → Settings �
 df -h /nix/store               # check current store usage
 ngc                            # delete all old generations, then collect garbage
 sudo nix-store --optimise      # hard-link identical files to reclaim space (takes a few minutes)
+```
+
+---
+
+### NTFS drive won't mount / "can't find FUSE helper" error
+
+NTFS mounts must use `fsType = "ntfs3"` (the kernel driver) and `boot.supportedFilesystems.ntfs = true`. The `ntfs-3g` FUSE helper is not available to systemd's mount units — using it causes a "can't find FUSE helper" error at mount time.
+
+If a mount fails with that error, check the host config for the affected drive and ensure:
+
+```nix
+fileSystems."/mnt/DriveName" = {
+  fsType = "ntfs3";   # ← not "ntfs-3g"
+  ...
+};
+boot.supportedFilesystems.ntfs = true;
 ```
 
 ---
