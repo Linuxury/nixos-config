@@ -182,6 +182,8 @@ The EFI partition always gets FAT32 — that is a hard requirement of the UEFI s
 
 The labels (`EFI` and `nixos`) matter — later steps and the NixOS config reference the disk by label (e.g. `/dev/disk/by-label/nixos`) rather than by device path. This makes the config portable regardless of whether the disk shows up as `nvme0n1` or `sda`.
 
+> **The `-L nixos` label is required.** Every mount in the config references this disk by label (`/dev/disk/by-label/nixos`). If the label is missing or wrong, the system will fail to boot into emergency mode.
+
 ```bash
 mkfs.fat -F 32 -n EFI ${DISK}${P}1     # FAT32 with label "EFI" — required format for the boot partition
 mkfs.btrfs -f -L nixos ${DISK}${P}2    # BTRFS with label "nixos" — -f forces format even if old data exists

@@ -193,6 +193,8 @@ Type `YES` in all caps exactly as shown, then enter and confirm your passphrase.
 
 After `cryptsetup open`, the decrypted container is available at `/dev/mapper/cryptroot`. BTRFS goes inside it.
 
+> **The `-L nixos` label is required.** Every mount in the config references this disk by label (`/dev/disk/by-label/nixos`). If the label is missing or wrong, the system will fail to boot into emergency mode.
+
 ```bash
 cryptsetup luksFormat --label nixos-luks ${DISK}${P}2   # creates the encrypted container — prompts for passphrase
 cryptsetup open ${DISK}${P}2 cryptroot                  # decrypts and exposes the container as /dev/mapper/cryptroot

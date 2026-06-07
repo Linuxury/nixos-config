@@ -190,7 +190,7 @@ After this you have two partitions: `${DISK}${P}1` is the GRUB embed partition (
 
 Only the main partition gets formatted — the BIOS boot partition is intentionally left without a filesystem. GRUB writes raw data there at install time.
 
-The label (`nixos`) is important — later steps and the NixOS config reference the disk by label rather than by device path, making the config portable.
+> **The `-L nixos` label is required.** Every mount in the config references this disk by label (`/dev/disk/by-label/nixos`). If the label is missing or wrong, the system will fail to boot into emergency mode.
 
 ```bash
 mkfs.btrfs -f -L nixos ${DISK}${P}2    # BTRFS with label "nixos" — the BIOS partition is intentionally skipped

@@ -196,6 +196,8 @@ Type `YES` in all caps exactly as shown, then enter and confirm your passphrase.
 
 After `cryptsetup open`, the decrypted container is available at `/dev/mapper/cryptroot`. All remaining work happens there. BTRFS and NixOS see a normal block device — they do not know it is encrypted underneath.
 
+> **The `-L nixos` label is required.** Every mount in the config references this disk by label (`/dev/disk/by-label/nixos`). If the label is missing or wrong, the system will fail to boot into emergency mode.
+
 ```bash
 mkfs.fat -F 32 -n EFI ${DISK}${P}1                    # FAT32 with label "EFI" — always unencrypted
 
