@@ -158,7 +158,8 @@
   # driver not amdgpu. Override the amd defaults from drivers.nix.
   # ==============================================================
   hardware.gpu = "amd";
-  boot.initrd.kernelModules = lib.mkForce [];
+  boot.initrd.availableKernelModules = [ "ahci" "ata_piix" "xhci_pci" "ehci_pci" "ohci_pci" "usb_storage" "sd_mod" ];
+  boot.initrd.kernelModules = [];
   services.xserver.videoDrivers = lib.mkForce [ "radeon" ];
 
   # ==============================================================
