@@ -73,10 +73,10 @@ There are four installation guides — pick the one that matches your machine:
 
 | Guide | Boot type | Encryption | Hosts |
 |-------|-----------|------------|-------|
-| [uefi.md](uefi.md) | UEFI | None | Ryzen5900x, Ryzen5800x, Alex-Laptop, Media-Server, Radxa-X4, MinisForum |
-| [luks.md](luks.md) | UEFI | LUKS full-disk | ThinkPad, Asus-A15 |
-| [legacy-bios.md](legacy-bios.md) | Legacy BIOS | None | Alex-Desktop |
-| [legacy-luks.md](legacy-luks.md) | Legacy BIOS | LUKS full-disk | — (edge case, available if needed) |
+| [02-install-uefi.md](02-install-uefi.md) | UEFI | None | Ryzen5900x, Ryzen5800x, Alex-Laptop, Media-Server, Radxa-X4, MinisForum |
+| [03-install-luks.md](03-install-luks.md) | UEFI | LUKS full-disk | ThinkPad, Asus-A15 |
+| [04-install-legacy-bios.md](04-install-legacy-bios.md) | Legacy BIOS | None | Alex-Desktop |
+| [05-install-legacy-luks.md](05-install-legacy-luks.md) | Legacy BIOS | LUKS full-disk | — (edge case, available if needed) |
 
 **Not sure which boot type your machine uses?** Most machines bought after 2012 are UEFI. Alex-Desktop is the exception — it uses Legacy BIOS. If you're unsure, check the machine's firmware settings screen: if you see "UEFI" in the menu name or there is a Secure Boot setting, it's UEFI. If the screen looks old and text-only with no Secure Boot option, it is likely Legacy BIOS.
 
@@ -247,9 +247,9 @@ You are now at the `nixos` shell on the target machine with the installer runnin
 
 | Your machine | Continue with |
 |---|---|
-| Ryzen5900x, Ryzen5800x, Alex-Laptop, servers | [uefi.md](uefi.md) |
-| ThinkPad, Asus-A15 | [luks.md](luks.md) |
-| Alex-Desktop | [legacy-bios.md](legacy-bios.md) |
-| Legacy BIOS + encryption (edge case) | [legacy-luks.md](legacy-luks.md) |
+| Ryzen5900x, Ryzen5800x, Alex-Laptop, servers | [02-install-uefi.md](02-install-uefi.md) |
+| ThinkPad, Asus-A15 | [03-install-luks.md](03-install-luks.md) |
+| Alex-Desktop | [04-install-legacy-bios.md](04-install-legacy-bios.md) |
+| Legacy BIOS + encryption (edge case) | [05-install-legacy-luks.md](05-install-legacy-luks.md) |
 
 Each guide picks up exactly from this point — no repeated setup, straight into partitioning.

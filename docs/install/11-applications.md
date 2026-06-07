@@ -309,7 +309,7 @@ When the wallpaper changes, the matugen pipeline regenerates `~/.config/nvim/col
 The zsh config is layered across three sources, applied in order:
 
 1. `programs.zsh` in `home.nix` — Home Manager options: autosuggestions, completion, fast-syntax-highlighting plugin
-2. `programs.zsh.zsh-abbr.abbreviations` — declarative abbreviations (see [08-maintenance.md](08-maintenance.md) for the full list)
+2. `programs.zsh.zsh-abbr.abbreviations` — declarative abbreviations (see [09-maintenance.md](09-maintenance.md) for the full list)
 3. `dotfiles/zsh/zshrc` — shared env vars, PATH, fastfetch on open, `nru` function, completion styling; symlinked to `~/.zshrc`
 
 ### Integrations
@@ -384,7 +384,7 @@ Syncthing devices must be paired manually after the first rebuild — the module
 
 ## FreshRSS and Fluent Reader
 
-**FreshRSS** runs on Media-Server as the RSS aggregator backend — see [09-servers.md](09-servers.md) for server-side setup.
+**FreshRSS** runs on Media-Server as the RSS aggregator backend — see [10-servers.md](10-servers.md) for server-side setup.
 
 **Fluent Reader** is installed on linuxury's machines and connects to FreshRSS via the GReader API:
 

@@ -202,7 +202,7 @@ Home Manager manages everything inside the user's home directory: packages, dotf
 
 ## Adding a New Host
 
-Follow these steps in order. See [07-secrets.md](07-secrets.md) for the secrets step in detail.
+Follow these steps in order. See [08-secrets.md](08-secrets.md) for the secrets step in detail.
 
 1. **Create the host directory and config:**
    ```bash
@@ -224,7 +224,7 @@ Follow these steps in order. See [07-secrets.md](07-secrets.md) for the secrets 
    };
    ```
 
-4. **Add the host key to `secrets/secrets.nix`** and re-key — see [07-secrets.md](07-secrets.md).
+4. **Add the host key to `secrets/secrets.nix`** and re-key — see [08-secrets.md](08-secrets.md).
 
 5. **Install:**
    ```bash

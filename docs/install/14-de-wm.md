@@ -197,7 +197,7 @@ All CIFS mounts use `x-systemd.automount`, `idle-timeout=60`, and `nofail _netde
 
 ## Wallpaper and Theming
 
-Wallpaper rotation and dynamic color theming are handled by the matugen pipeline, which is injected into every COSMIC host automatically. The full pipeline is documented in [12-theming.md](12-theming.md).
+Wallpaper rotation and dynamic color theming are handled by the matugen pipeline, which is injected into every COSMIC host automatically. The full pipeline is documented in [13-theming.md](13-theming.md).
 
 Key rules:
 

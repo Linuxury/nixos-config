@@ -2,7 +2,7 @@
 
 This guide installs NixOS on a machine with legacy BIOS firmware and full-disk encryption via LUKS. No current host in this config uses this combination — this guide exists for future machines or edge cases where an older BIOS machine also needs encryption.
 
-**Before starting:** complete [getting-started.md](getting-started.md) — you should be at the `nixos` shell with the installer running and the console font set. Confirm you booted in Legacy BIOS mode before continuing:
+**Before starting:** complete [01-getting-started.md](01-getting-started.md) — you should be at the `nixos` shell with the installer running and the console font set. Confirm you booted in Legacy BIOS mode before continuing:
 
 ```bash
 ls /sys/firmware/efi   # must return "No such file or directory" — if it returns a list, you booted as UEFI
@@ -150,15 +150,15 @@ echo "Disk: $DISK  |  Partitions: ${DISK}${P}1 / ${DISK}${P}2  |  Host: $HOST  |
 
 | `HOST` | `NIXUSER` | Machine | Guide |
 |--------|-----------|---------|-------|
-| `ThinkPad` | `linuxury` | linuxury's laptop | [luks.md](luks.md) |
-| `Ryzen5900x` | `linuxury` | linuxury's desktop | [uefi.md](uefi.md) |
-| `Ryzen5800x` | `babylinux` | Milagros' desktop | [uefi.md](uefi.md) |
-| `Asus-A15` | `babylinux` | Milagros' laptop | [luks.md](luks.md) |
-| `Alex-Desktop` | `alex` | Alex's desktop | [legacy-bios.md](legacy-bios.md) |
-| `Alex-Laptop` | `alex` | Alex's laptop | [uefi.md](uefi.md) |
-| `Media-Server` | `linuxury` | Media server | [uefi.md](uefi.md) |
-| `Radxa-X4` | `linuxury` | Torrent server | [uefi.md](uefi.md) |
-| `MinisForum` | `linuxury` | Game server | [uefi.md](uefi.md) |
+| `ThinkPad` | `linuxury` | linuxury's laptop | [03-install-luks.md](03-install-luks.md) |
+| `Ryzen5900x` | `linuxury` | linuxury's desktop | [02-install-uefi.md](02-install-uefi.md) |
+| `Ryzen5800x` | `babylinux` | Milagros' desktop | [02-install-uefi.md](02-install-uefi.md) |
+| `Asus-A15` | `babylinux` | Milagros' laptop | [03-install-luks.md](03-install-luks.md) |
+| `Alex-Desktop` | `alex` | Alex's desktop | [04-install-legacy-bios.md](04-install-legacy-bios.md) |
+| `Alex-Laptop` | `alex` | Alex's laptop | [02-install-uefi.md](02-install-uefi.md) |
+| `Media-Server` | `linuxury` | Media server | [02-install-uefi.md](02-install-uefi.md) |
+| `Radxa-X4` | `linuxury` | Torrent server | [02-install-uefi.md](02-install-uefi.md) |
+| `MinisForum` | `linuxury` | Game server | [02-install-uefi.md](02-install-uefi.md) |
 
 ---
 
@@ -372,7 +372,7 @@ Remove the USB drive when the machine powers off. On the next boot, GRUB loads a
 
 ## After First Boot
 
-Continue with **[02-first-boot.md](../02-first-boot.md)** which covers:
+Continue with **[06-first-boot.md](06-first-boot.md)** which covers:
 
 - Connect to Tailscale
 - Generate the machine's SSH key and register it on GitHub

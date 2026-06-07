@@ -21,7 +21,7 @@ Common failures, their causes, and how to fix them. Organized by area. For deepe
 
 ## Rebuild / nixos-rebuild
 
-See [06-flake-guide.md](06-flake-guide.md) for the full config structure reference.
+See [07-flake-guide.md](07-flake-guide.md) for the full config structure reference.
 
 ### error: flake does not provide attribute
 
@@ -68,7 +68,7 @@ nr
 
 ## Secrets / ragenix
 
-See [07-secrets.md](07-secrets.md) for the full secrets workflow.
+See [08-secrets.md](08-secrets.md) for the full secrets workflow.
 
 ### agenix: secret cannot be decrypted with any of the given keys
 
@@ -143,7 +143,7 @@ sudo systemctl status samba       # check Samba is running on the server
 
 ## Theming / matugen
 
-See [12-theming.md](12-theming.md) for the full theming pipeline.
+See [13-theming.md](13-theming.md) for the full theming pipeline.
 
 ### Terminal colors stopped updating when wallpaper changes
 
@@ -189,7 +189,7 @@ systemctl --user restart wallpaper-color-sync         # force matugen to run
 
 ## COSMIC / Desktop
 
-See [13-de-wm.md](13-de-wm.md) for full COSMIC DE documentation.
+See [14-de-wm.md](14-de-wm.md) for full COSMIC DE documentation.
 
 ### COSMIC Files shows wrong or missing network shares
 
@@ -217,7 +217,7 @@ COSMIC stores display settings per-monitor by EDID. Open **COSMIC Settings → D
 
 ## Gaming
 
-See [11-gaming.md](11-gaming.md) for full gaming setup documentation.
+See [12-gaming.md](12-gaming.md) for full gaming setup documentation.
 
 ### Steam game won't launch
 
@@ -251,7 +251,7 @@ __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia %command%
 
 ## Servers
 
-See [09-servers.md](09-servers.md) for full server management documentation.
+See [10-servers.md](10-servers.md) for full server management documentation.
 
 ### Server service is failed
 

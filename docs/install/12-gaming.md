@@ -231,7 +231,7 @@ The Hytale launcher installs automatically on first login via a one-shot systemd
 ~/Documents/assets/flatpaks/hytale-launcher-latest.flatpak
 ```
 
-The assets repo must be cloned first — see [05-first-boot.md](05-first-boot.md).
+The assets repo must be cloned first — see [06-first-boot.md](06-first-boot.md).
 
 The service only runs if the app is not already installed:
 

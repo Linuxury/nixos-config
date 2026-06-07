@@ -1,17 +1,26 @@
-# Install — UEFI (No Encryption)
+# Install — Legacy BIOS (No Encryption)
 
-This guide installs NixOS on a UEFI machine without full-disk encryption. It applies to:
+This guide installs NixOS on a machine with a legacy BIOS firmware (non-UEFI), without full-disk encryption. It applies to:
 
 | Host | User |
 |------|------|
-| Ryzen5900x | linuxury |
-| Ryzen5800x | babylinux |
-| Alex-Laptop | alex |
-| Media-Server | linuxury |
-| Radxa-X4 | linuxury |
-| MinisForum | linuxury |
+| Alex-Desktop | alex |
 
-**Before starting:** complete [getting-started.md](getting-started.md) — you should be at the `nixos` shell with the installer running and the console font set.
+**Before starting:** complete [01-getting-started.md](01-getting-started.md) — you should be at the `nixos` shell with the installer running and the console font set. Confirm you booted in Legacy BIOS mode before continuing:
+
+```bash
+ls /sys/firmware/efi   # must return "No such file or directory" — if it returns a list, you booted as UEFI
+```
+
+---
+
+## How Legacy BIOS Boot Works
+
+On UEFI machines, the firmware reads the bootloader from a dedicated FAT32 EFI partition. On legacy BIOS machines, the firmware reads a small piece of boot code directly from the first sectors of the disk (the MBR), which then finds and launches the main bootloader.
+
+With GPT partition tables (which we use here), there is no room in the MBR for the full GRUB bootloader. Instead, a tiny unformatted partition of 1 MiB is reserved at the start of the disk with the `bios_grub` flag — GRUB embeds its second-stage code there. This partition has no filesystem, no label, and is never mounted. It is just reserved space for GRUB.
+
+The rest of the disk layout — BTRFS, subvolumes, swapfile — is identical to the UEFI guides. The bootloader is GRUB instead of systemd-boot, but NixOS handles that difference in the host configuration automatically.
 
 ---
 
@@ -21,7 +30,7 @@ This guide installs NixOS on a UEFI machine without full-disk encryption. It app
 - [Step 2 — Enable SSH and Connect from Your Admin Machine](#step-2--enable-ssh-and-connect-from-your-admin-machine)
 - [Step 3 — Identify Your Disk and Set Variables](#step-3--identify-your-disk-and-set-variables)
 - [Step 4 — Partition the Disk](#step-4--partition-the-disk)
-- [Step 5 — Format the Partitions](#step-5--format-the-partitions)
+- [Step 5 — Format the Partition](#step-5--format-the-partition)
 - [Step 6 — Create BTRFS Subvolumes](#step-6--create-btrfs-subvolumes)
 - [Step 7 — Mount Everything](#step-7--mount-everything)
 - [Step 8 — Create the Swapfile](#step-8--create-the-swapfile)
@@ -106,27 +115,26 @@ lsblk
 Example output:
 
 ```
-NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-nvme0n1     259:0    0 476.9G  0 disk         ← NVMe SSD — likely your target
-sda           8:0    0   1.8T  0 disk         ← external drive — do not touch
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0 465.8G  0 disk         ← SATA SSD — likely your target
+sdb      8:16   1   7.5G  0 disk         ← USB drive — do not touch
 ```
 
-Disk naming follows the hardware type. NVMe and eMMC drives use a `p` before the partition number; SATA drives do not:
+Disk naming on legacy machines is typically SATA (`/dev/sda`, `/dev/sdb`) or NVMe (`/dev/nvme0n1`). SATA drives do not use the `p` suffix before the partition number:
 
 | Drive type | Disk name | Partition 1 | Partition 2 |
 |-----------|-----------|-------------|-------------|
-| NVMe SSD | `/dev/nvme0n1` | `nvme0n1p1` | `nvme0n1p2` |
 | SATA SSD/HDD | `/dev/sda` | `sda1` | `sda2` |
-| eMMC | `/dev/mmcblk0` | `mmcblk0p1` | `mmcblk0p2` |
+| NVMe SSD | `/dev/nvme0n1` | `nvme0n1p1` | `nvme0n1p2` |
 
 > Double-check the disk name and size before moving on. The next step permanently erases everything on the selected disk.
 
 Set the three variables that drive every command from here forward. Set them once and every code block is copy-pasteable without editing:
 
 ```bash
-export DISK=/dev/nvme0n1   # your actual disk — replace this value
-export HOST=Ryzen5900x     # your host name — capitalization must be exact
-export NIXUSER=linuxury    # the primary user for this host
+export DISK=/dev/sda   # your actual disk — replace this value
+export HOST=Alex-Desktop
+export NIXUSER=alex
 ```
 
 Set the partition suffix — this detects whether your disk needs a `p` between the name and the partition number:
@@ -145,46 +153,47 @@ echo "Disk: $DISK  |  Partitions: ${DISK}${P}1 / ${DISK}${P}2  |  Host: $HOST  |
 
 | `HOST` | `NIXUSER` | Machine | Guide |
 |--------|-----------|---------|-------|
-| `ThinkPad` | `linuxury` | linuxury's laptop | [luks.md](luks.md) |
-| `Ryzen5900x` | `linuxury` | linuxury's desktop | this guide |
-| `Ryzen5800x` | `babylinux` | Milagros' desktop | this guide |
-| `Asus-A15` | `babylinux` | Milagros' laptop | [luks.md](luks.md) |
-| `Alex-Desktop` | `alex` | Alex's desktop | [legacy-bios.md](legacy-bios.md) |
-| `Alex-Laptop` | `alex` | Alex's laptop | this guide |
-| `Media-Server` | `linuxury` | Media server | this guide |
-| `Radxa-X4` | `linuxury` | Torrent server | this guide |
-| `MinisForum` | `linuxury` | Game server | this guide |
+| `ThinkPad` | `linuxury` | linuxury's laptop | [03-install-luks.md](03-install-luks.md) |
+| `Ryzen5900x` | `linuxury` | linuxury's desktop | [02-install-uefi.md](02-install-uefi.md) |
+| `Ryzen5800x` | `babylinux` | Milagros' desktop | [02-install-uefi.md](02-install-uefi.md) |
+| `Asus-A15` | `babylinux` | Milagros' laptop | [03-install-luks.md](03-install-luks.md) |
+| `Alex-Desktop` | `alex` | Alex's desktop | this guide |
+| `Alex-Laptop` | `alex` | Alex's laptop | [02-install-uefi.md](02-install-uefi.md) |
+| `Media-Server` | `linuxury` | Media server | [02-install-uefi.md](02-install-uefi.md) |
+| `Radxa-X4` | `linuxury` | Torrent server | [02-install-uefi.md](02-install-uefi.md) |
+| `MinisForum` | `linuxury` | Game server | [02-install-uefi.md](02-install-uefi.md) |
 
 ---
 
 ## Step 4 — Partition the Disk
 
-This creates two partitions. The first partition (512 MiB) holds the bootloader — this is the EFI System Partition (ESP), required for UEFI boot. The second partition takes all remaining space and holds everything else: root, home, Nix store, logs, caches, and swap — all as BTRFS subvolumes.
+Legacy BIOS boot requires a different partition layout compared to UEFI. Instead of an EFI System Partition, we create a tiny 1 MiB BIOS boot partition at the start of the disk. This partition holds GRUB's second-stage bootloader code — it has no filesystem, no label, and is never mounted by the OS.
 
-We use GPT (GUID Partition Table) rather than the older MBR format — it is required for UEFI and handles large disks correctly.
+The main partition follows immediately and takes all remaining space.
 
 ```bash
-wipefs -a $DISK                                   # wipe any existing signatures from the disk
+wipefs -a $DISK                                    # wipe any existing signatures from the disk
 
-parted $DISK -- mklabel gpt                       # create a fresh GPT partition table
-parted $DISK -- mkpart EFI fat32 1MiB 513MiB      # 512 MiB EFI partition — holds the bootloader
-parted $DISK -- set 1 esp on                      # mark partition 1 as the EFI System Partition
-parted $DISK -- mkpart primary 513MiB 100%        # main partition — everything from 513 MiB to end of disk
+parted $DISK -- mklabel gpt                        # GPT works with legacy BIOS when the bios_grub partition is present
+parted $DISK -- mkpart BIOS 1MiB 2MiB             # 1 MiB BIOS boot partition — GRUB embeds its code here
+parted $DISK -- set 1 bios_grub on                 # flag this partition for GRUB use — no filesystem, never mounted
+parted $DISK -- mkpart primary btrfs 2MiB 100%    # main partition — takes everything from 2 MiB to end of disk
 ```
 
-After this you have two partitions: `${DISK}${P}1` for EFI and `${DISK}${P}2` for the main system. Neither has a filesystem yet.
+After this you have two partitions: `${DISK}${P}1` is the GRUB embed partition (do not touch it further) and `${DISK}${P}2` is the main system partition.
+
+> Note: On a SATA disk, partition 1 is `sda1` and partition 2 is `sda2`. On an NVMe disk they would be `nvme0n1p1` and `nvme0n1p2`. The `$P` variable handles this automatically.
 
 ---
 
-## Step 5 — Format the Partitions
+## Step 5 — Format the Partition
 
-The EFI partition always gets FAT32 — that is a hard requirement of the UEFI standard. The main partition gets BTRFS directly.
+Only the main partition gets formatted — the BIOS boot partition is intentionally left without a filesystem. GRUB writes raw data there at install time.
 
-The labels (`EFI` and `nixos`) matter — later steps and the NixOS config reference the disk by label (e.g. `/dev/disk/by-label/nixos`) rather than by device path. This makes the config portable regardless of whether the disk shows up as `nvme0n1` or `sda`.
+The label (`nixos`) is important — later steps and the NixOS config reference the disk by label rather than by device path, making the config portable.
 
 ```bash
-mkfs.fat -F 32 -n EFI ${DISK}${P}1     # FAT32 with label "EFI" — required format for the boot partition
-mkfs.btrfs -f -L nixos ${DISK}${P}2    # BTRFS with label "nixos" — -f forces format even if old data exists
+mkfs.btrfs -f -L nixos ${DISK}${P}2    # BTRFS with label "nixos" — the BIOS partition is intentionally skipped
 ```
 
 ---
@@ -232,22 +241,22 @@ Each subvolume gets mounted at its permanent location under `/mnt` with the corr
 
 The swap subvolume deliberately omits `compress` — BTRFS cannot host a swapfile on a compressed subvolume and the kernel will refuse to activate it.
 
+There is no EFI partition to mount on this path. GRUB reads the BIOS boot partition directly at install time — it does not need a mount point in the running system.
+
 ```bash
 mount -o subvol=@,compress=zstd:1,noatime           /dev/disk/by-label/nixos /mnt   # root subvolume first
 
-mkdir -p /mnt/{boot,home,nix,var/log,var/cache,.snapshots,swap}                      # all mount point dirs in one shot
+mkdir -p /mnt/{home,nix,var/log,var/cache,.snapshots,swap}   # no /boot dir — GRUB does not need a mounted boot partition
 
 mount -o subvol=@home,compress=zstd:1,noatime        /dev/disk/by-label/nixos /mnt/home
 mount -o subvol=@nix,compress=zstd:1,noatime         /dev/disk/by-label/nixos /mnt/nix
 mount -o subvol=@log,compress=zstd:1,noatime         /dev/disk/by-label/nixos /mnt/var/log
 mount -o subvol=@cache,compress=zstd:1,noatime       /dev/disk/by-label/nixos /mnt/var/cache
 mount -o subvol=@snapshots,compress=zstd:1,noatime   /dev/disk/by-label/nixos /mnt/.snapshots
-mount -o subvol=@swap,noatime                        /dev/disk/by-label/nixos /mnt/swap   # no compression — swapfile requires this
-
-mount /dev/disk/by-label/EFI /mnt/boot   # EFI partition — always at /boot
+mount -o subvol=@swap,noatime                        /dev/disk/by-label/nixos /mnt/swap
 ```
 
-Run `lsblk` to confirm. You should see `/mnt`, `/mnt/home`, `/mnt/nix`, `/mnt/boot`, and the other directories all listed as mount points before continuing.
+Run `lsblk` to confirm. You should see `/mnt`, `/mnt/home`, `/mnt/nix`, and the other directories as mount points. Note that `/mnt/boot` will not appear — that is correct for legacy BIOS.
 
 ---
 
@@ -262,7 +271,7 @@ btrfs filesystem mkswapfile --size 16G /mnt/swap/swapfile   # create a 16G swapf
 swapon /mnt/swap/swapfile                                    # activate it for the current live session
 ```
 
-> **Size guide:** 16G works well for machines with 16–32G RAM. For hibernation to work reliably, the swapfile should be at least as large as your installed RAM. For a machine with 64G RAM, use `--size 64G`.
+> **Size guide:** 16G works well for machines with 16–32G RAM. For hibernation to work reliably, the swapfile should be at least as large as your installed RAM.
 
 ---
 
@@ -310,7 +319,19 @@ Review the generated file:
 cat /mnt/home/$NIXUSER/nixos-config/hosts/$HOST/hardware-configuration.nix
 ```
 
-Check that the BTRFS subvolumes (`@`, `@home`, `@nix`, etc.) appear in the filesystems section with the correct mount points and options. If anything looks wrong, compare against another host's `hardware-configuration.nix` as a reference.
+**Legacy BIOS-specific check:** confirm the file does NOT include `boot.loader.systemd-boot.enable = true` or any EFI-related boot options. If it does, the hardware config was likely generated from a UEFI boot — check that you booted the installer correctly in Legacy BIOS mode.
+
+The host's NixOS config (`hosts/Alex-Desktop/default.nix`) must have GRUB configured for legacy BIOS, not systemd-boot:
+
+```nix
+boot.loader.grub = {
+  enable = true;
+  device = "/dev/sda";   # the disk, not a partition — GRUB installs to the MBR/BIOS boot area
+};
+boot.loader.systemd-boot.enable = false;
+```
+
+Also confirm the BTRFS subvolumes (`@`, `@home`, `@nix`, etc.) appear with the correct mount points and options. There should be no EFI or `/boot` mount in the filesystems section.
 
 ---
 
@@ -357,13 +378,13 @@ umount -R /mnt  # recursively unmount all subvolume mounts in dependency order
 reboot
 ```
 
-Remove the USB drive when the machine powers off. On the next boot the system goes straight to the login screen.
+Remove the USB drive when the machine powers off. On the next boot GRUB loads from the disk and brings the system straight to the login screen.
 
 ---
 
 ## After First Boot
 
-The system is installed and running your flake config. Continue with **[02-first-boot.md](../02-first-boot.md)** which covers:
+The system is installed and running your flake config. Continue with **[06-first-boot.md](06-first-boot.md)** which covers:
 
 - Connect to Tailscale
 - Generate the machine's SSH key and register it on GitHub
@@ -425,8 +446,11 @@ ssh -T git@github.com   # verify GitHub still accepts the restored key
 
 | Problem | Fix |
 |---------|-----|
+| `ls /sys/firmware/efi` returns a list instead of "not found" | You booted in UEFI mode — go into firmware settings, enable CSM/Legacy boot, and reinstall the USB |
 | `git clone` fails: "Permission denied (publickey)" | Run `ssh-add ~/.ssh/id_ed25519` on your admin machine, then reconnect with `ssh -A root@<ip>` |
-| `nixos-install` fails: "flake does not provide attribute" | `$HOST` must match `flake.nix` exactly — it is case-sensitive (`Ryzen5900x` not `ryzen5900x`) |
+| `nixos-install` fails: "flake does not provide attribute" | `$HOST` must match `flake.nix` exactly — it is case-sensitive (`Alex-Desktop` not `alex-desktop`) |
 | `echo $HOST` shows nothing | SSH session dropped and variables were lost — re-export all three before continuing |
+| System boots to a blank screen or "no bootable device" | GRUB did not install — confirm `boot.loader.grub.device` in the host config matches the actual disk (`/dev/sda`, not a partition) |
 | System boots to emergency shell | Run `journalctl -b` — usually a subvolume mount option mismatch in the generated hardware config |
 | Can't log in after first boot | Password wasn't set — boot the ISO again and run `nixos-enter --root /mnt -- passwd $NIXUSER` |
+| Machine still boots old OS after install | The firmware is not using the disk as the first boot device — enter BIOS and move it to the top of the boot order |
