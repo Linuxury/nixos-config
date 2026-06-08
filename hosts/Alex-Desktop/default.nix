@@ -413,6 +413,7 @@
     createHome   = true;
     group        = "users";
     extraGroups  = [ "wheel" ];
+    shell        = pkgs.zsh;
   };
 
   # Hide linuxury from the login screen — emergency account only
