@@ -174,13 +174,15 @@
   #
   # gfxVersion: RDNA3 (gfx1100) reports as 11.0.0
   # Find yours: rocminfo | grep gfx
+  #
+  # Disabled — uncomment the local-llm module import above first
   # ==============================================================
-  services.localLlm = {
-    enable     = true;
-    user       = "linuxury";
-    model      = "qwen2.5:14b";
-    gfxVersion = "11.0.0";
-  };
+  # services.localLlm = {
+  #   enable     = true;
+  #   user       = "linuxury";
+  #   model      = "qwen2.5:14b";
+  #   gfxVersion = "11.0.0";
+  # };
 
   # ==============================================================
   # Default session — tells SDDM which session to pre-select at login
