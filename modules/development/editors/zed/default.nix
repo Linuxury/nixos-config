@@ -16,5 +16,8 @@
   # =========================================================================
   # Zed — system package (available to all users on this host)
   # =========================================================================
-  environment.systemPackages = [ pkgs.zed-editor ];
+  environment.systemPackages = with pkgs; [
+    zed-editor
+    nixd        # Nix language server — required by Zed's Nix extension
+  ];
 }
