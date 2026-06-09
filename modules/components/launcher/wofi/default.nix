@@ -8,12 +8,12 @@
 #   1. Adds wofi and rofi-wayland to system packages.
 #   2. Symlinks dotfiles/wofi/ → ~/.config/wofi/  (all users)
 #              dotfiles/rofi/ → ~/.config/rofi/  (all users)
-#   3. Writes ~/.config/hypr/components/launcher.lua at HM activation:
+#   3. If Hyprland is present: writes ~/.config/hypr/components/launcher.lua
 #      - Launcher keybinds (SUPER+Space, SUPER+R)
 #      - Clipboard history picker (SUPER+V via cliphist + wofi)
 #      - Window switcher (SUPER+Tab via rofi)
 #      - Wofi window rules (float, center, rounding)
-#      The file is only loaded when Hyprland is the active compositor.
+#      Skipped on all other compositors — this module itself is compositor-agnostic.
 # ===========================================================================
 
 { pkgs, ... }:
@@ -31,10 +31,10 @@
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/rofi";
 
         home.activation.launcherHyprConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          _target="$HOME/.config/hypr/components/launcher.lua"
-          _dir="$(dirname "$_target")"
-          [ -d "$_dir" ] || mkdir -p "$_dir"
+          # Only run on Hyprland hosts — skip silently on all others
           [ -d "$HOME/.config/hypr" ] || exit 0
+          _target="$HOME/.config/hypr/components/launcher.lua"
+          [ -d "$(dirname "$_target")" ] || mkdir -p "$(dirname "$_target")"
           printf '%s\n' \
             'local mod = "SUPER"' \
             '' \

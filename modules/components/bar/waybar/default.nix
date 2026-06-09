@@ -7,9 +7,9 @@
 # When imported, this module:
 #   1. Adds waybar to system packages.
 #   2. Symlinks dotfiles/waybar/ → ~/.config/waybar/  (all users)
-#   3. Writes ~/.config/hypr/components/bar.lua at HM activation
-#      (placeholder for future Hyprland-specific bar keybinds).
-#      The file is only loaded when Hyprland is the active compositor.
+#   3. If Hyprland is present: writes ~/.config/hypr/components/bar.lua
+#      (placeholder for Hyprland-specific bar keybinds; skipped on all
+#      other compositors — this module itself is compositor-agnostic).
 # ===========================================================================
 
 { pkgs, ... }:
@@ -25,10 +25,10 @@
           config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/waybar";
 
         home.activation.waybarHyprBinds = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          _target="$HOME/.config/hypr/components/bar.lua"
-          _dir="$(dirname "$_target")"
-          [ -d "$_dir" ] || mkdir -p "$_dir"
+          # Only run on Hyprland hosts — skip silently on all others
           [ -d "$HOME/.config/hypr" ] || exit 0
+          _target="$HOME/.config/hypr/components/bar.lua"
+          [ -d "$(dirname "$_target")" ] || mkdir -p "$(dirname "$_target")"
           # Placeholder — add Hyprland keybinds for bar interaction here
           printf '' > "$_target"
         '';

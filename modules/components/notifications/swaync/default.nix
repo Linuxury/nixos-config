@@ -8,9 +8,9 @@
 #   1. Adds swaync to system packages.
 #   2. Injects hm.nix into every user via home-manager.sharedModules,
 #      which generates ~/.config/swaync/config.json from host options.
-#   3. Writes ~/.config/hypr/components/notifications.lua at HM activation
-#      (layer rules for slide-in animation). The file is only loaded when
-#      Hyprland is the active compositor — safe to write unconditionally.
+#   3. If Hyprland is present: writes ~/.config/hypr/components/notifications.lua
+#      (layer rules for the slide-in animation). Skipped on all other
+#      compositors — this module itself is compositor-agnostic.
 #
 # Set these options in your host config (hosts/<name>/default.nix):
 #   myModules.swaync.hasBacklight      = true;
@@ -69,14 +69,14 @@
       # Generate ~/.config/swaync/config.json from host options.
       ./hm.nix
 
-      # Write Hyprland layer rules for swaync slide animation.
-      # safe_dofile in hyprland.lua skips this if Hyprland is not active.
+      # If Hyprland is present: write layer rules for the swaync slide animation.
+      # Skipped silently on all other compositors.
       ({ lib, ... }: {
         home.activation.swayncHyprRules = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          _target="$HOME/.config/hypr/components/notifications.lua"
-          _dir="$(dirname "$_target")"
-          [ -d "$_dir" ] || mkdir -p "$_dir"
+          # Only run on Hyprland hosts — skip silently on all others
           [ -d "$HOME/.config/hypr" ] || exit 0
+          _target="$HOME/.config/hypr/components/notifications.lua"
+          [ -d "$(dirname "$_target")" ] || mkdir -p "$(dirname "$_target")"
           printf '%s\n' \
             '-- swaync layer rules — slide in from the right' \
             'hl.layer_rule({ match = { namespace = "swaync/control-center"      }, animation = "slide right" })' \
