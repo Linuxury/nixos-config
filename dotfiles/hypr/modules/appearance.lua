@@ -60,14 +60,15 @@ hl.config({
 hl.curve("easeOutQuint",   { type = "bezier", points = { {0.23, 1},    {0.32, 1}    } })
 hl.curve("easeInOutSine",  { type = "bezier", points = { {0.37, 0},    {0.63, 1}    } })
 hl.curve("easeOutBack",    { type = "bezier", points = { {0.34, 1.56}, {0.64, 1}    } })   -- Slight overshoot
+hl.curve("easeInBack",     { type = "bezier", points = { {0.36, 0},    {0.66, -0.56} } })   -- Pulls inward before closing
 hl.curve("linear",         { type = "bezier", points = { {0,    0},    {1,    1}    } })
 
 -- ── Animations ───────────────────────────────────────────────────────────────
 hl.config({ animations = { enabled = true } })
 
 -- Windows
-hl.animation({ leaf = "windows",     enabled = true, speed = 5,  bezier = "easeOutQuint",  style = "slide"    })   -- no overshoot
-hl.animation({ leaf = "windowsOut",  enabled = true, speed = 4,  bezier = "easeInOutSine", style = "slide"    })   -- consistent with open
+hl.animation({ leaf = "windows",     enabled = true, speed = 5,  bezier = "easeOutBack",   style = "popin"    })
+hl.animation({ leaf = "windowsOut",  enabled = true, speed = 4,  bezier = "easeInBack",    style = "popin"    })
 hl.animation({ leaf = "windowsMove", enabled = true, speed = 4,  bezier = "easeOutQuint"                      })
 
 -- Borders
@@ -79,7 +80,7 @@ hl.animation({ leaf = "fade",        enabled = true, speed = 4,  bezier = "easeI
 hl.animation({ leaf = "fadeOut",     enabled = true, speed = 4,  bezier = "easeInOutSine"                     })
 
 -- Workspaces
-hl.animation({ leaf = "workspaces",  enabled = true, speed = 5,  bezier = "easeOutQuint",  style = "slidefade 15%" })
+hl.animation({ leaf = "workspaces",  enabled = true, speed = 5,  bezier = "easeOutBack",   style = "slide"         })
 
 -- ── Layout options ────────────────────────────────────────────────────────────
 hl.config({

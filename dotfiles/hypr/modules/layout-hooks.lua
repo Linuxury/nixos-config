@@ -49,11 +49,7 @@ local function _apply_col_width()
         hl.dispatch(hl.dsp.focus({ direction = "right" }))
     end
 
-    -- After the sweep, focus is at rightmost and the viewport is scrolled to follow it.
-    -- Scroll back left so column 1 is at the left edge — both 50% columns fill the screen.
-    for _ = 1, n - 1 do
-        hl.dispatch(hl.dsp.layout("move -col"))
-    end
+    -- After the sweep, focus is at the new (rightmost) column — stay there.
 end
 
 hl.on("window.open",      function() _apply_col_width() end)
