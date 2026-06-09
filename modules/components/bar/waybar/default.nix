@@ -12,7 +12,7 @@
 #      The file is only loaded when Hyprland is the active compositor.
 # ===========================================================================
 
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 {
   config = {
