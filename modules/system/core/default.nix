@@ -301,6 +301,15 @@
         return polkit.Result.YES;
       }
     });
+    // Allow the fwupd-refresh system user to refresh LVFS metadata without
+    // an interactive polkit session. The NixOS fwupd module omits this rule,
+    // causing fwupd-refresh.service to always fail with "Failed to obtain auth".
+    polkit.addRule(function(action, subject) {
+      if (action.id == "org.freedesktop.fwupd.refresh-remote" &&
+          subject.user == "fwupd-refresh") {
+        return polkit.Result.YES;
+      }
+    });
   '';
 
   # =========================================================================
