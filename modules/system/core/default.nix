@@ -304,6 +304,18 @@
   '';
 
   # =========================================================================
+  # KERNEL SYSCTL TWEAKS
+  #
+  # fs.inotify.max_user_watches — how many filesystem watchers the kernel
+  # allows per user. VSCode, the Claude Code extension, and Obsidian all
+  # register watches for every file in open folders. With large repos +
+  # the vault open simultaneously, 524288 (the NixOS default) gets exhausted.
+  # 1048576 (1M) gives comfortable headroom. mkDefault so server host configs
+  # can keep their explicit lower values if needed.
+  # =========================================================================
+  boot.kernel.sysctl."fs.inotify.max_user_watches" = lib.mkForce 1048576;
+
+  # =========================================================================
   # BLUETOOTH
   #
   # Enabled system-wide — desktops, laptops, and servers that have a BT
