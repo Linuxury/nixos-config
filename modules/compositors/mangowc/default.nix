@@ -13,7 +13,7 @@
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
 
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   # Wrapper that sets cursor env vars before exec-ing MangoWC.
@@ -23,8 +23,8 @@ let
     # === DUAL LOGGING: journal (always) + file (persistent) ===
     # Journal survives rollbacks and is readable without booting into the gen.
     # File captures everything including MangoWC stderr.
-    LOG="/home/linuxury/.local/share/mangowc-session.log"
-    mkdir -p "/home/linuxury/.local/share"
+    LOG="$HOME/.local/share/mangowc-session.log"
+    mkdir -p "$HOME/.local/share"
     # Redirect all further stdout+stderr to the log file.
     exec 1>>"$LOG" 2>&1
 

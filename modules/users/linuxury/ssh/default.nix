@@ -21,7 +21,7 @@
 #      then re-key: nix run nixpkgs#agenix -- -r
 # ===========================================================================
 
-{ config, ... }:
+{ ... }:
 
 {
   age.secrets.linuxury-authorized-key = {

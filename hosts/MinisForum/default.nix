@@ -30,7 +30,7 @@
 #   - services/samba/default.nix
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{ pkgs, lib, ... }:
 
 {
   imports = [

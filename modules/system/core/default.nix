@@ -8,7 +8,7 @@
 # If only some machines need it, it belongs in a more specific module.
 # ===========================================================================
 
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [

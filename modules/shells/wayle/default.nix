@@ -14,7 +14,7 @@
 # To switch shell: remove this import, add shells/dms or shells/noctalia.
 # ===========================================================================
 
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 {
   environment.systemPackages = with pkgs; [

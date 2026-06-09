@@ -15,7 +15,7 @@
 # No development tools — kept clean and simple.
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{ pkgs, ... }:
 
 {
   imports = [

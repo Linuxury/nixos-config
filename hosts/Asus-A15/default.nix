@@ -18,7 +18,7 @@
 #   - PCI bus IDs must be filled in manually (see docs/)
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{ pkgs, ... }:
 
 {
   imports = [

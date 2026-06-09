@@ -18,7 +18,7 @@
 # Data migration steps documented in that file.
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [

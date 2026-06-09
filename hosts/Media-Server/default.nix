@@ -17,7 +17,7 @@
 #   - freshrss/ (migrated from Radxa-X4, local to this host)
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{ pkgs, lib, ... }:
 
 {
   imports = [

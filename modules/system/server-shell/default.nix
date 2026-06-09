@@ -16,7 +16,7 @@
 # Import in: Radxa-X4, MinisForum, Media-Server, any headless host.
 # ===========================================================================
 
-{ pkgs, lib, config, ... }:
+{ pkgs, lib, ... }:
 
 {
   # SSH agent — system-level, sets SSH_AUTH_SOCK via PAM for all login shells

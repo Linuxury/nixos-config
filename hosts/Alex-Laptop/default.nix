@@ -17,7 +17,7 @@
 #   - Extra power management for older battery
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{ pkgs, lib, ... }:
 
 {
   imports = [

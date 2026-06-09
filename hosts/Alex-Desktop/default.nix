@@ -20,7 +20,7 @@
 #   - Firefox locked down via policies
 # ===========================================================================
 
-{ config, pkgs, inputs, lib, ... }:
+{ pkgs, lib, ... }:
 
 {
   imports = [
