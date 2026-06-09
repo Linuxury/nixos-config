@@ -153,32 +153,32 @@
     # the rest of the Hyprland ecosystem.
 
     [templates.hyprland]
-    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/colors.lua.template"
-    output_path = "/home/linuxury/.config/hypr/colors.lua"
+    input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/colors.lua.template"
+    output_path = "${config.home.homeDirectory}/.config/hypr/colors.lua"
 
     [templates.kitty]
-    input_path = "/home/linuxury/.config/matugen/templates/templates/kitty-colors.conf"
-    output_path = "/home/linuxury/.config/kitty/colors.conf"
+    input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/kitty-colors.conf"
+    output_path = "${config.home.homeDirectory}/.config/kitty/colors.conf"
     # post_hook removed: pkill -USR1 kitty was crashing open terminals on every
     # wallpaper switch. Colors.conf is still written so new windows pick up the
     # palette; existing windows keep the previous colors until reopened.
 
     [templates.gtk]
-    input_path = "/home/linuxury/.config/matugen/templates/templates/gtk-colors.css"
-    output_path = "/home/linuxury/.config/gtk-4.0/colors.css.new"
-    post_hook = "mv -f /home/linuxury/.config/gtk-4.0/colors.css.new /home/linuxury/.config/gtk-4.0/colors.css"
+    input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/gtk-colors.css"
+    output_path = "${config.home.homeDirectory}/.config/gtk-4.0/colors.css.new"
+    post_hook = "mv -f ${config.home.homeDirectory}/.config/gtk-4.0/colors.css.new ${config.home.homeDirectory}/.config/gtk-4.0/colors.css"
 
     [templates.gtk-libadwaita]
-    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/gtk-libadwaita.css.template"
-    output_path = "/home/linuxury/.config/gtk-4.0/libadwaita-matugen.css.new"
-    post_hook = "mv -f /home/linuxury/.config/gtk-4.0/libadwaita-matugen.css.new /home/linuxury/.config/gtk-4.0/libadwaita-matugen.css"
+    input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/gtk-libadwaita.css.template"
+    output_path = "${config.home.homeDirectory}/.config/gtk-4.0/libadwaita-matugen.css.new"
+    post_hook = "mv -f ${config.home.homeDirectory}/.config/gtk-4.0/libadwaita-matugen.css.new ${config.home.homeDirectory}/.config/gtk-4.0/libadwaita-matugen.css"
 
     [templates.rofi-window]
-    input_path = "/home/linuxury/nixos-config/dotfiles/hypr/rofi/window.rasi.template"
-    output_path = "/home/linuxury/.config/rofi/window.rasi"
+    input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/rofi/window.rasi.template"
+    output_path = "${config.home.homeDirectory}/.config/rofi/window.rasi"
 
     [templates.hyprlock]
-    input_path = "/home/linuxury/.config/matugen/templates/templates/hyprlock-colors.conf"
-    output_path = "/home/linuxury/.config/hypr/colors-hyprlock.conf"
+    input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/hyprlock-colors.conf"
+    output_path = "${config.home.homeDirectory}/.config/hypr/colors-hyprlock.conf"
   '';
 }
