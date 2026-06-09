@@ -1,4 +1,4 @@
-# 🏠 Linuxury NixOS Configuration
+# Linuxury NixOS Configuration
 
 [![NixOS](https://img.shields.io/badge/NixOS-unstable-blue.svg?style=flat&logo=nixos&logoColor=white)](https://nixos.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -7,40 +7,50 @@ A fully declarative, modular NixOS setup using flakes — built for a 3-person f
 
 ---
 
-## ✨ Highlights
+## Contents
 
-- 🖥️ **COSMIC DE** — System76's Rust-based desktop on all graphical machines
-- 🎨 **matugen theming** — Wallpaper-driven color pipeline; terminal, editor, and desktop all update automatically when the wallpaper rotates
-- 🗄️ **BTRFS everywhere** — `@`, `@home`, `@nix`, `@log`, `@cache`, `@snapshots`, `@swap` subvolumes on every host
-- 📸 **Automatic snapshots** — Snapper takes hourly/daily/weekly snapshots of `/` and `/home`
-- 🔐 **ragenix secrets** — SSH keys, WireGuard config, and service passwords encrypted in the repo; no plaintext ever in version control
-- 🦊 **Firefox enterprise policies** — uBlock Origin, search engine, and privacy settings locked in declaratively
-- 🎮 **Gaming** — Steam, MangoHud, GameMode, ProtonPlus, Lutris on all gaming machines
-- 🛡️ **VPN-scoped qBittorrent** — WireGuard network namespace killswitch on Radxa-X4; IP leaks are structurally impossible
-- 🎬 **Media server** — Plex, Sonarr, Radarr, Prowlarr, Immich, FreshRSS on dedicated hardware
-- 📁 **Family Samba shares** — Network shares auto-mounted on all desktops via CIFS + agenix credentials
-- 🌐 **Tailscale mesh** — All machines reachable by hostname from anywhere
-- 🐚 **Zsh + Starship + Kitty** — Terminal environment with NixOS management abbreviations
+- [Highlights](#highlights)
+- [Hosts](#hosts)
+- [Structure](#structure)
+- [Documentation](#documentation)
 
 ---
 
-## 🖥️ Hosts
+## Highlights
+
+- **Hyprland** on linuxury's machines — tiling Wayland compositor with a full Lua config, matugen color theming, Waybar, swaync, and hypridle
+- **COSMIC DE** on babylinux and alex's machines — System76's Rust-based desktop; config written declaratively via Home Manager
+- **matugen theming** — wallpaper-driven color pipeline; terminal, editor, and desktop colors all update automatically when the wallpaper rotates
+- **BTRFS everywhere** — `@`, `@home`, `@nix`, `@log`, `@cache`, `@snapshots`, and `@swap` subvolumes on every host
+- **Automatic snapshots** — Snapper takes hourly, daily, and weekly snapshots of `/` and `/home`
+- **ragenix secrets** — SSH keys, WireGuard config, and service passwords encrypted in the repo; no plaintext ever in version control
+- **Firefox enterprise policies** — uBlock Origin, search engine, and privacy settings locked in declaratively
+- **Gaming** — Steam, MangoHud, GameMode, Proton, and Hytale on all gaming machines
+- **VPN-scoped qBittorrent** — WireGuard network namespace killswitch on Radxa-X4; IP leaks are structurally impossible
+- **Media server** — Plex, Sonarr, Radarr, Prowlarr, Immich, and FreshRSS on dedicated hardware
+- **Family Samba shares** — network shares auto-mounted on all desktops via CIFS + agenix credentials
+- **Tailscale mesh** — all machines reachable by hostname from anywhere
+- **Zsh + Starship + Kitty** — terminal environment with NixOS management abbreviations
+
+---
+
+## Hosts
 
 | Host | User | Role | LUKS |
 |------|------|------|------|
-| **ThinkPad** | linuxury | Laptop | ✅ |
-| **Ryzen5900x** | linuxury | Desktop | ❌ |
-| **Ryzen5800x** | babylinux | Desktop | ❌ |
-| **Asus-A15** | babylinux | Laptop | ✅ |
-| **Alex-Desktop** | alex | Kid's desktop | ❌ |
-| **Alex-Laptop** | alex | Kid's laptop | ❌ |
+| **ThinkPad** | linuxury | Laptop (Hyprland) | ✅ |
+| **Ryzen5900x** | linuxury | Desktop (Hyprland) | ❌ |
+| **Ryzen5800x** | babylinux | Desktop (COSMIC) | ❌ |
+| **Asus-A15** | babylinux | Laptop (COSMIC) | ✅ |
+| **Alex-Desktop** | alex | Kid's desktop (COSMIC) | ❌ |
+| **Alex-Laptop** | alex | Kid's laptop (COSMIC) | ❌ |
 | **Media-Server** | — | Plex · Arr stack · Immich · FreshRSS | ❌ |
 | **Radxa-X4** | — | Torrent (Mullvad VPN killswitch) | ❌ |
 | **MinisForum** | — | Game servers (Minecraft · Hytale) | ❌ |
 
 ---
 
-## 📁 Structure
+## Structure
 
 ```
 nixos-config/
@@ -56,28 +66,43 @@ nixos-config/
 │   ├── Radxa-X4/
 │   └── MinisForum/
 ├── modules/
-│   ├── base/                    # Shared system modules (common, snapper, firefox, etc.)
-│   ├── desktop-environments/    # COSMIC DE + Flatpak
+│   ├── system/                  # Core kernel settings, graphical base, server shell
+│   ├── compositors/             # Hyprland, MangoWC, Niri
+│   ├── desktops/                # COSMIC DE, GNOME, KDE
 │   ├── hardware/                # GPU driver logic (AMD / Nvidia / Intel)
-│   └── services/                # Samba, VPN-qBittorrent, wallpaper-slideshow
+│   ├── services/                # Samba, Syncthing, Snapper, wallpaper slideshow, VPN
+│   ├── gaming/                  # Steam, MangoHud, GameMode
+│   ├── development/             # Dev tools
+│   ├── shells/                  # Zsh configuration
+│   ├── greeters/                # SDDM + Catppuccin theme
+│   ├── themes/                  # GTK theming
+│   ├── components/              # Shared UI components (Home Manager modules)
+│   └── users/                   # Per-user system-level setup (description, groups)
 ├── users/                       # Home Manager configs
 │   ├── linuxury/home.nix
 │   ├── babylinux/home.nix
 │   └── alex/home.nix
 ├── dotfiles/                    # Config files symlinked by Home Manager
-│   ├── nvim/                    # Neovim — full IDE config
-│   ├── zsh/                     # Shared zsh init
-│   └── fastfetch/               # Fastfetch system info config
+│   ├── hypr/                    # Hyprland, hyprlock, hypridle (Lua)
+│   ├── waybar/                  # Status bar config + matugen color templates
+│   ├── swaync/                  # Notification center + matugen color templates
+│   ├── kitty/                   # Terminal emulator
+│   ├── zsh/                     # Shared zsh init and completions
+│   ├── starship/                # Prompt config
+│   ├── MangoHud/                # Performance overlay config
+│   ├── mangowc/                 # MangoWC compositor config + matugen template
+│   ├── nvim-extra/              # Neovim extras
+│   └── ...                      # rofi, wofi, vscodium, opencode, swappy, topgrade
 ├── secrets/                     # age-encrypted secrets (safe to commit)
 │   ├── secrets.nix              # Access control — who can read what
 │   └── *.age                    # Encrypted secret files
-├── assets/                      # Wallpapers, avatars, SteamGridDB art
+├── assets/                      # Wallpapers, avatars, SteamGridDB art, flatpak bundles
 └── docs/                        # Documentation (see below)
 ```
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 **Installation — pick one based on your hardware:**
 
@@ -98,14 +123,14 @@ nixos-config/
 | 08 | [Secrets Management](docs/08-secrets.md) | ragenix workflow, secrets.nix, creating and re-keying secrets |
 | 09 | [Maintenance](docs/09-maintenance.md) | Rebuilds, updates, snapshots, rollback, garbage collection |
 | 10 | [Server Management](docs/10-servers.md) | Media-Server, Radxa-X4, MinisForum — services and operations |
-| 11 | [Applications](docs/11-applications.md) | Neovim IDE, Kitty, Ghostty, Zsh, Helix, Zed, and more |
-| 12 | [Gaming](docs/12-gaming.md) | Proton-GE, Steam, MangoHud, launch options |
-| 13 | [Theming](docs/13-theming.md) | matugen pipeline, COSMIC / Hyprland / KDE color sync |
-| 14 | [Desktop Environment](docs/14-de-wm.md) | COSMIC DE config, sidebar favorites, Flatpak |
+| 11 | [Applications](docs/11-applications.md) | Neovim, Kitty, Ghostty, Zsh, Helix, Zed, and more |
+| 12 | [Gaming](docs/12-gaming.md) | Proton-GE, Steam, MangoHud, Hytale, launch options |
+| 13 | [Theming](docs/13-theming.md) | matugen pipeline, Hyprland and COSMIC color sync |
+| 14 | [Desktop Environment](docs/14-de-wm.md) | COSMIC DE config, Hyprland setup, sidebar favorites, Flatpak |
 | 15 | [Troubleshooting](docs/15-troubleshooting.md) | Common failures and fixes across all areas |
 
 ---
 
-## 📝 License
+## License
 
 MIT — feel free to use and adapt for your own systems.
