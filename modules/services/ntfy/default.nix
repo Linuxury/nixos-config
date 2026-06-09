@@ -19,7 +19,7 @@
 # Media-Server's Tailscale IP is stable — use it in the ntfy app.
 # ===========================================================================
 
-{ config, pkgs, lib, ... }:
+{ ... }:
 
 {
   services.ntfy-sh = {

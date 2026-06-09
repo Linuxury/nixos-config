@@ -8,7 +8,7 @@
 # It gets enabled in every desktop and laptop host config.
 # ===========================================================================
 
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, ... }:
 
 {
   services.desktopManager.cosmic.enable = true;

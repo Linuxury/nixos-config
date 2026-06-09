@@ -23,7 +23,7 @@
 #   *laptop only
 # ===========================================================================
 
-{ config, pkgs, lib, osConfig, ... }:
+{ config, lib, osConfig, ... }:
 
 let
   cfg = osConfig.myModules.swaync;

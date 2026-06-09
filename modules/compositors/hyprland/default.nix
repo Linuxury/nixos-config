@@ -12,7 +12,7 @@
 # To enable on a host, import this module in that host's config.
 # ===========================================================================
 
-{ config, pkgs, lib, inputs, ... }:
+{ pkgs, lib, ... }:
 
 let
   # Wrapper that launches the UWSM-managed Hyprland session with stdout/stderr
