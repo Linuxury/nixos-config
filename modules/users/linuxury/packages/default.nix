@@ -19,6 +19,7 @@
     lazygit     # TUI for git — stage, commit, branch all in one
     gh          # GitHub CLI — PRs, issues from terminal
     delta       # Pretty diff viewer — integrates with git
+    nixd        # Nix language server — LSP for Zed, VSCodium, Neovim
 
     # System monitoring
     dust        # Visual disk usage — like du but readable
