@@ -33,6 +33,9 @@ hl.window_rule({ match = { class = "^Minecraft"        }, workspace = "2 silent"
 hl.window_rule({ match = { class = "HytaleClient"      }, workspace = "2 silent" })
 
 -- Fullscreen apps → WS 2
+-- NOTE: This rule only fires at window creation time, so it only catches windows
+-- that open already-fullscreen. Most games go fullscreen after opening — those are
+-- handled by game-workspace.sh which listens to fullscreen socket2 events instead.
 hl.window_rule({ match = { fullscreen = true }, workspace = "2 silent" })
 
 -- ── Floating windows ──────────────────────────────────────────────────────────
