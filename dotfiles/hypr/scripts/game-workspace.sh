@@ -51,6 +51,7 @@ data = json.loads(subprocess.check_output(['hyprctl', 'clients', '-j']))
 NON_GAME = {
     # Browsers
     'firefox', 'firefox-esr', 'firefox-nightly',
+    'zen-beta', 'zen-alpha', 'zen',
     'chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable',
     'brave-browser', 'microsoft-edge', 'opera', 'vivaldi-stable',
     # Terminals
