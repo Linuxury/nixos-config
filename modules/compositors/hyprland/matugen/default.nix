@@ -1,19 +1,23 @@
 # ===========================================================================
 # modules/compositors/hyprland/matugen/default.nix — matugen color sync
 #
-# Path unit watches ~/.local/share/current-wallpaper (written by Noctalia's
-# wallpaperChange hook). On change, the service extracts the dominant color,
-# runs matugen 3× to work around a matugen 4.0.0 HashMap iteration bug that
-# causes it to crash after processing only 2–3 of 5 templates per run, then
-# reloads Hyprland config so colors.lua (written by matugen) takes effect.
-# A startup timer fires 10s after session start for initial color sync.
+# Path unit watches ~/.config/noctalia/colors.json — written by Noctalia
+# after it finishes its own material-color pass. Reading mPrimary from that
+# file ensures matugen and Noctalia start from the same source color, keeping
+# Hyprland borders in sync with the bar accent.
+#
+# current-wallpaper (written by the wallpaperChange hook before colors.json)
+# is still used for deduplication and SDDM wallpaper sync.
+#
+# matugen 4.0.0 HashMap iteration bug: crashes after 2–3 of 5 templates per
+# run — run 3× to ensure full coverage. hyprctl reload applies colors.lua.
 # ===========================================================================
 { config, pkgs, ... }:
 
 {
   home.packages = with pkgs; [
     matugen
-    imagemagick
+    jq
   ];
 
   systemd.user.services.matugen = {
@@ -28,10 +32,12 @@
         PROC_FILE="$HOME/.local/share/last-matugen-processed"
         LOG="$HOME/.local/share/wallpaper-service.log"
         CURRENT_WALLPAPER_FILE="$HOME/.local/share/current-wallpaper"
+        NOCTALIA_COLORS="$HOME/.config/noctalia/colors.json"
         SDDM_WALLPAPER="/var/lib/sddm-wallpaper/background.jpg"
 
         log() { echo "[$(date "+%H:%M:%S")] MATUGEN $*" >> "$LOG"; }
 
+        # Read wallpaper path for deduplication + SDDM sync.
         WALLPAPER=$(cat "$CURRENT_WALLPAPER_FILE" 2>/dev/null | tr -d '\n')
         if [ -z "$WALLPAPER" ] || [ ! -f "$WALLPAPER" ]; then
           log "No current wallpaper (''${CURRENT_WALLPAPER_FILE} empty or target missing)"
@@ -50,11 +56,19 @@
 
         log "Applying: $(basename "$WALLPAPER")"
 
-        HEX=$(${pkgs.imagemagick}/bin/convert "$WALLPAPER" -resize 1x1 txt:- 2>/dev/null \
-          | grep -oP "#[0-9A-Fa-f]{6}" | head -1)
-        if [ -z "$HEX" ]; then log "WARN no color from $(basename "$WALLPAPER")"; exit 0; fi
+        # Read mPrimary from Noctalia's colors.json — same source color Noctalia
+        # uses for its bar accent, so borders and bar stay in sync.
+        if [ ! -f "$NOCTALIA_COLORS" ]; then
+          log "WARN colors.json missing, skipping"
+          exit 0
+        fi
+        HEX=$(${pkgs.jq}/bin/jq -r '.mPrimary' "$NOCTALIA_COLORS")
+        if [ -z "$HEX" ] || [ "$HEX" = "null" ]; then
+          log "WARN no mPrimary in colors.json"
+          exit 0
+        fi
 
-        log "Color: $HEX"
+        log "Color: $HEX (from Noctalia)"
 
         # matugen 4.0.0 has a HashMap iteration bug: it crashes after processing
         # only 2–3 of 5 templates per run. Running 3× ensures full coverage.
@@ -79,24 +93,23 @@
   };
 
   # =========================================================================
-  # Path unit — triggers the service when the current wallpaper changes
+  # Path unit — triggers after Noctalia finishes its color pass
   #
-  # Each shell writes ~/.local/share/current-wallpaper when the wallpaper
-  # changes. This is the shell-agnostic handoff file:
-  #   - Noctalia: set via hooks.wallpaperChange in settings.json (see
-  #     modules/shells/noctalia/default.nix home.activation.noctaliaHooks)
-  #   - Wayle: can be added as a post_hook in matugen config.toml if needed
+  # Watching colors.json (not current-wallpaper) ensures the service fires
+  # after Noctalia has written the new palette, so mPrimary is current.
+  # current-wallpaper is written first by the wallpaperChange hook, so it
+  # is always ready when this service runs.
   # =========================================================================
   systemd.user.paths.matugen = {
-    Unit.Description = "Watch current-wallpaper file for wallpaper changes";
-    Path.PathChanged  = "%h/.local/share/current-wallpaper";
+    Unit.Description  = "Watch Noctalia colors.json for wallpaper color changes";
+    Path.PathModified = "%h/.config/noctalia/colors.json";
     Install.WantedBy  = [ "graphical-session.target" ];
   };
 
   # =========================================================================
   # Startup timer — ensures colors are applied at session start
-  # Wayle needs a few seconds to initialize and set the first wallpaper,
-  # so 10s gives the engine time to run before we query it.
+  # Fires 10s after session start to let Noctalia finish its initial
+  # wallpaper + color pass before the service reads colors.json.
   # =========================================================================
   systemd.user.timers.matugen = {
     Unit.Description    = "Apply matugen colors on session start";
