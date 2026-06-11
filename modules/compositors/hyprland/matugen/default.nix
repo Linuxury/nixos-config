@@ -1,45 +1,25 @@
 # ===========================================================================
 # modules/compositors/hyprland/matugen/default.nix — matugen color sync
 #
-# Same structural pattern as services/wallpaper-slideshow/default.nix (COSMIC):
-#   - wallpaper-service.ts writes ~/.local/share/last-matugen-wallpaper
-#     when the wallpaper changes.
-#   - A systemd path unit detects that write and triggers the service.
-#   - The service extracts the dominant color and runs matugen.
-#   - A startup timer runs the service 5s after session start so colors
-#     are always in sync even if the wallpaper didn't change.
-#   - Deduplication prevents running twice for the same wallpaper.
-#
-# Benefit over the old inline approach: matugen runs in a separate process
-# after the wallpaper is already set, and never runs more than once per
-# unique wallpaper — eliminating the rapid double-run that crashed GTK4 apps.
+# Path unit watches ~/.local/share/current-wallpaper (written by Noctalia's
+# wallpaperChange hook). On change, the service extracts the dominant color,
+# runs matugen 3× to work around a matugen 4.0.0 HashMap iteration bug that
+# causes it to crash after processing only 2–3 of 5 templates per run, then
+# reloads Hyprland config so colors.lua (written by matugen) takes effect.
+# A startup timer fires 10s after session start for initial color sync.
 # ===========================================================================
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 
 {
-  imports = [];
-
   home.packages = with pkgs; [
     matugen
     imagemagick
   ];
 
-  # =========================================================================
-  # Color sync service — runs matugen when Wayle changes the wallpaper
-  #
-  # Wayle's awww engine sets the wallpaper and writes its own matugen palette
-  # to ~/.cache/wayle/matugen-colors.json. The path unit below watches that
-  # file. When it changes, this service asks Wayle for the current wallpaper
-  # path, extracts the dominant color, and runs our matugen for the remaining
-  # templates (hyprland colors, kitty, gtk, hyprlock, rofi).
-  #
-  # Deduplication skips the run if the same wallpaper was already processed.
-  # =========================================================================
   systemd.user.services.matugen = {
     Unit = {
       Description = "Apply matugen color theme for current Hyprland wallpaper";
       After       = [ "graphical-session.target" ];
-      # Allow rapid triggers without systemd rate-limiting the service
       StartLimitIntervalSec = 0;
     };
     Service = {
@@ -52,42 +32,18 @@
 
         log() { echo "[$(date "+%H:%M:%S")] MATUGEN $*" >> "$LOG"; }
 
-        # Read current wallpaper path from the shell-agnostic handoff file.
-        # Each shell (Noctalia, Wayle, etc.) writes this file when the wallpaper
-        # changes. This decouples matugen from any specific shell implementation.
         WALLPAPER=$(cat "$CURRENT_WALLPAPER_FILE" 2>/dev/null | tr -d '\n')
         if [ -z "$WALLPAPER" ] || [ ! -f "$WALLPAPER" ]; then
           log "No current wallpaper (''${CURRENT_WALLPAPER_FILE} empty or target missing)"
           exit 0
         fi
 
-        # Helper — apply Hyprland border colors from colors.lua via hyprctl keyword.
-        # Targeted update: avoids a full hyprctl reload (which crashes Nautilus/Prism
-        # via inotify race). Called both on fresh runs and on deduplicated ones so
-        # the border always reflects the current palette after a service restart.
-        apply_borders() {
-          if [ -f "$COLORS_LUA" ]; then
-            _primary=$(grep '^primary '         "$COLORS_LUA" | grep -oP 'rgba\([^)]+\)')
-            _tertiary=$(grep '^tertiary '        "$COLORS_LUA" | grep -oP 'rgba\([^)]+\)')
-            _outline=$(grep '^outline_variant ' "$COLORS_LUA" | grep -oP 'rgba\([^)]+\)')
-            if [ -n "$_primary" ] && [ -n "$_tertiary" ] && [ -n "$_outline" ]; then
-              hyprctl keyword general:col.active_border   "$_primary $_tertiary 45deg" >> "$LOG" 2>&1
-              hyprctl keyword general:col.inactive_border "$_outline"                  >> "$LOG" 2>&1
-              log "Border colors applied"
-            else
-              log "WARN could not parse border colors from colors.lua"
-            fi
-          fi
-        }
-
-        # Deduplication — skip matugen if this wallpaper's colors are already applied.
-        # Also check that colors.lua actually exists: HM activation can delete it
-        # (by rewriting ~/.config/hypr/) while the stamp still holds the same path,
-        # causing matugen to skip and leave colors.lua permanently missing.
+        # Deduplication — skip if this wallpaper's colors are already applied.
+        # Also check colors.lua exists: HM activation can rewrite ~/.config/hypr/
+        # and delete it while the stamp still holds the same path.
         COLORS_LUA="$HOME/.config/hypr/colors.lua"
         LAST_PROC=$(cat "$PROC_FILE" 2>/dev/null || echo "")
         if [ -n "$LAST_PROC" ] && [ "$WALLPAPER" = "$LAST_PROC" ] && [ -f "$COLORS_LUA" ]; then
-          apply_borders
           exit 0
         fi
         echo "$WALLPAPER" > "$PROC_FILE"
@@ -99,13 +55,18 @@
         if [ -z "$HEX" ]; then log "WARN no color from $(basename "$WALLPAPER")"; exit 0; fi
 
         log "Color: $HEX"
-        ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 \
-          || log "WARN matugen failed"
 
-        apply_borders
+        # matugen 4.0.0 has a HashMap iteration bug: it crashes after processing
+        # only 2–3 of 5 templates per run. Running 3× ensures full coverage.
+        ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 || true
+        ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 || true
+        ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 || true
 
-        # Sync wallpaper to SDDM theme dir so the login screen matches the desktop.
-        # Silently skips if /var/lib/sddm/wallpaper/ doesn't exist (non-Hyprland hosts).
+        # Reload Hyprland config so colors.lua (written by matugen) takes effect.
+        # hyprctl keyword no longer works with the Lua parser — reload is the
+        # correct mechanism since Hyprland 0.41+ with non-legacy configs.
+        hyprctl reload >> "$LOG" 2>&1 && log "Hyprland reloaded" || log "WARN hyprctl reload failed"
+
         if [ -d "$(dirname "$SDDM_WALLPAPER")" ]; then
           cp "$WALLPAPER" "$SDDM_WALLPAPER" 2>/dev/null \
             && log "SDDM wallpaper synced: $(basename "$WALLPAPER")" \
@@ -159,9 +120,6 @@
     [templates.kitty]
     input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/kitty-colors.conf"
     output_path = "${config.home.homeDirectory}/.config/kitty/colors.conf"
-    # post_hook removed: pkill -USR1 kitty was crashing open terminals on every
-    # wallpaper switch. Colors.conf is still written so new windows pick up the
-    # palette; existing windows keep the previous colors until reopened.
 
     [templates.gtk]
     input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/gtk-colors.css"
@@ -172,10 +130,6 @@
     input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/gtk-libadwaita.css.template"
     output_path = "${config.home.homeDirectory}/.config/gtk-4.0/libadwaita-matugen.css.new"
     post_hook = "mv -f ${config.home.homeDirectory}/.config/gtk-4.0/libadwaita-matugen.css.new ${config.home.homeDirectory}/.config/gtk-4.0/libadwaita-matugen.css"
-
-    [templates.rofi-window]
-    input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/rofi/window.rasi.template"
-    output_path = "${config.home.homeDirectory}/.config/rofi/window.rasi"
 
     [templates.hyprlock]
     input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/hyprlock-colors.conf"
