@@ -21,6 +21,7 @@ hl.window_rule({
 
 hl.window_rule({ match = { class = "^steam$"                               }, workspace = "3 silent" })
 hl.window_rule({ match = { class = "org.prismlauncher.PrismLauncher"       }, workspace = "3 silent" })
+hl.window_rule({ match = { class = "faugus-launcher"                       }, workspace = "3 silent" })
 
 -- Games → WS 2
 -- Note: Proton/Steam games are handled by game-workspace.sh (event-based, runs after

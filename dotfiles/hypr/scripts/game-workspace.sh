@@ -16,6 +16,10 @@
 #     Hyprland 0.41+: fullscreen>>WINDOWADDRESS,INTERNALSTATE[,CLIENTSTATE]
 #       state 0=none, 1=maximized, 2=fullscreen
 #     Older: fullscreen>>1 (1=entered, 0=left)
+#
+# Note on Hyprland 0.55 Lua dispatch:
+#   hyprctl dispatch X Y is wrapped as "return hl.dispatch(X Y)" — invalid Lua syntax
+#   when X or Y contain spaces or commas. All dispatches use the hl.dsp.* Lua form.
 
 SOCKET="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
 
@@ -41,16 +45,17 @@ for w in data:
 
 move_to_ws2() {
     local addr="$1"
-    python3 -c "
+    local ws
+    ws=$(python3 -c "
 import json, subprocess
 data = json.loads(subprocess.check_output(['hyprctl', 'clients', '-j']))
 for w in data:
     if w['address'] == '0x$addr':
-        ws = w.get('workspace', {}).get('id', 0)
-        if ws != 2:
-            subprocess.run(['hyprctl', 'dispatch', 'movetoworkspacesilent', '2,address:0x$addr'])
+        print(w.get('workspace', {}).get('id', ''))
         break
-" 2>/dev/null
+" 2>/dev/null)
+    [[ "$ws" == "2" ]] && return
+    hyprctl dispatch "hl.dsp.window.move({workspace=2,silent=true,window='address:0x$addr'})" 2>/dev/null
 }
 
 handle() {
@@ -62,7 +67,7 @@ handle() {
         addr="${addr%%,*}"
         sleep 1
         if [[ "$(is_game "$addr")" == "match" ]]; then
-            hyprctl dispatch movetoworkspacesilent "2,address:0x$addr"
+            move_to_ws2 "$addr"
         fi
 
     elif [[ "$event" == fullscreen* ]]; then
