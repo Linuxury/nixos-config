@@ -1,13 +1,17 @@
 # ===========================================================================
 # modules/compositors/hyprland/matugen/default.nix — matugen color sync
 #
-# Path unit watches ~/.config/noctalia/colors.json — written by Noctalia
-# after it finishes its own material-color pass. Reading mPrimary from that
-# file ensures matugen and Noctalia start from the same source color, keeping
-# Hyprland borders in sync with the bar accent.
+# Shell-agnostic color sync. Works with any shell that writes the two
+# handoff files below when the wallpaper changes:
 #
-# current-wallpaper (written by the wallpaperChange hook before colors.json)
-# is still used for deduplication and SDDM wallpaper sync.
+#   ~/.local/share/current-wallpaper       — path to the active wallpaper
+#   ~/.local/share/current-wallpaper-color — dominant color hint (optional)
+#
+# Path unit watches current-wallpaper. If a color hint file exists, it is
+# used as the matugen input; otherwise ImageMagick extracts the dominant
+# color as a fallback. Shell modules (e.g. noctalia/color-sync) write the
+# hint file and clear the dedup stamp so matugen re-runs with the shell's
+# own color after its extraction pass completes.
 #
 # matugen 4.0.0 HashMap iteration bug: crashes after 2–3 of 5 templates per
 # run — run 3× to ensure full coverage. hyprctl reload applies colors.lua.
@@ -17,7 +21,7 @@
 {
   home.packages = with pkgs; [
     matugen
-    jq
+    imagemagick
   ];
 
   systemd.user.services.matugen = {
@@ -32,12 +36,11 @@
         PROC_FILE="$HOME/.local/share/last-matugen-processed"
         LOG="$HOME/.local/share/wallpaper-service.log"
         CURRENT_WALLPAPER_FILE="$HOME/.local/share/current-wallpaper"
-        NOCTALIA_COLORS="$HOME/.config/noctalia/colors.json"
+        COLOR_HINT="$HOME/.local/share/current-wallpaper-color"
         SDDM_WALLPAPER="/var/lib/sddm-wallpaper/background.jpg"
 
         log() { echo "[$(date "+%H:%M:%S")] MATUGEN $*" >> "$LOG"; }
 
-        # Read wallpaper path for deduplication + SDDM sync.
         WALLPAPER=$(cat "$CURRENT_WALLPAPER_FILE" 2>/dev/null | tr -d '\n')
         if [ -z "$WALLPAPER" ] || [ ! -f "$WALLPAPER" ]; then
           log "No current wallpaper (''${CURRENT_WALLPAPER_FILE} empty or target missing)"
@@ -56,19 +59,24 @@
 
         log "Applying: $(basename "$WALLPAPER")"
 
-        # Read mPrimary from Noctalia's colors.json — same source color Noctalia
-        # uses for its bar accent, so borders and bar stay in sync.
-        if [ ! -f "$NOCTALIA_COLORS" ]; then
-          log "WARN colors.json missing, skipping"
-          exit 0
+        # Prefer the shell-provided color hint (e.g. Noctalia's mPrimary written
+        # by noctalia/color-sync). Fall back to ImageMagick dominant-color extraction
+        # so this works with any shell that only writes current-wallpaper.
+        HEX=""
+        if [ -f "$COLOR_HINT" ]; then
+          _hint=$(cat "$COLOR_HINT" | tr -d '[:space:]')
+          case "$_hint" in
+            \#[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])
+              HEX="$_hint"
+              log "Color: $HEX (hint)" ;;
+          esac
         fi
-        HEX=$(${pkgs.jq}/bin/jq -r '.mPrimary' "$NOCTALIA_COLORS")
-        if [ -z "$HEX" ] || [ "$HEX" = "null" ]; then
-          log "WARN no mPrimary in colors.json"
-          exit 0
+        if [ -z "$HEX" ]; then
+          HEX=$(${pkgs.imagemagick}/bin/convert "$WALLPAPER" -resize 1x1 txt:- 2>/dev/null \
+            | grep -oP "#[0-9A-Fa-f]{6}" | head -1)
+          if [ -z "$HEX" ]; then log "WARN no color from $(basename "$WALLPAPER")"; exit 0; fi
+          log "Color: $HEX (ImageMagick)"
         fi
-
-        log "Color: $HEX (from Noctalia)"
 
         # matugen 4.0.0 has a HashMap iteration bug: it crashes after processing
         # only 2–3 of 5 templates per run. Running 3× ensures full coverage.
@@ -92,39 +100,24 @@
     };
   };
 
-  # =========================================================================
-  # Path unit — triggers after Noctalia finishes its color pass
-  #
-  # Watching colors.json (not current-wallpaper) ensures the service fires
-  # after Noctalia has written the new palette, so mPrimary is current.
-  # current-wallpaper is written first by the wallpaperChange hook, so it
-  # is always ready when this service runs.
-  # =========================================================================
   systemd.user.paths.matugen = {
-    Unit.Description  = "Watch Noctalia colors.json for wallpaper color changes";
-    Path.PathModified = "%h/.config/noctalia/colors.json";
-    Install.WantedBy  = [ "graphical-session.target" ];
+    Unit.Description = "Watch current-wallpaper for wallpaper changes";
+    Path.PathChanged = "%h/.local/share/current-wallpaper";
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  # =========================================================================
-  # Startup timer — ensures colors are applied at session start
-  # Fires 10s after session start to let Noctalia finish its initial
-  # wallpaper + color pass before the service reads colors.json.
-  # =========================================================================
+  # Fires 10s after session start so the shell has time to set the initial
+  # wallpaper and write current-wallpaper before we read it.
   systemd.user.timers.matugen = {
-    Unit.Description    = "Apply matugen colors on session start";
-    Timer.OnActiveSec   = "10s";
-    Install.WantedBy    = [ "graphical-session.target" ];
+    Unit.Description = "Apply matugen colors on session start";
+    Timer.OnActiveSec = "10s";
+    Install.WantedBy  = [ "graphical-session.target" ];
   };
 
   home.file.".config/matugen/config.toml".text = ''
     [config]
     mode = "dark"
     reload_apps = false
-
-    # Wayle handles its own theming via theme-provider=matugen (writes
-    # ~/.cache/wayle/matugen-colors.json internally). These templates handle
-    # the rest of the Hyprland ecosystem.
 
     [templates.hyprland]
     input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/colors.lua.template"
