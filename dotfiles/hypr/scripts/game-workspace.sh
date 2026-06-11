@@ -12,7 +12,7 @@
 #     - class "^Minecraft"                — Minecraft via Prism Launcher (XWayland)
 #     - class "steam_app_0", title != ""  — Battle.net games; tray icon has empty title
 #
-#   fullscreen — any window entering actual fullscreen (catches everything else)
+#   fullscreen — window entering actual fullscreen that isn't a browser/terminal/media player
 #     Hyprland 0.41+: fullscreen>>WINDOWADDRESS,INTERNALSTATE[,CLIENTSTATE]
 #       state 0=none, 1=maximized, 2=fullscreen
 #     Older: fullscreen>>1 (1=entered, 0=left)
@@ -39,6 +39,33 @@ for w in data:
             print('match')
         elif cls == 'steam_app_0' and title:
             print('match')
+        break
+" 2>/dev/null
+}
+
+is_non_game() {
+    local addr="$1"
+    python3 -c "
+import json, subprocess
+data = json.loads(subprocess.check_output(['hyprctl', 'clients', '-j']))
+NON_GAME = {
+    # Browsers
+    'firefox', 'firefox-esr', 'firefox-nightly',
+    'chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable',
+    'brave-browser', 'microsoft-edge', 'opera', 'vivaldi-stable',
+    # Terminals
+    'kitty', 'ghostty', 'alacritty', 'wezterm', 'org.gnome.terminal',
+    # Video / media players
+    'mpv', 'vlc', 'totem', 'showtime',
+    'com.github.neithern.g4music',
+    'io.github.celluloid_player.celluloid',
+    # Image viewers
+    'org.gnome.loupe', 'eog',
+}
+for w in data:
+    if w['address'] == '0x$addr':
+        if w.get('class', '').lower() in NON_GAME:
+            print('excluded')
         break
 " 2>/dev/null
 }
@@ -91,6 +118,7 @@ handle() {
         fi
 
         sleep 0.3
+        [[ "$(is_non_game "$addr")" == "excluded" ]] && return
         move_to_ws2 "$addr"
     fi
 }
