@@ -40,6 +40,10 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # ---------------------------------------------------------------------------
 _fmt_nvd() {
   local section="" line
+  # All loop variables declared here — zsh prints "var=value" if `local` is
+  # re-run without assignment on an already-declared variable, so declaring
+  # inside the while loop leaks values to the output.
+  local pkg ver name old_v new_v rest old_vset new_vset
   local -a names=() old_vers=() new_vers=() actions=()
   local closure_old="" closure_new="" closure_added="" closure_removed="" closure_net="" closure_disk=""
 
@@ -72,7 +76,6 @@ _fmt_nvd() {
 
     case "$section" in
       added|removed)
-        local pkg ver
         pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z][.*]\]  #[0-9]+  //; s/^[a-z0-9]{32,}-//')
         [[ -z "$pkg" ]] && continue
         ver="${pkg##*  }"
@@ -88,7 +91,6 @@ _fmt_nvd() {
         fi
         ;;
       version)
-        local pkg name old_v new_v rest old_vset new_vset
         pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z][.*]\]  //')
         [[ -z "$pkg" ]] && continue
         pkg=$(printf '%s' "$pkg" | sed -E 's/^#[0-9]+  +//')
