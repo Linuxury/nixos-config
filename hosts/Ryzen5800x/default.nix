@@ -34,7 +34,7 @@
     #   lemokey-keychron — WebHID udev rules for Lemokey + Keychron keyboards
     # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    #../../modules/hardware/openrgb/default.nix
+    ../../modules/hardware/openrgb/default.nix
     #../../modules/hardware/peripherals/lemokey-keychron/default.nix
 
     # ==============================================================
