@@ -30,28 +30,40 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# _fmt_nvd — formats nvd diff output into readable package change lines.
+# _fmt_nvd — formats nvd diff output into a clean aligned package-changes table.
 #
-# Handles both nvd long-form output ("Added packages:", "Version changes:")
-# and short-form ("[A]", "[U]", "[R]", "[D]" prefixes).
-# Strips /nix/store/HASH- paths so only package names and versions show.
+# Collects all package data into arrays first, then renders in one pass so
+# column widths can be computed from the actual data before the first row prints.
+# Outputs the complete formatted block (header + table + footer + divider).
+# Outputs nothing if no meaningful package changes are found.
+# Handles both nvd long-form ("Added packages:") and short-form ([A]/[U]/[R]) output.
 # ---------------------------------------------------------------------------
 _fmt_nvd() {
-  local section="" pkg ver name old_v new_v
+  local section="" line
+  local -a names=() old_vers=() new_vers=() actions=()
+  local closure_old="" closure_new="" closure_added="" closure_removed="" closure_net="" closure_disk=""
+
   while IFS= read -r line; do
-    # Skip store path header comparison lines and blank lines
     [[ "$line" == '<<<'* || "$line" == '>>>'* ]] && continue
     [[ -z "${line// }" ]] && continue
 
-    # Long-form section headers (nvd long-form output)
-    if [[ "$line" == 'Added packages:'   ]]; then section="added";   printf "\n"; continue; fi
-    if [[ "$line" == 'Removed packages:' ]]; then section="removed"; printf "\n"; continue; fi
-    if [[ "$line" == 'Version changes:'* ]]; then section="version"; printf "\n"; continue; fi
-    if [[ "$line" == 'Closure size:'*    ]]; then printf "  %s\n" "$line"; continue; fi
+    # Long-form section headers
+    if [[ "$line" == 'Added packages:'   ]]; then section="added";   continue; fi
+    if [[ "$line" == 'Removed packages:' ]]; then section="removed"; continue; fi
+    if [[ "$line" == 'Version changes:'* ]]; then section="version"; continue; fi
 
-    # Short-form prefix lines — e.g. "[A.]  #3  abc123...-kitty  0.36.0"
-    # "[A.]" → added, "[R.]" → removed, "[C.]"/"[C*]" / "[D*]" / "[U*]" → version change
-    # nvd 0.2.4 uses [C*] (asterisk) instead of [C.] (dot) for closure changes
+    # Closure size line — extract all stats for the footer
+    if [[ "$line" == 'Closure size:'* ]]; then
+      closure_old=$(    printf '%s' "$line" | sed -E 's/Closure size: ([0-9]+).*/\1/')
+      closure_new=$(    printf '%s' "$line" | sed -E 's/[^0-9]*[0-9]+ -> ([0-9]+).*/\1/')
+      closure_added=$(  printf '%s' "$line" | sed -E 's/.*\(([0-9]+) paths added.*/\1/')
+      closure_removed=$(printf '%s' "$line" | sed -E 's/.*, ([0-9]+) paths removed.*/\1/')
+      closure_net=$(    printf '%s' "$line" | sed -E 's/.*delta ([+-]?[0-9]+).*/\1/')
+      closure_disk=$(   printf '%s' "$line" | sed -E 's/.*disk usage ([^)]+)\).*/\1/')
+      continue
+    fi
+
+    # Short-form prefix — update section from marker
     case "$line" in
       '[A.'*|'[A*'*) section="added"   ;;
       '[R.'*|'[R*'*) section="removed" ;;
@@ -60,44 +72,167 @@ _fmt_nvd() {
 
     case "$section" in
       added|removed)
-        # Strip "[X.]  #N  " prefix, then strip bare 32-char hash-
+        local pkg ver
         pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z][.*]\]  #[0-9]+  //; s/^[a-z0-9]{32,}-//')
         [[ -z "$pkg" ]] && continue
         ver="${pkg##*  }"
         pkg="${pkg%%  *}"
-        # Skip internal nix/home-manager derivation names — not meaningful package changes
         [[ "$pkg" == "source" || "$pkg" == "home-manager-"* || "$pkg" == "hm_"* || "$pkg" == "activation-script" ]] && continue
-        if [[ "$ver" == '<none>' || "$ver" == "$pkg" ]]; then
-          printf "    %-36s  ==>  %s\n" "$pkg" "$section"
+        ver=$(printf '%s' "$ver" | sed 's/, .*//')
+        names+=("$pkg")
+        actions+=("$section")
+        if [[ "$section" == "added" ]]; then
+          old_vers+=("-"); new_vers+=("$ver")
         else
-          printf "    %-36s  ==>  %s  %s\n" "$pkg" "$section" "$ver"
+          old_vers+=("$ver"); new_vers+=("-")
         fi
         ;;
       version)
-        # Strip "[X*]  " or "[X.]  " prefix (nvd 0.2.4 uses asterisk in third position)
+        local pkg name old_v new_v rest old_vset new_vset
         pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z][.*]\]  //')
         [[ -z "$pkg" ]] && continue
-        # Strip "#NNN  " index prefix (nvd 0.2.4 includes a sequence number)
         pkg=$(printf '%s' "$pkg" | sed -E 's/^#[0-9]+  +//')
         [[ -z "$pkg" ]] && continue
-        if [[ "$pkg" == *' -> '* ]]; then
-          # nvd 0.2.4 format: "pkgname   oldver -> newver" (space-aligned, no colon)
-          name="${pkg%% *}"
-          rest="${pkg#"$name"}"
-          rest="${rest#"${rest%%[! ]*}"}"   # trim leading alignment spaces
-          old_v="${rest%% -> *}"
-          new_v="${rest##* -> }"
-          # Skip count-only closure changes (x3 → x2) — same version, different instance count
-          old_vset=$(printf '%s' "$old_v" | sed -E 's/ x[0-9]+//g')
-          new_vset=$(printf '%s' "$new_v" | sed -E 's/ x[0-9]+//g')
-          [[ "$old_vset" == "$new_vset" ]] && continue
-          printf "    %-36s  ==>  updated  ==>  %s → %s\n" "$name" "$old_v" "$new_v"
-        else
-          printf "    %s\n" "$pkg"
-        fi
+        [[ "$pkg" != *' -> '* ]] && continue
+        name="${pkg%% *}"
+        rest="${pkg#"$name"}"; rest="${rest#"${rest%%[! ]*}"}"
+        old_v="${rest%% -> *}"; new_v="${rest##* -> }"
+        # Strip multi-output noise (", 2.63.1-man") — keep only the first version token
+        old_v=$(printf '%s' "$old_v" | sed 's/, .*//')
+        new_v=$(printf '%s' "$new_v" | sed 's/, .*//')
+        # Skip count-only closure changes (x3 → x2) — version itself didn't change
+        old_vset=$(printf '%s' "$old_v" | sed -E 's/ x[0-9]+//g')
+        new_vset=$(printf '%s' "$new_v" | sed -E 's/ x[0-9]+//g')
+        [[ "$old_vset" == "$new_vset" ]] && continue
+        old_v=$(printf '%s' "$old_v" | sed -E 's/ x[0-9]+//')
+        new_v=$(printf '%s' "$new_v" | sed -E 's/ x[0-9]+//')
+        names+=("$name"); old_vers+=("$old_v"); new_vers+=("$new_v"); actions+=("updated")
         ;;
     esac
   done
+
+  local n_total=${#names[@]}
+  [[ $n_total -eq 0 ]] && return
+
+  # Count by action type
+  local n_updated=0 n_added=0 n_removed=0 a
+  for a in "${actions[@]}"; do
+    case "$a" in updated) (( n_updated++ ));; added) (( n_added++ ));; removed) (( n_removed++ ));; esac
+  done
+
+  # Dynamic column widths — computed from actual data so the table is always tight
+  local max_name=7 max_from=4 i  # floor = header label lengths ("Package", "From")
+  for (( i=1; i<=n_total; i++ )); do
+    [[ ${#names[$i]} -gt $max_name ]] && max_name=${#names[$i]}
+    [[ ${#old_vers[$i]} -gt $max_from ]] && max_from=${#old_vers[$i]}
+  done
+  local col_name=$(( max_name + 2 )) col_from=$(( max_from + 4 ))
+
+  # Section header: "─── Packages  ·  N updated  ·  +64.8 MiB ───..."
+  local hparts="" j
+  [[ $n_updated -gt 0 ]] && hparts="${n_updated} updated"
+  [[ $n_added   -gt 0 ]] && hparts="${hparts:+${hparts}  ·  }${n_added} added"
+  [[ $n_removed -gt 0 ]] && hparts="${hparts:+${hparts}  ·  }${n_removed} removed"
+  [[ -n "$closure_disk" ]] && hparts="${hparts:+${hparts}  ·  }${closure_disk}"
+  local htitle="─── Packages  ·  ${hparts} "
+  local hfill="" hlen=$(( 60 - ${#htitle} ))
+  for (( j=0; j<hlen; j++ )); do hfill="${hfill}─"; done
+
+  # Table separator and closing divider
+  local sep="" close="" sep_len=$(( col_name + col_from + 22 ))
+  for (( j=0; j<sep_len; j++ )); do sep="${sep}─"; done
+  for (( j=0; j<60; j++ )); do close="${close}─"; done
+
+  # Render
+  echo ""
+  printf '%s%s\n' "$htitle" "$hfill"
+  echo ""
+  printf "  %-${col_name}s  %-${col_from}s  %s\n" "Package" "From" "To"
+  printf "  %s\n" "$sep"
+  for (( i=1; i<=n_total; i++ )); do
+    printf "  %-${col_name}s  %-${col_from}s  %s\n" "${names[$i]}" "${old_vers[$i]}" "${new_vers[$i]}"
+  done
+  echo ""
+  [[ -n "$closure_old" && -n "$closure_new" ]] && \
+    printf "  Store paths: %s → %s  (%s new, %s removed, net %s)\n" \
+      "$closure_old" "$closure_new" "$closure_added" "$closure_removed" "$closure_net"
+  [[ -n "$closure_disk" ]] && printf "  Disk usage:  %s\n" "$closure_disk"
+  echo ""
+  printf '%s\n' "$close"
+}
+
+# ---------------------------------------------------------------------------
+# _nix_fetch_filter — stdin filter used by _nixos_run.
+#
+# Suppresses build/fetch noise and renders an in-place progress bar for
+# binary cache downloads. Three behaviors per line type:
+#   - Build noise (derivations, store paths, agenix):  silently dropped
+#   - "these N paths will be fetched":  starts a progress bar on /dev/tty
+#   - "copying path '...":             updates the bar in-place via \r
+#   - Everything else (activation, warnings, errors):  passed through as-is
+#
+# Progress bar writes go to /dev/tty (not stdout) so \r can overwrite the
+# same line without interfering with the normal pass-through output stream.
+# ---------------------------------------------------------------------------
+_nix_fetch_filter() {
+  awk '
+  BEGIN { total=0; done=0; in_progress=0; bw=20 }
+
+  /^\[agenix\]/ || /^decrypting /                      { next }
+  /^warning: Git tree .* is dirty/                      { next }
+  /^Done\. The new configuration is \/nix\/store\//     { next }
+  /^building the system configuration/                  { next }
+  /^building .*\/nix\/store\//                          { next }
+  /^these [0-9]+ derivations will be built:/            { next }
+  /^[[:space:]]+\/nix\/store\//                         { next }
+
+  /^these [0-9]+ paths will be fetched/ {
+    if (in_progress) { printf "\n" > "/dev/tty"; in_progress=0 }
+    match($0, /[0-9]+/)
+    total = substr($0, RSTART, RLENGTH) + 0
+    done = 0
+    bar = sprintf("%*s", bw, ""); gsub(/ /, "░", bar)
+    printf "  ↓  0/%d  [%s]  0%%", total, bar > "/dev/tty"
+    fflush("/dev/tty")
+    in_progress = 1
+    next
+  }
+
+  /^copying path / {
+    if (!in_progress) { next }
+    done++
+    pct    = int(done * 100 / (total > 0 ? total : 1))
+    filled = int(done * bw  / (total > 0 ? total : 1))
+    bar = ""
+    for (i=0; i<filled;    i++) bar = bar "█"
+    for (i=0; i<bw-filled; i++) bar = bar "░"
+    printf "\r  ↓  %d/%d  [%s]  %d%%", done, total, bar, pct > "/dev/tty"
+    fflush("/dev/tty")
+    next
+  }
+
+  # Unit lists ("restarting the following units: a, b, c") — render as a tree,
+  # one unit per line, so long lists stay readable.
+  /^(stopping|starting|restarting|reloading) the following .*units?: / ||
+  /^the following new units were started: / {
+    if (in_progress) { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
+    idx  = index($0, ": ")
+    head = substr($0, 1, idx - 1)
+    rest = substr($0, idx + 2)
+    n = split(rest, units, ", ")
+    print head ":"
+    for (i = 1; i <= n; i++)
+      printf "  %s %s\n", (i == n ? "└─" : "├─"), units[i]
+    next
+  }
+
+  {
+    if (in_progress) { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
+    print
+  }
+
+  END { if (in_progress) printf "\n" > "/dev/tty" }
+  '
 }
 
 # ---------------------------------------------------------------------------
@@ -106,7 +241,7 @@ _fmt_nvd() {
 # - Shows a clean build header with hostname
 # - Holds a systemd sleep/idle inhibit lock for the full build duration
 # - Tees all output (stdout + stderr) to a temp log alongside nom
-# - Filters agenix/decryption messages from the terminal (still in log)
+# - Pipes through _nix_fetch_filter: suppresses noise, shows fetch progress
 # - After the build: shows a package diff via nvd and calls nixos-log-rebuild
 #   to write warnings and a timestamped entry to ~/Obsidian/09 🔄 Updates/
 # ---------------------------------------------------------------------------
@@ -131,44 +266,34 @@ _nixos_run() {
   # no "[N] PID" job notification. The lock releases automatically when the
   # command exits, regardless of exit code.
   #
-  # Filtered from terminal display (still in log):
-  #   - agenix/decryption messages
-  #   - nix build noise: "building the system configuration...",
-  #     "these N derivations will be built:", indented .drv paths,
-  #     "building '/nix/store/...'..." per-derivation lines
-  # Activation output (restarting units, warnings, errors) passes through.
+  # _nix_fetch_filter handles noise suppression and the fetch progress bar.
+  # The log (tee) captures raw output before the filter, so nothing is lost.
   systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
     --why="NixOS rebuild in progress" \
-    "$@" 2>&1 | tee "$tmplog" | grep -v -E \
-    "(\[agenix\]|decrypting '|^building the system configuration|^these [0-9]+ derivations will be built:|^\s+/nix/store/[a-z0-9]+-.*\.drv$|^building '/nix/store/)"
+    "$@" 2>&1 | tee "$tmplog" | _nix_fetch_filter
   exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
 
   # Package diff — only shown on successful switch with real package changes.
-  # _fmt_nvd output is captured first; blank lines and the Closure size line
-  # are stripped to check whether any actual packages changed. If nothing
-  # remains, the block is skipped entirely — no "Package Changes" section
-  # for config-only rebuilds that don't touch any packages.
+  # _fmt_nvd outputs the complete formatted block (header + table + footer +
+  # divider), or nothing at all for config-only rebuilds with no package changes.
   if [[ $exit_code -eq 0 ]] && command -v nvd &>/dev/null; then
-    local new_system diff_output pkg_lines
+    local new_system fmt_output
     new_system=$(readlink -f /run/current-system 2>/dev/null)
     if [[ -n "$old_system" && "$old_system" != "$new_system" ]]; then
-      diff_output=$(nvd diff "$old_system" "$new_system" | _fmt_nvd)
-      pkg_lines=$(printf '%s\n' "$diff_output" | grep -v '^  Closure' | grep -v '^[[:space:]]*$')
-      if [[ -n "$pkg_lines" ]]; then
-        echo ""
-        echo "─── Package Changes ──────────────────────────────────────"
-        printf '%s\n' "$diff_output"
-        echo "──────────────────────────────────────────────────────────"
-        echo ""
-      fi
+      fmt_output=$(nvd diff "$old_system" "$new_system" | _fmt_nvd)
+      [[ -n "$fmt_output" ]] && printf '%s\n' "$fmt_output"
     fi
   fi
 
-  # Write warnings + update log to vault (non-blocking, never fails the shell)
+  # Write warnings + update log to vault (non-blocking, never fails the shell).
+  # Output is captured silently; the generation number is extracted into
+  # _NIXOS_LAST_GEN so callers (nru) can fold it into their success line.
+  _NIXOS_LAST_GEN=""
   if command -v nixos-log-rebuild &>/dev/null; then
-    local outcome="success"
+    local outcome="success" log_out
     [[ $exit_code -ne 0 ]] && outcome="failure"
-    nixos-log-rebuild --outcome "$outcome" --log "$tmplog" || true
+    log_out=$(nixos-log-rebuild --outcome "$outcome" --log "$tmplog" 2>&1) || true
+    _NIXOS_LAST_GEN=$(printf '%s' "$log_out" | grep -oE 'gen [0-9]+' | grep -oE '[0-9]+' | head -1)
   fi
 
   rm -f "$tmplog"
@@ -218,14 +343,26 @@ _nru_rebuild() {
     echo "⚠ Rebuild succeeded with unit warnings (exit $exit_code)"
   fi
 
-  echo "✓ Rebuild successful"
+  echo "✓ Rebuild successful${_NIXOS_LAST_GEN:+  (generation ${_NIXOS_LAST_GEN})}"
 
-  # Push the updated flake.lock so other hosts get the same nixpkgs pin
+  # Push the updated flake.lock so other hosts get the same nixpkgs pin.
+  # Git output is captured and hidden on success; shown in full on failure
+  # so auth/divergence errors are never silently swallowed.
   if ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
     echo "→ Pushing updated flake.lock..."
+    local git_out
     git -C "$NIXOS_CONFIG" add flake.lock
-    git -C "$NIXOS_CONFIG" commit -m "flake: update nixpkgs ($(date +%Y-%m-%d))"
-    git -C "$NIXOS_CONFIG" push
+    if ! git_out=$(git -C "$NIXOS_CONFIG" commit -m "flake: update nixpkgs ($(date +%Y-%m-%d))" 2>&1); then
+      printf '%s\n' "$git_out"
+    fi
+    if git_out=$(git -C "$NIXOS_CONFIG" push 2>&1); then
+      printf "  ✓ pushed %s to %s\n" \
+        "$(git -C "$NIXOS_CONFIG" rev-parse --short HEAD)" \
+        "$(git -C "$NIXOS_CONFIG" branch --show-current)"
+    else
+      printf '%s\n' "$git_out"
+      echo "  ✗ push failed — flake.lock is committed locally, push manually"
+    fi
   fi
 
   # Check if a kernel update requires a reboot
@@ -235,7 +372,7 @@ _nru_rebuild() {
 
   if [[ -n "$installed_kernel" && "$current_kernel" != "$installed_kernel" ]]; then
     echo "⚠ Kernel updated: $current_kernel → $installed_kernel"
-    curl -s --max-time 10 \
+    curl -s -o /dev/null --max-time 10 \
       -H "Title: Reboot Required — $(hostname)" \
       -H "Priority: high" \
       -H "Tags: warning,arrows_counterclockwise" \
@@ -262,7 +399,25 @@ nru() {
   git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
   git -C "$NIXOS_CONFIG" pull || return 1
   echo "→ Updating nixpkgs..."
-  nix flake update nixpkgs --flake "$NIXOS_CONFIG"
+  # Condense the verbose lock-file update block (full URLs + narHashes) into a
+  # one-liner with dates and short revs. Raw output is shown if the update
+  # fails or produces something unexpected.
+  local upd_out upd_code
+  upd_out=$(nix flake update nixpkgs --flake "$NIXOS_CONFIG" 2>&1)
+  upd_code=$?
+  if [[ $upd_code -ne 0 ]]; then
+    printf '%s\n' "$upd_out"
+  elif printf '%s' "$upd_out" | grep -q "Updated input 'nixpkgs'"; then
+    printf '%s\n' "$upd_out" | awk '
+      /github:nixos\/nixpkgs\/[0-9a-f]{40}/ {
+        match($0, /nixpkgs\/[0-9a-f]{40}/); rev = substr($0, RSTART+8, 7)
+        match($0, /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/); dt = substr($0, RSTART+1, 10)
+        if (!seen) { old_rev=rev; old_dt=dt; seen=1 }
+        else printf "  ↑ nixpkgs: %s (%s) → %s (%s)\n", old_dt, old_rev, dt, rev
+      }'
+  else
+    echo "  ✓ nixpkgs already up to date"
+  fi
   _nru_rebuild
 }
 
