@@ -35,7 +35,6 @@
     #   drivers — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
     # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    #../../modules/hardware/openrgb/default.nix
 
     # ==============================================================
     # Graphical Apps — all optional, comment out to remove
@@ -168,6 +167,14 @@
   # ==============================================================
   # TODO: switch back to "nvidia-hybrid" once PCI bus IDs are filled in above
   hardware.gpu = "amd";
+
+  # ==============================================================
+  # Hardware toggles — option-gated modules (imported in flake.nix)
+  #   openrgb          — RGB lighting: package + udev rules + daemon
+  #   lemokey-keychron — WebHID udev rules for keyboard web configurators
+  # ==============================================================
+  hardware.openrgb.enable = false;
+  hardware.lemokey-keychron.enable = false;
 
   # ==============================================================
   # PRIME PCI Bus IDs

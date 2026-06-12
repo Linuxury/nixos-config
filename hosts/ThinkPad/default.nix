@@ -35,12 +35,10 @@
 
     # ==============================================================
     # Hardware
-    #   drivers          — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
-    #   lemokey-keychron — WebHID udev rules for Lemokey + Keychron keyboards
+    #   drivers — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
+    #   (openrgb / lemokey-keychron are option-gated — see Hardware toggles)
     # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    #../../modules/hardware/openrgb/default.nix
-    ../../modules/hardware/peripherals/lemokey-keychron/default.nix
 
     # ==============================================================
     # Graphical Apps — all optional, comment out to remove
@@ -170,6 +168,14 @@
   # GPU driver selection — tells drivers.nix which profile to use
   # ==============================================================
   hardware.gpu = "amd";
+
+  # ==============================================================
+  # Hardware toggles — option-gated modules (imported in flake.nix)
+  #   openrgb          — RGB lighting: package + udev rules + daemon
+  #   lemokey-keychron — WebHID udev rules for keyboard web configurators
+  # ==============================================================
+  hardware.openrgb.enable = false;
+  hardware.lemokey-keychron.enable = true;
 
   # ==============================================================
   # SwayNC Control Panel — hardware capabilities (Hyprland only)

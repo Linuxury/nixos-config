@@ -33,13 +33,10 @@
 
     # ==============================================================
     # Hardware
-    #   drivers          — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
-    #   openrgb          — RGB lighting control daemon
-    #   lemokey-keychron — WebHID udev rules for Lemokey + Keychron keyboards
+    #   drivers — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
+    #   (openrgb / lemokey-keychron are option-gated — see Hardware toggles)
     # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    ../../modules/hardware/openrgb/default.nix
-    ../../modules/hardware/peripherals/lemokey-keychron/default.nix
 
     # ==============================================================
     # Graphical Apps — all optional, comment out to remove
@@ -220,6 +217,14 @@
   # GPU driver selection
   # ==============================================================
   hardware.gpu = "amd";
+
+  # ==============================================================
+  # Hardware toggles — option-gated modules (imported in flake.nix)
+  #   openrgb          — RGB lighting: package + udev rules + daemon
+  #   lemokey-keychron — WebHID udev rules for keyboard web configurators
+  # ==============================================================
+  hardware.openrgb.enable = true;
+  hardware.lemokey-keychron.enable = true;
 
   # ==============================================================
   # Filesystem — BTRFS with subvolumes

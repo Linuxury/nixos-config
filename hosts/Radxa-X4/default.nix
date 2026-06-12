@@ -35,7 +35,6 @@
     #   drivers — Intel N100 UHD iGPU + basic support
     # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    #../../modules/hardware/openrgb/default.nix
 
     # ==============================================================
     # Development — AI Tools
@@ -123,6 +122,12 @@
   # Intel UHD integrated graphics (Alder Lake N)
   # ==============================================================
   hardware.gpu = "intel";
+
+  # ==============================================================
+  # Hardware toggles — option-gated modules (imported in flake.nix)
+  # ==============================================================
+  hardware.openrgb.enable = false;
+  hardware.lemokey-keychron.enable = false;
 
   # ==============================================================
   # Filesystem — BTRFS with subvolumes, no LUKS on server

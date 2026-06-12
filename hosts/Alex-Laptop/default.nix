@@ -34,7 +34,6 @@
     #   drivers — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
     # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    #../../modules/hardware/openrgb/default.nix
 
     # ==============================================================
     # Graphical Apps — all optional, comment out to remove
@@ -156,6 +155,14 @@
   # Same amdgpu driver as dedicated cards — works fine.
   # ==============================================================
   hardware.gpu = "amd";
+
+  # ==============================================================
+  # Hardware toggles — option-gated modules (imported in flake.nix)
+  #   openrgb          — RGB lighting: package + udev rules + daemon
+  #   lemokey-keychron — WebHID udev rules for keyboard web configurators
+  # ==============================================================
+  hardware.openrgb.enable = false;
+  hardware.lemokey-keychron.enable = false;
 
   # ==============================================================
   # Filesystem — BTRFS with subvolumes

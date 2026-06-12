@@ -209,6 +209,12 @@
             # Provides the age.secrets.* options used throughout host configs.
             agenix.nixosModules.default
 
+            # Option-gated hardware modules — imported for every host but
+            # dormant until enabled, e.g. hardware.openrgb.enable = true;
+            # Hosts toggle these with flags instead of imports.
+            ./modules/hardware/openrgb/default.nix
+            ./modules/hardware/peripherals/lemokey-keychron/default.nix
+
             # Home Manager as a NixOS module — this means Home Manager
             # runs as part of nixos-rebuild, keeping everything in sync
             home-manager.nixosModules.home-manager

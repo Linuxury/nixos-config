@@ -34,7 +34,6 @@
     #   drivers — AMD RX 480, used for VAAPI hardware transcoding
     # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    #../../modules/hardware/openrgb/default.nix
 
     # ==============================================================
     # Development — AI Tools
@@ -103,6 +102,12 @@
   # AMD RX 480 — used for VAAPI hardware transcoding via Plex
   # ==============================================================
   hardware.gpu = "amd";
+
+  # ==============================================================
+  # Hardware toggles — option-gated modules (imported in flake.nix)
+  # ==============================================================
+  hardware.openrgb.enable = false;
+  hardware.lemokey-keychron.enable = false;
 
   # ==============================================================
   # PostgreSQL with pgvector — for AI Memory database

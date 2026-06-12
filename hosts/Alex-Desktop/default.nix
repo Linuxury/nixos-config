@@ -37,7 +37,6 @@
     #   drivers — GPU (AMD/NVIDIA/Intel) + OpenCL/VAAPI
     # ==============================================================
     ../../modules/hardware/drivers/default.nix
-    #../../modules/hardware/openrgb/default.nix
 
     # ==============================================================
     # Graphical Apps — all optional, comment out to remove
@@ -162,6 +161,14 @@
   boot.initrd.availableKernelModules = [ "ahci" "ata_piix" "xhci_pci" "ehci_pci" "ohci_pci" "usb_storage" "sd_mod" ];
   boot.initrd.kernelModules = [];
   services.xserver.videoDrivers = lib.mkForce [ "radeon" ];
+
+  # ==============================================================
+  # Hardware toggles — option-gated modules (imported in flake.nix)
+  #   openrgb          — RGB lighting: package + udev rules + daemon
+  #   lemokey-keychron — WebHID udev rules for keyboard web configurators
+  # ==============================================================
+  hardware.openrgb.enable = false;
+  hardware.lemokey-keychron.enable = false;
 
   # ==============================================================
   # Filesystem — BTRFS with subvolumes, no LUKS on desktop
