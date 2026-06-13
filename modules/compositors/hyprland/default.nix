@@ -221,9 +221,8 @@ in
     qt6Packages.qt6ct   # Qt6 theme settings outside of KDE/GNOME
 
     # System tray / applets
-    networkmanagerapplet  # WiFi tray icon
-    # blueman is installed by services.blueman.enable (core) and its tray
-    # applet auto-starts via the package's XDG autostart entry — no package needed here
+    # networkmanagerapplet: removed — Noctalia bar widget handles network
+    # blueman: installed by services.blueman.enable (core); no tray applet started
 
     # Polkit authentication agent
     polkit_gnome

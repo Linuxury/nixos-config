@@ -100,9 +100,8 @@
     qt6Packages.qt6ct
 
     # System tray
-    networkmanagerapplet
-    # blueman is installed by services.blueman.enable (core) and auto-starts
-    # via the package's XDG autostart entry — no extra package needed here
+    # networkmanagerapplet: removed — shell bar widget handles network
+    # blueman: installed by services.blueman.enable (core); no tray applet started
   ];
 
   # =========================================================================

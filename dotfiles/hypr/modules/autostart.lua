@@ -24,7 +24,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("gnome-keyring-daemon --start --daemonize --components=secrets")
 
     -- ── System tray daemons ───────────────────────────────────────────────────
-    hl.exec_cmd("nm-applet --indicator")    -- Network manager tray icon
+    -- network: Noctalia bar widget handles network — no nm-applet tray needed
     -- bluetooth: Noctalia bar widget handles BT — no separate tray applet needed
     -- openrgb: systemd service runs openrgb --server headlessly; open GUI from launcher
 
