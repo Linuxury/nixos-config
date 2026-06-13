@@ -140,6 +140,10 @@ let
       # See mainQmlPatch above for full explanation of each patch.
       python3 ${mainQmlPatch} "$dest/Main.qml"
 
+      # Switch clock from 24h (HH) to 12h (hh) — Qt formatTime lowercase h = 1–12.
+      sed -i 's/Qt\.formatTime(new Date(), "HHmm")/Qt.formatTime(new Date(), "hhmm")/g' \
+        "$dest/components/Clock.qml"
+
       runHook postInstall
     '';
   };
