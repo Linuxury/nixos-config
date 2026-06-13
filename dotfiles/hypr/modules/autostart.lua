@@ -25,8 +25,8 @@ hl.on("hyprland.start", function()
 
     -- ── System tray daemons ───────────────────────────────────────────────────
     hl.exec_cmd("nm-applet --indicator")    -- Network manager tray icon
-    hl.exec_cmd("blueman-applet")           -- Bluetooth tray icon
-    hl.exec_cmd("openrgb --startminimized") -- RGB lighting control tray icon
+    -- bluetooth: Noctalia bar widget handles BT — no separate tray applet needed
+    -- openrgb: systemd service runs openrgb --server headlessly; open GUI from launcher
 
     -- ── Clipboard history — wl-clipboard + cliphist ───────────────────────────
     -- Watches clipboard for text and images; SUPER+V opens history picker.
