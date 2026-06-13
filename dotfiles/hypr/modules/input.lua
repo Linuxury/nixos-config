@@ -4,8 +4,9 @@
 
 hl.config({
     input = {
-        kb_layout  = "us",
-        kb_options = "caps:escape",   -- Caps Lock → Escape (very useful in Neovim)
+        kb_layout          = "us",
+        kb_options         = "caps:escape",   -- Caps Lock → Escape (very useful in Neovim)
+        numlock_by_default = true,
 
         -- Mouse — no acceleration, raw input feels more precise
         follow_mouse  = 1,

@@ -162,6 +162,8 @@ in
     extraPackages = [ pkgs.qt6Packages.qtvirtualkeyboard ];
   };
 
+  services.displayManager.sddm.settings.General.Numlock = "on";
+
   # NixOS builds SDDM without libaccountsservice — UserModel.icon never queries
   # accounts-daemon.  Instead SDDM resolves avatars via FacesDir: it looks for
   # ${FacesDir}/${username}.face.icon.  Point FacesDir at our mutable directory
