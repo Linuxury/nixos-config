@@ -1,53 +1,99 @@
 # ===========================================================================
 # modules/services/auto-update/default.nix — Automatic System Updates
 #
-# Handles automatic NixOS updates for desktop and laptop machines.
-# Servers use their own simpler system.autoUpgrade setup.
+# Two-tier update model:
 #
-# How it works:
-#   1. A systemd service runs after the graphical session starts
-#   2. It checks when the last successful update happened
-#   3. If more than 7 days ago → runs flake update + nixos-rebuild
-#   4. notify-update-result.sh handles all notifications:
-#      - Obsidian vault entries (success + failure)
-#      - Desktop toast (success + failure)
-#      - Email via msmtp (failure only)
-#   5. If a reboot is required after a kernel update, a persistent
-#      notification appears — you decide when to reboot
-#
-# Weekly schedule (system.autoUpgrade):
-#   - Saturday 3am via systemd timer
-#   - onFailure/onSuccess hooks trigger notify-update-result.sh
-#   - Missed runs (machine was off) caught on next boot via session service
+#   ┌─────────────────────────────────────────────────────────────────────┐
+#   │ PRIMARY HOST (isPrimary = true — Ryzen5900x)                        │
+#   │   Session start (once per 20h):                                     │
+#   │     1. git pull --autostash (sync any remote config changes)        │
+#   │     2. nix flake update → advances nixpkgs pin in flake.lock        │
+#   │     3. nixos-rebuild switch --flake /local/nixos-config#hostname    │
+#   │     4. git commit + push flake.lock → other hosts see new packages  │
+#   │     5. Vault log + desktop toast + email on failure                 │
+#   └─────────────────────────────────────────────────────────────────────┘
+#   ┌─────────────────────────────────────────────────────────────────────┐
+#   │ NON-PRIMARY HOSTS (isPrimary = false, default)                      │
+#   │   Session start:                                                    │
+#   │     1. git ls-remote → compare GitHub HEAD to last-built rev        │
+#   │     2. Skip if same rev AND last build < 30 days ago                │
+#   │     3. nixos-rebuild switch --flake github:linuxury/nixos-config    │
+#   │     4. Record new rev to /etc/nixos-last-update-rev                 │
+#   │     5. Vault log + desktop toast + email on failure                 │
+#   │   Weekly (system.autoUpgrade, Sat 03:00):                           │
+#   │     → Rebuilds from GitHub as safety net for always-on machines     │
+#   └─────────────────────────────────────────────────────────────────────┘
 #
 # Per-host configuration:
-#   services.nixos-auto-update.primaryUser = "babylinux"; # default: "linuxury"
+#   services.nixos-auto-update.primaryUser    = "babylinux"; # default: linuxury
+#   services.nixos-auto-update.isPrimary      = true;         # Ryzen5900x only
+#   services.nixos-auto-update.nixosConfigPath = "/home/linuxury/nixos-config";
 #
 # To disable on a specific host:
-#   services.nixos-auto-update.enable = lib.mkForce false;
+#   Import this module and override: services.nixos-auto-update.enable = lib.mkForce false;
+#   (No-op — to truly disable, don't import the module)
 # ===========================================================================
 
 { config, pkgs, lib, ... }:
 
 let
-  notifyScript     = ./scripts/notify-update-result.sh;
-  nixosLogRebuild  = pkgs.writeShellScriptBin "nixos-log-rebuild"
+  notifyScript    = ./scripts/notify-update-result.sh;
+  nixosLogRebuild = pkgs.writeShellScriptBin "nixos-log-rebuild"
     (builtins.readFile ./scripts/nixos-log-rebuild.sh);
-  cfg              = config.services.nixos-auto-update;
+  cfg             = config.services.nixos-auto-update;
 in
 
 {
   # =========================================================================
   # Options
   # =========================================================================
-  options.services.nixos-auto-update.primaryUser = lib.mkOption {
-    type        = lib.types.str;
-    default     = "linuxury";
-    description = ''
-      Primary user on this host. Vault writes, notification ownership, and
-      the smtp-app-password secret are all scoped to this user.
-      Set to "babylinux" on her machines, "alex" on his, etc.
-    '';
+  options.services.nixos-auto-update = {
+
+    primaryUser = lib.mkOption {
+      type        = lib.types.str;
+      default     = "linuxury";
+      description = ''
+        Primary user on this host. Vault writes, notification ownership, and
+        the smtp-app-password secret are all scoped to this user.
+        Set to "babylinux" on her machines, "alex" on his, etc.
+      '';
+    };
+
+    isPrimary = lib.mkOption {
+      type        = lib.types.bool;
+      default     = false;
+      description = ''
+        When true, this host owns the nixpkgs update cycle:
+          - Runs nix flake update to advance the nixpkgs pin
+          - Builds from the local nixos-config directory (not GitHub)
+          - Commits and pushes the updated flake.lock to GitHub
+        All other hosts then rebuild from GitHub and receive the new packages.
+        Set to true on exactly ONE host — the admin's primary machine.
+      '';
+    };
+
+    nixosConfigPath = lib.mkOption {
+      type        = lib.types.str;
+      default     = "/home/linuxury/nixos-config";
+      description = ''
+        Absolute path to the nixos-config git repository on this host.
+        Only used when isPrimary = true. The primaryUser must have write
+        access and a working git push credential (SSH key to GitHub).
+      '';
+    };
+
+    schedule = lib.mkOption {
+      type        = lib.types.str;
+      default     = "*-*-* 03:00";
+      description = ''
+        systemd OnCalendar expression for the system.autoUpgrade timer.
+        Defaults to daily at 3am. Override per-host if needed.
+        Examples: "daily", "Sat 03:00" (weekly), "*-*-* 03:00" (daily 3am).
+        Desktops also run on session start via a user service, so the timer
+        is mainly a catch-all for machines that haven't been logged into.
+      '';
+    };
+
   };
 
   # =========================================================================
@@ -91,21 +137,25 @@ in
   };
 
   # =========================================================================
-  # Scheduled weekly update
+  # Scheduled weekly update — safety net for always-on machines
   #
-  # This handles machines that are always on.
-  # Runs nix flake update + nixos-rebuild switch every week.
-  # allowReboot is false — we handle reboot notifications ourselves.
+  # Rebuilds from GitHub every Saturday 3am. On non-primary hosts this picks
+  # up whatever flake.lock the primary pushed during the week (including the
+  # updated nixpkgs pin). On the primary host it also runs, but the session-
+  # start service is what does the real work (flake update + push).
+  #
+  # Persistent = true (via systemd): if the machine was off at 3am Saturday,
+  # the timer fires on next boot. This catches "missed auto-update" cases.
   # =========================================================================
   system.autoUpgrade = {
-    enable      = true;
-    flake        = "github:linuxury/nixos-config";
-    # No --update-input: servers use flake.lock from the repo.
-    # Update nixpkgs from an admin machine with `nru`, then push.
-    dates        = "Sat 03:00"; # Saturday 3am — captures full week of upstream releases
-    allowReboot  = false;
-    # Up to 45min random delay so all 9 machines don't hit GitHub at once
+    enable             = true;
+    flake              = "github:linuxury/nixos-config";
+    dates              = cfg.schedule;
+    allowReboot        = false;
+    # Spread runs across 45min so all 9 machines don't hit GitHub at once.
     randomizedDelaySec = "45min";
+    # Run on next boot if the machine was off when the timer fired.
+    persistent         = true;
   };
 
   # =========================================================================
@@ -152,127 +202,137 @@ in
   systemd.services.nixos-upgrade.onFailure = [ "notify-vault@failure.service" ];
 
   # =========================================================================
-  # Update log file — pre-created with primaryUser ownership
+  # Update log and stamp files — pre-created with primaryUser ownership
   #
-  # The auto-update script runs as primaryUser and writes to this log.
-  # /var/log/ is root-owned so we use tmpfiles to create it up front.
+  # /var/log/ and /etc/ are root-owned; tmpfiles creates these up front so
+  # the update script (running as primaryUser) can write to them directly.
   # =========================================================================
   systemd.tmpfiles.rules = [
-    "f /var/log/nixos-auto-update.log     0640 ${cfg.primaryUser} users -"
-    # Timestamp file — owned by primaryUser so the user service can write it directly.
-    "f /etc/nixos-last-update-time        0644 ${cfg.primaryUser} users -"
+    "f /var/log/nixos-auto-update.log  0640 ${cfg.primaryUser} users -"
+    # Stamp files are world-writable so any logged-in user running the session-start
+    # service can write them — the primaryUser is the typical writer, but a secondary
+    # user (e.g. linuxury SSHing into babylinux's machine) must not cause a false
+    # "rebuild failed" report just because they can't write to a root-owned file.
+    "f /etc/nixos-last-update-time     0666 root root -"
+    "f /etc/nixos-last-update-rev      0666 root root -"
   ];
 
   # =========================================================================
   # Update script
   #
-  # This script does the actual work:
-  #   1. Checks if update is needed (> 7 days since last)
-  #   2. Runs dry-build first (catches eval errors without applying)
-  #   3. Updates flake inputs
-  #   4. Rebuilds the system
-  #   5. On transient errors (timeout/network), retries once after 5min
-  #   6. Records the timestamp
-  #   7. Notifies via shared handler (Obsidian + toast + email)
-  #   8. Checks if a reboot is needed and notifies persistently
+  # Two code paths:
+  #
+  #   isPrimary = true  — runs nix flake update, builds from local repo,
+  #                       commits + pushes flake.lock so other hosts benefit
+  #
+  #   isPrimary = false — checks GitHub HEAD rev against last-built rev,
+  #                       skips if nothing changed (with 30-day fallback),
+  #                       builds from GitHub with the primary's updated lock
   # =========================================================================
   environment.systemPackages = [
-    # nixos-log-rebuild — post-rebuild warning capture and update log writer
     nixosLogRebuild
-
+  ] ++ lib.optionals cfg.isPrimary [ pkgs.git ]
+    ++ [
     (pkgs.writeShellScriptBin "nixos-auto-update" ''
       #!/usr/bin/env bash
       set -euo pipefail
 
-      # -----------------------------------------------------------------------
-      # Arguments
-      # -----------------------------------------------------------------------
+      # ── Arguments ────────────────────────────────────────────────────────
       FORCE=false
       case "''${1:-}" in
         --force|-f) FORCE=true ;;
         --help|-h)
           echo "Usage: nixos-auto-update [--force]"
-          echo ""
-          echo "  --force, -f   Bypass 7-day check, update immediately"
-          echo "  --help, -h    Show this help"
+          echo "  --force, -f   Bypass update check, run immediately"
           exit 0
           ;;
       esac
 
-      # -----------------------------------------------------------------------
-      # Configuration
-      # -----------------------------------------------------------------------
+      # ── Configuration ─────────────────────────────────────────────────────
+      IS_PRIMARY="${if cfg.isPrimary then "true" else "false"}"
+      NIXOS_CONFIG_PATH="${cfg.nixosConfigPath}"
       TIMESTAMP_FILE="/etc/nixos-last-update-time"
-      MAX_DAYS=7
+      REV_FILE="/etc/nixos-last-update-rev"
       FLAKE="github:linuxury/nixos-config"
       HOSTNAME=$(hostname)
       LOG_FILE="/var/log/nixos-auto-update.log"
+      REMOTE_REV=""
 
-      # -----------------------------------------------------------------------
-      # Logging helper
-      # -----------------------------------------------------------------------
-      log() {
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
-      }
+      # ── Logging ──────────────────────────────────────────────────────────
+      log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 
-      # -----------------------------------------------------------------------
-      # Check if update is needed
-      # Reads last update timestamp and compares to today
-      # -----------------------------------------------------------------------
-      needs_update() {
-        if [ ! -f "$TIMESTAMP_FILE" ]; then
-          log "No timestamp file found — first run, update needed"
-          return 0  # No record = needs update
-        fi
-
-        last_update=$(cat "$TIMESTAMP_FILE")
-        now=$(date +%s)
-        diff_days=$(( (now - last_update) / 86400 ))
-
-        log "Last update: $diff_days days ago"
-
-        if [ "$diff_days" -ge "$MAX_DAYS" ]; then
-          log "More than $MAX_DAYS days since last update — update needed"
-          return 0
-        else
-          log "Last update was $diff_days days ago — no update needed"
-          return 1
-        fi
-      }
-
-      # -----------------------------------------------------------------------
-      # Check if a reboot is required
-      # Compares running kernel to installed kernel
-      # -----------------------------------------------------------------------
+      # ── Reboot check ─────────────────────────────────────────────────────
       reboot_required() {
-        current_kernel=$(uname -r)
-        installed_kernel=$(ls /run/current-system/kernel-modules/lib/modules/ 2>/dev/null | head -1)
-
-        if [ -n "$installed_kernel" ] && [ "$current_kernel" != "$installed_kernel" ]; then
-          return 0  # Reboot needed
-        fi
-        return 1  # No reboot needed
+        local current installed
+        current=$(uname -r)
+        installed=$(ls /run/current-system/kernel-modules/lib/modules/ 2>/dev/null | head -1)
+        [[ -n "$installed" && "$current" != "$installed" ]]
       }
 
-      # -----------------------------------------------------------------------
-      # Check if error is transient (timeout, network)
-      # -----------------------------------------------------------------------
+      # ── Transient error check ─────────────────────────────────────────────
       is_transient_error() {
-        grep -qiE "timed out|timeout|connection refused|couldn't connect|network" "$LOG_FILE" 2>/dev/null
+        grep -qiE "timed out|timeout|connection refused|couldn't connect|network" \
+          "$LOG_FILE" 2>/dev/null
       }
 
-      # -----------------------------------------------------------------------
-      # Main update logic
-      # -----------------------------------------------------------------------
-      if [ "$FORCE" = true ]; then
-        log "Force flag set — bypassing 7-day check"
-      elif ! needs_update; then
-        exit 2  # 2 = no update needed (not an error, not a success)
+      # ── Update-needed decision ────────────────────────────────────────────
+      if [[ "$FORCE" == "true" ]]; then
+        log "Force flag — proceeding with update"
+
+      elif [[ "$IS_PRIMARY" == "true" ]]; then
+        # Primary: at most once every 20h to avoid hammering on repeated logins
+        last_update=0
+        [[ -f "$TIMESTAMP_FILE" ]] && last_update=$(cat "$TIMESTAMP_FILE" 2>/dev/null || echo 0)
+        now=$(date +%s)
+        diff_hours=$(( (now - last_update) / 3600 ))
+        if [[ $diff_hours -lt 20 ]]; then
+          log "Primary host: updated ''${diff_hours}h ago — next update after 20h elapsed"
+          exit 2
+        fi
+        log "Primary host: ''${diff_hours}h since last update — running full update"
+
+      else
+        # Non-primary: rebuild only when GitHub HEAD rev changed.
+        # curl is used (not git ls-remote) — git is not installed on babylinux/alex
+        # machines. The vnd.github.sha media type returns the 40-char SHA as plain
+        # text with no JSON parsing. Falls back to time-based check if unreachable.
+        REMOTE_REV=$(curl -sf --max-time 10 \
+          -H "Accept: application/vnd.github.sha" \
+          "https://api.github.com/repos/linuxury/nixos-config/commits/main" \
+          2>/dev/null) || true
+        LAST_REV=$(cat "$REV_FILE" 2>/dev/null || echo "")
+
+        if [[ -n "$REMOTE_REV" && "$REMOTE_REV" == "$LAST_REV" ]]; then
+          # Rev is same — check 30-day safety fallback
+          last_update=0
+          [[ -f "$TIMESTAMP_FILE" ]] && last_update=$(cat "$TIMESTAMP_FILE" 2>/dev/null || echo 0)
+          now=$(date +%s)
+          diff_days=$(( (now - last_update) / 86400 ))
+          if [[ $diff_days -lt 30 ]]; then
+            log "Already at ''${REMOTE_REV:0:8} — no changes in ''${diff_days}d, skipping"
+            exit 2
+          fi
+          log "Rev unchanged but 30-day fallback triggered (''${diff_days}d since last build)"
+        elif [[ -n "$REMOTE_REV" ]]; then
+          log "GitHub HEAD: ''${REMOTE_REV:0:8}, last built: ''${LAST_REV:0:8} — update needed"
+        else
+          # GitHub unreachable — fall back to 7-day time check
+          log "GitHub unreachable — falling back to time-based check"
+          last_update=0
+          [[ -f "$TIMESTAMP_FILE" ]] && last_update=$(cat "$TIMESTAMP_FILE" 2>/dev/null || echo 0)
+          now=$(date +%s)
+          diff_days=$(( (now - last_update) / 86400 ))
+          if [[ $diff_days -lt 7 ]]; then
+            log "GitHub unreachable and last build was ''${diff_days}d ago — skipping"
+            exit 2
+          fi
+          log "GitHub unreachable but ''${diff_days}d since last build — forcing rebuild"
+        fi
       fi
 
       log "Starting NixOS system update..."
 
-      # Push notification — "starting" (low priority, no wake-up)
+      # ── Start notifications ────────────────────────────────────────────
       curl -s --max-time 10 \
         -H "Title: Update Starting — $HOSTNAME" \
         -H "Priority: low" \
@@ -280,7 +340,6 @@ in
         -d "Fetching latest config and rebuilding... $(date '+%H:%M')" \
         "http://media-server:2586/nixos-updates" 2>/dev/null || true
 
-      # Local desktop toast — update starting
       notify-send \
         --app-name "NixOS Update" \
         --icon "system-software-update" \
@@ -288,31 +347,37 @@ in
         "NixOS Update Starting" \
         "Rebuilding system in the background..." 2>/dev/null || true
 
-      # -----------------------------------------------------------------------
-      # Dry-build first — catches eval errors without applying anything
-      # -----------------------------------------------------------------------
+      # ── Primary: git pull + nix flake update ─────────────────────────
+      if [[ "$IS_PRIMARY" == "true" ]]; then
+        log "Pulling latest remote changes..."
+        git -C "$NIXOS_CONFIG_PATH" pull --rebase --autostash 2>&1 | tee -a "$LOG_FILE" || \
+          log "WARN: git pull failed — continuing with local state"
+
+        log "Updating nixpkgs pin (nix flake update)..."
+        nix flake update "$NIXOS_CONFIG_PATH" 2>&1 | tee -a "$LOG_FILE"
+
+        FLAKE_REF="$NIXOS_CONFIG_PATH"
+      else
+        FLAKE_REF="$FLAKE"
+      fi
+
+      # ── Dry-build — validate config before applying anything ──────────
       log "Running dry-build to validate configuration..."
-      if ! sudo nixos-rebuild dry-build --flake "$FLAKE#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
-        log "ERROR: dry-build failed — configuration has errors"
+      if ! sudo nixos-rebuild dry-build --flake "$FLAKE_REF#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
+        log "ERROR: dry-build failed — configuration has errors, aborting"
         exit 1
       fi
-      log "Dry-build passed — proceeding with update"
+      log "Dry-build passed — proceeding with rebuild"
 
-      # -----------------------------------------------------------------------
-      # Rebuild system
-      # (nixos-rebuild switch --flake github:... fetches the latest commit
-      # automatically — no separate flake update step needed for remote flakes)
-      # -----------------------------------------------------------------------
+      # ── Rebuild ────────────────────────────────────────────────────────
       log "Running nixos-rebuild switch..."
-      if ! sudo nixos-rebuild switch --flake "$FLAKE#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
+      if ! sudo nixos-rebuild switch --flake "$FLAKE_REF#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
         log "ERROR: nixos-rebuild failed"
-
-        # Retry on transient errors
         if is_transient_error; then
-          log "Transient error detected — retrying rebuild in 5 minutes..."
+          log "Transient error detected — retrying in 5 minutes..."
           sleep 300
           log "Retrying nixos-rebuild switch..."
-          if sudo nixos-rebuild switch --flake "$FLAKE#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
+          if sudo nixos-rebuild switch --flake "$FLAKE_REF#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
             log "Rebuild succeeded on retry"
           else
             log "ERROR: rebuild failed again after retry"
@@ -323,23 +388,44 @@ in
         fi
       fi
 
-      # -----------------------------------------------------------------------
-      # Success path
-      # -----------------------------------------------------------------------
-      # Record successful update timestamp (file is owned by primaryUser via tmpfiles)
-      date +%s > "$TIMESTAMP_FILE"
+      # ── Primary: commit + push updated flake.lock ─────────────────────
+      if [[ "$IS_PRIMARY" == "true" ]]; then
+        if ! git -C "$NIXOS_CONFIG_PATH" diff --quiet flake.lock 2>/dev/null; then
+          log "flake.lock updated — committing and pushing..."
+          git -C "$NIXOS_CONFIG_PATH" add flake.lock
+          git -C "$NIXOS_CONFIG_PATH" commit -m \
+            "flake: auto-update nixpkgs ($(date +%Y-%m-%d))" 2>&1 | tee -a "$LOG_FILE"
+          git -C "$NIXOS_CONFIG_PATH" push 2>&1 | tee -a "$LOG_FILE" || \
+            log "WARN: push failed — other hosts won't get the nixpkgs update until manually pushed"
+        else
+          log "flake.lock unchanged — nixpkgs was already at latest"
+        fi
+      fi
+
+      # ── Non-primary: record the rev we just built ─────────────────────
+      # Use || true so a write failure (e.g. wrong user, unexpected permission)
+      # never turns a successful rebuild into a reported failure.
+      if [[ "$IS_PRIMARY" != "true" && -n "$REMOTE_REV" ]]; then
+        if echo "$REMOTE_REV" > "$REV_FILE" 2>/dev/null; then
+          log "Recorded rev ''${REMOTE_REV:0:8} to $REV_FILE"
+        else
+          log "WARN: could not write rev to $REV_FILE — next run will re-check"
+        fi
+      fi
+
+      # ── Record timestamp ───────────────────────────────────────────────
+      date +%s > "$TIMESTAMP_FILE" 2>/dev/null || \
+        log "WARN: could not write timestamp to $TIMESTAMP_FILE"
       log "Update completed successfully"
 
-      # Garbage collect old generations (keep last 30 days)
-      log "Cleaning up old generations..."
+      # ── Post-rebuild cleanup ───────────────────────────────────────────
+      log "Cleaning up old generations (keep 30 days)..."
       sudo nix-collect-garbage --delete-older-than 30d >> "$LOG_FILE" 2>&1 || true
 
-      # Prune snapshots — prevent stale snapshots from accumulating between cleanup timer runs
       log "Pruning old snapshots..."
       sudo snapper -c root cleanup timeline >> "$LOG_FILE" 2>&1 || true
       sudo snapper -c home cleanup timeline >> "$LOG_FILE" 2>&1 || true
 
-      # Firmware updates via fwupd
       log "Checking for firmware updates..."
       if sudo fwupdmgr refresh >> "$LOG_FILE" 2>&1; then
         sudo fwupdmgr update --no-reboot-check >> "$LOG_FILE" 2>&1 || \
@@ -348,25 +434,22 @@ in
         log "fwupdmgr refresh failed — skipping firmware update"
       fi
 
-      # Notify success — handled by systemd service wrappers
-      # Check if reboot is required
+      # ── Reboot notification ────────────────────────────────────────────
       if reboot_required; then
         log "Kernel update detected — reboot required"
-        # Push notification (reaches phone + all subscribers)
         curl -s --max-time 10 \
           -H "Title: Reboot Required — $HOSTNAME" \
           -H "Priority: high" \
           -H "Tags: warning,arrows_counterclockwise" \
           -d "Kernel updated. Reboot when convenient. $(date '+%H:%M')" \
           "http://media-server:2586/nixos-updates" 2>/dev/null || true
-        # Persistent local toast — stays until dismissed
         notify-send \
           --app-name "NixOS Update" \
           --icon "system-reboot" \
           --urgency critical \
           --expire-time 0 \
           "Reboot Required" \
-          "A kernel update was applied. Please reboot when convenient to complete the update." 2>/dev/null || true
+          "A kernel update was applied. Please reboot when convenient." 2>/dev/null || true
       fi
 
       log "Done."
@@ -376,54 +459,31 @@ in
   # =========================================================================
   # Systemd user service — runs on session start
   #
-  # This service starts after the graphical session is ready,
-  # waits a short delay so the desktop is fully loaded, then
-  # checks if an update is needed and runs one if so.
+  # Starts after the graphical session is ready, waits 2 minutes for the
+  # desktop to settle, then calls nixos-auto-update.
   #
-  # Running as a user service means:
-  #   - notify-send works correctly (has access to the user's display)
-  #   - It starts after login, not at boot
-  #   - One instance per user session
+  # On isPrimary hosts: runs git pull + nix flake update + rebuild + push.
+  # On other hosts: checks GitHub rev and rebuilds only if something changed.
   # =========================================================================
   systemd.user.services.nixos-auto-update = {
     description = "NixOS automatic update check";
-
-    # Start after the graphical session is ready
     after    = [ "graphical-session.target" ];
     wantedBy = [ "graphical-session.target" ];
-
     serviceConfig = {
-      Type      = "oneshot";
-      # Wait 2 minutes after session start before checking
-      # Gives the DE time to fully load and settle
+      Type         = "oneshot";
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 120";
-      # Run update, then route notification through notify-vault@ service
-      # (runs as primaryUser regardless of which user is logged in)
-      # Exit codes: 0=updated, 1=failed, 2=no update needed (skip notification)
-      ExecStart = "${pkgs.bash}/bin/bash -c 'nixos-auto-update; OUTCOME=$?; if [ $OUTCOME -eq 0 ]; then sudo systemctl start notify-vault@success.service; elif [ $OUTCOME -eq 1 ]; then sudo systemctl start notify-vault@failure.service; fi'";
-
-      # Don't restart if it fails — wait for next session
-      Restart     = "no";
-
-      # Give it enough time to complete a full update
+      ExecStart    = "${pkgs.bash}/bin/bash -c 'nixos-auto-update; OUTCOME=$?; if [ $OUTCOME -eq 0 ]; then sudo systemctl start notify-vault@success.service; elif [ $OUTCOME -eq 1 ]; then sudo systemctl start notify-vault@failure.service; fi'";
+      Restart      = "no";
       TimeoutStartSec = "1h";
-
-      # /run/wrappers/bin is where NixOS puts the setuid sudo wrapper.
-      # /run/current-system/sw/bin has everything in systemPackages (incl. curl).
-      # User systemd services do not get these by default — must be explicit.
-      Environment = [ "PATH=/run/wrappers/bin:/run/current-system/sw/bin" ];
+      Environment  = [ "PATH=/run/wrappers/bin:/run/current-system/sw/bin" ];
     };
-
-    # Only run once per session, not on every restart
     unitConfig = {
-      # If the service has already succeeded this session, don't run again
       ConditionPathExists = "!/run/user/%U/nixos-update-done";
     };
   };
 
   # =========================================================================
-  # Create a marker file when update service completes successfully
-  # Prevents running more than once per session
+  # Mark update as done for this session — prevents re-running on relogin
   # =========================================================================
   systemd.user.services.nixos-auto-update-done = {
     description = "Mark NixOS update as done for this session";
@@ -436,81 +496,40 @@ in
   };
 
   # =========================================================================
-  # Sudo rules for update script and vault notifications
+  # Sudo rules — NOPASSWD for update commands
   #
-  # The update script needs sudo for nixos-rebuild and nix-collect-garbage.
-  # All users also need sudo for notify-vault@ so the session-start user
-  # service (running as babylinux/alex) can trigger vault notifications
-  # that run as primaryUser.
+  # nixos-rebuild and nix-collect-garbage need root. All three family users
+  # get these rules so auto-update works regardless of who is logged in.
   # =========================================================================
   security.sudo.extraRules = [
     {
-      # All three family users — NOPASSWD only for these specific update
-      # commands, not general sudo. Alex is not in wheel but still needs
-      # the auto-update service to work on his machines.
       users    = [ "linuxury" "babylinux" "alex" ];
       commands = [
-        {
-          command  = "${pkgs.nixos-rebuild}/bin/nixos-rebuild";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "${pkgs.nix}/bin/nix-collect-garbage";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "${pkgs.nix}/bin/nix";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "/run/current-system/sw/bin/nixos-rebuild";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "${pkgs.fwupd}/bin/fwupdmgr";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "${pkgs.snapper}/bin/snapper";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "${pkgs.systemd}/bin/systemd-inhibit";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "${pkgs.systemd}/bin/reboot";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "/run/current-system/sw/bin/reboot";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          # Allow starting notify-vault@ success/failure services
-          # (system service that runs as primaryUser, writes to vault)
-          command  = "${pkgs.systemd}/bin/systemctl start notify-vault@success.service";
-          options  = [ "NOPASSWD" ];
-        }
-        {
-          command  = "${pkgs.systemd}/bin/systemctl start notify-vault@failure.service";
-          options  = [ "NOPASSWD" ];
-        }
+        { command = "${pkgs.nixos-rebuild}/bin/nixos-rebuild";       options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.nix}/bin/nix-collect-garbage";           options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.nix}/bin/nix";                           options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/nixos-rebuild";      options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.fwupd}/bin/fwupdmgr";                   options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.snapper}/bin/snapper";                   options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.systemd}/bin/systemd-inhibit";           options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.systemd}/bin/reboot";                    options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/reboot";             options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.systemd}/bin/systemctl start notify-vault@success.service"; options = [ "NOPASSWD" ]; }
+        { command = "${pkgs.systemd}/bin/systemctl start notify-vault@failure.service"; options = [ "NOPASSWD" ]; }
       ];
     }
   ];
 
   # =========================================================================
-  # Log rotation for update log
-  # Keeps logs from growing indefinitely
+  # Log rotation
   # =========================================================================
   services.logrotate.settings.nixos-auto-update = {
-    files        = "/var/log/nixos-auto-update.log";
-    frequency    = "monthly";
-    rotate       = 3;
-    compress     = true;
-    missingok    = true;
-    notifempty   = true;
+    files     = "/var/log/nixos-auto-update.log";
+    frequency = "monthly";
+    rotate    = 3;
+    compress  = true;
+    missingok = true;
+    notifempty = true;
   };
 
   }; # end config

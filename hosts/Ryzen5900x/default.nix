@@ -164,6 +164,15 @@
   networking.hostName = "Ryzen5900x";
 
   # ==============================================================
+  # Auto-update — primary host
+  #
+  # This machine owns the nixpkgs update cycle. On session start it runs
+  # nix flake update, rebuilds from the local repo, then commits and pushes
+  # the updated flake.lock so every other host gets new packages too.
+  # ==============================================================
+  services.nixos-auto-update.isPrimary = true;
+
+  # ==============================================================
   # Local LLM — AMD ROCm configuration for the RX 7900 XTX
   #
   # gfxVersion: RDNA3 (gfx1100) reports as 11.0.0
