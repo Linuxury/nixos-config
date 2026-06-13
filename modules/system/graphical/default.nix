@@ -96,6 +96,15 @@
     };
   };
 
+  # =========================================================================
+  # Backlight — brightness control
+  #
+  # Adds a udev rule that makes /sys/class/backlight/*/brightness writable
+  # by the "video" group. No-op on desktops (rule fires only when a backlight
+  # device appears). DE-agnostic: works with COSMIC, Hyprland, KDE, etc.
+  # =========================================================================
+  hardware.acpilight.enable = true;
+
   # Required for dconf/GSettings to work on non-GNOME desktops.
   # Installs the D-Bus service activation entry so that `dconf load`
   # (used by Home Manager) and GTK apps using GSettings can start
