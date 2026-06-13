@@ -222,7 +222,8 @@ in
 
     # System tray / applets
     networkmanagerapplet  # WiFi tray icon
-    blueman               # Bluetooth manager with tray icon
+    # blueman is installed by services.blueman.enable (core) and its tray
+    # applet auto-starts via the package's XDG autostart entry — no package needed here
 
     # Polkit authentication agent
     polkit_gnome
@@ -242,26 +243,6 @@ in
     # IPC event listener — used by scripts watching Hyprland socket events
     socat
   ];
-
-  # =========================================================================
-  # Bluetooth — Hyprland-specific tuning (base enabled in graphical-base.nix)
-  #
-  # graphical-base.nix sets enable + powerOnBoot = false (mkDefault).
-  # Override powerOnBoot to true here so Hyprland hosts come up with
-  # the adapter on — useful with desktop Waybar tray on a known device.
-  # FastConnectable + AutoEnable speed up reconnection to paired headsets.
-  # =========================================================================
-  hardware.bluetooth = {
-    powerOnBoot = true;
-    settings = {
-      General = {
-        FastConnectable = true;
-      };
-      Policy = {
-        AutoEnable = true;
-      };
-    };
-  };
 
   # =========================================================================
   # Tracker — file indexer for Nautilus search

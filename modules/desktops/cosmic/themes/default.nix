@@ -38,12 +38,13 @@
   home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size".text  = "24";
 
   # =========================================================================
-  # Blueman — hide from app launcher, keep running as background service
+  # Blueman — hide launcher entry on COSMIC
   #
-  # COSMIC has its own Bluetooth panel applet; blueman-manager showing up
-  # alongside it creates a duplicate "Bluetooth Manager" entry. This override
-  # hides blueman-manager from launchers while keeping the daemon available
-  # (it can still be invoked directly and its tray icon still works).
+  # COSMIC has its own Bluetooth panel applet. The blueman-applet autostart
+  # is suppressed system-wide in core/default.nix via environment.etc.
+  # This entry hides blueman-manager from the app launcher — it avoids a
+  # duplicate "Bluetooth Manager" entry alongside COSMIC's own BT panel.
+  # The binary remains available if called directly (e.g. for pairing).
   # =========================================================================
   home.file.".local/share/applications/blueman-manager.desktop".text = ''
     [Desktop Entry]

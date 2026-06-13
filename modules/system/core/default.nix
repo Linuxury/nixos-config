@@ -332,11 +332,24 @@
   # turns it on, avoiding unnecessary radio activity at startup.
   # btusb loaded at boot so /sys/class/bluetooth exists before bluetoothd
   # evaluates its ConditionPathIsDirectory check.
-  # blueman is the DE-agnostic GUI manager — works on COSMIC, Hyprland, KDE.
+  #
+  # blueman: provides the Bluetooth management GUI and D-Bus activation.
+  # The blueman package ships /etc/xdg/autostart/blueman.desktop which would
+  # auto-start the tray applet in every graphical session. We suppress it
+  # system-wide via environment.etc — /etc/xdg is first in XDG_CONFIG_DIRS
+  # so this Hidden=true file shadows the package's copy in
+  # /run/current-system/sw/etc/xdg/autostart/. Each DE provides its own BT
+  # management UI (COSMIC panel, KDE system tray, Noctalia bar widget);
+  # no secondary tray icon is needed. blueman-manager is still launchable
+  # manually when pairing new devices.
   # =========================================================================
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = lib.mkDefault false;
   services.blueman.enable = true;
+  environment.etc."xdg/autostart/blueman.desktop".text = ''
+    [Desktop Entry]
+    Hidden=true
+  '';
   boot.kernelModules = lib.mkAfter [ "btusb" ];
 
   # =========================================================================

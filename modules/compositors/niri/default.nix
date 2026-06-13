@@ -101,17 +101,9 @@
 
     # System tray
     networkmanagerapplet
-    blueman
+    # blueman is installed by services.blueman.enable (core) and auto-starts
+    # via the package's XDG autostart entry — no extra package needed here
   ];
-
-  # =========================================================================
-  # Bluetooth — same as Hyprland, no built-in BT management in bare WMs
-  # =========================================================================
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-  };
-  services.blueman.enable = true;
 
   # =========================================================================
   # Keyring — same reasoning as Hyprland

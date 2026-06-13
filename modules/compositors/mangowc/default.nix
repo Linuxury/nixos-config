@@ -175,17 +175,6 @@ in
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
 
-  # =========================================================================
-  # Bluetooth — desktop always-on (no suspend needed on desktop)
-  # =========================================================================
-  hardware.bluetooth = {
-    powerOnBoot = true;
-    settings = {
-      General.FastConnectable = true;
-      Policy.AutoEnable = true;
-    };
-  };
-
   # Workaround: cheap USB BT dongles (e.g. Actions 10d7:b012) don't fully
   # support BlueZ MGMT commands, causing "Failed to set default system config"
   # and leaving the adapter powered off despite AutoEnable=true. This service

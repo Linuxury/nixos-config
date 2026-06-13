@@ -97,6 +97,32 @@
   };
 
   # =========================================================================
+  # Bluetooth — graphical host tuning (base service enabled in core)
+  #
+  # core enables bluetoothd + blueman and suppresses the blueman-applet
+  # autostart system-wide. Here we apply settings appropriate for any
+  # machine with a display:
+  #
+  #   powerOnBoot     — adapter comes up immediately; every graphical host
+  #                     has at least one paired device (headset, mouse, kb).
+  #   FastConnectable — allows more radio bandwidth during connection setup,
+  #                     speeding up reconnection at the cost of slightly higher
+  #                     power during that window. Fine for desktops/laptops.
+  #   AutoEnable      — re-enables the adapter if bluetoothd restarts (e.g.
+  #                     after a suspend/resume cycle that resets the adapter).
+  #
+  # DE-specific BT management (COSMIC panel, KDE system tray, Noctalia bar)
+  # is handled by each DE — no compositor module needs to set these.
+  # =========================================================================
+  hardware.bluetooth = {
+    powerOnBoot = true;
+    settings = {
+      General.FastConnectable = true;
+      Policy.AutoEnable      = true;
+    };
+  };
+
+  # =========================================================================
   # Backlight — brightness control
   #
   # Adds a udev rule that makes /sys/class/backlight/*/brightness writable
