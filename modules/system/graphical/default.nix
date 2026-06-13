@@ -73,6 +73,29 @@
   # without requiring a separate Qt configurator tool.
   environment.sessionVariables.QT_QPA_PLATFORMTHEME = "gtk2";
 
+  # =========================================================================
+  # NumLock — enable before the greeter on every graphical host
+  #
+  # Writes the LED state directly to the kernel before display-manager starts.
+  # This is the universal approach: SDDM, cosmic-greeter, and all Wayland
+  # compositors read the initial numlock state from the kernel at startup.
+  # SDDM hosts also get Numlock = "on" in greeters/sddm as belt-and-suspenders.
+  # =========================================================================
+  systemd.services.numlock-on = {
+    description = "Enable NumLock";
+    wantedBy = [ "display-manager.service" ];
+    before   = [ "display-manager.service" ];
+    serviceConfig = {
+      Type            = "oneshot";
+      RemainAfterExit = true;
+      ExecStart       = pkgs.writeShellScript "numlock-on" ''
+        for kbd in /sys/class/leds/*::numlock; do
+          echo 1 > "$kbd/brightness" 2>/dev/null || true
+        done
+      '';
+    };
+  };
+
   # Required for dconf/GSettings to work on non-GNOME desktops.
   # Installs the D-Bus service activation entry so that `dconf load`
   # (used by Home Manager) and GTK apps using GSettings can start

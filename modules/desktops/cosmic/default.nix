@@ -117,26 +117,5 @@
   security.pam.services.greetd.enableGnomeKeyring = true; # cosmic-greeter auth path
   security.pam.services.login.enableGnomeKeyring = true;  # TTY login fallback
 
-  # =========================================================================
-  # NumLock — enable before the greeter starts
-  #
-  # cosmic-greeter has no numlock option, so we write the LED state directly
-  # to the kernel before display-manager starts. cosmic-comp (and any Wayland
-  # compositor) reads the initial numlock state from the kernel at startup.
-  # =========================================================================
-  systemd.services.numlock-on = {
-    description = "Enable NumLock";
-    wantedBy = [ "display-manager.service" ];
-    before   = [ "display-manager.service" ];
-    serviceConfig = {
-      Type            = "oneshot";
-      RemainAfterExit = true;
-      ExecStart       = pkgs.writeShellScript "numlock-on" ''
-        for kbd in /sys/class/leds/*::numlock; do
-          echo 1 > "$kbd/brightness" 2>/dev/null || true
-        done
-      '';
-    };
-  };
 
 }
