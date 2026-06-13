@@ -186,6 +186,18 @@ _nix_fetch_filter() {
   awk -v spin_pid="$spin_pid" '
   BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0 }
 
+  # Kill the eval spinner and clear its line on /dev/tty before any output.
+  # Called from every path that writes to stdout or /dev/tty so the spinner
+  # text never bleeds into subsequent output.
+  function killspinner() {
+    if (spin_pid) {
+      system("kill " spin_pid " 2>/dev/null")
+      spin_pid = 0
+      printf "\r\033[K" > "/dev/tty"
+      fflush("/dev/tty")
+    }
+  }
+
   /^\[agenix\]/ || /^decrypting /                      { next }
   /^warning: Git tree .* is dirty/                      { next }
   /^Done\. The new configuration is \/nix\/store\//     { next }
@@ -193,7 +205,7 @@ _nix_fetch_filter() {
   /^[[:space:]]+\/nix\/store\//                         { next }
 
   /^these [0-9]+ derivations will be built:/ {
-    if (spin_pid)    { system("kill " spin_pid " 2>/dev/null"); spin_pid=0 }
+    killspinner()
     if (in_progress) { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
     match($0, /[0-9]+/)
     build_total = substr($0, RSTART, RLENGTH) + 0
@@ -219,7 +231,7 @@ _nix_fetch_filter() {
   }
 
   /^these [0-9]+ paths will be fetched/ {
-    if (spin_pid)    { system("kill " spin_pid " 2>/dev/null"); spin_pid=0 }
+    killspinner()
     if (in_build)    { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
     if (in_progress) { printf "\n" > "/dev/tty"; in_progress=0 }
     match($0, /[0-9]+/)
@@ -249,7 +261,7 @@ _nix_fetch_filter() {
   # one unit per line, so long lists stay readable.
   /^(stopping|starting|restarting|reloading) the following .*units?: / ||
   /^the following new units were started: / {
-    if (spin_pid)    { system("kill " spin_pid " 2>/dev/null"); spin_pid=0 }
+    killspinner()
     if (in_build)    { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
     if (in_progress) { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
     idx  = index($0, ": ")
@@ -263,7 +275,7 @@ _nix_fetch_filter() {
   }
 
   {
-    if (spin_pid)    { system("kill " spin_pid " 2>/dev/null"); spin_pid=0 }
+    killspinner()
     if (in_build)    { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
     if (in_progress) { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
     print
