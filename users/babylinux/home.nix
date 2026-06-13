@@ -345,6 +345,21 @@ cursorTheme=BreezeX-Light
 cursorSize=24
 EOF
     fi
+
+    # Ensure NumLock=0 (on) in kcminputrc regardless of whether the file
+    # already existed. configparser preserves all other keys KDE has written.
+    ${pkgs.python3}/bin/python3 - "$KCMINPUTRC" << 'PYEOF'
+import configparser, sys
+path = sys.argv[1]
+cfg = configparser.RawConfigParser()
+cfg.optionxform = str   # preserve key case
+cfg.read(path)
+if not cfg.has_section("Keyboard"):
+    cfg.add_section("Keyboard")
+cfg.set("Keyboard", "NumLock", "0")
+with open(path, "w") as f:
+    cfg.write(f)
+PYEOF
   '';
 
   # =========================================================================
