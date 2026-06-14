@@ -19,6 +19,28 @@
 { pkgs, ... }:
 
 {
+  # Default applications for office documents — only applied on hosts that
+  # import this module, so MIME entries never exist without the app.
+  home-manager.sharedModules = [{
+    xdg.mimeApps.defaultApplications = {
+      # Writer — word processing
+      "application/msword"                                          = "org.libreoffice.LibreOffice.writer.desktop";
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" = "org.libreoffice.LibreOffice.writer.desktop";
+      "application/vnd.oasis.opendocument.text"                    = "org.libreoffice.LibreOffice.writer.desktop";
+      "application/rtf"                                            = "org.libreoffice.LibreOffice.writer.desktop";
+
+      # Calc — spreadsheets
+      "application/vnd.ms-excel"                                   = "org.libreoffice.LibreOffice.calc.desktop";
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" = "org.libreoffice.LibreOffice.calc.desktop";
+      "application/vnd.oasis.opendocument.spreadsheet"             = "org.libreoffice.LibreOffice.calc.desktop";
+
+      # Impress — presentations
+      "application/vnd.ms-powerpoint"                              = "org.libreoffice.LibreOffice.impress.desktop";
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation" = "org.libreoffice.LibreOffice.impress.desktop";
+      "application/vnd.oasis.opendocument.presentation"            = "org.libreoffice.LibreOffice.impress.desktop";
+    };
+  }];
+
   systemd.user.services.libreoffice-flatpak-install = {
     description         = "Install LibreOffice from Flathub";
     after               = [ "graphical-session.target" "network-online.target" ];

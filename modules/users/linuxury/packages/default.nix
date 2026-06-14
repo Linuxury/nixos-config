@@ -31,9 +31,6 @@
     # Notes
     obsidian    # Markdown-based knowledge base / note-taking app
 
-    # Communication
-    thunderbird # Email client — personal use
-
     # Internet
     fluent-reader # RSS feed reader — clean GTK app for following news/blogs
     obs-studio    # Screen recording and streaming

@@ -40,19 +40,19 @@
 
     # ==============================================================
     # Graphical Apps — all optional, comment out to remove
-    #   firefox     — primary browser
-    #   helium      — secondary browser (Firefox-based)
-    #   libreoffice — office suite
-    #   fluxer      — Discord client
-    #   kdeconnect  — phone integration
-    #   zen-browser — privacy-focused Firefox fork
+    #   zen-browser  — primary browser (privacy-focused Firefox fork)
+    #   thunderbird  — email client
+    #   libreoffice  — office suite
+    #   fluxer       — Discord client
+    #   kdeconnect   — phone integration
     # ==============================================================
-    #../../modules/system/graphical/firefox/default.nix
-    #../../modules/system/graphical/helium/default.nix
+    ../../modules/system/graphical/zen-browser/default.nix
+    ../../modules/system/graphical/thunderbird/default.nix
     ../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/services/kdeconnect/default.nix
-    ../../modules/system/graphical/zen-browser/default.nix
+    #../../modules/system/graphical/firefox/default.nix
+    #../../modules/system/graphical/helium/default.nix
 
     # ==============================================================
     # Desktop Environment — enable ONE (includes shell + greeter)

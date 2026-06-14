@@ -25,7 +25,6 @@
     file:///home/linuxury/Pictures Pictures
     file:///home/linuxury/Videos Videos
     file:///mnt/Media-Server Media-Server
-    file:///mnt/Torrents Torrents
     file:///mnt/MinisForum MinisForum
   '';
 

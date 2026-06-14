@@ -11,4 +11,17 @@
 
 {
   home-manager.users.linuxury.imports = [ ./hm.nix ];
+
+  # Text editor MIME defaults — plain priority overrides Neovim's lib.mkDefault,
+  # but yields to Zed's lib.mkForce if Zed is also installed on this host.
+  home-manager.sharedModules = [{
+    xdg.mimeApps.defaultApplications = {
+      "text/plain"                = "codium.desktop";
+      "application/json"          = "codium.desktop";
+      "application/x-yaml"        = "codium.desktop";
+      "application/toml"          = "codium.desktop";
+      "application/x-shellscript" = "codium.desktop";
+      "text/x-shellscript"        = "codium.desktop";
+    };
+  }];
 }

@@ -161,6 +161,7 @@
     # Documents & office
     # -----------------------------------------------------------------------
     papers                   # GNOME document viewer — PDFs and more (GTK4, modern)
+    neovim                   # Fallback text editor — always available on every graphical host
 
     # -----------------------------------------------------------------------
     # System monitoring
@@ -205,6 +206,117 @@
   # (COSMIC, Hyprland, KDE, Niri, etc.) gets the same font stack.
   # Users can add more fonts in their own home.nix.
   # =========================================================================
+  # =========================================================================
+  # Default applications — shared across all graphical users on this host
+  #
+  # Using home-manager.sharedModules so these defaults travel with the
+  # packages that provide them. When an optional app module is not imported,
+  # its MIME entries simply don't exist — no dangling declarations.
+  #
+  # Per-user choices (browser) stay in each user's home.nix.
+  # Optional app defaults (LibreOffice, etc.) live in their own modules.
+  # =========================================================================
+  home-manager.sharedModules = [{
+    xdg.mimeApps = {
+      enable = true;
+      defaultApplications = {
+        # -----------------------------------------------------------------------
+        # File Manager — Nautilus
+        # -----------------------------------------------------------------------
+        "inode/directory" = "org.gnome.Nautilus.desktop";
+
+        # -----------------------------------------------------------------------
+        # Image Viewer — Loupe
+        # -----------------------------------------------------------------------
+        "image/jpeg"              = "org.gnome.Loupe.desktop";
+        "image/png"               = "org.gnome.Loupe.desktop";
+        "image/gif"               = "org.gnome.Loupe.desktop";
+        "image/webp"              = "org.gnome.Loupe.desktop";
+        "image/avif"              = "org.gnome.Loupe.desktop";
+        "image/heic"              = "org.gnome.Loupe.desktop";
+        "image/jxl"               = "org.gnome.Loupe.desktop";
+        "image/bmp"               = "org.gnome.Loupe.desktop";
+        "image/tiff"              = "org.gnome.Loupe.desktop";
+        "image/svg+xml"           = "org.gnome.Loupe.desktop";
+        "image/x-portable-pixmap" = "org.gnome.Loupe.desktop";
+
+        # -----------------------------------------------------------------------
+        # Video Player — Showtime
+        # -----------------------------------------------------------------------
+        "video/mp4"        = "org.gnome.Showtime.desktop";
+        "video/x-matroska" = "org.gnome.Showtime.desktop";
+        "video/x-msvideo"  = "org.gnome.Showtime.desktop";
+        "video/webm"       = "org.gnome.Showtime.desktop";
+        "video/quicktime"  = "org.gnome.Showtime.desktop";
+        "video/mpeg"       = "org.gnome.Showtime.desktop";
+        "video/x-flv"      = "org.gnome.Showtime.desktop";
+        "video/ogg"        = "org.gnome.Showtime.desktop";
+        "video/x-ms-wmv"   = "org.gnome.Showtime.desktop";
+
+        # -----------------------------------------------------------------------
+        # Music Player — Gapless
+        # -----------------------------------------------------------------------
+        "audio/mpeg"   = "com.github.neithern.g4music.desktop";
+        "audio/ogg"    = "com.github.neithern.g4music.desktop";
+        "audio/flac"   = "com.github.neithern.g4music.desktop";
+        "audio/x-flac" = "com.github.neithern.g4music.desktop";
+        "audio/wav"    = "com.github.neithern.g4music.desktop";
+        "audio/x-wav"  = "com.github.neithern.g4music.desktop";
+        "audio/mp4"    = "com.github.neithern.g4music.desktop";
+        "audio/aac"    = "com.github.neithern.g4music.desktop";
+        "audio/x-m4a"  = "com.github.neithern.g4music.desktop";
+        "audio/opus"   = "com.github.neithern.g4music.desktop";
+        "audio/webm"   = "com.github.neithern.g4music.desktop";
+
+        # -----------------------------------------------------------------------
+        # Document Viewer — Papers
+        # -----------------------------------------------------------------------
+        "application/pdf"               = "org.gnome.Papers.desktop";
+        "application/x-pdf"             = "org.gnome.Papers.desktop";
+        "image/vnd.djvu"                = "org.gnome.Papers.desktop";
+        "image/vnd.djvu+multipage"      = "org.gnome.Papers.desktop";
+        "application/epub+zip"          = "org.gnome.Papers.desktop";
+        "application/vnd.comicbook+zip" = "org.gnome.Papers.desktop";
+        "application/x-cbz"             = "org.gnome.Papers.desktop";
+        "application/x-cbr"             = "org.gnome.Papers.desktop";
+
+        # -----------------------------------------------------------------------
+        # Text Editor — Neovim (fallback, lowest priority)
+        # Overridden by VSCodium (plain) or Zed (mkForce) when installed.
+        # -----------------------------------------------------------------------
+        "text/plain"             = lib.mkDefault "nvim.desktop";
+        "application/json"       = lib.mkDefault "nvim.desktop";
+        "application/x-yaml"     = lib.mkDefault "nvim.desktop";
+        "application/toml"       = lib.mkDefault "nvim.desktop";
+        "application/x-shellscript" = lib.mkDefault "nvim.desktop";
+        "text/x-shellscript"     = lib.mkDefault "nvim.desktop";
+      };
+    };
+
+    # Neovim desktop entry — opens in Kitty (available on all graphical hosts)
+    xdg.desktopEntries.nvim = {
+      name        = "Neovim";
+      genericName = "Text Editor";
+      comment     = "Hyperextensible Vim-based text editor";
+      exec        = "kitty nvim %F";
+      terminal    = false;
+      categories  = [ "Utility" "TextEditor" ];
+      icon        = "nvim";
+      mimeType    = [
+        "text/plain"
+        "application/json"
+        "application/x-yaml"
+        "application/toml"
+        "application/x-shellscript"
+        "text/x-shellscript"
+      ];
+    };
+
+    # Allow HM to take ownership of mimeapps.list even if it was previously
+    # edited manually. Without this, HM silently skips the file.
+    xdg.configFile."mimeapps.list".force = true;
+  }];
+
   fonts = {
     enableDefaultPackages = true;
     packages = with pkgs; [

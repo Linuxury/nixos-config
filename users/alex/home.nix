@@ -39,31 +39,14 @@
   programs.home-manager.enable = true;
 
   # =========================================================================
-  # XDG MIME type associations
-  #
-  # Tells the desktop environment which app opens each file type.
-  # G4Music's desktop entry ID: com.github.neithern.g4music.desktop
+  # Browser — per-user choice (shared app defaults live in graphical/default.nix)
   # =========================================================================
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = {
-      "audio/mpeg"       = "com.github.neithern.g4music.desktop";  # MP3
-      "audio/ogg"        = "com.github.neithern.g4music.desktop";  # OGG Vorbis
-      "audio/flac"       = "com.github.neithern.g4music.desktop";  # FLAC
-      "audio/x-flac"     = "com.github.neithern.g4music.desktop";
-      "audio/wav"        = "com.github.neithern.g4music.desktop";  # WAV
-      "audio/x-wav"      = "com.github.neithern.g4music.desktop";
-      "audio/mp4"        = "com.github.neithern.g4music.desktop";  # M4A / AAC
-      "audio/aac"        = "com.github.neithern.g4music.desktop";
-      "audio/x-m4a"      = "com.github.neithern.g4music.desktop";
-      "audio/opus"       = "com.github.neithern.g4music.desktop";  # Opus
-      "audio/webm"       = "com.github.neithern.g4music.desktop";
-      "application/pdf"   = "org.gnome.Papers.desktop";            # PDF → Document Viewer
-      "application/x-pdf" = "org.gnome.Papers.desktop";
-    };
+  xdg.mimeApps.defaultApplications = {
+    "x-scheme-handler/http"  = "firefox.desktop";
+    "x-scheme-handler/https" = "firefox.desktop";
+    "text/html"              = "firefox.desktop";
+    "application/xhtml+xml"  = "firefox.desktop";
   };
-
-  xdg.configFile."mimeapps.list".force = true;
 
   # =========================================================================
   # XDG User Directories

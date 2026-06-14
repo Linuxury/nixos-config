@@ -38,13 +38,12 @@
     # ==============================================================
     # Graphical Apps — all optional, comment out to remove
     #   firefox     — primary browser (locked down via policies)
-    #   helium      — secondary browser (Firefox-based)
     #   libreoffice — office suite
     #   fluxer      — Discord client
     #   kdeconnect  — phone integration
     # ==============================================================
     ../../modules/system/graphical/firefox/default.nix
-    ../../modules/system/graphical/helium/default.nix
+    #../../modules/system/graphical/helium/default.nix
     ../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     #../../modules/services/kdeconnect/default.nix

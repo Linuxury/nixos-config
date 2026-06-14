@@ -55,32 +55,15 @@
   # XDG MIME type associations
   #
   # Tells the desktop environment which app opens each file type.
-  # Without this, audio files open in whatever the DE guesses (often nothing).
-  # G4Music's desktop entry ID: com.github.neithern.g4music.desktop
   # =========================================================================
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = {
-      "audio/mpeg" = "com.github.neithern.g4music.desktop"; # MP3
-      "audio/ogg" = "com.github.neithern.g4music.desktop"; # OGG Vorbis
-      "audio/flac" = "com.github.neithern.g4music.desktop"; # FLAC
-      "audio/x-flac" = "com.github.neithern.g4music.desktop";
-      "audio/wav" = "com.github.neithern.g4music.desktop"; # WAV
-      "audio/x-wav" = "com.github.neithern.g4music.desktop";
-      "audio/mp4" = "com.github.neithern.g4music.desktop"; # M4A / AAC
-      "audio/aac" = "com.github.neithern.g4music.desktop";
-      "audio/x-m4a" = "com.github.neithern.g4music.desktop";
-      "audio/opus" = "com.github.neithern.g4music.desktop"; # Opus
-      "audio/webm" = "com.github.neithern.g4music.desktop";
-      "inode/directory" = "org.gnome.Nautilus.desktop";
-      "application/pdf"   = "org.gnome.Papers.desktop";   # PDF → Document Viewer
-      "application/x-pdf" = "org.gnome.Papers.desktop";
-    };
+  # Browser — per-user choice (shared app defaults live in graphical/default.nix)
+  # =========================================================================
+  xdg.mimeApps.defaultApplications = {
+    "x-scheme-handler/http"  = "zen-beta.desktop";
+    "x-scheme-handler/https" = "zen-beta.desktop";
+    "text/html"              = "zen-beta.desktop";
+    "application/xhtml+xml"  = "zen-beta.desktop";
   };
-
-  # mimeapps.list may already exist from a previous manual edit — allow HM
-  # to take ownership so the xdg.mimeApps declarations above take effect.
-  xdg.configFile."mimeapps.list".force = true;
 
   # =========================================================================
   # XDG User Directories
@@ -506,31 +489,8 @@ ENDSSH
   # Neovim config is now managed by the normie-nvim activation script in
   # modules/development/neovim/default.nix — no overrides needed here.
 
-  # Desktop entry — opens Neovim in Kitty
-  xdg.desktopEntries.nvim = {
-    name = "Neovim";
-    genericName = "Text Editor";
-    comment = "Hyperextensible Vim-based text editor";
-    exec = "kitty nvim %F";
-    terminal = false;
-    categories = [
-      "Utility"
-      "TextEditor"
-    ];
-    icon = "nvim";
-    mimeType = [
-      "text/plain"
-      "text/x-makefile"
-      "text/x-script.python"
-      "text/x-c"
-      "text/x-c++"
-      "text/x-rust"
-      "application/x-shellscript"
-      "application/json"
-      "application/x-yaml"
-      "application/toml"
-    ];
-  };
+  # Neovim desktop entry and text editor MIME defaults are declared in
+  # modules/system/graphical/default.nix via home-manager.sharedModules.
 
   # =========================================================================
   # Zoxide — smarter cd
