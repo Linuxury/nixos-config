@@ -104,20 +104,6 @@
     };
 
     # -------------------------------------------------------------------------
-    # normie-nvim — TheBlackDon's Neovim config
-    #
-    # Not a Nix flake (flake = false) — just the raw repo files.
-    # Symlinked to ~/.config/nvim so lazy.nvim manages plugins from there.
-    #
-    # To update when TheBlackDon pushes changes:
-    #   nix flake update normie-nvim && nr
-    # -------------------------------------------------------------------------
-    normie-nvim = {
-      url   = "gitlab:theblackdon/normie-nvim";
-      flake = false;
-    };
-
-    # -------------------------------------------------------------------------
     # helium-browser — Nix flake for the Helium browser
     #
     # Helium is a privacy-focused Chromium-based browser with built-in ad/

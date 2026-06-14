@@ -7,7 +7,7 @@ return {
     bigfile    = { enabled = true },
     indent     = { enabled = true },
     image      = { enabled = true },
-    input      = { enabled = true },
+    input      = { enabled = false },
     quickfile  = { enabled = true },
     scope      = { enabled = true },
     scroll     = { enabled = true },

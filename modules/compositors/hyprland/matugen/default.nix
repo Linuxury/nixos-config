@@ -47,6 +47,10 @@
           exit 0
         fi
 
+        # Symlink so hyprlock can reference the current wallpaper by a stable path
+        # (hyprlock path= doesn't execute shell commands, can't read a text file).
+        ln -sf "$WALLPAPER" "$HOME/.local/share/current-wallpaper-link"
+
         # Deduplication — skip if this wallpaper's colors are already applied.
         # Also check colors.lua exists: HM activation can rewrite ~/.config/hypr/
         # and delete it while the stamp still holds the same path.
@@ -140,5 +144,9 @@
     [templates.hyprlock]
     input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/hyprlock-colors.conf"
     output_path = "${config.home.homeDirectory}/.config/hypr/colors-hyprlock.conf"
+
+    [templates.neovim]
+    input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/nvim/matugen/colors.lua.template"
+    output_path = "${config.home.homeDirectory}/.local/share/nvim/lua/matugen-colors.lua"
   '';
 }
