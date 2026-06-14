@@ -47,7 +47,7 @@
     ../../modules/development/ai-tools/claude/default.nix
     #../../modules/development/ai-tools/opencode/default.nix
     #../../modules/development/ai-tools/local-llm/default.nix
-    #../../modules/development/ai-tools/odysseus/default.nix
+    ../../modules/development/ai-tools/odysseus/default.nix
 
     # ==============================================================
     # Development — Editors (headless — no GUI editors)
