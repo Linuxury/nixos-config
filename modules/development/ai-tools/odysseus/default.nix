@@ -176,7 +176,7 @@ EOF
       ports  = [ "8091:80" ];
       volumes = [ "/data/config/odysseus/ntfy-cache:/var/cache/ntfy" ];
       environment = {
-        NTFY_BASE_URL = "http://Media-Server:8091";
+        NTFY_BASE_URL = "http://media-server.tail1023a0.ts.net:8091";
       };
       extraOptions = [
         "--network=odysseus"
