@@ -114,6 +114,7 @@
           devices = [
             "Ryzen5900x"
             "ThinkPad"
+            "Media-Server"
             "MinisForum"
             "Radxa-X4"
           ];
