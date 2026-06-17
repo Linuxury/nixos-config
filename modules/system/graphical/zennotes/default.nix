@@ -28,4 +28,16 @@ in
 
 {
   environment.systemPackages = [ zennotes ];
+
+  # appimageTools does not install a .desktop file — add one manually
+  # so ZenNotes appears in the app launcher (COSMIC, GNOME, KDE).
+  home-manager.sharedModules = [{
+    xdg.desktopEntries.zennotes = {
+      name       = "ZenNotes";
+      exec       = "zennotes %U";
+      comment    = "Keyboard-first Markdown notes";
+      categories = [ "Office" "TextEditor" ];
+      terminal   = false;
+    };
+  }];
 }
