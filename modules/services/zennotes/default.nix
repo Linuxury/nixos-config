@@ -4,7 +4,7 @@
 # Keyboard-first Markdown notes with Vim motions, live math/diagrams,
 # and an MCP server for AI assistant integration.
 #
-# Vault: /home/linuxury/.ZenNotes (plain .md files on NVMe)
+# Vault: /home/linuxury/.ZenNotes (plain .md files on NVMe, owned by UID 65532)
 # Data:  /data/config/zennotes    (server config on mergerfs)
 # Port:  7879 (host) → 7878 (container) — 7878 is taken by Radarr
 #
@@ -50,9 +50,10 @@
     };
     script = ''
       mkdir -p /home/linuxury/.ZenNotes
-      chown linuxury:users /home/linuxury/.ZenNotes
+      chown 65532:65532 /home/linuxury/.ZenNotes
       chmod 0755 /home/linuxury/.ZenNotes
       mkdir -p /data/config/zennotes
+      chown 65532:65532 /data/config/zennotes
     '';
   };
 
