@@ -6,7 +6,7 @@ return {
   opts = {
     bigfile    = { enabled = true },
     indent     = { enabled = true },
-    image      = { enabled = true },
+    image      = { enabled = false }, -- broken on nvim 0.12.3: node:range() nil in treesitter
     input      = { enabled = false },
     quickfile  = { enabled = true },
     scope      = { enabled = true },
