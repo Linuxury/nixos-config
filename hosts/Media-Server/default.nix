@@ -14,6 +14,7 @@
 #   - AMD drivers
 #   - system/core/default.nix
 #   - services/samba/default.nix (single Media-Server share → /data)
+#   - services/zennotes/default.nix (self-hosted notes server, port 7879)
 #   - freshrss/ (migrated from Radxa-X4, local to this host)
 # ===========================================================================
 
@@ -75,6 +76,7 @@
     ../../modules/services/ntfy/default.nix
     ../../modules/services/syncthing/default.nix
     ../../modules/services/auto-update/default.nix
+    ../../modules/services/zennotes/default.nix
     #../../modules/services/vpn-qbittorrent/default.nix
     #../../modules/services/snapper/default.nix
     #../../modules/services/syncthing-babylinux/default.nix

@@ -47,9 +47,11 @@
     #   libreoffice  — office suite
     #   fluxer       — Discord client
     #   kdeconnect   — phone integration
+    #   zennotes     — keyboard-first Markdown notes (connects to Media-Server:7879)
     # ==============================================================
     ../../modules/system/graphical/zen-browser/default.nix
     ../../modules/system/graphical/thunderbird/default.nix
+    ../../modules/system/graphical/zennotes/default.nix
     ../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/services/kdeconnect/default.nix

@@ -228,6 +228,16 @@ in
   );
 
   # --------------------------------------------------------------------------
+  # ZenNotes auth token
+  #
+  # Stored as env-file format: ZENNOTES_AUTH_TOKEN=<token>
+  # Deployed only to Media-Server (server reads it via environmentFiles).
+  # Generate: openssl rand -base64 32
+  # After updating: nix run nixpkgs#agenix -- -r
+  # --------------------------------------------------------------------------
+  "zennotes-auth-token.age".publicKeys = uniq (linuxury-admins ++ [ Media-Server ]);
+
+  # --------------------------------------------------------------------------
   # flow-icons license key
   #
   # Commercial license for the flow-icons VSCodium extension.
