@@ -2,14 +2,9 @@
 # modules/development/editors/neovim/hm.nix — Neovim (Home Manager)
 #
 # Config lives at dotfiles/nvim/ and is symlinked to ~/.config/nvim via an
-# activation script (not home.file — programs.neovim generates init.lua which
-# conflicts with home.file symlink directory management).
-#
-# Activation order:
-#   1. preCleanNvimInitLua (before checkLinkTargets) — removes HM-generated
-#      init.lua so checkLinkTargets doesn't see a stale managed file.
-#   2. nvimConfig (after writeBoundary) — removes whatever HM wrote during
-#      writeBoundary, then creates ~/.config/nvim → dotfiles/nvim symlink.
+# activation script. We use home.packages for the binary instead of
+# programs.neovim so HM never generates an init.lua that conflicts with our
+# dotfiles symlink.
 #
 # lazy.nvim writes lazy-lock.json directly into dotfiles/nvim/ (tracked in
 # git). Plugins download to ~/.local/share/nvim/lazy/ (writable, outside
@@ -21,26 +16,8 @@
 { pkgs, lib, ... }:
 
 {
-  programs.neovim = {
-    enable        = true;
-    defaultEditor = true;
-    viAlias       = true;
-    vimAlias      = true;
-    withRuby    = false;
-    withPython3 = false;
-  };
-
-  # Remove HM-generated init.lua before checkLinkTargets runs, so it doesn't
-  # conflict with the symlink we create after writeBoundary.
-  # Guard: only remove when ~/.config/nvim is NOT already our dotfiles symlink.
-  # Without the guard, rm -f follows the symlink and deletes the source file.
-  home.activation.preCleanNvimInitLua = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-    NVIM_SRC="$HOME/nixos-config/dotfiles/nvim"
-    NVIM_DIR="$HOME/.config/nvim"
-    if [ ! -L "$NVIM_DIR" ] || [ "$(readlink "$NVIM_DIR")" != "$NVIM_SRC" ]; then
-      rm -f "$NVIM_DIR/init.lua"
-    fi
-  '';
+  home.sessionVariables.EDITOR = "nvim";
+  home.shellAliases = { vi = "nvim"; vim = "nvim"; };
 
   # After all HM files are written, replace ~/.config/nvim with a symlink to
   # our own config in dotfiles/nvim/.
@@ -67,6 +44,8 @@
   # which look for these executables. Mason is not used for installs on NixOS.
   # =========================================================================
   home.packages = with pkgs; [
+    neovim
+
     # Nix
     nil            # nil_ls
     alejandra      # nix formatter
