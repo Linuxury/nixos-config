@@ -33,7 +33,7 @@
   # Agenix secret — auth token (env-file format: ZENNOTES_AUTH_TOKEN=<token>)
   # ===========================================================================
   age.secrets.zennotes-auth-token = {
-    file = ../../secrets/zennotes-auth-token.age;
+    file = ../../../secrets/zennotes-auth-token.age;
     mode = "0400";
   };
 
