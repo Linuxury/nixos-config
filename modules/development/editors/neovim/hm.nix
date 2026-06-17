@@ -32,8 +32,14 @@
 
   # Remove HM-generated init.lua before checkLinkTargets runs, so it doesn't
   # conflict with the symlink we create after writeBoundary.
+  # Guard: only remove when ~/.config/nvim is NOT already our dotfiles symlink.
+  # Without the guard, rm -f follows the symlink and deletes the source file.
   home.activation.preCleanNvimInitLua = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-    rm -f "$HOME/.config/nvim/init.lua"
+    NVIM_SRC="$HOME/nixos-config/dotfiles/nvim"
+    NVIM_DIR="$HOME/.config/nvim"
+    if [ ! -L "$NVIM_DIR" ] || [ "$(readlink "$NVIM_DIR")" != "$NVIM_SRC" ]; then
+      rm -f "$NVIM_DIR/init.lua"
+    fi
   '';
 
   # After all HM files are written, replace ~/.config/nvim with a symlink to
