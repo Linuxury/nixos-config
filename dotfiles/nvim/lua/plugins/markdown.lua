@@ -1,7 +1,10 @@
 return {
   -- In-buffer markdown rendering (headings, code blocks, checkboxes, tables)
+  -- Disabled: crashes on nvim 0.12.3 — treesitter node:range() returns nil
+  -- Re-enable after render-markdown or nvim-treesitter ships a compatibility fix
   {
     "MeanderingProgrammer/render-markdown.nvim",
+    enabled = false,
     ft = { "markdown" },
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
