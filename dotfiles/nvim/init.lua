@@ -20,6 +20,7 @@ require("keymaps")
 require("lazy").setup("plugins", {
   change_detection = { notify = false },
   checker = { enabled = false },
+  rocks = { hererocks = false },
 })
 
 -- Apply matugen colorscheme (pure Lua, no plugin dep — safe to call immediately)

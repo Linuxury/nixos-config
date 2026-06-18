@@ -77,5 +77,8 @@
     # Snacks picker backends
     fd
     ripgrep
+
+    # Snacks explorer: move deleted files to trash instead of permanent delete
+    trash-cli
   ];
 }
