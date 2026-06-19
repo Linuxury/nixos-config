@@ -30,9 +30,10 @@
       "format": "{pretty-name}",
     },
     {
-      "type": "kernel",
+      "type": "command",
       "key": "󰌽 →",
       "keyColor": "#4f9ad0",
+      "text": "kernel=$(uname -r); mesa=$(nix-store -q --references /run/opengl-driver 2>/dev/null | grep -oP 'mesa-[0-9.]+' | head -1 | cut -d- -f2); echo \"Linux ${kernel} · Mesa ${mesa}\"",
     },
     {
       "type": "command",
@@ -110,11 +111,6 @@
     {
       "type": "display",
       "key": "󰍹 →",
-      "keyColor": "#ffe1a3",
-    },
-    {
-      "type": "vulkan",
-      "key": "󰖀 →",
       "keyColor": "#ffe1a3",
     },
     {
