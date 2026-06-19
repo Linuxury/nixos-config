@@ -208,9 +208,9 @@
     "Pictures/SteamGridDB".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/SteamGridDB";
 
-    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
+    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch/linuxury (per-user image pool)
     "Pictures/Fastfetch".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Fastfetch/linuxury";
 
     # SSH config — structure only, no keys
     ".ssh/config".text = ''

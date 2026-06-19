@@ -10,8 +10,11 @@ export VISUAL=nvim
 # Canonical path to the nixos-config repo — used by nru and other tools
 export NIXOS_CONFIG=$HOME/nixos-config
 
-# System info on startup
-fastfetch
+# System info on startup — random image from ~/Pictures/Fastfetch/
+() {
+  local imgs=( ~/Pictures/Fastfetch/*.{png,jpg,jpeg,webp}(N) )
+  (( ${#imgs} )) && fastfetch --logo-source "${imgs[$RANDOM % $#imgs + 1]}" || fastfetch
+}
 
 # ---------------------------------------------------------------------------
 # Completion styling

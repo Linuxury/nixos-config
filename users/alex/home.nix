@@ -123,10 +123,10 @@
     ".face.icon".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar/alexander.jpg";
 
-    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
+    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch/alex (per-user image pool)
     "Pictures/Fastfetch".source =
       config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
+        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch/alex";
 
   };
 

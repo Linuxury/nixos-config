@@ -165,10 +165,10 @@ in
     ".face.icon".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar/babylinux.jpeg";
 
-    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch (fastfetch logo images)
+    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch/babylinux (per-user image pool)
     "Pictures/Fastfetch".source =
       config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch";
+        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch/babylinux";
 
     # SSH config
     ".ssh/config".text = ''
