@@ -17,9 +17,17 @@
     "separator": "  ",
   },
   "modules": [
+
+    // ── SYSTEM ────────────────────────────────────────────────────────────────
     {
       "type": "custom",
       "format": "\u001b[38;2;79;154;208mSYSTEM\u001b[0m",
+    },
+    {
+      "type": "title",
+      "key": "󰧱 →",
+      "keyColor": "#4f9ad0",
+      "format": "{user-name}@{host-name}",
     },
     {
       "type": "os",
@@ -33,19 +41,37 @@
       "keyColor": "#4f9ad0",
     },
     {
-      "type": "packages",
-      "key": "󰏖 →",
-      "keyColor": "#4f9ad0",
-    },
-    {
       "type": "uptime",
       "key": "󰅐 →",
       "keyColor": "#4f9ad0",
     },
+    {
+      "type": "processes",
+      "key": "󰙰 →",
+      "keyColor": "#4f9ad0",
+    },
+    {
+      "type": "datetime",
+      "key": "󰃰 →",
+      "keyColor": "#4f9ad0",
+      "format": "%A, %B %d %Y  %H:%M",
+    },
+    {
+      "type": "packages",
+      "key": "󰏖 →",
+      "keyColor": "#4f9ad0",
+    },
     "break",
+
+    // ── DESKTOP ───────────────────────────────────────────────────────────────
     {
       "type": "custom",
       "format": "\u001b[38;2;255;107;107mDESKTOP\u001b[0m",
+    },
+    {
+      "type": "de",
+      "key": "󰇄 →",
+      "keyColor": "#FF6B6B",
     },
     {
       "type": "wm",
@@ -53,8 +79,23 @@
       "keyColor": "#FF6B6B",
     },
     {
+      "type": "wmtheme",
+      "key": "󰔎 →",
+      "keyColor": "#FF6B6B",
+    },
+    {
+      "type": "cursor",
+      "key": "󰳽 →",
+      "keyColor": "#FF6B6B",
+    },
+    {
       "type": "terminal",
       "key": "󰆍 →",
+      "keyColor": "#FF6B6B",
+    },
+    {
+      "type": "terminalfont",
+      "key": "󰛖 →",
       "keyColor": "#FF6B6B",
     },
     {
@@ -68,9 +109,26 @@
       "keyColor": "#FF6B6B",
     },
     "break",
+
+    // ── HARDWARE ──────────────────────────────────────────────────────────────
     {
       "type": "custom",
       "format": "\u001b[38;2;255;225;163mHARDWARE\u001b[0m",
+    },
+    {
+      "type": "host",
+      "key": "󰌢 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
+      "type": "chassis",
+      "key": "󰋊 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
+      "type": "board",
+      "key": "󰢮 →",
+      "keyColor": "#ffe1a3",
     },
     {
       "type": "cpu",
@@ -84,6 +142,26 @@
       "detectionMethod": "vulkan",
     },
     {
+      "type": "codec",
+      "key": "󰈫 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
+      "type": "vulkan",
+      "key": "󰖀 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
+      "type": "opencl",
+      "key": "󰘚 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
+      "type": "opengl",
+      "key": "󰘚 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
       "type": "memory",
       "key": "󰍛 →",
       "keyColor": "#ffe1a3",
@@ -94,14 +172,103 @@
       "keyColor": "#ffe1a3",
     },
     {
+      "type": "physicalmemory",
+      "key": "󰑁 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
       "type": "disk",
       "key": "󰋊 →",
       "keyColor": "#ffe1a3",
+    },
+    {
+      "type": "physicaldisk",
+      "key": "󰨣 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
+      "type": "btrfs",
+      "key": "󰋊 →",
+      "keyColor": "#ffe1a3",
+    },
+    "break",
+
+    // ── FIRMWARE ──────────────────────────────────────────────────────────────
+    {
+      "type": "custom",
+      "format": "\u001b[38;2;160;196;160mFIRMWARE\u001b[0m",
+    },
+    {
+      "type": "bios",
+      "key": "󰛫 →",
+      "keyColor": "#a0c4a0",
+    },
+    {
+      "type": "bootmgr",
+      "key": "󰒖 →",
+      "keyColor": "#a0c4a0",
+    },
+    {
+      "type": "lm",
+      "key": "󰍹 →",
+      "keyColor": "#a0c4a0",
+    },
+    "break",
+
+    // ── CONNECTIVITY ──────────────────────────────────────────────────────────
+    {
+      "type": "custom",
+      "format": "\u001b[38;2;137;220;235mCONNECTIVITY\u001b[0m",
+    },
+    {
+      "type": "bluetooth",
+      "key": "󰂯 →",
+      "keyColor": "#89dceb",
+    },
+    {
+      "type": "wifi",
+      "key": "󰤨 →",
+      "keyColor": "#89dceb",
+    },
+    {
+      "type": "netio",
+      "key": "󰛳 →",
+      "keyColor": "#89dceb",
+    },
+    "break",
+
+    // ── LAPTOP ────────────────────────────────────────────────────────────────
+    {
+      "type": "custom",
+      "format": "\u001b[38;2;255;179;71mLAPTOP\u001b[0m",
+    },
+    {
+      "type": "battery",
+      "key": "󰁹 →",
+      "keyColor": "#ffb347",
+    },
+    {
+      "type": "poweradapter",
+      "key": "󰚥 →",
+      "keyColor": "#ffb347",
+    },
+    "break",
+
+    // ── EXTRA ─────────────────────────────────────────────────────────────────
+    {
+      "type": "custom",
+      "format": "\u001b[38;2;203;166;247mEXTRA\u001b[0m",
+    },
+    {
+      "type": "weather",
+      "key": "󰖐 →",
+      "keyColor": "#cba6f7",
     },
     {
       "type": "colors",
       "paddingLeft": 3,
       "symbol": "diamond",
     },
+
   ],
 }
