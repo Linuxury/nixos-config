@@ -88,7 +88,30 @@
   networking = {
     # NetworkManager replaces the older networking.interfaces approach.
     # It handles DHCP, WiFi, and more automatically.
-    networkmanager.enable = true;
+    networkmanager = {
+      enable = true;
+
+      # When ethernet comes up, disable WiFi to save power and avoid split routing.
+      # When ethernet goes down, re-enable WiFi so the machine stays connected.
+      # No-op on hosts with no WiFi interface — the interface pattern never matches.
+      dispatcherScripts = [
+        {
+          source = pkgs.writeShellScript "ethernet-wifi-exclusive" ''
+            IFACE="$1"
+            ACTION="$2"
+            case "$IFACE" in
+              en*|eth*|eno*)
+                case "$ACTION" in
+                  up)        nmcli radio wifi off ;;
+                  down)      nmcli radio wifi on  ;;
+                esac
+                ;;
+            esac
+          '';
+          type = "basic";
+        }
+      ];
+    };
 
     # Enables the firewall. By default it blocks all incoming connections
     # except what you explicitly open. SSH is handled below via services.openssh.

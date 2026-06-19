@@ -39,7 +39,7 @@
       "type": "command",
       "key": "󰏖 →",
       "keyColor": "#4f9ad0",
-      "text": "fp=$(flatpak list 2>/dev/null | wc -l); nix=$(nix-store -q --requisites /nix/var/nix/profiles/system $HOME/.nix-profile 2>/dev/null | sort -u | wc -l); echo \"${fp} flatpak · ${nix} nix\"",
+      "text": "nix=$(nix-store -q --requisites /nix/var/nix/profiles/system $HOME/.nix-profile 2>/dev/null | sort -u | wc -l); fp=$(flatpak list 2>/dev/null | wc -l); echo \"${nix} nix · ${fp} flatpak\"",
     },
     {
       "type": "processes",
@@ -60,13 +60,13 @@
       "format": "\u001b[38;2;255;107;107mDESKTOP\u001b[0m",
     },
     {
-      "type": "lm",
-      "key": "󰍹 →",
+      "type": "wm",
+      "key": "󰖲 →",
       "keyColor": "#FF6B6B",
     },
     {
-      "type": "wm",
-      "key": "󰖲 →",
+      "type": "lm",
+      "key": "󰍹 →",
       "keyColor": "#FF6B6B",
     },
     {
@@ -75,20 +75,16 @@
       "keyColor": "#FF6B6B",
     },
     {
-      "type": "terminal",
+      "type": "command",
       "key": "󰆍 →",
       "keyColor": "#FF6B6B",
+      "text": "term=${TERM_PROGRAM:-${TERM}}; shell=$(basename \"$SHELL\"); echo \"${term} · ${shell}\"",
     },
     {
       "type": "command",
       "key": "󰛖 →",
       "keyColor": "#FF6B6B",
       "text": "font=$(grep '^font_family' ~/nixos-config/dotfiles/kitty/kitty.conf | awk '{$1=\"\"; print $0}' | xargs); size=$(grep '^font_size' ~/nixos-config/dotfiles/kitty/kitty.conf | awk '{print $2}'); echo \"${font} ${size}pt\"",
-    },
-    {
-      "type": "shell",
-      "key": "󱆃 →",
-      "keyColor": "#FF6B6B",
     },
     "break",
 
@@ -98,14 +94,10 @@
       "format": "\u001b[38;2;255;225;163mHARDWARE\u001b[0m",
     },
     {
-      "type": "board",
+      "type": "command",
       "key": "󰢮 →",
       "keyColor": "#ffe1a3",
-    },
-    {
-      "type": "bios",
-      "key": "󰛫 →",
-      "keyColor": "#ffe1a3",
+      "text": "vendor=$(cat /sys/class/dmi/id/board_vendor 2>/dev/null); board=$(cat /sys/class/dmi/id/board_name 2>/dev/null); bios=$(cat /sys/class/dmi/id/bios_version 2>/dev/null); echo \"${vendor} ${board} · BIOS ${bios}\"",
     },
     {
       "type": "cpu",
@@ -138,53 +130,41 @@
       "key": "󰋊 →",
       "keyColor": "#ffe1a3",
     },
-    "break",
-
-    // ── CONNECTIVITY ──────────────────────────────────────────────────────────
-    {
-      "type": "custom",
-      "format": "\u001b[38;2;137;220;235mCONNECTIVITY\u001b[0m",
-    },
     {
       "type": "localip",
       "key": "󰈀 →",
-      "keyColor": "#89dceb",
+      "keyColor": "#ffe1a3",
       "showIpv4": true,
       "showIpv6": false,
     },
     {
       "type": "wifi",
       "key": "󰤨 →",
-      "keyColor": "#89dceb",
+      "keyColor": "#ffe1a3",
     },
     {
       "type": "bluetooth",
       "key": "󰂯 →",
-      "keyColor": "#89dceb",
+      "keyColor": "#ffe1a3",
     },
     {
       "type": "netio",
       "key": "󰛳 →",
-      "keyColor": "#89dceb",
+      "keyColor": "#ffe1a3",
     },
-    "break",
 
-    // ── LAPTOP ────────────────────────────────────────────────────────────────
-    {
-      "type": "custom",
-      "format": "\u001b[38;2;255;179;71mLAPTOP\u001b[0m",
-    },
     {
       "type": "battery",
       "key": "󰁹 →",
-      "keyColor": "#ffb347",
+      "keyColor": "#ffe1a3",
     },
     {
       "type": "poweradapter",
       "key": "󰚥 →",
-      "keyColor": "#ffb347",
+      "keyColor": "#ffe1a3",
     },
     "break",
+
 
     // ── EXTRA ─────────────────────────────────────────────────────────────────
     {
