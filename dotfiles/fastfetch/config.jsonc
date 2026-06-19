@@ -35,15 +35,16 @@
       "keyColor": "#4f9ad0",
     },
     {
-      "type": "packages",
+      "type": "command",
       "key": "󰏖 →",
       "keyColor": "#4f9ad0",
+      "text": "fp=$(flatpak list 2>/dev/null | wc -l); nix=$(nix-store -q --requisites /nix/var/nix/profiles/system $HOME/.nix-profile 2>/dev/null | sort -u | wc -l); echo \"${fp} flatpak · ${nix} nix\"",
     },
     {
       "type": "processes",
       "key": "󰙰 →",
       "keyColor": "#4f9ad0",
-      "format": "{} running",
+      "format": "{} processes running",
     },
     {
       "type": "uptime",
