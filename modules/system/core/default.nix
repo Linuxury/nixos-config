@@ -8,7 +8,7 @@
 # If only some machines need it, it belongs in a more specific module.
 # ===========================================================================
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 {
   imports = [
@@ -196,6 +196,15 @@
   # The flake.nix pkgs import also sets this, but that doesn't propagate
   # into NixOS module evaluation — this option is the correct way to do it.
   nixpkgs.config.allowUnfree = true;
+
+  # affinity-nix overlay — evaluated in our nixpkgs context (which has
+  # allowUnfree = true above). The package became unfree in a recent update and
+  # can no longer be consumed via inputs.affinity-nix.packages.* because that
+  # path uses the flake's own nixpkgs (no allowUnfree). The overlay uses
+  # prev.callPackage, so it inherits our nixpkgs config. Applied globally so any
+  # host/user can add pkgs.affinity-v3 without needing to wire up the overlay
+  # themselves.
+  nixpkgs.overlays = [ inputs.affinity-nix.overlays.default ];
 
   nix = {
     settings = {

@@ -4,7 +4,7 @@
 # Imported by: Ryzen5800x, Asus-A15
 # ===========================================================================
 
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
 {
   environment.systemPackages = with pkgs; [
@@ -23,6 +23,6 @@
     # First run opens a graphical installer — leave the path at default.
     # Data lands at ~/.local/share/affinity-v3/
     # To update the app itself: affinity-v3 update
-    inputs.affinity-nix.packages.x86_64-linux.v3
+    affinity-v3
   ];
 }
