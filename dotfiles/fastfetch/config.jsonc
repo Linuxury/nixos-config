@@ -118,11 +118,6 @@
       "keyColor": "#ffe1a3",
     },
     {
-      "type": "opengl",
-      "key": "󰘚 →",
-      "keyColor": "#ffe1a3",
-    },
-    {
       "type": "memory",
       "key": "󰍛 →",
       "keyColor": "#ffe1a3",
@@ -130,11 +125,6 @@
     {
       "type": "swap",
       "key": "󰓡 →",
-      "keyColor": "#ffe1a3",
-    },
-    {
-      "type": "physicalmemory",
-      "key": "󰑁 →",
       "keyColor": "#ffe1a3",
     },
     {
