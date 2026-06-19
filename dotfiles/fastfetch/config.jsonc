@@ -24,12 +24,6 @@
       "format": "\u001b[38;2;79;154;208mSYSTEM\u001b[0m",
     },
     {
-      "type": "title",
-      "key": "󰧱 →",
-      "keyColor": "#4f9ad0",
-      "format": "{user-name}@{host-name}",
-    },
-    {
       "type": "os",
       "key": "󱄅 →",
       "keyColor": "#4f9ad0",
@@ -49,11 +43,7 @@
       "type": "processes",
       "key": "󰙰 →",
       "keyColor": "#4f9ad0",
-    },
-    {
-      "type": "datetime",
-      "key": "󰃰 →",
-      "keyColor": "#4f9ad0",
+      "format": "{} running",
     },
     {
       "type": "packages",
@@ -157,25 +147,15 @@
     },
     "break",
 
-    // ── FIRMWARE ──────────────────────────────────────────────────────────────
-    {
-      "type": "custom",
-      "format": "\u001b[38;2;160;196;160mFIRMWARE\u001b[0m",
-    },
     {
       "type": "bios",
       "key": "󰛫 →",
-      "keyColor": "#a0c4a0",
-    },
-    {
-      "type": "bootmgr",
-      "key": "󰒖 →",
-      "keyColor": "#a0c4a0",
+      "keyColor": "#4f9ad0",
     },
     {
       "type": "lm",
       "key": "󰍹 →",
-      "keyColor": "#a0c4a0",
+      "keyColor": "#4f9ad0",
     },
     "break",
 
