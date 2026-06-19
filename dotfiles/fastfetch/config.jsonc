@@ -6,7 +6,7 @@
     // Image spec: auto-width × 1400px height, tight crop, portrait orientation.
     "type": "kitty-direct",
     "width": 25,
-    "height": 33,
+    "height": 27,
     "padding": {
       "top": 0,
       "left": 3,
@@ -134,12 +134,7 @@
       "type": "command",
       "key": "󰈀 →",
       "keyColor": "#ffe1a3",
-      "text": "iface=$(ip -4 route show default 2>/dev/null | awk '/dev/{print $5; exit}'); ip=$(ip -4 addr show \"$iface\" 2>/dev/null | awk '/inet /{print $2; exit}'); [ -n \"$ip\" ] && echo \"Ethernet ${ip}\" || echo \"Disconnected\"",
-    },
-    {
-      "type": "wifi",
-      "key": "󰤨 →",
-      "keyColor": "#ffe1a3",
+      "text": "iface=$(ip -4 route show default 2>/dev/null | awk '/dev/{print $5; exit}'); ip=$(ip -4 addr show \"$iface\" 2>/dev/null | awk '/inet /{print $2; exit}'); case \"$iface\" in wl*) label=WiFi;; en*|eth*) label=Ethernet;; *) label=${iface:-Network};; esac; [ -n \"$ip\" ] && echo \"${label} ${ip}\" || echo Disconnected",
     },
     {
       "type": "bluetooth",
