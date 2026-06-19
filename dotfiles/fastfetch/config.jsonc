@@ -134,7 +134,7 @@
       "type": "command",
       "key": "󰈀 →",
       "keyColor": "#ffe1a3",
-      "text": "iface=$(ip -4 route show default 2>/dev/null | awk '/dev/{print $5; exit}'); ip=$(ip -4 addr show \"$iface\" 2>/dev/null | awk '/inet /{print $2; exit}'); case \"$iface\" in wl*) label=WiFi;; en*|eth*) label=Ethernet;; *) label=${iface:-Network};; esac; [ -n \"$ip\" ] && echo \"${label} ${ip}\" || echo Disconnected",
+      "text": "iface=$(ip -4 route show default 2>/dev/null | awk '/dev/{print $5; exit}'); ip=$(ip -4 addr show \"$iface\" 2>/dev/null | awk '/inet /{print $2; exit}'); case \"$iface\" in wl*) ssid=$(nmcli -g GENERAL.CONNECTION dev show \"$iface\" 2>/dev/null); [ -n \"$ssid\" ] && label=\"WiFi · ${ssid}\" || label=WiFi;; en*|eth*) label=Ethernet;; *) label=${iface:-Network};; esac; [ -n \"$ip\" ] && echo \"${label} ${ip}\" || echo Disconnected",
     },
     {
       "type": "bluetooth",
