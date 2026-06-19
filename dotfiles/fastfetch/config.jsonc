@@ -131,11 +131,10 @@
       "keyColor": "#ffe1a3",
     },
     {
-      "type": "localip",
+      "type": "command",
       "key": "󰈀 →",
       "keyColor": "#ffe1a3",
-      "showIpv4": true,
-      "showIpv6": false,
+      "text": "iface=$(ip -4 route show default 2>/dev/null | awk '/dev/{print $5; exit}'); ip=$(ip -4 addr show \"$iface\" 2>/dev/null | awk '/inet /{print $2; exit}'); [ -n \"$ip\" ] && echo \"Ethernet ${ip}\" || echo \"Disconnected\"",
     },
     {
       "type": "wifi",
@@ -147,12 +146,6 @@
       "key": "󰂯 →",
       "keyColor": "#ffe1a3",
     },
-    {
-      "type": "netio",
-      "key": "󰛳 →",
-      "keyColor": "#ffe1a3",
-    },
-
     {
       "type": "battery",
       "key": "󰁹 →",
