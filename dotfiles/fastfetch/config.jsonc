@@ -74,9 +74,10 @@
       "keyColor": "#FF6B6B",
     },
     {
-      "type": "terminalfont",
+      "type": "command",
       "key": "󰛖 →",
       "keyColor": "#FF6B6B",
+      "text": "font=$(grep '^font_family' ~/nixos-config/dotfiles/kitty/kitty.conf | awk '{$1=\"\"; print $0}' | xargs); size=$(grep '^font_size' ~/nixos-config/dotfiles/kitty/kitty.conf | awk '{print $2}'); echo \"${font} ${size}pt\"",
     },
     {
       "type": "shell",
