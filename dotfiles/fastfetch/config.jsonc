@@ -35,8 +35,8 @@
       "keyColor": "#4f9ad0",
     },
     {
-      "type": "uptime",
-      "key": "󰅐 →",
+      "type": "packages",
+      "key": "󰏖 →",
       "keyColor": "#4f9ad0",
     },
     {
@@ -46,8 +46,8 @@
       "format": "{} running",
     },
     {
-      "type": "packages",
-      "key": "󰏖 →",
+      "type": "uptime",
+      "key": "󰅐 →",
       "keyColor": "#4f9ad0",
     },
     "break",
