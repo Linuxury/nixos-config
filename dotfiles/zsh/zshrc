@@ -203,6 +203,7 @@ _nix_fetch_filter() {
 
   /^\[agenix\]/ || /^decrypting /                      { next }
   /^warning: Git tree .* is dirty/                      { next }
+  /^warning: ignoring substitute for /                  { next }
   /^Done\. The new configuration is \/nix\/store\//     { next }
   /^building the system configuration/                  { next }
   /^[[:space:]]+\/nix\/store\//                         { next }
