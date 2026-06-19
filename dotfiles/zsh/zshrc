@@ -13,7 +13,7 @@ export NIXOS_CONFIG=$HOME/nixos-config
 # System info on startup — random image from ~/Pictures/Fastfetch/
 () {
   local imgs=( ~/Pictures/Fastfetch/*.{png,jpg,jpeg,webp}(N) )
-  (( ${#imgs} )) && fastfetch --logo-source "${imgs[$RANDOM % $#imgs + 1]}" || fastfetch
+  (( ${#imgs} )) && fastfetch --logo-type kitty-direct --logo "${imgs[$RANDOM % $#imgs + 1]}" || fastfetch
 }
 
 # ---------------------------------------------------------------------------
