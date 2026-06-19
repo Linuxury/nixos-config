@@ -64,11 +64,6 @@
       "keyColor": "#FF6B6B",
     },
     {
-      "type": "wmtheme",
-      "key": "󰔎 →",
-      "keyColor": "#FF6B6B",
-    },
-    {
       "type": "cursor",
       "key": "󰳽 →",
       "keyColor": "#FF6B6B",
@@ -86,11 +81,6 @@
     {
       "type": "shell",
       "key": "󱆃 →",
-      "keyColor": "#FF6B6B",
-    },
-    {
-      "type": "display",
-      "key": "󰍹 →",
       "keyColor": "#FF6B6B",
     },
     "break",
@@ -115,6 +105,11 @@
       "key": "󰻑 →",
       "keyColor": "#ffe1a3",
       "detectionMethod": "vulkan",
+    },
+    {
+      "type": "display",
+      "key": "󰍹 →",
+      "keyColor": "#ffe1a3",
     },
     {
       "type": "vulkan",
