@@ -3,10 +3,10 @@
   "logo": {
     // kitty-direct uses the kitty graphics protocol.
     // Source passed at runtime via --logo (random pick from ~/Pictures/Fastfetch/).
-    // Image spec: auto-width × 1400px height, tight crop, portrait orientation.
+    // Image spec: square images (1:1). Config width/height ratio ~1.585 keeps them square on screen.
     "type": "kitty-direct",
-    "width": 25,
-    "height": 27,
+    "width": 35,
+    "height": 22,
     "padding": {
       "top": 0,
       "left": 3,
