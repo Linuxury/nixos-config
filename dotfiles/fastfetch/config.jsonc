@@ -60,6 +60,11 @@
       "format": "\u001b[38;2;255;107;107mDESKTOP\u001b[0m",
     },
     {
+      "type": "lm",
+      "key": "󰍹 →",
+      "keyColor": "#FF6B6B",
+    },
+    {
       "type": "wm",
       "key": "󰖲 →",
       "keyColor": "#FF6B6B",
@@ -98,6 +103,11 @@
       "keyColor": "#ffe1a3",
     },
     {
+      "type": "bios",
+      "key": "󰛫 →",
+      "keyColor": "#ffe1a3",
+    },
+    {
       "type": "cpu",
       "key": "󰻠 →",
       "keyColor": "#ffe1a3",
@@ -127,18 +137,6 @@
       "type": "disk",
       "key": "󰋊 →",
       "keyColor": "#ffe1a3",
-    },
-    "break",
-
-    {
-      "type": "bios",
-      "key": "󰛫 →",
-      "keyColor": "#4f9ad0",
-    },
-    {
-      "type": "lm",
-      "key": "󰍹 →",
-      "keyColor": "#4f9ad0",
     },
     "break",
 
