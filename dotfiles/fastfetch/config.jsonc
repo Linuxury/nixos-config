@@ -17,7 +17,6 @@
     "separator": "  ",
   },
   "modules": [
-
     // ── SYSTEM ────────────────────────────────────────────────────────────────
     {
       "type": "custom",
@@ -119,40 +118,40 @@
       "type": "memory",
       "key": "󰍛 →",
       "keyColor": "#ffe1a3",
-      "format": "RAM  {1} / {2} ({3})",
+      "format": "RAM {1} / {2} ({3})",
     },
     {
       "type": "swap",
       "key": "󰓡 →",
       "keyColor": "#ffe1a3",
-      "format": "SWAP  {1} / {2} ({3})",
+      "format": "SWAP {1} / {2} ({3})",
     },
     {
       "type": "disk",
       "key": "󰋊 →",
       "keyColor": "#ffe1a3",
-      "format": "NVMe  {1} / {2} ({3}) - {9}",
+      "format": "NVMe {1} / {2} ({3}) - {9}",
       "folders": "/",
     },
     {
       "type": "disk",
       "key": "󰋊 →",
       "keyColor": "#ffe1a3",
-      "format": "Games  {1} / {2} ({3}) - {9}",
+      "format": "Games {1} / {2} ({3}) - {9}",
       "folders": "/mnt/Games",
     },
     {
       "type": "disk",
       "key": "󰋊 →",
       "keyColor": "#ffe1a3",
-      "format": "Warehouse  {1} / {2} ({3}) - {9}",
+      "format": "Warehouse {1} / {2} ({3}) - {9}",
       "folders": "/mnt/Warehouse",
     },
     {
       "type": "disk",
       "key": "󰋊 →",
       "keyColor": "#ffe1a3",
-      "format": "Media  {1} / {2} ({3}) - {9}",
+      "format": "Media {1} / {2} ({3}) - {9}",
       "folders": "/data",
     },
     {
@@ -178,7 +177,6 @@
     },
     "break",
 
-
     // ── WEATHER ───────────────────────────────────────────────────────────────
     {
       "type": "custom",
@@ -195,6 +193,5 @@
       "paddingLeft": 3,
       "symbol": "diamond",
     },
-
   ],
 }
