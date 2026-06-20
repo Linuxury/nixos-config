@@ -145,3 +145,9 @@ hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("~/.config/hypr/scripts/powermenu
 hl.bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
 hl.bind(mod .. " + SHIFT + N", hl.dsp.exec_cmd("~/.config/hypr/scripts/nightlight.sh"))  -- Night light toggle
 
+-- ── Gaming ────────────────────────────────────────────────────────────────────
+-- Bounce to WS2 and back to break a stuck pointer-lock from a fullscreen game
+hl.bind(mod .. " + CTRL + G", hl.dsp.exec_cmd(
+    "hyprctl dispatch workspace 2 && sleep 0.15 && hyprctl dispatch workspace previous"
+))
+
