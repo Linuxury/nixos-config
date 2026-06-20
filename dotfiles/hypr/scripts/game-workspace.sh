@@ -62,6 +62,9 @@ NON_GAME = {
     'io.github.celluloid_player.celluloid',
     # Image viewers
     'org.gnome.loupe', 'eog',
+    # Steam client — video playback triggers fullscreen on the client window;
+    # game windows use class steam_app_XXXXX and are handled by openwindow/is_game.
+    'steam',
 }
 for w in data:
     if w['address'] == '0x$addr':
