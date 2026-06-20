@@ -117,18 +117,37 @@
     },
     {
       "type": "memory",
-      "key": "󰍛 →",
+      "key": "󰍛 →  RAM",
       "keyColor": "#ffe1a3",
     },
     {
       "type": "swap",
-      "key": "󰓡 →",
+      "key": "󰓡 →  SWAP",
       "keyColor": "#ffe1a3",
     },
     {
       "type": "disk",
-      "key": "󰋊 →",
+      "key": "󰋊 →  NVMe",
       "keyColor": "#ffe1a3",
+      "folders": "/",
+    },
+    {
+      "type": "disk",
+      "key": "󰋊 →  Games",
+      "keyColor": "#ffe1a3",
+      "folders": "/mnt/Games",
+    },
+    {
+      "type": "disk",
+      "key": "󰋊 →  Warehouse",
+      "keyColor": "#ffe1a3",
+      "folders": "/mnt/Warehouse",
+    },
+    {
+      "type": "disk",
+      "key": "󰋊 →  Media",
+      "keyColor": "#ffe1a3",
+      "folders": "/data",
     },
     {
       "type": "command",
