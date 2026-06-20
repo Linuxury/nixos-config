@@ -40,6 +40,7 @@
 
   # Fastfetch — system info on shell start (same as desktop)
   environment.systemPackages = [ pkgs.fastfetch ];
+  environment.etc."fastfetch/config.jsonc".source = ../../../dotfiles/fastfetch/config.jsonc;
 
   # TERM fallback — runs in /etc/zsh/zshenv before NixOS's set-environment
   # script, silencing "can't find terminal definition" errors on SSH login.

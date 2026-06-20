@@ -160,9 +160,10 @@
       "format": "\u001b[38;2;203;166;247mWEATHER\u001b[0m",
     },
     {
-      "type": "weather",
+      "type": "command",
       "key": "󰖐 →",
       "keyColor": "#cba6f7",
+      "text": "curl -s 'wttr.in/?format=%c+%C+%t+(feels+%f)+%l' 2>/dev/null | sed 's/+\\([0-9]\\)/\\1/g'",
     },
     {
       "type": "colors",
