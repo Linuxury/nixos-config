@@ -125,6 +125,9 @@ in
     # Opens firewall ports for Steam's game server browser
     dedicatedServer.openFirewall = true;
 
+    # Proton-GE — tracks nixpkgs-unstable, updated automatically via nix flake update
+    extraCompatPackages = [ pkgs.proton-ge-bin ];
+
     # Adds a compatibility layer so Steam's own runtime libraries
     # work correctly on NixOS's non-standard filesystem layout
     package = pkgs.steam.override {
