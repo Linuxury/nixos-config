@@ -33,9 +33,9 @@
   # Writing these declaratively means COSMIC always starts with the correct
   # theme regardless of what its UI may have previously set.
   # =========================================================================
-  home.file.".config/cosmic/com.system76.CosmicTk/v1/icon_theme".text   = ''"Tela-dark"'';
-  home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_theme".text = ''"BreezeX-Light"'';
-  home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size".text  = "24";
+  home.file.".config/cosmic/com.system76.CosmicTk/v1/icon_theme"   = { force = true; text = ''"Tela-dark"''; };
+  home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_theme" = { force = true; text = ''"BreezeX-Light"''; };
+  home.file.".config/cosmic/com.system76.CosmicTk/v1/cursor_size"  = { force = true; text = "24"; };
 
   # =========================================================================
   # Blueman — hide launcher entry on COSMIC
