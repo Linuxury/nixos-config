@@ -187,7 +187,7 @@ _fmt_nvd() {
 _nix_fetch_filter() {
   local spin_pid="${1:-0}"
   awk -v spin_pid="$spin_pid" '
-  BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0 }
+  BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0; build_label=""; fetch_label="" }
 
   # Kill the eval spinner and clear its line on /dev/tty before any output.
   # Called from every path that writes to stdout or /dev/tty so the spinner
@@ -214,8 +214,9 @@ _nix_fetch_filter() {
     match($0, /[0-9]+/)
     build_total = substr($0, RSTART, RLENGTH) + 0
     build_done = 0
+    build_label = ""
     bar = sprintf("%*s", bw, ""); gsub(/ /, "░", bar)
-    printf "\r  ⚙  0/%d  [%s]  0%%", build_total, bar > "/dev/tty"
+    printf "\r  ⚙  0/%d  [%s]  0%%\033[K", build_total, bar > "/dev/tty"
     fflush("/dev/tty")
     in_build = 1
     next
@@ -224,12 +225,17 @@ _nix_fetch_filter() {
   /^building .*\/nix\/store\// {
     if (!in_build) { next }
     build_done++
+    path = $0
+    sub(/^building \/nix\/store\/[a-z0-9]+-/, "", path)
+    sub(/\.drv.*$/, "", path)
+    if (length(path) > 35) path = substr(path, 1, 35)
+    build_label = path
     pct    = int(build_done * 100 / (build_total > 0 ? build_total : 1))
     filled = int(build_done * bw  / (build_total > 0 ? build_total : 1))
     bar = ""
     for (i=0; i<filled;    i++) bar = bar "█"
     for (i=0; i<bw-filled; i++) bar = bar "░"
-    printf "\r  ⚙  %d/%d  [%s]  %d%%", build_done, build_total, bar, pct > "/dev/tty"
+    printf "\r  ⚙  %d/%d  [%s]  %d%% - %s\033[K", build_done, build_total, bar, pct, build_label > "/dev/tty"
     fflush("/dev/tty")
     next
   }
@@ -241,8 +247,9 @@ _nix_fetch_filter() {
     match($0, /[0-9]+/)
     total = substr($0, RSTART, RLENGTH) + 0
     done = 0
+    fetch_label = ""
     bar = sprintf("%*s", bw, ""); gsub(/ /, "░", bar)
-    printf "\r  ↓  0/%d  [%s]  0%%", total, bar > "/dev/tty"
+    printf "\r  ↓  0/%d  [%s]  0%%\033[K", total, bar > "/dev/tty"
     fflush("/dev/tty")
     in_progress = 1
     next
@@ -251,12 +258,17 @@ _nix_fetch_filter() {
   /^copying path / {
     if (!in_progress) { next }
     done++
+    path = $0
+    sub(/^copying path '\/nix\/store\/[a-z0-9]+-/, "", path)
+    sub(/'.*$/, "", path)
+    if (length(path) > 35) path = substr(path, 1, 35)
+    fetch_label = path
     pct    = int(done * 100 / (total > 0 ? total : 1))
     filled = int(done * bw  / (total > 0 ? total : 1))
     bar = ""
     for (i=0; i<filled;    i++) bar = bar "█"
     for (i=0; i<bw-filled; i++) bar = bar "░"
-    printf "\r  ↓  %d/%d  [%s]  %d%%", done, total, bar, pct > "/dev/tty"
+    printf "\r  ↓  %d/%d  [%s]  %d%% - %s\033[K", done, total, bar, pct, fetch_label > "/dev/tty"
     fflush("/dev/tty")
     next
   }
@@ -266,8 +278,8 @@ _nix_fetch_filter() {
   /^(stopping|starting|restarting|reloading) the following .*units?: / ||
   /^the following new units were started: / {
     killspinner()
-    if (in_build)    { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
-    if (in_progress) { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
+    if (in_build)    { printf "\n\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
+    if (in_progress) { printf "\n\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
     idx  = index($0, ": ")
     head = substr($0, 1, idx - 1)
     rest = substr($0, idx + 2)
@@ -280,8 +292,8 @@ _nix_fetch_filter() {
 
   {
     killspinner()
-    if (in_build)    { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
-    if (in_progress) { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
+    if (in_build)    { printf "\n\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
+    if (in_progress) { printf "\n\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
     print
   }
 
