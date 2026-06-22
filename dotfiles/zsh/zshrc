@@ -189,9 +189,6 @@ _nix_fetch_filter() {
   awk -v spin_pid="$spin_pid" '
   BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0; build_label=""; fetch_label="" }
 
-  # Kill the eval spinner and clear its line on /dev/tty before any output.
-  # Called from every path that writes to stdout or /dev/tty so the spinner
-  # text never bleeds into subsequent output.
   function killspinner() {
     if (spin_pid) {
       system("kill " spin_pid " 2>/dev/null")
@@ -199,6 +196,33 @@ _nix_fetch_filter() {
       printf "\r\033[K" > "/dev/tty"
       fflush("/dev/tty")
     }
+  }
+
+  # Close the build bar. If items were cached (bar never reached 100%), fill it
+  # and label it "cached" so the user sees confirmation they were handled.
+  # blank=1 adds an extra blank line (bar→text transition); blank=0 skips it (bar→bar).
+  function close_build(blank,    bar, i) {
+    if (!in_build) return
+    if (build_done < build_total) {
+      bar = ""
+      for (i = 0; i < bw; i++) bar = bar "█"
+      printf "\r  ⚙  %d/%d  [%s]  100%% - cached\033[K", build_total, build_total, bar > "/dev/tty"
+    }
+    printf "\n" > "/dev/tty"
+    if (blank) printf "\n" > "/dev/tty"
+    fflush("/dev/tty")
+    in_build = 0
+    build_label = ""
+  }
+
+  # Close the fetch bar.
+  function close_fetch(blank) {
+    if (!in_progress) return
+    printf "\n" > "/dev/tty"
+    if (blank) printf "\n" > "/dev/tty"
+    fflush("/dev/tty")
+    in_progress = 0
+    fetch_label = ""
   }
 
   /^\[agenix\]/ || /^decrypting /                      { next }
@@ -210,7 +234,7 @@ _nix_fetch_filter() {
 
   /^these [0-9]+ derivations will be built:/ {
     killspinner()
-    if (in_progress) { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
+    close_fetch(0)
     match($0, /[0-9]+/)
     build_total = substr($0, RSTART, RLENGTH) + 0
     build_done = 0
@@ -242,8 +266,8 @@ _nix_fetch_filter() {
 
   /^these [0-9]+ paths will be fetched/ {
     killspinner()
-    if (in_build)    { printf "\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
-    if (in_progress) { printf "\n" > "/dev/tty"; in_progress=0 }
+    close_build(0)
+    close_fetch(0)
     match($0, /[0-9]+/)
     total = substr($0, RSTART, RLENGTH) + 0
     done = 0
@@ -278,8 +302,8 @@ _nix_fetch_filter() {
   /^(stopping|starting|restarting|reloading) the following .*units?: / ||
   /^the following new units were started: / {
     killspinner()
-    if (in_build)    { printf "\n\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
-    if (in_progress) { printf "\n\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
+    close_build(1)
+    close_fetch(1)
     idx  = index($0, ": ")
     head = substr($0, 1, idx - 1)
     rest = substr($0, idx + 2)
@@ -292,14 +316,14 @@ _nix_fetch_filter() {
 
   {
     killspinner()
-    if (in_build)    { printf "\n\n" > "/dev/tty"; fflush("/dev/tty"); in_build=0 }
-    if (in_progress) { printf "\n\n" > "/dev/tty"; fflush("/dev/tty"); in_progress=0 }
+    close_build(1)
+    close_fetch(1)
     print
   }
 
   END {
-    if (in_build)    printf "\n" > "/dev/tty"
-    if (in_progress) printf "\n" > "/dev/tty"
+    close_build(0)
+    close_fetch(0)
   }
   '
 }
