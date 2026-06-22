@@ -283,8 +283,8 @@ _nix_fetch_filter() {
     if (!in_progress) { next }
     done++
     path = $0
-    sub(/^copying path '\/nix\/store\/[a-z0-9]+-/, "", path)
-    sub(/'.*$/, "", path)
+    sub(/^copying path \47\/nix\/store\/[a-z0-9]+-/, "", path)
+    sub(/\47.*$/, "", path)
     if (length(path) > 35) path = substr(path, 1, 35)
     fetch_label = path
     pct    = int(done * 100 / (total > 0 ? total : 1))
