@@ -58,7 +58,7 @@ in
       # move it to .bak so HM can create the managed symlink cleanly.
       # =====================================================================
       home.activation.migrateAgentsSkills =
-        lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+        lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
           _target="$HOME/.agents/skills"
           if [ -d "$_target" ] && [ ! -L "$_target" ]; then
             $VERBOSE_ECHO "Migrating $_target → $_target.bak (now managed by Nix)"
