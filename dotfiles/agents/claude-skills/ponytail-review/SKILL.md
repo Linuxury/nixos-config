@@ -1,0 +1,1 @@
+/home/linuxury/.claude/plugins/cache/DietrichGebert/ponytail/4.7.0/skills/ponytail-review/SKILL.md

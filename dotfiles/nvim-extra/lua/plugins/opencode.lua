@@ -76,7 +76,7 @@ return {
       end,
     })
 
-    -- Fix normie-nvim snacks.lua bug: Snacks.picker.close() doesn't exist
+    -- Snacks.picker.close() doesn't exist — use picker:close() on the active instance
     -- Override <leader>e to use picker:close() on the active picker instance
     vim.keymap.set('n', '<leader>e', function()
       local picker = Snacks.picker.get()

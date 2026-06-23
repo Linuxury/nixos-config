@@ -486,8 +486,8 @@ ENDSSH
     };
   };
 
-  # Neovim config is now managed by the normie-nvim activation script in
-  # modules/development/neovim/default.nix — no overrides needed here.
+  # Neovim config is managed by the activation script in
+  # modules/development/editors/neovim/hm.nix — no overrides needed here.
 
   # Neovim desktop entry and text editor MIME defaults are declared in
   # modules/system/graphical/default.nix via home-manager.sharedModules.

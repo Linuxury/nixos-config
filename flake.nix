@@ -213,6 +213,7 @@
                 (final: prev: {
                   claude-code  = prev.callPackage ./pkgs/claude-code/package.nix {};
                   opencode     = prev.callPackage ./pkgs/opencode/package.nix {};
+                  ponytrail    = prev.callPackage ./pkgs/ponytrail/package.nix {};
                   ant-dark-kde                  = prev.callPackage ./pkgs/ant-dark-kde/package.nix {};
                   breeze-chameleon-dark-icons   = prev.callPackage ./pkgs/breeze-chameleon-dark-icons/package.nix {};
                   # openldap 2.6.13 test017-syncreplication-refresh is flaky

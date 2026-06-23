@@ -118,7 +118,7 @@
 
     # ==============================================================
     # Development — Editors
-    #   neovim   — full IDE: normie-nvim, LSPs, opencode-nvim, claude wrapper
+    #   neovim   — full IDE: custom config, LSPs, opencode-nvim, claude wrapper
     #   vscodium — GUI editor: Catppuccin theme, Claude Code + OpenCode extensions
     #   zed      — fast Wayland-native editor (Rust), vim mode
     # ==============================================================
