@@ -4,7 +4,7 @@
 # Keyboard-first Markdown notes with Vim motions, live math/diagrams,
 # and an MCP server for AI assistant integration.
 #
-# Vault: /home/linuxury/.ZenNotes (plain .md files on NVMe, owned by UID 65532)
+# Vault: /home/linuxury/Jarvis (plain .md files, synced by Syncthing, owned by linuxury)
 # Data:  /data/config/zennotes    (server config on mergerfs)
 # Port:  7879 (host) → 7878 (container) — 7878 is taken by Radarr
 #
@@ -49,11 +49,13 @@
       RemainAfterExit = true;
     };
     script = ''
-      mkdir -p /home/linuxury/.ZenNotes
-      chown 65532:65532 /home/linuxury/.ZenNotes
-      chmod 0755 /home/linuxury/.ZenNotes
+      # Vault dir is owned by linuxury — Syncthing also writes here.
+      # Container runs as UID 1000 (linuxury) to avoid ownership conflicts.
+      mkdir -p /home/linuxury/Jarvis
+      chown linuxury:users /home/linuxury/Jarvis
+      chmod 0755 /home/linuxury/Jarvis
       mkdir -p /data/config/zennotes
-      chown 65532:65532 /data/config/zennotes
+      chown linuxury:users /data/config/zennotes
     '';
   };
 
@@ -71,10 +73,12 @@
       image            = "docker.io/adibhanna/zennotes:latest";
       ports            = [ "7879:7878" ];
       volumes          = [
-        "/home/linuxury/.ZenNotes:/workspace:z"
+        "/home/linuxury/Jarvis:/workspace:z"
         "/data/config/zennotes:/data:z"
       ];
       environmentFiles = [ config.age.secrets.zennotes-auth-token.path ];
+      # Run as linuxury (UID 1000) so Syncthing can also write to ~/Jarvis/
+      extraOptions     = [ "--user=1000:1000" ];
     };
   };
 

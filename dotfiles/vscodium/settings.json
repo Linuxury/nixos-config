@@ -1,5 +1,5 @@
 {
-  "claudeCode.claudeProcessWrapper": "/etc/profiles/per-user/linuxury/bin/claude",
+  "claudeCode.claudeProcessWrapper": "/run/current-system/sw/bin/claude",
   "claudeCode.preferredLocation": "secondarySidebar",
   "editor.fontFamily": "JetBrainsMono Nerd Font Propo",
   "editor.fontSize": 13,

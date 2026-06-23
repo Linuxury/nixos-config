@@ -7,13 +7,13 @@
 # No web UI setup needed after rebuild. Syncthing auto-pairs and syncs.
 #
 # Shared folders:
-#   ~/Obsidian  — vault: host updates, research, activity logs, projects
+#   ~/Jarvis    — vault: session logs, research, projects, work, stack (ZenNotes)
+#                 Per-client ZenNotes metadata excluded via ~/Jarvis/.stignore:
+#                   .zennotes/
 #   ~/.agents   — AI config: AGENTS.md, CLAUDE.md, Claude/OpenCode settings,
 #                 MCP config, and mcp-servers/ source code.
 #                 Runtime artifacts excluded via ~/.agents/.stignore:
 #                   memory/, backups/, .venv, __pycache__, *.egg-info
-#
-# Git backup of Obsidian runs on Ryzen5900x only.
 # Device IDs generated fresh 2026-03-25 — no legacy config carried over.
 # Phone (Pixel Pro 8) ID obtained from Syncthing-Fork app.
 # ===========================================================================
@@ -88,10 +88,10 @@
       # Single shared folder — the Obsidian vault. Devices with valid IDs
       # are listed here. FILL-IN devices are added when their IDs are ready.
       folders = {
-        "Obsidian" = {
-          id    = "obsidian";
-          label = "Obsidian Vault";
-          path  = "/home/linuxury/Obsidian";
+        "Jarvis" = {
+          id    = "jarvis";
+          label = "Jarvis Vault";
+          path  = "/home/linuxury/Jarvis";
           devices = [
             "Ryzen5900x"
             "ThinkPad"

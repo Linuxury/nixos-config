@@ -5,7 +5,7 @@
 # Extracts actionable NixOS warnings from a rebuild log, writes them as
 # deduplicated table rows in PENDING.md (⚡ Next section), and prepends a
 # timestamped entry to the per-host update log at:
-#   ~/Obsidian/09 🔄 Updates/<hostname>.md
+#   ~/Jarvis/Hosts/<hostname>.md
 #
 # Log entries are automatically pruned to the last 30 days.
 #
@@ -39,14 +39,14 @@ done
 }
 
 HOST="${HOST:-$(hostname)}"
-VAULT="${VAULT:-$HOME/Obsidian}"
+VAULT="${VAULT:-$HOME/Jarvis}"
 
 # Skip silently if vault not present (headless servers, first boot)
 [[ -d "$VAULT" ]] || exit 0
 [[ -f "$LOG_FILE" ]] || exit 0
 
-PENDING="$VAULT/00 📌 Quick Access/PENDING.md"
-UPDATES_DIR="$VAULT/09 🔄 Updates"
+PENDING="$VAULT/quick/PENDING.md"
+UPDATES_DIR="$VAULT/Hosts"
 UPDATES_FILE="$UPDATES_DIR/${HOST}.md"
 DATE=$(date '+%Y-%m-%d')
 TIME=$(date '+%H:%M')
@@ -110,7 +110,7 @@ pending_insert() {
 
 # Failure row
 if [[ "$OUTCOME" == "failure" ]]; then
-  pending_insert "| NixOS failure — ${HOST} | nixos-rebuild failed — see \`09 🔄 Updates/${HOST}.md\` | ${DATE} |"
+  pending_insert "| NixOS failure — ${HOST} | nixos-rebuild failed — see \`hosts/${HOST}.md\` | ${DATE} |"
 fi
 
 # Warning rows (one per warning, deduplicated)

@@ -16,7 +16,7 @@ HOSTNAME=$(hostname)
 DATE=$(date '+%Y-%m-%d')
 TIME=$(date '+%-I:%M %p')
 DATETIME="$DATE $TIME"
-VAULT="${HOME}/Obsidian"
+VAULT="${HOME}/Jarvis"
 
 # ── Generation info ────────────────────────────────────────────────────────
 GEN=$(readlink /nix/var/nix/profiles/system 2>/dev/null | \
