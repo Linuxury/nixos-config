@@ -59,9 +59,10 @@
       "format": "\u001b[38;2;255;107;107mDESKTOP\u001b[0m",
     },
     {
-      "type": "wm",
+      "type": "command",
       "key": "󰖲 →",
       "keyColor": "#FF6B6B",
+      "text": "de=\"\"; wm=\"\"; if hyprctl version >/dev/null 2>&1; then ver=$(hyprctl version 2>/dev/null | grep -oP 'v[\\d.]+' | head -1); wm=\"Hyprland${ver:+ $ver}\"; elif cosmic-comp --version >/dev/null 2>&1; then de_ver=$(cosmic-session --version 2>/dev/null | awk '{print $2}'); wm_ver=$(cosmic-comp --version 2>/dev/null | awk '{print $2}'); de=\"COSMIC${de_ver:+ $de_ver}\"; wm=\"cosmic-comp${wm_ver:+ $wm_ver}\"; fi; [ -n \"$(ls /run/user/$(id -u)/wayland-* 2>/dev/null)\" ] && session=\"Wayland\" || session=\"X11\"; out=\"\"; [ -n \"$de\" ] && out=\"${out:+$out · }$de\"; [ -n \"$wm\" ] && out=\"${out:+$out · }$wm\"; [ -n \"$session\" ] && out=\"${out:+$out · }$session\"; echo \"$out\"",
     },
     {
       "type": "lm",
