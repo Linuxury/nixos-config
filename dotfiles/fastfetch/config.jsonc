@@ -68,7 +68,7 @@
       "type": "command",
       "key": "󰍹 →",
       "keyColor": "#FF6B6B",
-      "text": "bin=$(systemctl show display-manager.service -p ExecStart --value 2>/dev/null | grep -oP 'path=\\K[^ ;]+'); name=$(basename \"$bin\"); ver=$([ -n \"$bin\" ] && \"$bin\" --version 2>/dev/null | grep -oP '[\\d]+\\.[\\d.]+' | head -1); echo \"${name}${ver:+ $ver}\"",
+      "text": "mainpid=$(systemctl show display-manager.service -p MainPID --value 2>/dev/null); bin=$(cat /proc/$mainpid/cmdline 2>/dev/null | tr '\\0' '\\n' | head -1); name=$(basename \"$bin\" | sed 's/^\\.//; s/-wrapped$//'); ver=$([ -n \"$bin\" ] && \"$bin\" --version 2>/dev/null | grep -oP '[\\d]+\\.[\\d.]+' | head -1); echo \"${name}${ver:+ $ver}\"",
     },
     {
       "type": "cursor",
