@@ -17,92 +17,7 @@
   pkgs,
   lib,
   ...
-}: let
-  # ===========================================================================
-  # OptiScaler Client — GUI manager for the OptiScaler upscaling injector
-  #
-  # OptiScaler shims FSR/DLSS/XeSS upscaling into games that don't natively
-  # support your preferred API. This client manages installation and
-  # configuration across Steam, Epic, GOG, and EA game libraries.
-  #
-  # Self-contained .NET single-file bundle — the entire runtime + assemblies
-  # are packed inside the ELF binary using an offset table appended at the end.
-  # autoPatchelfHook would resize the binary to fix ELF paths, invalidating
-  # those offsets → "Arithmetic overflow while reading bundle" at startup.
-  #
-  # Fix: never touch the binary. Use buildFHSEnv to provide the FHS paths
-  # (/lib, /lib64, /usr/lib) that the binary's hardcoded interpreter expects.
-  # ===========================================================================
-  optiscaler-client-bin = pkgs.stdenv.mkDerivation rec {
-    pname = "optiscaler-client-bin";
-    version = "1.0.5";
-
-    src = pkgs.fetchurl {
-      url = "https://github.com/Agustinm28/Optiscaler-Client/releases/download/OptiscalerClient-${version}/OptiscalerClient-${version}-linux-x64.tar.gz";
-      sha256 = "12wlifm40x5rkail6b2098c375b6s3948xszqzni7zf84zfndbys";
-    };
-
-    sourceRoot = ".";
-    dontBuild = true;
-    dontFixup = true; # critical — prevents any ELF patching that corrupts the bundle
-
-    installPhase = ''
-      runHook preInstall
-      mkdir -p $out/lib/optiscaler-client
-      cp -r . $out/lib/optiscaler-client/
-      chmod +x $out/lib/optiscaler-client/OptiscalerClient
-      runHook postInstall
-    '';
-  };
-
-  optiscaler-client = pkgs.buildFHSEnv {
-    name = "optiscaler-client";
-
-    # Libraries provided inside the FHS sandbox — Avalonia UI + .NET deps
-    targetPkgs = _: with pkgs; [
-      libX11
-      libXext
-      libXrandr
-      libXcursor
-      libXi
-      libICE
-      libSM
-      fontconfig
-      freetype
-      zlib
-      openssl
-      icu
-      libGL
-      stdenv.cc.cc.lib
-    ];
-
-    # Script run inside the FHS environment
-    runScript = pkgs.writeShellScript "optiscaler-client" ''
-      export DOTNET_BUNDLE_EXTRACT_BASE_DIR="''${XDG_RUNTIME_DIR:-/tmp}/optiscaler-client"
-      exec ${optiscaler-client-bin}/lib/optiscaler-client/OptiscalerClient "$@"
-    '';
-
-    # Desktop entry lives outside the FHS wrapper
-    extraInstallCommands = ''
-      mkdir -p $out/share/applications
-      cat > $out/share/applications/optiscaler-client.desktop <<EOF
-      [Desktop Entry]
-      Name=OptiScaler Client
-      Comment=Manage OptiScaler upscaling across your game libraries
-      Exec=optiscaler-client
-      Type=Application
-      Categories=Game;Utility;
-      Keywords=upscaling;fsr;dlss;xess;optiscaler;
-      EOF
-    '';
-
-    meta = with lib; {
-      description = "GUI manager for OptiScaler — injects FSR/DLSS/XeSS upscaling into any game";
-      homepage = "https://github.com/Agustinm28/Optiscaler-Client";
-      platforms = ["x86_64-linux"];
-    };
-  };
-in
+}:
 {
   imports = [
     ./dmemcg-booster/default.nix
@@ -211,9 +126,6 @@ in
     # -----------------------------------------------------------------------
     # Proton / Wine — Windows game compatibility layers
     # -----------------------------------------------------------------------
-    protonplus # Manage Proton-GE and other compatibility tools
-    # Run after first boot to install latest Proton-GE
-
     wine-staging # Latest Wine with extra patches for better compatibility
     winetricks # Installs Windows libraries/runtimes needed by some games
     protontricks # Winetricks wrapper for Steam/Proton — handles the Proton
@@ -244,12 +156,6 @@ in
 
     vulkan-tools # vulkaninfo — useful for checking Vulkan is working
     mesa-demos # glxinfo, glxgears — check OpenGL info and verify drivers
-
-    # -----------------------------------------------------------------------
-    # OptiScaler Client — upscaling injector manager
-    # -----------------------------------------------------------------------
-    optiscaler-client # GUI manager for OptiScaler — shims FSR/DLSS/XeSS into
-    # games that don't natively support your preferred upscaling API
 
     # Controller support
     antimicrox # Map controller buttons to keyboard/mouse

@@ -13,6 +13,9 @@
 { lib, pkgs, ... }:
 
 {
+  # Force OpenGL backend — avoids wgpu Vulkan surface panic on Hyprland workspace switch
+  environment.sessionVariables.WGPU_BACKEND = "gl";
+
   # =========================================================================
   # Zed — system package (available to all users on this host)
   # =========================================================================
