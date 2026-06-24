@@ -68,7 +68,7 @@
       "type": "command",
       "key": "󰍹 →",
       "keyColor": "#FF6B6B",
-      "text": "mainpid=$(systemctl show display-manager.service -p MainPID --value 2>/dev/null); bin=$(cat /proc/$mainpid/cmdline 2>/dev/null | tr '\\0' '\\n' | head -1); name=$(basename \"$bin\" | sed 's/^\\.//; s/-wrapped$//'); if [ \"$name\" = \"greetd\" ]; then gb=$(grep -oP 'command = \"\\K[^\"]+' /etc/greetd/config.toml 2>/dev/null | head -1 | awk '{print $1}'); [ -n \"$gb\" ] && bin=\"$gb\" && name=$(basename \"$bin\" | sed 's/^\\.//; s/-wrapped$//'); fi; ver=$(echo \"$bin\" | grep -oP '(?<=-)[\\d]+\\.[\\d.]+(?=/bin/)'); echo \"${name}${ver:+ $ver}\"",
+      "text": "mainpid=$(systemctl show display-manager.service -p MainPID --value 2>/dev/null); args=$(cat /proc/$mainpid/cmdline 2>/dev/null | tr '\\0' '\\n'); bin=$(echo \"$args\" | head -1); name=$(basename \"$bin\" | sed 's/^\\.//; s/-wrapped$//'); if [ \"$name\" = \"greetd\" ]; then config=$(echo \"$args\" | awk '/^--config$/{getline; print; exit}'); gb=$(grep -oP '/nix/store/\\S+' \"$config\" 2>/dev/null | grep '/bin/' | grep -v coreutils | tail -1 | sed \"s/'.*//\"); [ -n \"$gb\" ] && bin=\"$gb\" && name=$(basename \"$bin\" | sed 's/^\\.//; s/-wrapped$//; s/-start$//'); fi; ver=$(echo \"$bin\" | grep -oP '(?<=-)[\\d]+\\.[\\d.]+(?=/bin/)'); echo \"${name}${ver:+ $ver}\"",
     },
     {
       "type": "cursor",
