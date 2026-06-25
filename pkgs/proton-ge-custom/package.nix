@@ -20,6 +20,16 @@ stdenvNoCC.mkDerivation rec {
 
   installPhase = ''
     cp -r . "$out"
+
+    # Patch compatibilitytool.vdf with static names so Steam games never need
+    # reassigning when the version updates. Steam stores the VDF key as the
+    # internal tool identifier — keeping it fixed across releases means all
+    # per-game assignments survive nru updates automatically.
+    chmod +w "$out/compatibilitytool.vdf"
+    sed -i \
+      -e 's|"${version}" // Internal|"proton_ge_latest" // Internal|' \
+      -e 's|"display_name" "${version}"|"display_name" "GE-Proton (Latest)"|' \
+      "$out/compatibilitytool.vdf"
   '';
 
   meta = with lib; {
