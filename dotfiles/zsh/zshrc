@@ -502,6 +502,42 @@ _nru_rebuild() {
   fi
 }
 
+# ---------------------------------------------------------------------------
+# _nru_update_proton_ge — checks GitHub for a new GE-Proton release and
+# updates the flake.nix input URL + package.nix version string if needed,
+# then refreshes flake.lock via nix flake update proton-ge-custom.
+# Called by nru between the nixpkgs update and the rebuild.
+# ---------------------------------------------------------------------------
+_nru_update_proton_ge() {
+  echo "→ Checking GE-Proton..."
+
+  local latest current upd_out upd_code
+  latest=$(curl -fsSL "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest" \
+    | jq -r '.tag_name' 2>/dev/null) || {
+    echo "  ⚠ Could not reach GitHub — skipping GE-Proton check"
+    return 0
+  }
+
+  # Read current version from the flake.nix input URL
+  current=$(grep -oE 'GE-Proton[0-9]+-[0-9]+' "$NIXOS_CONFIG/flake.nix" | head -1)
+
+  if [[ "$latest" == "$current" ]]; then
+    echo "  ✓ GE-Proton already up to date ($current)"
+    return 0
+  fi
+
+  echo "  ↑ proton-ge: $current → $latest"
+
+  # Patch the version in the flake.nix input URL (package.nix reads version from source)
+  sed -i "s|$current|$latest|g" "$NIXOS_CONFIG/flake.nix"
+
+  # Let Nix fetch the new tarball and write its hash into flake.lock
+  upd_out=$(nix flake update proton-ge-custom --flake "$NIXOS_CONFIG" 2>&1)
+  upd_code=$?
+  [[ $upd_code -ne 0 ]] && printf '%s\n' "$upd_out"
+  return $upd_code
+}
+
 # Rebuild + pull latest nixpkgs before switching.
 # Pulls latest git changes, bumps nixpkgs in flake.lock, rebuilds, commits
 # the updated flake.lock, then prompts based on result:
@@ -532,6 +568,7 @@ nru() {
   else
     echo "  ✓ nixpkgs already up to date"
   fi
+  _nru_update_proton_ge || true
   _nru_rebuild
 }
 

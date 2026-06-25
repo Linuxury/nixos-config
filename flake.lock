@@ -497,6 +497,19 @@
         "type": "github"
       }
     },
+    "proton-ge-custom": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782266460,
+        "narHash": "sha256-I7SSvzQQ/NqdvwjpJ9IFFtAaTS+rgHUyXx0us1vIOnw=",
+        "type": "tarball",
+        "url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz"
+      }
+    },
     "quickshell": {
       "inputs": {
         "nixpkgs": [
@@ -529,6 +542,7 @@
         "home-manager": "home-manager_2",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_5",
+        "proton-ge-custom": "proton-ge-custom",
         "zen-browser": "zen-browser"
       }
     },

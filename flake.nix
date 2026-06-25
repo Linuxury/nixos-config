@@ -124,6 +124,22 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # -------------------------------------------------------------------------
+    # proton-ge-custom — GloriousEggroll's custom Proton build
+    #
+    # Points directly at the upstream prebuilt release tarball.
+    # flake = false means Nix treats it as a plain source archive —
+    # the hash lives in flake.lock, never in any source file.
+    #
+    # To update: nru handles this automatically via _nru_update_proton_ge.
+    # Manual update: edit the version in the URL below, then run:
+    #   nix flake update proton-ge-custom
+    # -------------------------------------------------------------------------
+    proton-ge-custom = {
+      url      = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz";
+      flake    = false;
+    };
+
   };
 
   # ===========================================================================
@@ -214,6 +230,9 @@
                   claude-code  = prev.callPackage ./pkgs/claude-code/package.nix {};
                   opencode     = prev.callPackage ./pkgs/opencode/package.nix {};
                   ponytrail    = prev.callPackage ./pkgs/ponytrail/package.nix {};
+                  proton-ge-custom = prev.callPackage ./pkgs/proton-ge-custom/package.nix {
+                    proton-ge-src = inputs.proton-ge-custom;
+                  };
                   ant-dark-kde                  = prev.callPackage ./pkgs/ant-dark-kde/package.nix {};
                   breeze-chameleon-dark-icons   = prev.callPackage ./pkgs/breeze-chameleon-dark-icons/package.nix {};
                   # openldap 2.6.13 test017-syncreplication-refresh is flaky
