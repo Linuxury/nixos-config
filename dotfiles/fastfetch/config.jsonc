@@ -38,7 +38,7 @@
       "type": "command",
       "key": "󰏖 →",
       "keyColor": "#4f9ad0",
-      "text": "nix=$(nix-store -q --requisites /nix/var/nix/profiles/system $HOME/.nix-profile 2>/dev/null | sort -u | wc -l); fp=$(flatpak list 2>/dev/null | wc -l); echo \"${nix} nix · ${fp} flatpak\"",
+      "text": "hm=$(readlink -f $HOME/.local/state/home-manager/gcroots/current-home 2>/dev/null); nix=$(/run/current-system/sw/bin/nix-store -q --requisites /nix/var/nix/profiles/system ${hm:+$hm} 2>/dev/null | sort -u | wc -l); fp=$(flatpak list 2>/dev/null | wc -l); echo \"${nix} nix · ${fp} flatpak\"",
     },
     {
       "type": "processes",
