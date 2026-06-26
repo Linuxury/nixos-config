@@ -216,7 +216,9 @@
   # Per-user choices (browser) stay in each user's home.nix.
   # Optional app defaults (LibreOffice, etc.) live in their own modules.
   # =========================================================================
-  home-manager.sharedModules = [{
+  home-manager.sharedModules = [
+    ./keybinds/default.nix
+    {
     xdg.mimeApps = {
       enable = true;
       defaultApplications = {
