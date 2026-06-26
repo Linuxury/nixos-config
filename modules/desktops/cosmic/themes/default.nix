@@ -55,6 +55,38 @@
   '';
 
   # =========================================================================
+  # COSMIC keyboard shortcuts
+  #
+  # COSMIC merges two files: `defaults` (built-in) and `custom` (user).
+  # Custom entries override defaults — we only need to list what differs.
+  #
+  # system_actions maps System(Terminal) → the command COSMIC runs for the
+  # built-in SUPER+T shortcut. Overriding it to kitty keeps SUPER+T consistent.
+  #
+  # Keybind parity with Hyprland:
+  #   SUPER+Return       → kitty (tiled)
+  #   SUPER+SHIFT+Return → kitty --class floating-term (floating quick terminal)
+  # =========================================================================
+  home.file.".config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom" = {
+    force = true;
+    text = ''
+      {
+          (modifiers: [Super], key: "Return"): Spawn("kitty"),
+          (modifiers: [Super, Shift], key: "Return"): Spawn("kitty --class floating-term"),
+      }
+    '';
+  };
+
+  home.file.".config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/system_actions" = {
+    force = true;
+    text = ''
+      {
+          Terminal: "kitty",
+      }
+    '';
+  };
+
+  # =========================================================================
   # COSMIC Files — sidebar favorites
   #
   # COSMIC Files reads favorites from this RON file. Custom mount points
