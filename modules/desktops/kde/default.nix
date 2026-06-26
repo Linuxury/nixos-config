@@ -16,6 +16,10 @@
     ../../greeters/sddm/default.nix  # SDDM + Catppuccin Mocha/Mauve login screen
   ];
 
+  home-manager.sharedModules = [
+    ./keybinds/default.nix
+  ];
+
   # =========================================================================
   # KDE Plasma 6
   #
