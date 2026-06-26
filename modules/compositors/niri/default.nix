@@ -27,6 +27,18 @@
     enable = true;
   };
 
+  # Enable Home Manager's niri module for all users so programs.niri.settings
+  # generates config.kdl, and declare terminal keybinds inline.
+  # (programs.niri HM option is only available when NixOS programs.niri is enabled,
+  # so these binds cannot live in the shared graphical/keybinds module.)
+  home-manager.sharedModules = [{
+    programs.niri.enable = true;
+    programs.niri.settings.binds = {
+      "Super+Return".action.spawn       = [ "kitty" ];
+      "Super+Shift+Return".action.spawn = [ "kitty" "--class" "floating-term" ];
+    };
+  }];
+
   # =========================================================================
   # XWayland Satellite — X11 app support for Niri
   #

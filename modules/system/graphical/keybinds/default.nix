@@ -9,11 +9,16 @@
 #   SUPER+SHIFT+Return → kitty --class floating-term (floating quick terminal)
 #
 # DE coverage:
-#   Hyprland — dotfiles/hypr/modules/keybinds.lua (already set; managed there
-#              because Hyprland's Lua config is a dotfile, not a NixOS module)
+#   Hyprland — dotfiles/hypr/modules/keybinds.lua (managed in dotfile; Hyprland's
+#              Lua config is a dotfile, not a NixOS/HM module)
+#   MangoWC  — dotfiles/mangowc/config.conf (managed in dotfile; same reason)
 #   COSMIC   — RON files in ~/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/
 #   KDE      — kglobalshortcutsrc (appended via home.activation; must be
 #              writable because KDE modifies it at runtime — no symlinks)
+#   GNOME    — dconf org/gnome/settings-daemon/plugins/media-keys custom keybindings
+#   Niri     — programs.niri.settings.binds in compositors/niri/default.nix sharedModules
+#              (programs.niri HM option only exists when NixOS niri module is enabled,
+#              so it cannot be set here safely)
 #
 # Files written for inactive DEs are harmless — they are simply never read.
 # This makes adding or switching DEs on any host a zero-extra-config operation.
@@ -82,4 +87,31 @@
       printf '\n[kitty-floating.desktop]\n_k_friendly_name=kitty (floating)\n_launch=Meta+Shift+Return,none,kitty (floating)\n' >> "$KGLOBAL"
     fi
   '';
+
+  # =========================================================================
+  # GNOME shortcuts
+  #
+  # GNOME uses dconf for keybindings. Custom app-launch shortcuts are stored
+  # as numbered entries under custom-keybindings. The list at the parent key
+  # must enumerate every active custom binding path.
+  # =========================================================================
+  dconf.settings = {
+    "org/gnome/settings-daemon/plugins/media-keys" = {
+      custom-keybindings = [
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+      ];
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+      name    = "kitty";
+      command = "kitty";
+      binding = "<Super>Return";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+      name    = "kitty (floating)";
+      command = "kitty --class floating-term";
+      binding = "<Super><Shift>Return";
+    };
+  };
+
 }
