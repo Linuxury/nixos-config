@@ -510,7 +510,7 @@ _nru_rebuild() {
 #   _NRU_DOTS = dot-spacer, visually width-matched to [20-char bar] + brackets
 # ---------------------------------------------------------------------------
 _NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
-_NRU_NIX="󱄅 "  # U+F1105 nf-linux-nixos (Nerd Fonts) — 1-cell wide, padded to match
+_NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
 _NRU_DOTS="·  ·  ·  ·  ·  ·  ·  "
 
 # ---------------------------------------------------------------------------
@@ -585,7 +585,7 @@ _nru_nixpkgs_bar() {
     for (( i=0; i<filled; i++ )); do bar+="█"; done
     for (( i=filled; i<bw; i++ )); do bar+="░"; done
     printf "\r  %s  %-9s  [%s]  %d%%\033[K" \
-      "$icon" "nixpkgs" "$bar" "$pct" >/dev/tty
+      "$icon" "NixPkgs" "$bar" "$pct" >/dev/tty
     sleep 0.1
     step=$(( step < 18 ? step + 1 : 18 ))
   done
@@ -599,7 +599,7 @@ _nru_nixpkgs_bar() {
   upd_out=$(cat /tmp/nru_nixpkgs.log)
 
   if [[ $code -ne 0 ]]; then
-    printf "\r  %s  %-9s  ✗ update failed\033[K\n" "$icon" "nixpkgs" >/dev/tty
+    printf "\r  %s  %-9s  ✗ update failed\033[K\n" "$icon" "NixPkgs" >/dev/tty
     printf '%s\n' "$upd_out"
     return $code
   fi
@@ -615,10 +615,10 @@ _nru_nixpkgs_bar() {
         else printf "%s → %s", old_dt, dt
       }')
     printf "\r  %s  %-9s  [%s]  %s  ✓\033[K\n" \
-      "$icon" "nixpkgs" "$bar" "$info" >/dev/tty
+      "$icon" "NixPkgs" "$bar" "$info" >/dev/tty
   else
     printf "\r  %s  %-9s  %s  up to date  ✓\033[K\n" \
-      "$icon" "nixpkgs" "$_NRU_DOTS" >/dev/tty
+      "$icon" "NixPkgs" "$_NRU_DOTS" >/dev/tty
   fi
 }
 
