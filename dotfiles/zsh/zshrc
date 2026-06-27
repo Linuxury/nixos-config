@@ -525,7 +525,7 @@ _nru_pkg_bar() {
 
   local bw=20 bar i filled pct step=0
 
-  "$@" >/tmp/nru_pkg_bar.log 2>&1 &
+  "$@" >/tmp/nru_pkg_bar.log 2>&1 &|
   local pid=$!
 
   while kill -0 "$pid" 2>/dev/null; do
@@ -563,7 +563,7 @@ _nru_nixpkgs_bar() {
   local bw=20 bar i filled pct step=0
   local icon="$_NRU_NIX"
 
-  nix flake update nixpkgs --flake "$NIXOS_CONFIG" >/tmp/nru_nixpkgs.log 2>&1 &
+  nix flake update nixpkgs --flake "$NIXOS_CONFIG" >/tmp/nru_nixpkgs.log 2>&1 &|
   local pid=$!
 
   while kill -0 "$pid" 2>/dev/null; do
