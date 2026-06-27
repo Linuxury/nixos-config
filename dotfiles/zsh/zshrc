@@ -347,7 +347,7 @@ _nixos_run() {
   if [[ -z "$_NRU_NO_HEADER" ]]; then
     echo ""
     echo "══════════════════════════════════════════════════════════"
-    printf "  ↻  Rebuilding  %s\n" "$(hostname)"
+    printf "  ↻  Rebuild  ·  %s\n" "$(hostname)"
     echo "══════════════════════════════════════════════════════════"
     echo ""
   fi
