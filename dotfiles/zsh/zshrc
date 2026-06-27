@@ -507,8 +507,8 @@ _nru_rebuild() {
 #   _NRU_NIX  = U+F1105 Nix snowflake (Nerd Fonts)
 #   _NRU_DOTS = dot-spacer, visually width-matched to [20-char bar] + brackets
 # ---------------------------------------------------------------------------
-_NRU_GH=$'󰊤\ufe0f'    # U+F02A4 + VS16 (wide/emoji presentation)
-_NRU_NIX=$'󱄅\ufe0f'   # U+F1105 + VS16 (wide/emoji presentation)
+_NRU_GH="󰊤"    # U+F02A4 nf-md-github (Nerd Fonts)
+_NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts)
 _NRU_DOTS="·  ·  ·  ·  ·  ·  ·  "
 
 # ---------------------------------------------------------------------------
