@@ -560,5 +560,23 @@ ENDSSH
            "$HOME/nixos-config/dotfiles/hypr/hypridle.conf"
   '';
 
+  # Keep Proton-GE Latest in Steam's compat tools dir in sync with the Nix package.
+  # programs.steam.extraCompatPackages adds the package to STEAM_EXTRA_COMPAT_TOOLS_PATH
+  # but Steam also maintains its own copy in ~/.local/share/Steam/compatibilitytools.d/.
+  # Without this, the Steam-managed copy can drift (e.g. a ProtonPlus download replaces
+  # it with the wrong architecture). This activation overwrites it on every HM rebuild,
+  # keeping Faugus and other non-Steam launchers pointed at the correct x86_64 build.
+  home.activation.protonGeCompatTool = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _dest="$HOME/.local/share/Steam/compatibilitytools.d/Proton-GE Latest"
+    _src="${pkgs.proton-ge-custom}"
+    _src_ver="$(cat "$_src/version" 2>/dev/null)"
+    _dst_ver="$(cat "$_dest/version" 2>/dev/null)"
+    if [ "$_src_ver" != "$_dst_ver" ]; then
+      rm -rf "$_dest"
+      cp -r "$_src" "$_dest"
+      chmod -R u+w "$_dest"
+    fi
+  '';
+
   # Personal packages live in modules/users/linuxury-packages.nix
 }

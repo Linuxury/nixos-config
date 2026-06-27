@@ -227,6 +227,14 @@
   # CPU overhead on synchronization-heavy Windows games.
   # No Steam launch option needed — Wine/Proton auto-detects it.
   # =========================================================================
+  # pressure-vessel (Valve's container runtime used by umu-launcher / Faugus)
+  # probes bubblewrap by exec-ing `true`. On NixOS /bin/true doesn't exist —
+  # this symlink satisfies the probe without touching the global FHS compat layer.
+  system.activationScripts.bwrapBinTrue = lib.stringAfter [ "users" ] ''
+    mkdir -p /bin
+    [ -e /bin/true ] || ln -sf ${pkgs.coreutils}/bin/true /bin/true
+  '';
+
   boot.kernelModules = ["ntsync"];
   services.udev.extraRules = ''
     KERNEL=="ntsync", TAG+="uaccess"

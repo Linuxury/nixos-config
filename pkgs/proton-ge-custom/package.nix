@@ -30,6 +30,13 @@ stdenvNoCC.mkDerivation rec {
       -e 's|"${version}" // Internal|"proton_ge_latest" // Internal|' \
       -e 's|"display_name" "${version}"|"display_name" "GE-Proton (Latest)"|' \
       "$out/compatibilitytool.vdf"
+
+    # GE-Proton11-1 ships with require_tool_appid "4185400" (arm64 SteamRT4).
+    # umu-launcher maps 4185400 → steamrt4-arm64 (aarch64), which can't run on
+    # x86_64. The correct appid for x86_64 SteamRT4 is 4183110.
+    chmod +w "$out/toolmanifest.vdf"
+    sed -i 's|"require_tool_appid" "4185400"|"require_tool_appid" "4183110"|' \
+      "$out/toolmanifest.vdf"
   '';
 
   meta = with lib; {
