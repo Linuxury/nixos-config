@@ -3,6 +3,12 @@
 -- ===========================================================================
 
 hl.config({
+    cursor = {
+        no_warps = true,   -- Don't teleport cursor to center of new windows/popups (fixes Steam menus)
+    },
+})
+
+hl.config({
     input = {
         kb_layout          = "us",
         kb_options         = "caps:escape",   -- Caps Lock → Escape (very useful in Neovim)
