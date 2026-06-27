@@ -507,7 +507,7 @@ _nru_rebuild() {
 #   _NRU_NIX  = U+F1105 Nix snowflake (Nerd Fonts)
 #   _NRU_DOTS = dot-spacer, visually width-matched to [20-char bar] + brackets
 # ---------------------------------------------------------------------------
-_NRU_GH=""
+_NRU_GH="󰊤"
 _NRU_NIX="󱄅"
 _NRU_DOTS="·  ·  ·  ·  ·  ·  ·  "
 
@@ -524,8 +524,12 @@ _nru_pkg_bar() {
   shift 3
 
   local bw=20 bar i filled pct step=0
+  local _xf="/tmp/nru_pkg_bar_$$.exit"
+  rm -f "$_xf"
 
-  "$@" >/tmp/nru_pkg_bar.log 2>&1 &|
+  # &| disowns immediately (no job notifications); exit code written to file
+  # because wait cannot track a disowned pid in zsh.
+  { "$@" >/tmp/nru_pkg_bar.log 2>&1; echo $? >"$_xf" } &|
   local pid=$!
 
   while kill -0 "$pid" 2>/dev/null; do
@@ -540,8 +544,12 @@ _nru_pkg_bar() {
     step=$(( step < 18 ? step + 1 : 18 ))
   done
 
-  wait "$pid"
-  local code=$?
+  # Brief spin waiting for the exit file to be flushed after the process exits
+  local _r=0
+  while [[ ! -f "$_xf" ]] && (( _r++ < 50 )); do sleep 0.01; done
+  local code=1
+  [[ -f "$_xf" ]] && code=$(< "$_xf")
+  rm -f "$_xf"
 
   if [[ $code -eq 0 ]]; then
     bar=""; for (( i=0; i<bw; i++ )); do bar+="█"; done
@@ -563,7 +571,9 @@ _nru_nixpkgs_bar() {
   local bw=20 bar i filled pct step=0
   local icon="$_NRU_NIX"
 
-  nix flake update nixpkgs --flake "$NIXOS_CONFIG" >/tmp/nru_nixpkgs.log 2>&1 &|
+  local _xf="/tmp/nru_nixpkgs_$$.exit"
+  rm -f "$_xf"
+  { nix flake update nixpkgs --flake "$NIXOS_CONFIG" >/tmp/nru_nixpkgs.log 2>&1; echo $? >"$_xf" } &|
   local pid=$!
 
   while kill -0 "$pid" 2>/dev/null; do
@@ -578,8 +588,11 @@ _nru_nixpkgs_bar() {
     step=$(( step < 18 ? step + 1 : 18 ))
   done
 
-  wait "$pid"
-  local code=$?
+  local _r=0
+  while [[ ! -f "$_xf" ]] && (( _r++ < 50 )); do sleep 0.01; done
+  local code=1
+  [[ -f "$_xf" ]] && code=$(< "$_xf")
+  rm -f "$_xf"
   local upd_out
   upd_out=$(cat /tmp/nru_nixpkgs.log)
 
