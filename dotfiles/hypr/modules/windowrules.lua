@@ -89,17 +89,17 @@ hl.window_rule({ match = { title = "Picture-in-Picture" }, pin               = t
 hl.window_rule({ match = { title = "Picture-in-Picture" }, keep_aspect_ratio = true })
 
 -- ── Wine/Proton — hide Battle.net's native XEmbed tray icon window ────────────
--- We use a custom waybar module instead. Matches the small floating window
--- with empty title (160x20 tray icon). Shrunk to 1x1 and pushed off-screen.
-hl.window_rule({ match = { class = "steam_app_0", title = "^$" }, float = true           })
-hl.window_rule({ match = { class = "steam_app_0", title = "^$" }, size  = "1 1"          })
-hl.window_rule({ match = { class = "steam_app_0", title = "^$" }, move  = "0 1439"       })
+-- snixembed bridges this to Noctalia's SNI tray. Hide the raw XEmbed window
+-- (160x20, empty title) that Hyprland would otherwise show as a floating window.
+hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, float = true           })
+hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, size  = "1 1"          })
+hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, move  = "0 1439"       })
 
 -- ── XWayland ─────────────────────────────────────────────────────────────────
 -- Disable rounding on X11 windows (looks bad)
 hl.window_rule({ match = { xwayland = true }, rounding = 0 })
 -- Battle.net — restore rounding (overrides the XWayland rule above)
-hl.window_rule({ match = { class = "steam_app_0" }, rounding = 10 })
+hl.window_rule({ match = { class = "steam_app_default" }, rounding = 10 })
 
 -- ── Idle inhibit ─────────────────────────────────────────────────────────────
 hl.window_rule({ match = { class = ".*" },   idle_inhibit = "fullscreen" })
