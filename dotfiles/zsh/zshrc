@@ -206,7 +206,7 @@ _nix_fetch_filter() {
     if (build_done < build_total) {
       bar = ""
       for (i = 0; i < bw; i++) bar = bar "█"
-      printf "\r  ⚙  %d/%d  [%s]  100%% - cached\033[K", build_total, build_total, bar > "/dev/tty"
+      printf "\r  ⚒  %d/%d  [%s]  100%% - cached\033[K", build_total, build_total, bar > "/dev/tty"
     }
     printf "\n" > "/dev/tty"
     if (blank) printf "\n" > "/dev/tty"
@@ -240,7 +240,7 @@ _nix_fetch_filter() {
     build_done = 0
     build_label = ""
     bar = sprintf("%*s", bw, ""); gsub(/ /, "░", bar)
-    printf "\r  ⚙  0/%d  [%s]  0%%\033[K", build_total, bar > "/dev/tty"
+    printf "\r  ⚒  0/%d  [%s]  0%%\033[K", build_total, bar > "/dev/tty"
     fflush("/dev/tty")
     in_build = 1
     next
@@ -259,7 +259,7 @@ _nix_fetch_filter() {
     bar = ""
     for (i=0; i<filled;    i++) bar = bar "█"
     for (i=0; i<bw-filled; i++) bar = bar "░"
-    printf "\r  ⚙  %d/%d  [%s]  %d%% - %s\033[K", build_done, build_total, bar, pct, build_label > "/dev/tty"
+    printf "\r  ⚒  %d/%d  [%s]  %d%% - %s\033[K", build_done, build_total, bar, pct, build_label > "/dev/tty"
     fflush("/dev/tty")
     next
   }
@@ -273,7 +273,7 @@ _nix_fetch_filter() {
     done = 0
     fetch_label = ""
     bar = sprintf("%*s", bw, ""); gsub(/ /, "░", bar)
-    printf "\r  ↓  0/%d  [%s]  0%%\033[K", total, bar > "/dev/tty"
+    printf "\r  ⬇  0/%d  [%s]  0%%\033[K", total, bar > "/dev/tty"
     fflush("/dev/tty")
     in_progress = 1
     next
@@ -292,7 +292,7 @@ _nix_fetch_filter() {
     bar = ""
     for (i=0; i<filled;    i++) bar = bar "█"
     for (i=0; i<bw-filled; i++) bar = bar "░"
-    printf "\r  ↓  %d/%d  [%s]  %d%% - %s\033[K", done, total, bar, pct, fetch_label > "/dev/tty"
+    printf "\r  ⬇  %d/%d  [%s]  %d%% - %s\033[K", done, total, bar, pct, fetch_label > "/dev/tty"
     fflush("/dev/tty")
     next
   }
@@ -343,16 +343,14 @@ _nixos_run() {
   tmplog=$(mktemp /tmp/nixos-rebuild-XXXXXX.log)
   old_system=$(readlink -f /run/current-system 2>/dev/null)
 
-  # Build header
-  echo ""
-  echo "══════════════════════════════════════════════════════════"
-  printf "  ↻  Rebuilding  %s\n" "$(hostname)"
-  echo "══════════════════════════════════════════════════════════"
-  echo ""
-
-  # Status line — visible during the silent build phase so the terminal
-  # doesn't look frozen while nix evaluates and builds derivations.
-  printf "  → Building...\n\n"
+  # Build header — suppressed when called from nru (which draws its own header)
+  if [[ -z "$_NRU_NO_HEADER" ]]; then
+    echo ""
+    echo "══════════════════════════════════════════════════════════"
+    printf "  ↻  Rebuilding  %s\n" "$(hostname)"
+    echo "══════════════════════════════════════════════════════════"
+    echo ""
+  fi
 
   # Spinner shown during the silent evaluation phase (nix evaluates the flake
   # with no output). &| starts it disowned so zsh never prints "[N] PID" or
@@ -503,21 +501,31 @@ _nru_rebuild() {
 }
 
 # ---------------------------------------------------------------------------
-# _nru_github_bar — animated progress bar for a GitHub package fetch.
-# Shows a fake-progress bar (ramping to 90%, then stalling) while a
-# command runs in the background. Completes to 100% ✓ on success,
-# or shows ✗ and prints the log on failure.
-#
-# Usage: _nru_github_bar "DisplayName" "old_ver" "new_ver" cmd [args...]
+# nru display constants — Nerd Font icons and dot-spacer used across all
+# update progress lines. Defined once so every function stays consistent.
+#   _NRU_GH   = U+F09B  GitHub logo (Font Awesome via Nerd Fonts)
+#   _NRU_NIX  = U+F1105 Nix snowflake (Nerd Fonts)
+#   _NRU_DOTS = dot-spacer, visually width-matched to [20-char bar] + brackets
 # ---------------------------------------------------------------------------
-_nru_github_bar() {
-  local name="$1" old="$2" new="$3"
+_NRU_GH=""
+_NRU_NIX="󱄅"
+_NRU_DOTS="·  ·  ·  ·  ·  ·  ·  "
+
+# ---------------------------------------------------------------------------
+# _nru_pkg_bar — animated fake-progress bar for a single update step.
+# Runs cmd in background; shows  ICON  NAME      [bar]  pct%  while running.
+# On success: fills bar to 100% and appends INFO  ✓
+# On failure: shows ✗ and dumps the captured log.
+#
+# Usage: _nru_pkg_bar ICON NAME INFO cmd [args...]
+# ---------------------------------------------------------------------------
+_nru_pkg_bar() {
+  local icon="$1" name="$2" info="$3"
   shift 3
 
   local bw=20 bar i filled pct step=0
 
-  # Run the update command in background; capture output to log
-  "$@" >/tmp/nru_github_update.log 2>&1 &
+  "$@" >/tmp/nru_pkg_bar.log 2>&1 &
   local pid=$!
 
   while kill -0 "$pid" 2>/dev/null; do
@@ -526,8 +534,8 @@ _nru_github_bar() {
     bar=""
     for (( i=0; i<filled; i++ )); do bar+="█"; done
     for (( i=filled; i<bw; i++ )); do bar+="░"; done
-    printf "\r  GitHub  [%s → %s]  [%s]  %d%% - %s\033[K" \
-      "$old" "$new" "$bar" "$pct" "$name" >/dev/tty
+    printf "\r  %s  %-9s  [%s]  %d%%\033[K" \
+      "$icon" "$name" "$bar" "$pct" >/dev/tty
     sleep 0.1
     step=$(( step < 18 ? step + 1 : 18 ))
   done
@@ -537,43 +545,95 @@ _nru_github_bar() {
 
   if [[ $code -eq 0 ]]; then
     bar=""; for (( i=0; i<bw; i++ )); do bar+="█"; done
-    printf "\r  GitHub  [%s → %s]  [%s]  100%% - %s ✓\033[K\n" \
-      "$old" "$new" "$bar" "$name" >/dev/tty
+    printf "\r  %s  %-9s  [%s]  %s  ✓\033[K\n" \
+      "$icon" "$name" "$bar" "$info" >/dev/tty
   else
-    printf "\r  GitHub  [%s → %s]  ✗ update failed\033[K\n" "$old" "$new" >/dev/tty
-    [[ -s /tmp/nru_github_update.log ]] && cat /tmp/nru_github_update.log
+    printf "\r  %s  %-9s  ✗ update failed\033[K\n" "$icon" "$name" >/dev/tty
+    [[ -s /tmp/nru_pkg_bar.log ]] && cat /tmp/nru_pkg_bar.log
   fi
 
   return $code
 }
 
+# ---------------------------------------------------------------------------
+# _nru_nixpkgs_bar — updates nixpkgs in background with a progress bar,
+# then shows the old→new date on the completed bar line.
+# ---------------------------------------------------------------------------
+_nru_nixpkgs_bar() {
+  local bw=20 bar i filled pct step=0
+  local icon="$_NRU_NIX"
+
+  nix flake update nixpkgs --flake "$NIXOS_CONFIG" >/tmp/nru_nixpkgs.log 2>&1 &
+  local pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    pct=$(( step < 18 ? step * 5 : 90 ))
+    filled=$(( pct * bw / 100 ))
+    bar=""
+    for (( i=0; i<filled; i++ )); do bar+="█"; done
+    for (( i=filled; i<bw; i++ )); do bar+="░"; done
+    printf "\r  %s  %-9s  [%s]  %d%%\033[K" \
+      "$icon" "nixpkgs" "$bar" "$pct" >/dev/tty
+    sleep 0.1
+    step=$(( step < 18 ? step + 1 : 18 ))
+  done
+
+  wait "$pid"
+  local code=$?
+  local upd_out
+  upd_out=$(cat /tmp/nru_nixpkgs.log)
+
+  if [[ $code -ne 0 ]]; then
+    printf "\r  %s  %-9s  ✗ update failed\033[K\n" "$icon" "nixpkgs" >/dev/tty
+    printf '%s\n' "$upd_out"
+    return $code
+  fi
+
+  bar=""; for (( i=0; i<bw; i++ )); do bar+="█"; done
+
+  if printf '%s' "$upd_out" | grep -q "Updated input 'nixpkgs'"; then
+    local info
+    info=$(printf '%s' "$upd_out" | awk '
+      /github:nixos\/nixpkgs\/[0-9a-f]{40}/ {
+        match($0, /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/); dt = substr($0, RSTART+1, 10)
+        if (!seen) { old_dt=dt; seen=1 }
+        else printf "%s → %s", old_dt, dt
+      }')
+    printf "\r  %s  %-9s  [%s]  %s  ✓\033[K\n" \
+      "$icon" "nixpkgs" "$bar" "$info" >/dev/tty
+  else
+    printf "\r  %s  %-9s  %s  up to date  ✓\033[K\n" \
+      "$icon" "nixpkgs" "$_NRU_DOTS" >/dev/tty
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # _nru_update_proton_ge — checks GitHub for a new GE-Proton release and
 # updates the flake.nix input URL if needed, then refreshes flake.lock.
-# Shows an animated GitHub progress bar during the fetch.
 # ---------------------------------------------------------------------------
 _nru_update_proton_ge() {
   local latest current
 
   latest=$(curl -fsSL "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
-    printf "  GitHub  GE-Proton  ⚠ could not reach GitHub — skipping\n"
+    printf "  %s  %-9s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GE-Proton" "$_NRU_DOTS"
     return 0
   }
 
   current=$(grep -oE 'GE-Proton[0-9]+-[0-9]+' "$NIXOS_CONFIG/flake.nix" | head -1)
 
   if [[ "$latest" == "$current" ]]; then
-    printf "  GitHub  GE-Proton  ✓ up to date (%s)\n" "$current"
+    printf "  %s  %-9s  %s  %s  ✓\n" "$_NRU_GH" "GE-Proton" "$_NRU_DOTS" "$current"
     return 0
   fi
 
-  # Capture for the bar, then do the work inside it
   local _cur="$current" _lat="$latest" _cfg="$NIXOS_CONFIG"
-  _nru_github_bar "GE-Proton" "$_cur" "$_lat" \
+  _nru_pkg_bar "$_NRU_GH" "GE-Proton" "$_lat" \
     zsh -c "sed -i 's|${_cur}|${_lat}|g' \"${_cfg}/flake.nix\" \
       && nix flake update proton-ge-custom --flake \"${_cfg}\""
 }
 
+# ---------------------------------------------------------------------------
 # _nru_update_goverlay — checks GitHub for a new GOverlay release and
 # updates the flake.nix input URL + version string if needed.
 # ---------------------------------------------------------------------------
@@ -582,21 +642,20 @@ _nru_update_goverlay() {
 
   latest=$(curl -fsSL "https://api.github.com/repos/benjamimgois/goverlay/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
-    printf "  GitHub  GOverlay   ⚠ could not reach GitHub — skipping\n"
+    printf "  %s  %-9s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GOverlay" "$_NRU_DOTS"
     return 0
   }
 
-  # Extract current version from the goverlay-src URL in flake.nix
   current=$(grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+\.tar' "$NIXOS_CONFIG/flake.nix" \
     | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
   if [[ "$latest" == "$current" ]]; then
-    printf "  GitHub  GOverlay   ✓ up to date (%s)\n" "$current"
+    printf "  %s  %-9s  %s  %s  ✓\n" "$_NRU_GH" "GOverlay" "$_NRU_DOTS" "$current"
     return 0
   fi
 
   local _cur="$current" _lat="$latest" _cfg="$NIXOS_CONFIG"
-  _nru_github_bar "GOverlay" "$_cur" "$_lat" \
+  _nru_pkg_bar "$_NRU_GH" "GOverlay" "$_lat" \
     zsh -c "
       sed -i 's|refs/tags/${_cur}\.tar|refs/tags/${_lat}.tar|g' \"${_cfg}/flake.nix\"
       sed -i 's|version = \"${_cur}\"; # goverlay-nru|version = \"${_lat}\"; # goverlay-nru|g' \"${_cfg}/flake.nix\"
@@ -604,40 +663,48 @@ _nru_update_goverlay() {
     "
 }
 
+# ---------------------------------------------------------------------------
 # Rebuild + pull latest nixpkgs before switching.
-# Pulls latest git changes, bumps nixpkgs in flake.lock, rebuilds, commits
-# the updated flake.lock, then prompts based on result:
+# Pulls latest git changes, bumps nixpkgs + GitHub packages in flake.lock,
+# rebuilds, commits the updated flake.lock, then prompts based on result:
 #   clean        → offer to close terminal
 #   needs reboot → offer to reboot now
 #   failed       → offer to retry (without re-pulling or re-updating)
+# ---------------------------------------------------------------------------
 nru() {
-  echo "→ Pulling latest changes from $NIXOS_CONFIG..."
+  # ── Header ──────────────────────────────────────────────────────────────────
+  echo ""
+  echo "══════════════════════════════════════════════════════════"
+  printf "  ↻  Update & Rebuild  ·  %s\n" "$(hostname)"
+  echo "══════════════════════════════════════════════════════════"
+  echo ""
+
+  # ── Git pull ─────────────────────────────────────────────────────────────────
   git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
-  git -C "$NIXOS_CONFIG" pull || return 1
-  echo "→ Updating nixpkgs..."
-  # Condense the verbose lock-file update block (full URLs + narHashes) into a
-  # one-liner with dates and short revs. Raw output is shown if the update
-  # fails or produces something unexpected.
-  local upd_out upd_code
-  upd_out=$(nix flake update nixpkgs --flake "$NIXOS_CONFIG" 2>&1)
-  upd_code=$?
-  if [[ $upd_code -ne 0 ]]; then
-    printf '%s\n' "$upd_out"
-  elif printf '%s' "$upd_out" | grep -q "Updated input 'nixpkgs'"; then
-    printf '%s\n' "$upd_out" | awk '
-      /github:nixos\/nixpkgs\/[0-9a-f]{40}/ {
-        match($0, /nixpkgs\/[0-9a-f]{40}/); rev = substr($0, RSTART+8, 7)
-        match($0, /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/); dt = substr($0, RSTART+1, 10)
-        if (!seen) { old_rev=rev; old_dt=dt; seen=1 }
-        else printf "  ↑ nixpkgs: %s (%s) → %s (%s)\n", old_dt, old_rev, dt, rev
-      }'
-  else
-    echo "  ✓ nixpkgs already up to date"
+  local git_out git_code
+  git_out=$(git -C "$NIXOS_CONFIG" pull 2>&1)
+  git_code=$?
+  if [[ $git_code -ne 0 ]]; then
+    printf "  %s  %-9s  %s  ✗ pull failed\n" "$_NRU_GH" "Git" "$_NRU_DOTS"
+    printf '%s\n' "$git_out"
+    return 1
   fi
-  echo "→ GitHub packages..."
+  if printf '%s' "$git_out" | grep -q "Already up to date"; then
+    printf "  %s  %-9s  %s  up to date  ✓\n" "$_NRU_GH" "Git" "$_NRU_DOTS"
+  else
+    printf "  %s  %-9s  %s  updated  ✓\n" "$_NRU_GH" "Git" "$_NRU_DOTS"
+  fi
+
+  # ── nixpkgs ──────────────────────────────────────────────────────────────────
+  _nru_nixpkgs_bar || return 1
+
+  # ── GitHub packages ──────────────────────────────────────────────────────────
   _nru_update_proton_ge || true
   _nru_update_goverlay  || true
-  _nru_rebuild
+
+  # ── Rebuild ───────────────────────────────────────────────────────────────────
+  echo ""
+  _NRU_NO_HEADER=1 _nru_rebuild
 }
 
 # NixOS aliases — available to all users on all hosts
