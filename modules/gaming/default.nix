@@ -120,6 +120,19 @@
   #   gamemoderun <game>
   # Steam launch options: gamemoderun %command%
   # =========================================================================
+  # GameMode polkit rule — members of the "gamemode" group can register/unregister
+  # games with gamemoded without a password prompt.
+  # The NixOS gamemode module creates the group but doesn't add this rule,
+  # so polkit falls through to its default (interactive auth).
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (action.id == "com.feralinteractive.GameMode.play-game" &&
+          subject.isInGroup("gamemode")) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+
   programs.gamemode = {
     enable = true;
     settings = {
