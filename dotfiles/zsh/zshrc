@@ -540,7 +540,7 @@ _nru_pkg_bar() {
     bar=""
     for (( i=0; i<filled; i++ )); do bar+="█"; done
     for (( i=filled; i<bw; i++ )); do bar+="░"; done
-    printf "\r  %s  %-9s  [%s]  %d%%\033[K" \
+    printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
       "$icon" "$name" "$bar" "$pct" >/dev/tty
     sleep 0.1
     step=$(( step < 18 ? step + 1 : 18 ))
@@ -555,10 +555,10 @@ _nru_pkg_bar() {
 
   if [[ $code -eq 0 ]]; then
     bar=""; for (( i=0; i<bw; i++ )); do bar+="█"; done
-    printf "\r  %s  %-9s  [%s]  %s  ✓\033[K\n" \
+    printf "\r  %s  %-12s  [%s]  %s  ✓\033[K\n" \
       "$icon" "$name" "$bar" "$info" >/dev/tty
   else
-    printf "\r  %s  %-9s  ✗ update failed\033[K\n" "$icon" "$name" >/dev/tty
+    printf "\r  %s  %-12s  ✗ update failed\033[K\n" "$icon" "$name" >/dev/tty
     [[ -s /tmp/nru_pkg_bar.log ]] && cat /tmp/nru_pkg_bar.log
   fi
 
@@ -584,7 +584,7 @@ _nru_nixpkgs_bar() {
     bar=""
     for (( i=0; i<filled; i++ )); do bar+="█"; done
     for (( i=filled; i<bw; i++ )); do bar+="░"; done
-    printf "\r  %s  %-9s  [%s]  %d%%\033[K" \
+    printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
       "$icon" "NixPkgs" "$bar" "$pct" >/dev/tty
     sleep 0.1
     step=$(( step < 18 ? step + 1 : 18 ))
@@ -599,7 +599,7 @@ _nru_nixpkgs_bar() {
   upd_out=$(cat /tmp/nru_nixpkgs.log)
 
   if [[ $code -ne 0 ]]; then
-    printf "\r  %s  %-9s  ✗ update failed\033[K\n" "$icon" "NixPkgs" >/dev/tty
+    printf "\r  %s  %-12s  ✗ update failed\033[K\n" "$icon" "NixPkgs" >/dev/tty
     printf '%s\n' "$upd_out"
     return $code
   fi
@@ -614,10 +614,10 @@ _nru_nixpkgs_bar() {
         if (!seen) { old_dt=dt; seen=1 }
         else printf "%s → %s", old_dt, dt
       }')
-    printf "\r  %s  %-9s  [%s]  %s  ✓\033[K\n" \
+    printf "\r  %s  %-12s  [%s]  %s  ✓\033[K\n" \
       "$icon" "NixPkgs" "$bar" "$info" >/dev/tty
   else
-    printf "\r  %s  %-9s  %s  up to date  ✓\033[K\n" \
+    printf "\r  %s  %-12s  %s  up to date  ✓\033[K\n" \
       "$icon" "NixPkgs" "$_NRU_DOTS" >/dev/tty
   fi
 }
@@ -631,14 +631,14 @@ _nru_update_proton_ge() {
 
   latest=$(curl -fsSL "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
-    printf "  %s  %-9s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GE-Proton" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GE-Proton" "$_NRU_DOTS"
     return 0
   }
 
   current=$(grep -oE 'GE-Proton[0-9]+-[0-9]+' "$NIXOS_CONFIG/flake.nix" | head -1)
 
   if [[ "$latest" == "$current" ]]; then
-    printf "  %s  %-9s  %s  %s  ✓\n" "$_NRU_GH" "GE-Proton" "$_NRU_DOTS" "$current"
+    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GE-Proton" "$_NRU_DOTS" "$current"
     return 0
   fi
 
@@ -657,7 +657,7 @@ _nru_update_goverlay() {
 
   latest=$(curl -fsSL "https://api.github.com/repos/benjamimgois/goverlay/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
-    printf "  %s  %-9s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GOverlay" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GOverlay" "$_NRU_DOTS"
     return 0
   }
 
@@ -665,7 +665,7 @@ _nru_update_goverlay() {
     | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
   if [[ "$latest" == "$current" ]]; then
-    printf "  %s  %-9s  %s  %s  ✓\n" "$_NRU_GH" "GOverlay" "$_NRU_DOTS" "$current"
+    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GOverlay" "$_NRU_DOTS" "$current"
     return 0
   fi
 
@@ -700,14 +700,14 @@ nru() {
   git_out=$(git -C "$NIXOS_CONFIG" pull 2>&1)
   git_code=$?
   if [[ $git_code -ne 0 ]]; then
-    printf "  %s  %-9s  %s  ✗ pull failed\n" "$_NRU_GH" "Git" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  ✗ pull failed\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DOTS"
     printf '%s\n' "$git_out"
     return 1
   fi
   if printf '%s' "$git_out" | grep -q "Already up to date"; then
-    printf "  %s  %-9s  %s  up to date  ✓\n" "$_NRU_GH" "Git" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  up to date  ✓\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DOTS"
   else
-    printf "  %s  %-9s  %s  updated  ✓\n" "$_NRU_GH" "Git" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  updated  ✓\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DOTS"
   fi
 
   # ── nixpkgs ──────────────────────────────────────────────────────────────────
