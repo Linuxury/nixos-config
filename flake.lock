@@ -257,6 +257,19 @@
         "type": "github"
       }
     },
+    "goverlay-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1781978049,
+        "narHash": "sha256-bmX6Wibo17jAAZWm8fRyeYc+uFxZmmx9Ott/a3va71M=",
+        "type": "tarball",
+        "url": "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.4.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.4.tar.gz"
+      }
+    },
     "helium-browser": {
       "inputs": {
         "nixpkgs": "nixpkgs_4",
@@ -538,6 +551,7 @@
         "agenix": "agenix",
         "danksearch": "danksearch",
         "dms": "dms",
+        "goverlay-src": "goverlay-src",
         "helium-browser": "helium-browser",
         "home-manager": "home-manager_2",
         "nixos-hardware": "nixos-hardware",

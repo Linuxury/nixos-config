@@ -140,6 +140,22 @@
       flake    = false;
     };
 
+    # -------------------------------------------------------------------------
+    # goverlay-src — GOverlay GUI for MangoHud / vkBasalt
+    #
+    # nixpkgs carries goverlay but lags behind upstream releases.
+    # flake = false points at the GitHub release tarball so nru can
+    # keep it current via _nru_update_goverlay (runs alongside proton-ge).
+    #
+    # To update: nru handles this automatically.
+    # Manual update: change the tag version in the URL below, then run:
+    #   nix flake update goverlay-src
+    # -------------------------------------------------------------------------
+    goverlay-src = {
+      url   = "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.4.tar.gz";
+      flake = false;
+    };
+
   };
 
   # ===========================================================================
@@ -233,6 +249,34 @@
                   proton-ge-custom = prev.callPackage ./pkgs/proton-ge-custom/package.nix {
                     proton-ge-src = inputs.proton-ge-custom;
                   };
+                  # GOverlay — pinned ahead of nixpkgs; nru keeps the version current.
+                  # All build inputs (lazarus-qt6, fpc, etc.) are inherited from prev.goverlay.
+                  #
+                  # 1.8.4 added pascube as a bundled binary (pascube_src/pascube.lpi).
+                  # The upstream Makefile install target expects it but has a bug: it doesn't
+                  # list pascube_bin as a prerequisite of install, so make install runs without
+                  # building it. We extend buildPhase to build and copy it manually.
+                  goverlay = prev.goverlay.overrideAttrs (old:
+                    let mangohudBin = prev.lib.getExe' prev.mangohud "mangohud"; in
+                    {
+                      version = "1.8.4"; # goverlay-nru
+                      src     = inputs.goverlay-src;
+                      # pascube (new in 1.8.4) links against SDL2 — not needed by goverlay itself.
+                      buildInputs = old.buildInputs ++ [ prev.SDL2 ];
+                      buildPhase = old.buildPhase + ''
+                        HOME=$(mktemp -d) lazbuild --lazarusdir=${prev.lazarus-qt6}/share/lazarus -B pascube_src/pascube.lpi
+                        cp pascube_src/pascube ./pascube
+                      '';
+                      # goverlay.sh.in in 1.8.4 unconditionally calls `mangohud ./goverlay`
+                      # (LD_PRELOAD injection) which aborts on NixOS — wrapQtAppsHook doesn't
+                      # wrap the Lazarus ELF so qtWrapperArgs is ineffective here.
+                      # Fix: uncomment QT_QPA_PLATFORM=xcb and strip the mangohud wrapper,
+                      # calling the goverlay ELF directly instead.
+                      postPatch = old.postPatch + ''
+                        sed -i 's|^#export QT_QPA_PLATFORM=xcb|export QT_QPA_PLATFORM=wayland\nunset QT_QPA_PLATFORMTHEME|' data/goverlay.sh.in
+                        sed -i 's|${mangohudBin} @libexecdir@/goverlay|@libexecdir@/goverlay|' data/goverlay.sh.in
+                      '';
+                    });
                   ant-dark-kde                  = prev.callPackage ./pkgs/ant-dark-kde/package.nix {};
                   breeze-chameleon-dark-icons   = prev.callPackage ./pkgs/breeze-chameleon-dark-icons/package.nix {};
                   # openldap 2.6.13 test017-syncreplication-refresh is flaky

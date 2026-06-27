@@ -503,39 +503,105 @@ _nru_rebuild() {
 }
 
 # ---------------------------------------------------------------------------
+# _nru_github_bar — animated progress bar for a GitHub package fetch.
+# Shows a fake-progress bar (ramping to 90%, then stalling) while a
+# command runs in the background. Completes to 100% ✓ on success,
+# or shows ✗ and prints the log on failure.
+#
+# Usage: _nru_github_bar "DisplayName" "old_ver" "new_ver" cmd [args...]
+# ---------------------------------------------------------------------------
+_nru_github_bar() {
+  local name="$1" old="$2" new="$3"
+  shift 3
+
+  local bw=20 bar i filled pct step=0
+
+  # Run the update command in background; capture output to log
+  "$@" >/tmp/nru_github_update.log 2>&1 &
+  local pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    pct=$(( step < 18 ? step * 5 : 90 ))
+    filled=$(( pct * bw / 100 ))
+    bar=""
+    for (( i=0; i<filled; i++ )); do bar+="█"; done
+    for (( i=filled; i<bw; i++ )); do bar+="░"; done
+    printf "\r  GitHub  [%s → %s]  [%s]  %d%% - %s\033[K" \
+      "$old" "$new" "$bar" "$pct" "$name" >/dev/tty
+    sleep 0.1
+    step=$(( step < 18 ? step + 1 : 18 ))
+  done
+
+  wait "$pid"
+  local code=$?
+
+  if [[ $code -eq 0 ]]; then
+    bar=""; for (( i=0; i<bw; i++ )); do bar+="█"; done
+    printf "\r  GitHub  [%s → %s]  [%s]  100%% - %s ✓\033[K\n" \
+      "$old" "$new" "$bar" "$name" >/dev/tty
+  else
+    printf "\r  GitHub  [%s → %s]  ✗ update failed\033[K\n" "$old" "$new" >/dev/tty
+    [[ -s /tmp/nru_github_update.log ]] && cat /tmp/nru_github_update.log
+  fi
+
+  return $code
+}
+
 # _nru_update_proton_ge — checks GitHub for a new GE-Proton release and
-# updates the flake.nix input URL + package.nix version string if needed,
-# then refreshes flake.lock via nix flake update proton-ge-custom.
-# Called by nru between the nixpkgs update and the rebuild.
+# updates the flake.nix input URL if needed, then refreshes flake.lock.
+# Shows an animated GitHub progress bar during the fetch.
 # ---------------------------------------------------------------------------
 _nru_update_proton_ge() {
-  echo "→ Checking GE-Proton..."
+  local latest current
 
-  local latest current upd_out upd_code
   latest=$(curl -fsSL "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
-    echo "  ⚠ Could not reach GitHub — skipping GE-Proton check"
+    printf "  GitHub  GE-Proton  ⚠ could not reach GitHub — skipping\n"
     return 0
   }
 
-  # Read current version from the flake.nix input URL
   current=$(grep -oE 'GE-Proton[0-9]+-[0-9]+' "$NIXOS_CONFIG/flake.nix" | head -1)
 
   if [[ "$latest" == "$current" ]]; then
-    echo "  ✓ GE-Proton already up to date ($current)"
+    printf "  GitHub  GE-Proton  ✓ up to date (%s)\n" "$current"
     return 0
   fi
 
-  echo "  ↑ proton-ge: $current → $latest"
+  # Capture for the bar, then do the work inside it
+  local _cur="$current" _lat="$latest" _cfg="$NIXOS_CONFIG"
+  _nru_github_bar "GE-Proton" "$_cur" "$_lat" \
+    zsh -c "sed -i 's|${_cur}|${_lat}|g' \"${_cfg}/flake.nix\" \
+      && nix flake update proton-ge-custom --flake \"${_cfg}\""
+}
 
-  # Patch the version in the flake.nix input URL (package.nix reads version from source)
-  sed -i "s|$current|$latest|g" "$NIXOS_CONFIG/flake.nix"
+# _nru_update_goverlay — checks GitHub for a new GOverlay release and
+# updates the flake.nix input URL + version string if needed.
+# ---------------------------------------------------------------------------
+_nru_update_goverlay() {
+  local latest current
 
-  # Let Nix fetch the new tarball and write its hash into flake.lock
-  upd_out=$(nix flake update proton-ge-custom --flake "$NIXOS_CONFIG" 2>&1)
-  upd_code=$?
-  [[ $upd_code -ne 0 ]] && printf '%s\n' "$upd_out"
-  return $upd_code
+  latest=$(curl -fsSL "https://api.github.com/repos/benjamimgois/goverlay/releases/latest" \
+    | jq -r '.tag_name' 2>/dev/null) || {
+    printf "  GitHub  GOverlay   ⚠ could not reach GitHub — skipping\n"
+    return 0
+  }
+
+  # Extract current version from the goverlay-src URL in flake.nix
+  current=$(grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+\.tar' "$NIXOS_CONFIG/flake.nix" \
+    | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+
+  if [[ "$latest" == "$current" ]]; then
+    printf "  GitHub  GOverlay   ✓ up to date (%s)\n" "$current"
+    return 0
+  fi
+
+  local _cur="$current" _lat="$latest" _cfg="$NIXOS_CONFIG"
+  _nru_github_bar "GOverlay" "$_cur" "$_lat" \
+    zsh -c "
+      sed -i 's|refs/tags/${_cur}\.tar|refs/tags/${_lat}.tar|g' \"${_cfg}/flake.nix\"
+      sed -i 's|version = \"${_cur}\"; # goverlay-nru|version = \"${_lat}\"; # goverlay-nru|g' \"${_cfg}/flake.nix\"
+      nix flake update goverlay-src --flake \"${_cfg}\"
+    "
 }
 
 # Rebuild + pull latest nixpkgs before switching.
@@ -568,7 +634,9 @@ nru() {
   else
     echo "  ✓ nixpkgs already up to date"
   fi
+  echo "→ GitHub packages..."
   _nru_update_proton_ge || true
+  _nru_update_goverlay  || true
   _nru_rebuild
 }
 
