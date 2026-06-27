@@ -377,6 +377,17 @@
   services.vpn-qbittorrent = {
     enable = true;
     user   = "linuxury";
+
+    # Failover servers — tried in order when the active tunnel goes down.
+    # Primary (us-atl-wg-001) is in the agenix secret; these are the backups.
+    # Public keys are the Mullvad server keys (not sensitive).
+    failoverServers = [
+      { name = "us-atl-wg-001"; publicKey = "nvyBkaEXHwyPBAm8spGB0TFzf2W5wPAl8EEuJ0t+bzs="; endpoint = "45.134.140.130:51820"; }
+      { name = "us-dal-wg-001"; publicKey = "EAzbWMQXxJGsd8j2brhYerGB3t5cPOXqdIDFspDGSng="; endpoint = "146.70.211.66:51820"; }
+      { name = "us-nyc-wg-301"; publicKey = "IzqkjVCdJYC1AShILfzebchTlKCqVCt/SMEXolaS3Uc="; endpoint = "143.244.47.65:51820"; }
+      { name = "us-chi-wg-201"; publicKey = "+Xx2mJnoJ+JS11Z6g8mp6aUZV7p6DAN9ZTAzPaHakhM="; endpoint = "87.249.134.1:51820"; }
+      { name = "us-lax-wg-001"; publicKey = "zqsfGglzJPY657WMRxf/S4omG7+ZkSDIpDq+ggbc9yo="; endpoint = "23.234.72.2:51820"; }
+    ];
   };
 
   # Download directories — /data/ allows an NVMe to be mounted there later.

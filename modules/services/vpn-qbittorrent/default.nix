@@ -67,9 +67,11 @@ let
   wgIface  = "wg-qbt";
 
   # Shorthand for binary paths (used heavily in scripts)
-  ip  = "${pkgs.iproute2}/bin/ip";
-  wg  = "${pkgs.wireguard-tools}/bin/wg";
-  awk = "${pkgs.gawk}/bin/awk";
+  ip   = "${pkgs.iproute2}/bin/ip";
+  wg   = "${pkgs.wireguard-tools}/bin/wg";
+  awk  = "${pkgs.gawk}/bin/awk";
+  sed  = "${pkgs.gnused}/bin/sed";
+  curl = "${pkgs.curl}/bin/curl";
 
   # ===========================================================================
   # netns-setup — creates the namespace, veth pair, and WireGuard tunnel
@@ -239,6 +241,88 @@ let
     rmdir "/etc/netns/$NS"       2>/dev/null || true
   '';
 
+  # ===========================================================================
+  # failoverScript — checks VPN connectivity and rotates to the next server
+  #
+  # Runs every 5 minutes (via timer). If the tunnel is healthy it exits
+  # immediately (one curl call, no side effects).
+  #
+  # When the tunnel is down it reads /etc/vpn-qbt-failover.txt, skips the
+  # currently configured endpoint, then tries each server in order:
+  #   1. Extracts the [Interface] block from the live config (private key etc.)
+  #   2. Writes a new config with the candidate's [Peer] block
+  #   3. Restarts vpn-qbt-netns (which cascades to qbittorrent-vpn)
+  #   4. Polls for 30 s — stops on first success
+  # ===========================================================================
+  failoverScript = pkgs.writeShellScript "vpn-qbt-failover" ''
+    set -euo pipefail
+
+    CONF="${cfg.configFile}"
+    SERVERS_FILE="/etc/vpn-qbt-failover.txt"
+    NS="${ns}"
+
+    log() { echo "[vpn-qbt-failover] $*"; }
+
+    if [ ! -f "$SERVERS_FILE" ]; then
+      log "No failover servers file — skipping"
+      exit 0
+    fi
+
+    # Fast path: VPN is healthy, nothing to do
+    if ${ip} netns exec "$NS" ${curl} -sf --max-time 5 -o /dev/null https://1.1.1.1 2>/dev/null; then
+      exit 0
+    fi
+
+    log "VPN connectivity lost — starting failover"
+
+    # Extract [Interface] block (everything before the first [Peer] line).
+    # This preserves the private key, address and DNS without having to parse them.
+    INTERFACE=$(${sed} '/^\[Peer\]/,$d' "$CONF")
+
+    # Get the IP of the endpoint we're currently trying (to skip it)
+    CURRENT_EP=$(${awk} -F' = ' '/^\[Peer\]/{f=1} f && /^Endpoint/{print $2; exit}' "$CONF" \
+                 | cut -d: -f1)
+    log "Current endpoint: $CURRENT_EP (unreachable)"
+
+    tried=0
+    while IFS='|' read -r name pubkey endpoint; do
+      ep_ip=$(echo "$endpoint" | cut -d: -f1)
+
+      if [ "$ep_ip" = "$CURRENT_EP" ]; then
+        continue  # Already know this one is down
+      fi
+
+      tried=$((tried + 1))
+      log "Trying $name ($endpoint)…"
+
+      # Write new config — same Interface, swapped Peer
+      printf '%s\n\n[Peer]\nPublicKey = %s\nAllowedIPs = 0.0.0.0/0,::0/0\nEndpoint = %s\n' \
+        "$INTERFACE" "$pubkey" "$endpoint" > "$CONF"
+      chmod 600 "$CONF"
+
+      # Restart the namespace; qbittorrent-vpn follows via Requires/After
+      systemctl restart vpn-qbt-netns
+
+      # Poll up to 30 s for the tunnel to come up (WireGuard handshakes lazily)
+      for i in 1 2 3 4 5 6 7 8 9 10; do
+        sleep 3
+        if ${ip} netns exec "$NS" ${curl} -sf --max-time 3 -o /dev/null https://1.1.1.1 2>/dev/null; then
+          log "Failover successful — now using $name ($endpoint)"
+          exit 0
+        fi
+      done
+
+      log "$name also unreachable — trying next…"
+    done < "$SERVERS_FILE"
+
+    if [ "$tried" -eq 0 ]; then
+      log "All servers in failover list match the current endpoint — no alternatives"
+    else
+      log "All $tried failover server(s) exhausted — VPN remains down"
+    fi
+    exit 1
+  '';
+
 in {
 
   # ===========================================================================
@@ -275,6 +359,23 @@ in {
       type        = lib.types.str;
       default     = "10.200.200.2";
       description = "IP address of the namespace-side veth interface (web UI address)";
+    };
+
+    failoverServers = lib.mkOption {
+      type = lib.types.listOf (lib.types.submodule {
+        options = {
+          name      = lib.mkOption { type = lib.types.str; description = "Human-readable server name (for logs)"; };
+          publicKey = lib.mkOption { type = lib.types.str; description = "WireGuard server public key"; };
+          endpoint  = lib.mkOption { type = lib.types.str; description = "Server endpoint as IP:port"; };
+        };
+      });
+      default     = [];
+      description = ''
+        Ordered list of fallback WireGuard servers.  When the active tunnel
+        loses connectivity the failover timer tries each entry in sequence
+        until one works.  The private key is preserved from the live config
+        file — only the [Peer] block is replaced.
+      '';
     };
   };
 
@@ -438,5 +539,48 @@ in {
 
     # Open the web UI port on the host firewall so LAN/Tailscale can reach it
     networking.firewall.allowedTCPPorts = [ cfg.webUIPort ];
+
+    # =========================================================================
+    # Failover server list (written at build time, read by failoverScript)
+    #
+    # Each line: name|publicKey|endpoint
+    # The private key is NOT stored here — it stays in cfg.configFile (agenix).
+    # =========================================================================
+    environment.etc."vpn-qbt-failover.txt" = lib.mkIf (cfg.failoverServers != []) {
+      text = lib.concatMapStrings
+        (s: "${s.name}|${s.publicKey}|${s.endpoint}\n")
+        cfg.failoverServers;
+      mode = "0644";
+    };
+
+    # =========================================================================
+    # Service 4 — VPN health-check and automatic server failover
+    #
+    # Runs as root (needs to write cfg.configFile and call systemctl).
+    # Runs inside the HOST namespace — uses 'ip netns exec' to probe vpn-qbt.
+    # =========================================================================
+    systemd.services.vpn-qbt-failover = lib.mkIf (cfg.failoverServers != []) {
+      description = "VPN connectivity check and automatic server failover";
+
+      after    = [ "qbittorrent-vpn.service" ];
+      requires = [ "vpn-qbt-netns.service" ];
+
+      serviceConfig = {
+        Type            = "oneshot";
+        ExecStart       = failoverScript;
+        TimeoutStartSec = "300s";   # worst case: 5 servers × 30 s each + restarts
+      };
+    };
+
+    systemd.timers.vpn-qbt-failover = lib.mkIf (cfg.failoverServers != []) {
+      description = "Periodic VPN connectivity check (every 5 minutes)";
+      wantedBy    = [ "timers.target" ];
+
+      timerConfig = {
+        OnBootSec       = "2min";    # first check shortly after boot
+        OnUnitActiveSec = "5min";    # then every 5 minutes
+        Unit            = "vpn-qbt-failover.service";
+      };
+    };
   };
 }
