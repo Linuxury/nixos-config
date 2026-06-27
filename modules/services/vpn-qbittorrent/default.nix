@@ -131,6 +131,18 @@ let
     log "DNS server:         $WG_DNS"
 
     # -----------------------------------------------------------------------
+    # Clean up any leftover state from a previous (failed) run.
+    #
+    # ExecStop only fires when the service is in 'active (exited)' state.
+    # If the service previously failed, systemctl restart skips ExecStop,
+    # leaving the namespace and veth pair behind. Clearing here makes
+    # ExecStart idempotent — safe to run even if state already exists.
+    # -----------------------------------------------------------------------
+    ${ip} netns del "$NS"       2>/dev/null || true
+    ${ip} link del "$HOST_VETH" 2>/dev/null || true
+    rm -f "/etc/netns/$NS/resolv.conf"
+
+    # -----------------------------------------------------------------------
     # Create the network namespace
     # -----------------------------------------------------------------------
     log "Creating network namespace: $NS"
