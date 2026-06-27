@@ -106,8 +106,11 @@ let
     # We parse them here and apply them as separate ip/wg commands.
     # -----------------------------------------------------------------------
 
-    # Address = 10.x.x.x/32  — the IP assigned to our tunnel interface
-    WG_ADDR=$(${awk} -F' *= *' '/^\[Interface\]/{f=1} f && /^Address/{print $2; exit}' "$WG_CONF")
+    # Address = 10.x.x.x/32  — the IP assigned to our tunnel interface.
+    # Mullvad dual-stack configs have "Address = IPv4,IPv6" — take only the
+    # first (IPv4) entry; IPv6 is disabled on this host anyway.
+    WG_ADDR=$(${awk} -F' *= *' '/^\[Interface\]/{f=1} f && /^Address/{print $2; exit}' "$WG_CONF" \
+              | cut -d, -f1 | tr -d ' ')
     if [ -z "$WG_ADDR" ]; then
       echo "ERROR: Could not parse Address from $WG_CONF"
       exit 1
