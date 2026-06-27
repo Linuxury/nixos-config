@@ -120,18 +120,27 @@
   #   gamemoderun <game>
   # Steam launch options: gamemoderun %command%
   # =========================================================================
-  # GameMode polkit rules — members of the "gamemode" group can run all
-  # gamemoded helper binaries (cpugovctl, gpuclockctl, cpucorectl, procsysctl)
-  # without a password prompt.
+  # GameMode polkit rule — allow members of the "gamemode" group to run
+  # gamemoded's helper binaries (cpugovctl, gpuclockctl, cpucorectl,
+  # procsysctl) without a password prompt.
   #
-  # gamemoded runs as a user service, so each pkexec helper call has the
-  # logged-in user as the polkit subject. All four helper actions default to
-  # allow_active: no — without this rule every apply/remove cycle prompts.
+  # On NixOS the gamemode package can end up at two different store paths
+  # (one for the system polkit actions, one for the user service closure).
+  # When the binary path doesn't match the annotation in the .policy file,
+  # polkit falls back to the generic org.freedesktop.policykit.exec action
+  # instead of com.feralinteractive.GameMode.*. Matching by helper name
+  # (not store path) avoids this hash-mismatch problem.
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
-      if (action.id.indexOf("com.feralinteractive.GameMode.") === 0 &&
+      var helpers = ["cpugovctl", "gpuclockctl", "cpucorectl", "procsysctl"];
+      if (action.id === "org.freedesktop.policykit.exec" &&
           subject.isInGroup("gamemode")) {
-        return polkit.Result.YES;
+        var prog = action.lookup("program") || "";
+        for (var i = 0; i < helpers.length; i++) {
+          if (prog.indexOf(helpers[i]) !== -1) {
+            return polkit.Result.YES;
+          }
+        }
       }
     });
   '';
