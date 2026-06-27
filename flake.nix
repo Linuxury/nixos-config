@@ -246,37 +246,8 @@
                   claude-code  = prev.callPackage ./pkgs/claude-code/package.nix {};
                   opencode     = prev.callPackage ./pkgs/opencode/package.nix {};
                   ponytrail    = prev.callPackage ./pkgs/ponytrail/package.nix {};
-                  proton-ge-custom = prev.callPackage ./pkgs/proton-ge-custom/package.nix {
-                    proton-ge-src = inputs.proton-ge-custom;
-                  };
-                  # GOverlay — pinned ahead of nixpkgs; nru keeps the version current.
-                  # All build inputs (lazarus-qt6, fpc, etc.) are inherited from prev.goverlay.
-                  #
-                  # 1.8.4 added pascube as a bundled binary (pascube_src/pascube.lpi).
-                  # The upstream Makefile install target expects it but has a bug: it doesn't
-                  # list pascube_bin as a prerequisite of install, so make install runs without
-                  # building it. We extend buildPhase to build and copy it manually.
-                  goverlay = prev.goverlay.overrideAttrs (old:
-                    let mangohudBin = prev.lib.getExe' prev.mangohud "mangohud"; in
-                    {
-                      version = "1.8.4"; # goverlay-nru
-                      src     = inputs.goverlay-src;
-                      # pascube (new in 1.8.4) links against SDL2 — not needed by goverlay itself.
-                      buildInputs = old.buildInputs ++ [ prev.SDL2 ];
-                      buildPhase = old.buildPhase + ''
-                        HOME=$(mktemp -d) lazbuild --lazarusdir=${prev.lazarus-qt6}/share/lazarus -B pascube_src/pascube.lpi
-                        cp pascube_src/pascube ./pascube
-                      '';
-                      # goverlay.sh.in in 1.8.4 unconditionally calls `mangohud ./goverlay`
-                      # (LD_PRELOAD injection) which aborts on NixOS — wrapQtAppsHook doesn't
-                      # wrap the Lazarus ELF so qtWrapperArgs is ineffective here.
-                      # Fix: uncomment QT_QPA_PLATFORM=xcb and strip the mangohud wrapper,
-                      # calling the goverlay ELF directly instead.
-                      postPatch = old.postPatch + ''
-                        sed -i 's|^#export QT_QPA_PLATFORM=xcb|export QT_QPA_PLATFORM=wayland\nunset QT_QPA_PLATFORMTHEME|' data/goverlay.sh.in
-                        sed -i 's|${mangohudBin} @libexecdir@/goverlay|@libexecdir@/goverlay|' data/goverlay.sh.in
-                      '';
-                    });
+                  # proton-ge-custom and goverlay overlays live in modules/gaming/default.nix
+                  # so they are only fetched on hosts that import the gaming module.
                   ant-dark-kde                  = prev.callPackage ./pkgs/ant-dark-kde/package.nix {};
                   breeze-chameleon-dark-icons   = prev.callPackage ./pkgs/breeze-chameleon-dark-icons/package.nix {};
                   # openldap 2.6.13 test017-syncreplication-refresh is flaky
