@@ -89,11 +89,10 @@ hl.window_rule({ match = { title = "Picture-in-Picture" }, pin               = t
 hl.window_rule({ match = { title = "Picture-in-Picture" }, keep_aspect_ratio = true })
 
 -- ── Wine/Proton — hide Battle.net's native XEmbed tray icon window ────────────
--- snixembed bridges this to Noctalia's SNI tray. Hide the raw XEmbed window
--- (160x20, empty title) that Hyprland would otherwise show as a floating window.
-hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, float = true           })
-hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, size  = "1 1"          })
-hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, move  = "0 1439"       })
+-- snixembed bridges this to Noctalia's SNI tray. Send the raw XEmbed window
+-- (160x20, empty title) to a special workspace so it doesn't mark WS3 as occupied.
+hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, float     = true              })
+hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, workspace = "special:hidden"  })
 
 -- ── XWayland ─────────────────────────────────────────────────────────────────
 -- Disable rounding on X11 windows (looks bad)
