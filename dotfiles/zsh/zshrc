@@ -713,9 +713,9 @@ nru() {
   # ── nixpkgs ──────────────────────────────────────────────────────────────────
   _nru_nixpkgs_bar || return 1
 
-  # ── GitHub packages ──────────────────────────────────────────────────────────
-  _nru_update_proton_ge || true
-  _nru_update_goverlay  || true
+  # ── GitHub packages (gaming hosts only) ─────────────────────────────────────
+  command -v steam   &>/dev/null && { _nru_update_proton_ge || true }
+  command -v goverlay &>/dev/null && { _nru_update_goverlay  || true }
 
   # ── Rebuild ───────────────────────────────────────────────────────────────────
   echo ""
