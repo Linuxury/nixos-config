@@ -4,7 +4,7 @@
 
 hl.config({
     cursor = {
-        no_warps = true,   -- Don't teleport cursor to center of new windows/popups (fixes Steam menus)
+        warp_on_change_workspace = false,   -- Don't jump cursor when switching workspaces (was jumping when switching to Steam WS)
     },
 })
 
