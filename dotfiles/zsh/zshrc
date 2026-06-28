@@ -72,14 +72,14 @@ _fmt_nvd() {
 
     # Short-form prefix — update section from marker
     case "$line" in
-      '[A.'*|'[A*'*) section="added"   ;;
-      '[R.'*|'[R*'*) section="removed" ;;
-      '[C.'*|'[C*'*|'[D.'*|'[D*'*|'[U.'*|'[U*'*) section="version" ;;
+      '[A.'*|'[A*'*|'[A+'*|'[A-'*) section="added"   ;;
+      '[R.'*|'[R*'*|'[R+'*|'[R-'*) section="removed" ;;
+      '[C.'*|'[C*'*|'[C+'*|'[C-'*|'[D.'*|'[D*'*|'[D+'*|'[D-'*|'[U.'*|'[U*'*|'[U+'*|'[U-'*) section="version" ;;
     esac
 
     case "$section" in
       added|removed)
-        pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z][.*]\]  #[0-9]+  //; s/^[a-z0-9]{32,}-//')
+        pkg=$(printf '%s' "$line" | sed -E 's/^\[[A-Z].\]  #[0-9]+  //; s/^[a-z0-9]{32,}-//')
         [[ -z "$pkg" ]] && continue
         ver="${pkg##*  }"
         pkg="${pkg%%  *}"
