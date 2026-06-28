@@ -223,8 +223,6 @@ in
     # System tray / applets
     # networkmanagerapplet: removed — Noctalia bar widget handles network
     # blueman: installed by services.blueman.enable (core); no tray applet started
-    snixembed     # XEmbed→SNI bridge — exposes Wine/Proton tray icons (e.g. Battle.net) to Noctalia's tray
-
     # Polkit authentication agent
     polkit_gnome
 

@@ -27,7 +27,6 @@ hl.on("hyprland.start", function()
     -- network: Noctalia bar widget handles network — no nm-applet tray needed
     -- bluetooth: Noctalia bar widget handles BT — no separate tray applet needed
     -- openrgb: systemd service runs openrgb --server headlessly; open GUI from launcher
-    hl.exec_cmd("snixembed --fork")   -- XEmbed→SNI bridge: makes Wine/Proton tray icons (Battle.net) appear in Noctalia tray
 
     -- ── Clipboard history — wl-clipboard + cliphist ───────────────────────────
     -- Watches clipboard for text and images; SUPER+V opens history picker.
