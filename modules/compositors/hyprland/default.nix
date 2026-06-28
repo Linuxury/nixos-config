@@ -220,9 +220,6 @@ in
     nwg-look            # GTK theme settings for Wayland compositors
     qt6Packages.qt6ct   # Qt6 theme settings outside of KDE/GNOME
 
-    # System tray / applets
-    # networkmanagerapplet: removed — Noctalia bar widget handles network
-    # blueman: installed by services.blueman.enable (core); no tray applet started
     # Polkit authentication agent
     polkit_gnome
 

@@ -111,9 +111,6 @@
     nwg-look
     qt6Packages.qt6ct
 
-    # System tray
-    # networkmanagerapplet: removed — shell bar widget handles network
-    # blueman: installed by services.blueman.enable (core); no tray applet started
   ];
 
   # =========================================================================

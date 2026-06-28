@@ -9,9 +9,7 @@
 #   - TERM fallback (silences "can't find terminal definition" on SSH login)
 #   - age-edit / age-rekey aliases (desktop uses zsh-abbr; servers use aliases)
 #
-# nrb intentionally removed — nru's interactive reboot prompt covers manual
-# headless updates; the auto-update module handles unattended rebuilds.
-#
+
 # Writes to /etc/zsh/ (system-level), applies to ALL users without Home Manager.
 # Import in: Radxa-X4, MinisForum, Media-Server, any headless host.
 # ===========================================================================
