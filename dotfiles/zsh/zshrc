@@ -140,13 +140,13 @@ _fmt_nvd() {
   [[ $n_removed -gt 0 ]] && hparts="${hparts:+${hparts}  ·  }${n_removed} removed"
   [[ -n "$closure_disk" ]] && hparts="${hparts:+${hparts}  ·  }${closure_disk}"
   local htitle="─── Packages  ·  ${hparts} "
-  local hfill="" hlen=$(( 60 - ${#htitle} ))
+  local hfill="" hlen=$(( 58 - ${#htitle} ))
   for (( j=0; j<hlen; j++ )); do hfill="${hfill}─"; done
 
   # Table separator and closing divider
   local sep="" close="" sep_len=$(( col_name + col_from + 22 ))
   for (( j=0; j<sep_len; j++ )); do sep="${sep}─"; done
-  for (( j=0; j<60; j++ )); do close="${close}─"; done
+  for (( j=0; j<58; j++ )); do close="${close}─"; done
 
   # Render
   echo ""
@@ -230,7 +230,6 @@ _nix_fetch_filter() {
     printf "  %s\n", label
     for (i = 1; i <= n; i++)
       printf "  %s %s\n", (i == n ? "└─" : "├─"), arr[i]
-    print ""
   }
 
   # Close the fetch bar.
@@ -359,13 +358,12 @@ _nix_fetch_filter() {
     close_fetch(0)
     if (n_stopped + n_restarted + n_reloaded + n_started + n_new > 0) {
       htitle = "─── Units Status "
-      hfill  = ""; hlen = 60 - length(htitle)
+      hfill  = ""; hlen = 58 - length(htitle)
       for (j = 0; j < hlen; j++) hfill = hfill "─"
       close_line = ""
-      for (j = 0; j < 60; j++) close_line = close_line "─"
+      for (j = 0; j < 58; j++) close_line = close_line "─"
       print ""
       printf "%s%s\n", htitle, hfill
-      print ""
       print_group("Stopped",   stopped_ord,   n_stopped)
       print_group("Restarted", restarted_ord, n_restarted)
       print_group("Reloaded",  reloaded_ord,  n_reloaded)
