@@ -187,7 +187,7 @@ _fmt_nvd() {
 _nix_fetch_filter() {
   local spin_pid="${1:-0}"
   awk -v spin_pid="$spin_pid" '
-  BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0; build_label=""; fetch_label=""; build_tw=1; fetch_tw=1 }
+  BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0; build_label=""; fetch_label=""; build_tw=1; fetch_tw=1; n_stopped=0; n_restarted=0; n_reloaded=0; n_started=0; n_new=0 }
 
   function killspinner() {
     if (spin_pid) {
@@ -215,6 +215,23 @@ _nix_fetch_filter() {
     build_label = ""
   }
 
+  # Buffer a unit into its action group with deduplication (insertion order preserved).
+  function add_unit(action, unit) {
+    if (action == "stopped")   { if (!stopped_seen[unit])   { stopped_seen[unit]=1;   stopped_ord[++n_stopped]=unit   } }
+    if (action == "restarted") { if (!restarted_seen[unit]) { restarted_seen[unit]=1; restarted_ord[++n_restarted]=unit } }
+    if (action == "reloaded")  { if (!reloaded_seen[unit])  { reloaded_seen[unit]=1;  reloaded_ord[++n_reloaded]=unit  } }
+    if (action == "started")   { if (!started_seen[unit])   { started_seen[unit]=1;   started_ord[++n_started]=unit   } }
+    if (action == "new")       { if (!new_seen[unit])       { new_seen[unit]=1;       new_ord[++n_new]=unit           } }
+  }
+
+  # Print one action group: "  Label      unit · unit · unit"
+  function print_group(label, arr, n,   i) {
+    if (n == 0) return
+    printf "  %-11s", label
+    for (i = 1; i <= n; i++) { if (i > 1) printf " · "; printf "%s", arr[i] }
+    print ""
+  }
+
   # Close the fetch bar.
   function close_fetch(blank) {
     if (!in_progress) return
@@ -231,6 +248,10 @@ _nix_fetch_filter() {
   /^Done\. The new configuration is \/nix\/store\//     { next }
   /^building the system configuration/                  { next }
   /^[[:space:]]+\/nix\/store\//                         { next }
+  /^Checking switch inhibitors/                         { next }
+  /^activating the configuration/                       { next }
+  /^setting up \/etc/                                   { next }
+  /^reloading user units for /                          { next }
 
   /^these [0-9]+ derivations will be built:/ {
     killspinner()
@@ -299,20 +320,29 @@ _nix_fetch_filter() {
     next
   }
 
-  # Unit lists ("restarting the following units: a, b, c") — render as a tree,
-  # one unit per line, so long lists stay readable.
+  # Single-unit action lines (e.g. "restarting sysinit-reactivation.target")
+  /^(stopping|starting|restarting|reloading) / && !/the following/ {
+    if      (/^stopping/)   add_unit("stopped",   $2)
+    else if (/^starting/)   add_unit("started",   $2)
+    else if (/^restarting/) add_unit("restarted", $2)
+    else if (/^reloading/)  add_unit("reloaded",  $2)
+    next
+  }
+
+  # Multi-unit action lines — buffer all units, print summary in END
   /^(stopping|starting|restarting|reloading) the following .*units?: / ||
   /^the following new units were started: / {
     killspinner()
     close_build(1)
     close_fetch(1)
     idx  = index($0, ": ")
-    head = substr($0, 1, idx - 1)
     rest = substr($0, idx + 2)
-    n = split(rest, units, ", ")
-    print head ":"
-    for (i = 1; i <= n; i++)
-      printf "  %s %s\n", (i == n ? "└─" : "├─"), units[i]
+    n_u  = split(rest, us, ", ")
+    if      (/^stopping/)          for (i=1; i<=n_u; i++) add_unit("stopped",   us[i])
+    else if (/^starting/)          for (i=1; i<=n_u; i++) add_unit("started",   us[i])
+    else if (/^restarting/)        for (i=1; i<=n_u; i++) add_unit("restarted", us[i])
+    else if (/^reloading/)         for (i=1; i<=n_u; i++) add_unit("reloaded",  us[i])
+    else if (/^the following new/) for (i=1; i<=n_u; i++) add_unit("new",       us[i])
     next
   }
 
@@ -326,6 +356,15 @@ _nix_fetch_filter() {
   END {
     close_build(0)
     close_fetch(0)
+    if (n_stopped + n_restarted + n_reloaded + n_started + n_new > 0) {
+      print ""
+      print_group("Stopped",   stopped_ord,   n_stopped)
+      print_group("Restarted", restarted_ord, n_restarted)
+      print_group("Reloaded",  reloaded_ord,  n_reloaded)
+      print_group("Started",   started_ord,   n_started)
+      print_group("New",       new_ord,       n_new)
+      print ""
+    }
   }
   '
 }
