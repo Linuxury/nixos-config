@@ -224,11 +224,11 @@ _nix_fetch_filter() {
     if (action == "new")       { if (!new_seen[unit])       { new_seen[unit]=1;       new_ord[++n_new]=unit           } }
   }
 
-  # Print one action group: "  Label      unit · unit · unit"
+  # Print one action group: label on first unit line, subsequent units indented to align
   function print_group(label, arr, n,   i) {
     if (n == 0) return
-    printf "  %-11s", label
-    for (i = 1; i <= n; i++) { if (i > 1) printf " · "; printf "%s", arr[i] }
+    printf "  %-11s %s\n", label, arr[1]
+    for (i = 2; i <= n; i++) printf "  %-11s %s\n", "", arr[i]
     print ""
   }
 
@@ -363,7 +363,6 @@ _nix_fetch_filter() {
       print_group("Reloaded",  reloaded_ord,  n_reloaded)
       print_group("Started",   started_ord,   n_started)
       print_group("New",       new_ord,       n_new)
-      print ""
     }
   }
   '
