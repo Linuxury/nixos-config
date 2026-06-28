@@ -224,11 +224,12 @@ _nix_fetch_filter() {
     if (action == "new")       { if (!new_seen[unit])       { new_seen[unit]=1;       new_ord[++n_new]=unit           } }
   }
 
-  # Print one action group: label on first unit line, subsequent units indented to align
+  # Print one action group as a labeled tree block
   function print_group(label, arr, n,   i) {
     if (n == 0) return
-    printf "  %-11s %s\n", label, arr[1]
-    for (i = 2; i <= n; i++) printf "  %-11s %s\n", "", arr[i]
+    printf "  %s\n", label
+    for (i = 1; i <= n; i++)
+      printf "  %s %s\n", (i == n ? "└─" : "├─"), arr[i]
     print ""
   }
 
@@ -357,12 +358,20 @@ _nix_fetch_filter() {
     close_build(0)
     close_fetch(0)
     if (n_stopped + n_restarted + n_reloaded + n_started + n_new > 0) {
+      htitle = "─── Units Status "
+      hfill  = ""; hlen = 60 - length(htitle)
+      for (j = 0; j < hlen; j++) hfill = hfill "─"
+      close_line = ""
+      for (j = 0; j < 60; j++) close_line = close_line "─"
+      print ""
+      printf "%s%s\n", htitle, hfill
       print ""
       print_group("Stopped",   stopped_ord,   n_stopped)
       print_group("Restarted", restarted_ord, n_restarted)
       print_group("Reloaded",  reloaded_ord,  n_reloaded)
       print_group("Started",   started_ord,   n_started)
       print_group("New",       new_ord,       n_new)
+      printf "%s\n", close_line
     }
   }
   '
