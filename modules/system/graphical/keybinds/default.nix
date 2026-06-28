@@ -27,7 +27,7 @@
 # here so the viewer can source a single module for the complete keybind map.
 # ===========================================================================
 
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 {
   # =========================================================================
@@ -78,6 +78,13 @@
     NoDisplay=true
   '';
 
+  home.activation.kdeCloseWindowShortcut = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    ${pkgs.kdePackages.kconfig}/bin/kwriteconfig6 \
+      --file "$HOME/.config/kglobalshortcutsrc" \
+      --group kwin \
+      --key "Window Close" $'Meta+Q\tAlt+F4,Alt+F4,Close Window'
+  '';
+
   home.activation.kdeKittyShortcuts = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     KGLOBAL="$HOME/.config/kglobalshortcutsrc"
     if ! grep -q '^\[kitty\.desktop\]' "$KGLOBAL" 2>/dev/null; then
@@ -96,6 +103,9 @@
   # must enumerate every active custom binding path.
   # =========================================================================
   dconf.settings = {
+    "org/gnome/desktop/wm/keybindings" = {
+      close = [ "<Super>q" ];
+    };
     "org/gnome/settings-daemon/plugins/media-keys" = {
       custom-keybindings = [
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
