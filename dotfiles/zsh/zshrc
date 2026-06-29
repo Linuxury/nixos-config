@@ -549,15 +549,15 @@ _nru_rebuild() {
 }
 
 # ---------------------------------------------------------------------------
-# nru display constants — Nerd Font icons and dot-spacer used across all
+# nru display constants — Nerd Font icons and full bar used across all
 # update progress lines. Defined once so every function stays consistent.
 #   _NRU_GH   = U+F09B  GitHub logo (Font Awesome via Nerd Fonts)
 #   _NRU_NIX  = U+F1105 Nix snowflake (Nerd Fonts)
-#   _NRU_DOTS = dot-spacer, visually width-matched to [20-char bar] + brackets
+#   _NRU_DONE = pre-filled 20-char bar — used for "already up to date" lines
 # ---------------------------------------------------------------------------
 _NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
 _NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
-_NRU_DOTS="·  ·  ·  ·  ·  ·  ·  "
+_NRU_DONE="[████████████████████]"
 
 # ---------------------------------------------------------------------------
 # _nru_pkg_bar — animated fake-progress bar for a single update step.
@@ -664,7 +664,7 @@ _nru_nixpkgs_bar() {
       "$icon" "NixPkgs" "$bar" "$info" >/dev/tty
   else
     printf "\r  %s  %-12s  %s  up to date  ✓\033[K\n" \
-      "$icon" "NixPkgs" "$_NRU_DOTS" >/dev/tty
+      "$icon" "NixPkgs" "$_NRU_DONE" >/dev/tty
   fi
 }
 
@@ -677,14 +677,14 @@ _nru_update_proton_ge() {
 
   latest=$(curl -fsSL "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
-    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GE-Proton" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GE-Proton" "$_NRU_DONE"
     return 0
   }
 
   current=$(grep -oE 'GE-Proton[0-9]+-[0-9]+' "$NIXOS_CONFIG/flake.nix" | head -1)
 
   if [[ "$latest" == "$current" ]]; then
-    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GE-Proton" "$_NRU_DOTS" "$current"
+    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GE-Proton" "$_NRU_DONE" "$current"
     return 0
   fi
 
@@ -703,7 +703,7 @@ _nru_update_goverlay() {
 
   latest=$(curl -fsSL "https://api.github.com/repos/benjamimgois/goverlay/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
-    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GOverlay" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GOverlay" "$_NRU_DONE"
     return 0
   }
 
@@ -711,7 +711,7 @@ _nru_update_goverlay() {
     | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
   if [[ "$latest" == "$current" ]]; then
-    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GOverlay" "$_NRU_DOTS" "$current"
+    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GOverlay" "$_NRU_DONE" "$current"
     return 0
   fi
 
@@ -746,14 +746,14 @@ nru() {
   git_out=$(git -C "$NIXOS_CONFIG" pull 2>&1)
   git_code=$?
   if [[ $git_code -ne 0 ]]; then
-    printf "  %s  %-12s  %s  ✗ pull failed\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  ✗ pull failed\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DONE"
     printf '%s\n' "$git_out"
     return 1
   fi
   if printf '%s' "$git_out" | grep -q "Already up to date"; then
-    printf "  %s  %-12s  %s  up to date  ✓\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  up to date  ✓\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DONE"
   else
-    printf "  %s  %-12s  %s  updated  ✓\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DOTS"
+    printf "  %s  %-12s  %s  updated  ✓\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DONE"
   fi
 
   # ── nixpkgs ──────────────────────────────────────────────────────────────────
