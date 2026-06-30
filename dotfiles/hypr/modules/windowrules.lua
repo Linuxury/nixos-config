@@ -88,11 +88,19 @@ hl.window_rule({ match = { title = "Picture-in-Picture" }, float             = t
 hl.window_rule({ match = { title = "Picture-in-Picture" }, pin               = true })
 hl.window_rule({ match = { title = "Picture-in-Picture" }, keep_aspect_ratio = true })
 
--- ── Wine/Proton — hide Battle.net's native XEmbed tray icon window ────────────
--- snixembed bridges this to Noctalia's SNI tray. Send the raw XEmbed window
--- (160x20, empty title) to a special workspace so it doesn't mark WS3 as occupied.
+-- ── Wine/Proton — hide ghost windows that keep workspaces marked as occupied ──
+-- When a Wine/Proton app closes, wineserver keeps running and maintains helper
+-- windows (explorer.exe desktop process, Steam XEmbed tray icon, etc.). These
+-- would mark WS2/WS3 as occupied even with no visible app open. Route them to
+-- special:hidden so Hyprland doesn't count them toward workspace window totals.
+
+-- Battle.net XEmbed tray icon (160x20, empty title)
 hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, float     = true              })
 hl.window_rule({ match = { class = "steam_app_default", title = "^$" }, workspace = "special:hidden"  })
+
+-- Wine internal desktop process (stays alive as long as wineserver runs).
+-- A real Wine file manager would always have a title — empty title = ghost window.
+hl.window_rule({ match = { class = "explorer.exe",      title = "^$" }, workspace = "special:hidden"  })
 
 -- ── XWayland ─────────────────────────────────────────────────────────────────
 -- Disable rounding on X11 windows (looks bad)
