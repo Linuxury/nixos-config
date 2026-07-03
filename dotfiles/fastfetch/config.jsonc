@@ -50,7 +50,7 @@
       "type": "command",
       "key": "󰅐 →",
       "keyColor": "#4f9ad0",
-      "text": "install=$(stat -c '%W' /etc/nixos 2>/dev/null); [ \"${install:-0}\" = \"0\" ] && install=$(stat -c '%Y' /etc/nixos 2>/dev/null); days=$(( ($(date +%s) - install) / 86400 )); echo \"Day ${days} · $(uptime -p | sed 's/^up //')\"",
+      "text": "install=$(stat -c '%W' /etc/machine-id 2>/dev/null); [ \"${install:-0}\" = \"0\" ] && install=$(stat -c '%Y' /etc/machine-id 2>/dev/null); days=$(( ($(date +%s) - install) / 86400 )); up=$(awk '{s=$1; h=int(s/3600); m=int((s%3600)/60); if(h>0) printf \"%d hr%s, %d min\", h,(h==1?\"\":\"s\"),m; else printf \"%d min\", m}' /proc/uptime); echo \"Day ${days} · ${up}\"",
     },
     "break",
 
