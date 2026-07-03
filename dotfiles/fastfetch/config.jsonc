@@ -47,9 +47,10 @@
       "format": "{} processes running",
     },
     {
-      "type": "uptime",
+      "type": "command",
       "key": "󰅐 →",
       "keyColor": "#4f9ad0",
+      "text": "install=$(stat -c '%W' /etc/nixos 2>/dev/null); [ \"${install:-0}\" = \"0\" ] && install=$(stat -c '%Y' /etc/nixos 2>/dev/null); days=$(( ($(date +%s) - install) / 86400 )); echo \"Day ${days} · $(uptime -p | sed 's/^up //')\"",
     },
     "break",
 
