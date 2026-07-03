@@ -19,6 +19,54 @@
   inputs,
   ...
 }:
+let
+  # =========================================================================
+  # steam-bpm — Big Picture Mode launcher
+  #
+  # Shuts down Desktop Mode Steam (if running), detects the active monitor's
+  # native resolution and refresh rate, then launches Steam Big Picture Mode
+  # wrapped inside a gamescope nested session.
+  #
+  # Why gamescope here: Steam's BPM uses gamescope --steam internally, which
+  # expects to own a display (standalone compositor mode). Running it nested
+  # inside Hyprland without this wrapper causes a black screen because
+  # gamescope can't take over the display. Wrapping it ourselves puts gamescope
+  # in nested mode where it renders correctly as a Hyprland window.
+  #
+  # Trigger: SUPER+CTRL+B keybind → lands on WS 2 via existing gamescope rule.
+  # =========================================================================
+  steamBpm = pkgs.writeShellScriptBin "steam-bpm" ''
+    # Shut down Desktop Mode Steam if it's already running
+    if pgrep steam > /dev/null 2>&1; then
+      steam -shutdown 2>/dev/null || true
+      sleep 2
+    fi
+
+    # Detect active monitor's native resolution and refresh rate
+    if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+      read -r W H R < <(hyprctl monitors -j | python3 -c "
+import json, sys
+monitors = json.load(sys.stdin)
+m = next((m for m in monitors if m['focused']), monitors[0])
+print(m['width'], m['height'], round(m['refreshRate']))
+")
+    else
+      read -r W H R < <(xrandr --current | python3 -c "
+import sys, re
+content = sys.stdin.read()
+primary = re.search(r'(\d+)x(\d+)\+0\+0', content)
+if primary:
+    W, H = primary.group(1), primary.group(2)
+    after = content[primary.start():]
+    hz = re.search(r'(\d+\.\d+)\*', after)
+    if hz:
+        print(W, H, round(float(hz.group(1))))
+")
+    fi
+
+    exec gamescope -W "$W" -H "$H" -w "$W" -h "$H" -r "$R" -e -- steam -gamepadui
+  '';
+in
 {
   imports = [
     ./dmemcg-booster/default.nix
@@ -228,6 +276,9 @@
     antimicrox # Map controller buttons to keyboard/mouse
     # Useful for games with no controller support
 
+    # Steam Big Picture Mode launcher (gamescope-wrapped, see let block above)
+    steamBpm
+
     # -----------------------------------------------------------------------
     # Minecraft — all three family members play
     # -----------------------------------------------------------------------
@@ -260,7 +311,7 @@
     [ -e /bin/true ] || ln -sf ${pkgs.coreutils}/bin/true /bin/true
   '';
 
-  boot.kernelModules = ["ntsync"];
+  boot.kernelModules = ["ntsync" "uinput"];
   services.udev.extraRules = ''
     KERNEL=="ntsync", TAG+="uaccess"
   '';

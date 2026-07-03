@@ -152,4 +152,6 @@ hl.bind(mod .. " + CTRL + N",  hl.dsp.exec_cmd("bash -c 'kill -9 $(pgrep quicksh
 hl.bind(mod .. " + CTRL + G", hl.dsp.exec_cmd(
     "hyprctl dispatch workspace 2 && sleep 0.15 && hyprctl dispatch workspace previous"
 ))
+-- Launch Steam Big Picture Mode in a gamescope session → lands on WS 2
+hl.bind(mod .. " + CTRL + B", hl.dsp.exec_cmd("steam-bpm"))
 
