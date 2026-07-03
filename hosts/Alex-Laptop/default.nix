@@ -297,9 +297,9 @@
   # Older AMD APUs are very well supported and stable — no need
   # to risk RC kernel instability on a kid's school laptop.
   # ==============================================================
-  boot.kernelPackages = pkgs.linuxPackages_latest;         # Vanilla
-# boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;  # XanMod
-# boot.kernelPackages = pkgs.linuxPackages_zen;            # Zen
+  boot.kernelPackages = pkgs.linuxPackages_latest;           # Vanilla
+  # boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;  # XanMod
+  # boot.kernelPackages = pkgs.linuxPackages_zen;            # Zen
 
   # ==============================================================
   # Performance tweaks for older hardware

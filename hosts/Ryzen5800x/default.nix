@@ -318,9 +318,9 @@
   # ==============================================================
   # Kernel
   # ==============================================================
-# boot.kernelPackages = pkgs.linuxPackages_latest;         # Vanilla
-# boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;  # XanMod
-  boot.kernelPackages = pkgs.linuxPackages_zen;            # Zen
+  # boot.kernelPackages = pkgs.linuxPackages_latest;         # Vanilla
+  # boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;  # XanMod
+  boot.kernelPackages = pkgs.linuxPackages_zen;             # Zen
 
   # NTFS3 kernel driver for the Warehouse HDD
   boot.supportedFilesystems.ntfs = true;
