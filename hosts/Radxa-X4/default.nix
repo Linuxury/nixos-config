@@ -211,7 +211,9 @@
   # ==============================================================
   # Kernel
   # ==============================================================
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;         # Vanilla
+# boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;  # XanMod
+# boot.kernelPackages = pkgs.linuxPackages_zen;            # Zen
 
   # ==============================================================
   # Intel N100 specific settings

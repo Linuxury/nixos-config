@@ -179,7 +179,9 @@
   # Kernel — latest stable
   # Servers benefit from stability over bleeding edge
   # ==============================================================
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;         # Vanilla
+# boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;  # XanMod
+# boot.kernelPackages = pkgs.linuxPackages_zen;            # Zen
 
   # ==============================================================
   # Server optimizations
