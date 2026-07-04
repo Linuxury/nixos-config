@@ -514,11 +514,20 @@
   # autorandr remembers and restores monitor layouts automatically.
   # ==============================================================
   environment.systemPackages = with pkgs; [
-    arandr # GUI monitor arrangement tool
-    autorandr # Automatic monitor layout switching
+    arandr     # GUI monitor arrangement tool
+    autorandr  # Automatic monitor layout switching
     cifs-utils # Required for CIFS/Samba mounts
-    xfsprogs # XFS filesystem tools (mkfs.xfs, xfs_repair, etc.)
+    xfsprogs   # XFS filesystem tools (mkfs.xfs, xfs_repair, etc.)
     # corectrl is installed by programs.corectrl.enable above
+
+    # ==============================================================
+    # Host-specific apps
+    # Special tools only this machine needs — editors, design tools,
+    # video editors, image editors, etc. go here, NOT in the shared
+    # user packages module, so each host can enable/disable them
+    # independently.
+    # ==============================================================
+    # example: kdenlive  # uncomment to add
   ];
 
   # ==============================================================

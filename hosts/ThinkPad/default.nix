@@ -372,6 +372,18 @@
   # ==============================================================
   environment.systemPackages = with pkgs; [
     cifs-utils
+
+    # ==============================================================
+    # Host-specific apps
+    # Special tools only this machine needs — editors, design tools,
+    # video editors, image editors, etc. go here, NOT in the shared
+    # user packages module, so each host can enable/disable them
+    # independently.
+    # ==============================================================
+    # affinity-v3  # re-enable when vc_redist.x64.exe CDN recovers (Microsoft 503s as of 2026-07-04)
+                  # Affinity Photo + Designer + Publisher via Wine
+                  # First run opens installer — leave path at default.
+                  # Data: ~/.local/share/affinity-v3/ | Update: affinity-v3 update
   ];
 
   # ==============================================================

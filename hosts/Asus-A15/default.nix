@@ -317,6 +317,15 @@
 
   environment.systemPackages = with pkgs; [
     cifs-utils
+
+    # ==============================================================
+    # Host-specific apps
+    # Special tools only this machine needs — editors, design tools,
+    # video editors, image editors, etc. go here, NOT in the shared
+    # user packages module, so each host can enable/disable them
+    # independently.
+    # ==============================================================
+    # example: kdenlive  # uncomment to add
   ];
 
   # ==============================================================

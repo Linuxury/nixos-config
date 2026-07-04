@@ -347,11 +347,19 @@
     ntfs3g
 
     # Remote support
-    rustdesk          # Open source remote desktop — lets you help her
-                      # remotely without needing to be physically present
+    rustdesk  # Open source remote desktop — lets you help her remotely
 
     # Media
-    vlc               # Reliable video player that plays anything
+    vlc       # Reliable video player that plays anything
+
+    # ==============================================================
+    # Host-specific apps
+    # Special tools only this machine needs — editors, design tools,
+    # video editors, image editors, etc. go here, NOT in the shared
+    # user packages module, so each host can enable/disable them
+    # independently.
+    # ==============================================================
+    # example: kdenlive  # uncomment to add
   ];
 
   # ==============================================================

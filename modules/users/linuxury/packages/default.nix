@@ -40,12 +40,5 @@
     imagemagick        # CLI image conversion and manipulation
     nix-output-monitor # Progress bar + TUI for nix builds (nom)
 
-    # Design
-    # Affinity v3 (Photo + Designer + Publisher) via Wine — free, no native Linux build.
-    # First run opens a graphical installer — leave the path at default.
-    # Data lands at ~/.local/share/affinity-v3/
-    # To update the app itself: affinity-v3 update
-    affinity-v3
-
   ];
 }
