@@ -271,6 +271,7 @@ _nix_fetch_filter() {
   /^activating the configuration/                       { next }
   /^setting up \/etc/                                   { next }
   /^reloading user units for /                          { next }
+  /^Skipping "\//                                       { next }
 
   /^these [0-9]+ derivations will be built:/ {
     killspinner()
