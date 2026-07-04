@@ -186,8 +186,11 @@ _fmt_nvd() {
 # ---------------------------------------------------------------------------
 _nix_fetch_filter() {
   local spin_pid="${1:-0}"
-  awk -v spin_pid="$spin_pid" '
-  BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0; build_label=""; fetch_label=""; build_tw=1; fetch_tw=1; n_stopped=0; n_restarted=0; n_reloaded=0; n_started=0; n_new=0 }
+  local animscript="${2:-}"
+  local animpid="${3:-}"
+  local statef="${4:-}"
+  awk -v spin_pid="$spin_pid" -v animscript="$animscript" -v animpid="$animpid" -v statef="$statef" '
+  BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0; build_label=""; fetch_label=""; n_stopped=0; n_restarted=0; n_reloaded=0; n_started=0; n_new=0 }
 
   function killspinner() {
     if (spin_pid) {
@@ -198,17 +201,31 @@ _nix_fetch_filter() {
     }
   }
 
-  # Close the build bar. If items were cached (bar never reached 100%), fill it
-  # and label it "cached" so the user sees confirmation they were handled.
-  # blank=1 adds an extra blank line (bar→text transition); blank=0 skips it (bar→bar).
-  function close_build(blank,    bar, i) {
+  function spawn_anim(    cmd) {
+    if (animscript == "") return
+    system("kill $(cat " animpid " 2>/dev/null) 2>/dev/null; true")
+    system("sh " animscript " " statef " " animpid " &")
+  }
+
+  function kill_anim() {
+    if (animpid == "") return
+    system("kill $(cat " animpid " 2>/dev/null) 2>/dev/null; true")
+  }
+
+  # Close the build bar. Two-line zone: cursor is at end of secondary bar (line 2).
+  # If items were cached (bar never reached 100%), rewrite line 1 as cached.
+  # blank=1 adds an extra blank line after; blank=0 skips it.
+  function close_build(blank,    bar, i, count_str) {
     if (!in_build) return
+    kill_anim()
+    bar = ""
+    for (i = 0; i < bw; i++) bar = bar "■"
     if (build_done < build_total) {
-      bar = ""
-      for (i = 0; i < bw; i++) bar = bar "█"
-      printf "\r  ⚒  %*d/%*d  [%s]  %3d%% - cached\033[K", build_tw, build_total, build_tw, build_total, bar, 100 > "/dev/tty"
+      count_str = sprintf("%d/%d", build_total, build_total)
+      printf "\r\033[1A  ⚒  %7s  [%s]  100%%  cached\033[K\r\n\r\033[K\n", count_str, bar > "/dev/tty"
+    } else {
+      printf "\r\033[K\n" > "/dev/tty"
     }
-    printf "\n" > "/dev/tty"
     if (blank) printf "\n" > "/dev/tty"
     fflush("/dev/tty")
     in_build = 0
@@ -232,10 +249,11 @@ _nix_fetch_filter() {
       printf "  %s %s\n", (i == n ? "└─" : "├─"), arr[i]
   }
 
-  # Close the fetch bar.
+  # Close the fetch bar. Two-line zone: cursor is at end of secondary bar (line 2).
   function close_fetch(blank) {
     if (!in_progress) return
-    printf "\n" > "/dev/tty"
+    kill_anim()
+    printf "\r\033[K\n" > "/dev/tty"
     if (blank) printf "\n" > "/dev/tty"
     fflush("/dev/tty")
     in_progress = 0
@@ -261,9 +279,10 @@ _nix_fetch_filter() {
     build_total = substr($0, RSTART, RLENGTH) + 0
     build_done = 0
     build_label = ""
-    build_tw = length(build_total "")
-    bar = sprintf("%*s", bw, ""); gsub(/ /, "░", bar)
-    printf "\r  ⚒  %*d/%*d  [%s]  %3d%%\033[K", build_tw, 0, build_tw, build_total, bar, 0 > "/dev/tty"
+    bar = sprintf("%*s", bw, ""); gsub(/ /, "□", bar)
+    sec_bar = sprintf("%*s", bw, ""); gsub(/ /, "╌", sec_bar)
+    printf "  ⚒  %7s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-8s  [%s]    0%%  \033[K", \
+      "0/" build_total, bar, "building", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     in_build = 1
     next
@@ -279,10 +298,15 @@ _nix_fetch_filter() {
     build_label = path
     pct    = int(build_done * 100 / (build_total > 0 ? build_total : 1))
     filled = int(build_done * bw  / (build_total > 0 ? build_total : 1))
-    bar = ""
-    for (i=0; i<filled;    i++) bar = bar "█"
-    for (i=0; i<bw-filled; i++) bar = bar "░"
-    printf "\r  ⚒  %*d/%*d  [%s]  %3d%% - %s\033[K", build_tw, build_done, build_tw, build_total, bar, pct, build_label > "/dev/tty"
+    bar = ""; sec_bar = ""
+    for (i=0; i<filled;    i++) bar = bar "■"
+    for (i=0; i<bw-filled; i++) bar = bar "□"
+    for (i=0; i<bw;        i++) sec_bar = sec_bar "╌"
+    count_str = sprintf("%d/%d", build_done, build_total)
+    print "building|" path > statef; close(statef)
+    spawn_anim()
+    printf "\r\033[1A  ⚒  %7s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-8s  [%s]    0%%  %s\033[K", \
+      count_str, bar, pct, build_label, "building", sec_bar, path > "/dev/tty"
     fflush("/dev/tty")
     next
   }
@@ -295,9 +319,10 @@ _nix_fetch_filter() {
     total = substr($0, RSTART, RLENGTH) + 0
     done = 0
     fetch_label = ""
-    fetch_tw = length(total "")
-    bar = sprintf("%*s", bw, ""); gsub(/ /, "░", bar)
-    printf "\r  ⬇  %*d/%*d  [%s]  %3d%%\033[K", fetch_tw, 0, fetch_tw, total, bar, 0 > "/dev/tty"
+    bar = sprintf("%*s", bw, ""); gsub(/ /, "□", bar)
+    sec_bar = sprintf("%*s", bw, ""); gsub(/ /, "╌", sec_bar)
+    printf "  ⬇  %7s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-8s  [%s]    0%%  \033[K", \
+      "0/" total, bar, "fetching", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     in_progress = 1
     next
@@ -313,10 +338,15 @@ _nix_fetch_filter() {
     fetch_label = path
     pct    = int(done * 100 / (total > 0 ? total : 1))
     filled = int(done * bw  / (total > 0 ? total : 1))
-    bar = ""
-    for (i=0; i<filled;    i++) bar = bar "█"
-    for (i=0; i<bw-filled; i++) bar = bar "░"
-    printf "\r  ⬇  %*d/%*d  [%s]  %3d%% - %s\033[K", fetch_tw, done, fetch_tw, total, bar, pct, fetch_label > "/dev/tty"
+    bar = ""; sec_bar = ""
+    for (i=0; i<filled;    i++) bar = bar "■"
+    for (i=0; i<bw-filled; i++) bar = bar "□"
+    for (i=0; i<bw;        i++) sec_bar = sec_bar "╌"
+    count_str = sprintf("%d/%d", done, total)
+    print "fetching|" path > statef; close(statef)
+    spawn_anim()
+    printf "\r\033[1A  ⬇  %7s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-8s  [%s]    0%%  %s\033[K", \
+      count_str, bar, pct, path, "fetching", sec_bar, path > "/dev/tty"
     fflush("/dev/tty")
     next
   }
@@ -400,6 +430,38 @@ _nixos_run() {
     echo ""
   fi
 
+  # Secondary-bar animator — sh script written to a temp file, spawned by
+  # _nix_fetch_filter when a slow build/fetch package is in progress.
+  local _anim_script="/tmp/nru_anim_script_$$"
+  local _anim_pid="/tmp/nru_anim_pid_$$"
+  local _anim_state="/tmp/nru_anim_state_$$"
+  printf '' > "$_anim_pid"
+  printf '' > "$_anim_state"
+  cat > "$_anim_script" << 'ANIMEOF'
+#!/bin/sh
+statef="$1"; animpid="$2"
+printf '%d\n' "$$" > "$animpid"
+sp="⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏"
+si=1; step=0; bw=20
+while true; do
+  schar=$(printf '%s' "$sp" | cut -d' ' -f"$si")
+  pct=$(( step < 18 ? step * 5 : 90 ))
+  filled=$(( pct * bw / 100 ))
+  bar=''; i=0
+  while [ "$i" -lt "$filled" ]; do bar="${bar}━"; i=$((i+1)); done
+  while [ "$i" -lt "$bw" ]; do bar="${bar}╌"; i=$((i+1)); done
+  state=$(cat "$statef" 2>/dev/null)
+  act=$(printf '%s' "$state" | cut -d'|' -f1)
+  pkg=$(printf '%s' "$state" | cut -d'|' -f2-)
+  [ -z "$act" ] && act="fetching"
+  printf '\r  %s  %-8s  [%s]  %3d%%  %s\033[K' "$schar" "$act" "$bar" "$pct" "$pkg" > /dev/tty
+  sleep 0.1
+  si=$(( si % 10 + 1 ))
+  step=$(( step < 18 ? step + 1 : 18 ))
+done
+ANIMEOF
+  chmod +x "$_anim_script"
+
   # Spinner shown during the silent evaluation phase (nix evaluates the flake
   # with no output). &| starts it disowned so zsh never prints "[N] PID" or
   # "[N] Terminated" notifications. _nix_fetch_filter kills it the moment awk
@@ -425,7 +487,7 @@ _nixos_run() {
   # The log (tee) captures raw output before the filter, so nothing is lost.
   systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
     --why="NixOS rebuild in progress" \
-    "$@" 2>&1 | tee "$tmplog" | _nix_fetch_filter "$_spin_pid"
+    "$@" 2>&1 | tee "$tmplog" | _nix_fetch_filter "$_spin_pid" "$_anim_script" "$_anim_pid" "$_anim_state"
   exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
 
   # Kill spinner if still running (no build/fetch bars took over), then clear
@@ -456,7 +518,8 @@ _nixos_run() {
     _NIXOS_LAST_GEN=$(printf '%s' "$log_out" | grep -oE 'gen [0-9]+' | grep -oE '[0-9]+' | head -1)
   fi
 
-  rm -f "$tmplog"
+  kill "$(cat "$_anim_pid" 2>/dev/null)" 2>/dev/null || true
+  rm -f "$tmplog" "$_anim_script" "$_anim_pid" "$_anim_state"
   return $exit_code
 }
 
@@ -557,7 +620,7 @@ _nru_rebuild() {
 # ---------------------------------------------------------------------------
 _NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
 _NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
-_NRU_DONE="[████████████████████]"
+_NRU_DONE="[■■■■■■■■■■■■■■■■■■■■]"
 
 # ---------------------------------------------------------------------------
 # _nru_pkg_bar — animated fake-progress bar for a single update step.
@@ -584,8 +647,8 @@ _nru_pkg_bar() {
     pct=$(( step < 18 ? step * 5 : 90 ))
     filled=$(( pct * bw / 100 ))
     bar=""
-    for (( i=0; i<filled; i++ )); do bar+="█"; done
-    for (( i=filled; i<bw; i++ )); do bar+="░"; done
+    for (( i=0; i<filled; i++ )); do bar+="■"; done
+    for (( i=filled; i<bw; i++ )); do bar+="□"; done
     printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
       "$icon" "$name" "$bar" "$pct" >/dev/tty
     sleep 0.1
@@ -600,7 +663,7 @@ _nru_pkg_bar() {
   rm -f "$_xf"
 
   if [[ $code -eq 0 ]]; then
-    bar=""; for (( i=0; i<bw; i++ )); do bar+="█"; done
+    bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
     printf "\r  %s  %-12s  [%s]  %s  ✓\033[K\n" \
       "$icon" "$name" "$bar" "$info" >/dev/tty
   else
@@ -628,8 +691,8 @@ _nru_nixpkgs_bar() {
     pct=$(( step < 18 ? step * 5 : 90 ))
     filled=$(( pct * bw / 100 ))
     bar=""
-    for (( i=0; i<filled; i++ )); do bar+="█"; done
-    for (( i=filled; i<bw; i++ )); do bar+="░"; done
+    for (( i=0; i<filled; i++ )); do bar+="■"; done
+    for (( i=filled; i<bw; i++ )); do bar+="□"; done
     printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
       "$icon" "NixPkgs" "$bar" "$pct" >/dev/tty
     sleep 0.1
@@ -650,7 +713,7 @@ _nru_nixpkgs_bar() {
     return $code
   fi
 
-  bar=""; for (( i=0; i<bw; i++ )); do bar+="█"; done
+  bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
 
   if printf '%s' "$upd_out" | grep -q "Updated input 'nixpkgs'"; then
     local info
@@ -725,6 +788,56 @@ _nru_update_goverlay() {
 }
 
 # ---------------------------------------------------------------------------
+# _nru_git_bar — pulls latest nixos-config with animated progress bar.
+# Restores flake.lock first to avoid merge conflicts with local nix updates.
+# ---------------------------------------------------------------------------
+_nru_git_bar() {
+  local bw=20 bar i filled pct step=0
+  local _xf="/tmp/nru_git_$$.exit"
+  rm -f "$_xf"
+
+  git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
+
+  { git -C "$NIXOS_CONFIG" pull >/tmp/nru_git_$$.log 2>&1; echo $? >"$_xf" } &|
+  local pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    pct=$(( step < 18 ? step * 5 : 90 ))
+    filled=$(( pct * bw / 100 ))
+    bar=""
+    for (( i=0; i<filled; i++ )); do bar+="■"; done
+    for (( i=filled; i<bw; i++ )); do bar+="□"; done
+    printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
+      "$_NRU_GH" "Nixos-Config" "$bar" "$pct" >/dev/tty
+    sleep 0.1
+    step=$(( step < 18 ? step + 1 : 18 ))
+  done
+
+  local _r=0
+  while [[ ! -f "$_xf" ]] && (( _r++ < 50 )); do sleep 0.01; done
+  local code=1
+  [[ -f "$_xf" ]] && code=$(< "$_xf")
+  rm -f "$_xf"
+  local git_out
+  git_out=$(cat /tmp/nru_git_$$.log 2>/dev/null)
+  rm -f "/tmp/nru_git_$$.log"
+
+  bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
+
+  if [[ $code -ne 0 ]]; then
+    printf "\r  %s  %-12s  ✗ pull failed\033[K\n" "$_NRU_GH" "Nixos-Config" >/dev/tty
+    printf '%s\n' "$git_out"
+    return 1
+  fi
+
+  if printf '%s' "$git_out" | grep -q "Already up to date"; then
+    printf "\r  %s  %-12s  %s  up to date  ✓\033[K\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DONE" >/dev/tty
+  else
+    printf "\r  %s  %-12s  [%s]  updated  ✓\033[K\n" "$_NRU_GH" "Nixos-Config" "$bar" >/dev/tty
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Rebuild + pull latest nixpkgs before switching.
 # Pulls latest git changes, bumps nixpkgs + GitHub packages in flake.lock,
 # rebuilds, commits the updated flake.lock, then prompts based on result:
@@ -741,20 +854,7 @@ nru() {
   echo ""
 
   # ── Git pull ─────────────────────────────────────────────────────────────────
-  git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
-  local git_out git_code
-  git_out=$(git -C "$NIXOS_CONFIG" pull 2>&1)
-  git_code=$?
-  if [[ $git_code -ne 0 ]]; then
-    printf "  %s  %-12s  %s  ✗ pull failed\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DONE"
-    printf '%s\n' "$git_out"
-    return 1
-  fi
-  if printf '%s' "$git_out" | grep -q "Already up to date"; then
-    printf "  %s  %-12s  %s  up to date  ✓\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DONE"
-  else
-    printf "  %s  %-12s  %s  updated  ✓\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DONE"
-  fi
+  _nru_git_bar || return 1
 
   # ── nixpkgs ──────────────────────────────────────────────────────────────────
   _nru_nixpkgs_bar || return 1
