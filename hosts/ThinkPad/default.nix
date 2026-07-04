@@ -158,7 +158,6 @@
     # ==============================================================
     ../../modules/users/linuxury/ssh/default.nix
     ../../modules/users/linuxury/description/default.nix
-    ../../modules/users/linuxury/packages/default.nix
   ];
 
   # ==============================================================
@@ -373,17 +372,30 @@
   environment.systemPackages = with pkgs; [
     cifs-utils
 
+    # linuxury — everyday tools
+    topgrade           # One-command updater — Nix, cargo, flatpaks, etc.
+    bat                # cat with syntax highlighting and line numbers
+    lazygit            # TUI for git — stage, commit, branch all in one
+    gh                 # GitHub CLI — PRs, issues from terminal
+    delta              # Pretty diff viewer — integrates with git
+    dust               # Visual disk usage — like du but readable
+    procs              # Modern ps replacement with color and filtering
+    whois              # Domain registration lookup
+    traceroute         # Trace network path to a host
+    obsidian           # Markdown-based knowledge base / note-taking app
+    fluent-reader      # RSS feed reader — clean GTK app for following news/blogs
+    obs-studio         # Screen recording and streaming
+    p7zip              # Extract .7z, .rar, and many other archive formats
+    imagemagick        # CLI image conversion and manipulation
+    nix-output-monitor # Progress bar + TUI for nix builds (nom)
+
     # ==============================================================
     # Host-specific apps
     # Special tools only this machine needs — editors, design tools,
-    # video editors, image editors, etc. go here, NOT in the shared
-    # user packages module, so each host can enable/disable them
-    # independently.
+    # video editors, image editors, etc. go here so each host can
+    # enable/disable them independently.
     # ==============================================================
     # affinity-v3  # re-enable when vc_redist.x64.exe CDN recovers (Microsoft 503s as of 2026-07-04)
-                  # Affinity Photo + Designer + Publisher via Wine
-                  # First run opens installer — leave path at default.
-                  # Data: ~/.local/share/affinity-v3/ | Update: affinity-v3 update
   ];
 
   # ==============================================================

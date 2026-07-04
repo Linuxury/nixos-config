@@ -150,7 +150,6 @@
     # ==============================================================
     ../../modules/users/babylinux/ssh/default.nix
     ../../modules/users/babylinux/description/default.nix
-    ../../modules/users/babylinux/packages/default.nix
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
@@ -352,14 +351,18 @@
     # Media
     vlc       # Reliable video player that plays anything
 
+    # babylinux — everyday tools
+    nix-output-monitor # Progress bar + TUI for nix builds (nom)
+    zoom-us            # Video conferencing
+    obsidian           # Markdown-based knowledge base / note-taking app
+
     # ==============================================================
     # Host-specific apps
     # Special tools only this machine needs — editors, design tools,
-    # video editors, image editors, etc. go here, NOT in the shared
-    # user packages module, so each host can enable/disable them
-    # independently.
+    # video editors, image editors, etc. go here so each host can
+    # enable/disable them independently.
     # ==============================================================
-    # example: kdenlive  # uncomment to add
+    # affinity-v3  # re-enable when vc_redist.x64.exe CDN recovers (Microsoft 503s as of 2026-07-04)
   ];
 
   # ==============================================================

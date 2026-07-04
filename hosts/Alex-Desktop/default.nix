@@ -140,7 +140,6 @@
     #   linuxury: ssh     — emergency admin access + Syncthing
     # ==============================================================
     ../../modules/users/alex/description/default.nix
-    ../../modules/users/alex/packages/default.nix
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
@@ -273,14 +272,16 @@
   environment.systemPackages = with pkgs; [
     cifs-utils
 
+    # alex — everyday tools
+    nix-output-monitor # Progress bar + TUI for nix builds (nom)
+    gcompris           # 100+ educational activities — ages 2-10
+    freetube           # YouTube without ads, algorithm, or shorts
+
     # ==============================================================
     # Host-specific apps
-    # Special tools only this machine needs — editors, design tools,
-    # video editors, image editors, etc. go here, NOT in the shared
-    # user packages module, so each host can enable/disable them
-    # independently.
+    # Special tools only this machine needs — editors, creative tools,
+    # etc. go here so each host can enable/disable them independently.
     # ==============================================================
-    # example: kdenlive  # uncomment to add
   ];
 
   # ==============================================================
