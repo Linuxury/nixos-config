@@ -516,6 +516,8 @@ in
         { command = "/run/current-system/sw/bin/reboot";             options = [ "NOPASSWD" ]; }
         { command = "${pkgs.systemd}/bin/systemctl start notify-vault@success.service"; options = [ "NOPASSWD" ]; }
         { command = "${pkgs.systemd}/bin/systemctl start notify-vault@failure.service"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/systemctl start notify-vault@success.service"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/systemctl start notify-vault@failure.service"; options = [ "NOPASSWD" ]; }
       ];
     }
   ];
