@@ -147,15 +147,43 @@ in
   # Persistent = true (via systemd): if the machine was off at 3am Saturday,
   # the timer fires on next boot. This catches "missed auto-update" cases.
   # =========================================================================
-  system.autoUpgrade = {
+  # Non-primary hosts use system.autoUpgrade (pulls from GitHub).
+  # Primary host uses its own timer below so the 20h cooldown is respected
+  # when nru is run manually.
+  system.autoUpgrade = lib.mkIf (!cfg.isPrimary) {
     enable             = true;
     flake              = "github:linuxury/nixos-config";
     dates              = cfg.schedule;
     allowReboot        = false;
-    # Spread runs across 45min so all 9 machines don't hit GitHub at once.
     randomizedDelaySec = "45min";
-    # Run on next boot if the machine was off when the timer fired.
     persistent         = true;
+  };
+
+  # Primary host: custom system timer that calls nixos-auto-update (which has
+  # the 20h cooldown). If nru was run within 20h the script exits early —
+  # system.autoUpgrade has no such logic, so we replace it here.
+  systemd.services.nixos-auto-update-scheduled = lib.mkIf cfg.isPrimary {
+    description = "NixOS scheduled auto-update (primary host)";
+    serviceConfig = {
+      Type            = "oneshot";
+      User            = cfg.primaryUser;
+      TimeoutStartSec = "1h";
+      ExecStart       = "${pkgs.bash}/bin/bash -c 'nixos-auto-update; OUTCOME=$?; if [ $OUTCOME -eq 0 ]; then sudo systemctl start notify-vault@success.service; elif [ $OUTCOME -eq 1 ]; then sudo systemctl start notify-vault@failure.service; fi'";
+      Environment     = [
+        "PATH=/run/wrappers/bin:/run/current-system/sw/bin"
+        "HOME=/home/${cfg.primaryUser}"
+      ];
+    };
+  };
+
+  systemd.timers.nixos-auto-update-scheduled = lib.mkIf cfg.isPrimary {
+    wantedBy    = [ "timers.target" ];
+    description = "NixOS auto-update timer (primary host)";
+    timerConfig = {
+      OnCalendar         = cfg.schedule;
+      Persistent         = true;   # fires on next boot if the machine was off at 3am
+      RandomizedDelaySec = "15min";
+    };
   };
 
   # =========================================================================
@@ -468,7 +496,9 @@ in
   systemd.user.services.nixos-auto-update = {
     description = "NixOS automatic update check";
     after    = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
+    # Primary host uses a system timer instead — no session-start trigger
+    # so manual nru runs aren't shadowed by a background update on login.
+    wantedBy = lib.optionals (!cfg.isPrimary) [ "graphical-session.target" ];
     serviceConfig = {
       Type         = "oneshot";
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 120";

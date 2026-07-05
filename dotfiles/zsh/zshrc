@@ -570,6 +570,10 @@ _nru_rebuild() {
 
   echo "✓ Rebuild successful${_NIXOS_LAST_GEN:+  (generation ${_NIXOS_LAST_GEN})}"
 
+  # Record timestamp so the scheduled auto-update service skips its 3am run
+  # if nru was used within the last 20h.
+  date +%s > /etc/nixos-last-update-time 2>/dev/null || true
+
   # Push the updated flake.lock so other hosts get the same nixpkgs pin.
   # Git output is captured and hidden on success; shown in full on failure
   # so auth/divergence errors are never silently swallowed.
