@@ -152,7 +152,7 @@
     #   nix flake update goverlay-src
     # -------------------------------------------------------------------------
     goverlay-src = {
-      url   = "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.4.tar.gz";
+      url   = "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.5.tar.gz";
       flake = false;
     };
 
