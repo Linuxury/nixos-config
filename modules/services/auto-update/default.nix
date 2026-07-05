@@ -354,7 +354,7 @@ in
           log "WARN: git pull failed — continuing with local state"
 
         log "Updating nixpkgs pin (nix flake update)..."
-        nix flake update "$NIXOS_CONFIG_PATH" 2>&1 | tee -a "$LOG_FILE"
+        nix flake update --flake "$NIXOS_CONFIG_PATH" 2>&1 | tee -a "$LOG_FILE"
 
         FLAKE_REF="$NIXOS_CONFIG_PATH"
       else
