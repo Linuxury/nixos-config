@@ -222,7 +222,7 @@ _nix_fetch_filter() {
     for (i = 0; i < bw; i++) bar = bar "■"
     if (build_done < build_total) {
       count_str = sprintf("%d/%d", build_total, build_total)
-      printf "\r\033[1A  ⚒  %7s  [%s]  100%%  cached\033[K\r\n\r\033[K\n", count_str, bar > "/dev/tty"
+      printf "\r\033[1A  ⚒  %8s  [%s]  100%%  cached\033[K\r\n\r\033[K\n", count_str, bar > "/dev/tty"
     } else {
       printf "\r\033[K\n" > "/dev/tty"
     }
@@ -272,6 +272,7 @@ _nix_fetch_filter() {
   /^setting up \/etc/                                   { next }
   /^reloading user units for /                          { next }
   /^Skipping "\//                                       { next }
+  /^this path will be fetched/                          { next }
 
   /^these [0-9]+ derivations will be built:/ {
     killspinner()
@@ -282,7 +283,7 @@ _nix_fetch_filter() {
     build_label = ""
     bar = sprintf("%*s", bw, ""); gsub(/ /, "□", bar)
     sec_bar = sprintf("%*s", bw, ""); gsub(/ /, "╌", sec_bar)
-    printf "  ⚒  %7s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-8s  [%s]    0%%  \033[K", \
+    printf "  ⚒  %8s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-8s  [%s]    0%%  \033[K", \
       "0/" build_total, bar, "building", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     in_build = 1
@@ -306,8 +307,8 @@ _nix_fetch_filter() {
     count_str = sprintf("%d/%d", build_done, build_total)
     print "building|" path > statef; close(statef)
     spawn_anim()
-    printf "\r\033[1A  ⚒  %7s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-8s  [%s]    0%%  %s\033[K", \
-      count_str, bar, pct, build_label, "building", sec_bar, path > "/dev/tty"
+    printf "\r\033[1A  ⚒  %8s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-8s  [%s]    0%%\033[K", \
+      count_str, bar, pct, build_label, "building", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     next
   }
@@ -322,7 +323,7 @@ _nix_fetch_filter() {
     fetch_label = ""
     bar = sprintf("%*s", bw, ""); gsub(/ /, "□", bar)
     sec_bar = sprintf("%*s", bw, ""); gsub(/ /, "╌", sec_bar)
-    printf "  ⬇  %7s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-8s  [%s]    0%%  \033[K", \
+    printf "  ⬇  %8s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-8s  [%s]    0%%  \033[K", \
       "0/" total, bar, "fetching", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     in_progress = 1
@@ -346,8 +347,8 @@ _nix_fetch_filter() {
     count_str = sprintf("%d/%d", done, total)
     print "fetching|" path > statef; close(statef)
     spawn_anim()
-    printf "\r\033[1A  ⬇  %7s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-8s  [%s]    0%%  %s\033[K", \
-      count_str, bar, pct, path, "fetching", sec_bar, path > "/dev/tty"
+    printf "\r\033[1A  ⬇  %8s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-8s  [%s]    0%%\033[K", \
+      count_str, bar, pct, path, "fetching", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     next
   }
@@ -455,7 +456,7 @@ while true; do
   act=$(printf '%s' "$state" | cut -d'|' -f1)
   pkg=$(printf '%s' "$state" | cut -d'|' -f2-)
   [ -z "$act" ] && act="fetching"
-  printf '\r  %s  %-8s  [%s]  %3d%%  %s\033[K' "$schar" "$act" "$bar" "$pct" "$pkg" > /dev/tty
+  printf '\r  %s  %-8s  [%s]  %3d%%\033[K' "$schar" "$act" "$bar" "$pct" > /dev/tty
   sleep 0.1
   si=$(( si % 10 + 1 ))
   step=$(( step < 18 ? step + 1 : 18 ))
