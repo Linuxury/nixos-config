@@ -398,22 +398,32 @@ in
       log "Dry-build passed — proceeding with rebuild"
 
       # ── Rebuild ────────────────────────────────────────────────────────
+      # Capture exit code explicitly. nixos-rebuild returns:
+      #   0 = success
+      #   1 = build/activation failure (real error)
+      #   4 = unit activation warnings (e.g. fwupd-refresh timeout) — build
+      #       succeeded; treating this as failure causes spurious notifications.
       log "Running nixos-rebuild switch..."
-      if ! sudo nixos-rebuild switch --flake "$FLAKE_REF#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
+      rebuild_exit=0
+      sudo nixos-rebuild switch --flake "$FLAKE_REF#$HOSTNAME" >> "$LOG_FILE" 2>&1 || rebuild_exit=$?
+      if [[ $rebuild_exit -eq 1 ]]; then
         log "ERROR: nixos-rebuild failed"
         if is_transient_error; then
           log "Transient error detected — retrying in 5 minutes..."
           sleep 300
           log "Retrying nixos-rebuild switch..."
-          if sudo nixos-rebuild switch --flake "$FLAKE_REF#$HOSTNAME" >> "$LOG_FILE" 2>&1; then
-            log "Rebuild succeeded on retry"
-          else
+          retry_exit=0
+          sudo nixos-rebuild switch --flake "$FLAKE_REF#$HOSTNAME" >> "$LOG_FILE" 2>&1 || retry_exit=$?
+          if [[ $retry_exit -eq 1 ]]; then
             log "ERROR: rebuild failed again after retry"
             exit 1
           fi
+          log "Rebuild succeeded on retry"
         else
           exit 1
         fi
+      elif [[ $rebuild_exit -ne 0 ]]; then
+        log "Rebuild succeeded with unit activation warnings (exit $rebuild_exit)"
       fi
 
       # ── Primary: commit + push updated flake.lock ─────────────────────

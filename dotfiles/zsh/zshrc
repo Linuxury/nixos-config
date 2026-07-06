@@ -515,7 +515,7 @@ ANIMEOF
   _NIXOS_LAST_GEN=""
   if command -v nixos-log-rebuild &>/dev/null; then
     local outcome="success" log_out
-    [[ $exit_code -ne 0 ]] && outcome="failure"
+    [[ $exit_code -eq 1 ]] && outcome="failure"
     log_out=$(nixos-log-rebuild --outcome "$outcome" --log "$tmplog" 2>&1) || true
     _NIXOS_LAST_GEN=$(printf '%s' "$log_out" | grep -oE 'gen [0-9]+' | grep -oE '[0-9]+' | head -1)
   fi
@@ -573,6 +573,12 @@ _nru_rebuild() {
   # Record timestamp so the scheduled auto-update service skips its 3am run
   # if nru was used within the last 20h.
   date +%s > /etc/nixos-last-update-time 2>/dev/null || true
+
+  # Prevent the session-start auto-update service from firing after nru.
+  # Without this, the service runs 2 min after login, finds no done file,
+  # rebuilds again, and sends a spurious failure notification if there are
+  # unit activation warnings (exit 4).
+  touch /run/user/$UID/nixos-update-done 2>/dev/null || true
 
   # Push the updated flake.lock so other hosts get the same nixpkgs pin.
   # Git output is captured and hidden on success; shown in full on failure
