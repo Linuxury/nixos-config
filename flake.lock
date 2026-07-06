@@ -260,14 +260,14 @@
     "goverlay-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1783214949,
-        "narHash": "sha256-8AgtSaqDayfV8ji6hWIssnDbL+MKZVh1GTXskKcEgCQ=",
+        "lastModified": 1783373801,
+        "narHash": "sha256-oPte8wDXF6bzD6eNP5O/iubwQ8l7pf+W7TJeouRJVlY=",
         "type": "tarball",
-        "url": "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.5.tar.gz"
+        "url": "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.6.tar.gz"
       },
       "original": {
         "type": "tarball",
-        "url": "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.5.tar.gz"
+        "url": "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.6.tar.gz"
       }
     },
     "helium-browser": {
