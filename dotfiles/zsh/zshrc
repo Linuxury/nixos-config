@@ -222,9 +222,9 @@ _nix_fetch_filter() {
     for (i = 0; i < bw; i++) bar = bar "■"
     if (build_done < build_total) {
       count_str = sprintf("%d/%d", build_total, build_total)
-      printf "\r\033[1A  ⚒  %8s  [%s]  100%%  cached\033[K\r\n\r\033[K\n", count_str, bar > "/dev/tty"
+      printf "\r\033[1A  ⚒  %8s  [%s]  100%%  cached\033[K\r\n\r\033[K", count_str, bar > "/dev/tty"
     } else {
-      printf "\r\033[K\n" > "/dev/tty"
+      printf "\r\033[K" > "/dev/tty"
     }
     if (blank) printf "\n" > "/dev/tty"
     fflush("/dev/tty")
@@ -253,7 +253,7 @@ _nix_fetch_filter() {
   function close_fetch(blank) {
     if (!in_progress) return
     kill_anim()
-    printf "\r\033[K\n" > "/dev/tty"
+    printf "\r\033[K" > "/dev/tty"
     if (blank) printf "\n" > "/dev/tty"
     fflush("/dev/tty")
     in_progress = 0
@@ -366,8 +366,8 @@ _nix_fetch_filter() {
   /^(stopping|starting|restarting|reloading) the following .*units?: / ||
   /^the following new units were started: / {
     killspinner()
-    close_build(1)
-    close_fetch(1)
+    close_build(0)
+    close_fetch(0)
     idx  = index($0, ": ")
     rest = substr($0, idx + 2)
     n_u  = split(rest, us, ", ")
@@ -381,8 +381,8 @@ _nix_fetch_filter() {
 
   {
     killspinner()
-    close_build(1)
-    close_fetch(1)
+    close_build(0)
+    close_fetch(0)
     print
   }
 
@@ -395,7 +395,6 @@ _nix_fetch_filter() {
       for (j = 0; j < hlen; j++) hfill = hfill "─"
       close_line = ""
       for (j = 0; j < 58; j++) close_line = close_line "─"
-      print ""
       printf "%s%s\n", htitle, hfill
       print_group("Stopped",   stopped_ord,   n_stopped)
       print_group("Restarted", restarted_ord, n_restarted)
