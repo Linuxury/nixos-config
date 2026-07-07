@@ -70,6 +70,8 @@
     #
     # Affinity has no native Linux build. This flake wraps the free Windows
     # app in ElementalWarrior's patched Wine fork so it runs on NixOS.
+    # The overlay and garnix cache are scoped to modules/system/graphical/affinity/
+    # so headless servers never evaluate it.
     #
     # Do NOT add nixpkgs.follows here — the flake pins its own nixpkgs commit
     # for Wine build stability. Overriding it breaks the Wine build.
@@ -122,38 +124,6 @@
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # -------------------------------------------------------------------------
-    # proton-ge-custom — GloriousEggroll's custom Proton build
-    #
-    # Points directly at the upstream prebuilt release tarball.
-    # flake = false means Nix treats it as a plain source archive —
-    # the hash lives in flake.lock, never in any source file.
-    #
-    # To update: nru handles this automatically via _nru_update_proton_ge.
-    # Manual update: edit the version in the URL below, then run:
-    #   nix flake update proton-ge-custom
-    # -------------------------------------------------------------------------
-    proton-ge-custom = {
-      url      = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz";
-      flake    = false;
-    };
-
-    # -------------------------------------------------------------------------
-    # goverlay-src — GOverlay GUI for MangoHud / vkBasalt
-    #
-    # nixpkgs carries goverlay but lags behind upstream releases.
-    # flake = false points at the GitHub release tarball so nru can
-    # keep it current via _nru_update_goverlay (runs alongside proton-ge).
-    #
-    # To update: nru handles this automatically.
-    # Manual update: change the tag version in the URL below, then run:
-    #   nix flake update goverlay-src
-    # -------------------------------------------------------------------------
-    goverlay-src = {
-      url   = "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.5.tar.gz";
-      flake = false;
     };
 
   };

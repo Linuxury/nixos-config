@@ -745,10 +745,14 @@ _nru_nixpkgs_bar() {
 
 # ---------------------------------------------------------------------------
 # _nru_update_proton_ge — checks GitHub for a new GE-Proton release and
-# updates the flake.nix input URL if needed, then refreshes flake.lock.
+# updates the inline fetchzip in modules/gaming/default.nix.
+# (proton-ge-custom is no longer a flake input — moved inline so headless
+# servers never resolve this tarball during nix flake evaluation.)
 # ---------------------------------------------------------------------------
 _nru_update_proton_ge() {
-  local latest current
+  local latest current gaming_module
+
+  gaming_module="${NIXOS_CONFIG}/modules/gaming/default.nix"
 
   latest=$(curl -fsSL "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
@@ -756,25 +760,33 @@ _nru_update_proton_ge() {
     return 0
   }
 
-  current=$(grep -oE 'GE-Proton[0-9]+-[0-9]+' "$NIXOS_CONFIG/flake.nix" | head -1)
+  current=$(grep -oE 'GE-Proton[0-9]+-[0-9]+' "$gaming_module" | head -1)
 
   if [[ "$latest" == "$current" ]]; then
     printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GE-Proton" "$_NRU_DONE" "$current"
     return 0
   fi
 
-  local _cur="$current" _lat="$latest" _cfg="$NIXOS_CONFIG"
+  local _cur="$current" _lat="$latest" _gm="$gaming_module"
   _nru_pkg_bar "$_NRU_GH" "GE-Proton" "$_lat" \
-    zsh -c "sed -i 's|${_cur}|${_lat}|g' \"${_cfg}/flake.nix\" \
-      && nix flake update proton-ge-custom --flake \"${_cfg}\""
+    zsh -c "
+      local new_url=\"https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${_lat}/${_lat}.tar.gz\"
+      local new_hash=\$(nix store prefetch-file --hash-type sha256 --unpack \"\$new_url\" 2>&1 | grep -oP 'sha256-[A-Za-z0-9+/=]+')
+      sed -i \"s|GE-Proton[0-9]*-[0-9]*|${_lat}|g\" \"${_gm}\"
+      sed -i \"s|hash = \\\"sha256-[A-Za-z0-9+/=]*\\\"; # proton-ge-hash|hash = \\\"\$new_hash\\\"; # proton-ge-hash|\" \"${_gm}\"
+    "
 }
 
 # ---------------------------------------------------------------------------
 # _nru_update_goverlay — checks GitHub for a new GOverlay release and
-# updates the flake.nix input URL + version string if needed.
+# updates the inline fetchzip in modules/gaming/default.nix.
+# (goverlay-src is no longer a flake input — moved inline so headless
+# servers never resolve this tarball during nix flake evaluation.)
 # ---------------------------------------------------------------------------
 _nru_update_goverlay() {
-  local latest current
+  local latest current gaming_module
+
+  gaming_module="${NIXOS_CONFIG}/modules/gaming/default.nix"
 
   latest=$(curl -fsSL "https://api.github.com/repos/benjamimgois/goverlay/releases/latest" \
     | jq -r '.tag_name' 2>/dev/null) || {
@@ -782,20 +794,22 @@ _nru_update_goverlay() {
     return 0
   }
 
-  current=$(grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+\.tar' "$NIXOS_CONFIG/flake.nix" \
-    | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+  current=$(grep -oE 'refs/tags/[0-9]+\.[0-9]+(\.[0-9]+)?\.tar' "$gaming_module" \
+    | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
 
   if [[ "$latest" == "$current" ]]; then
     printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GOverlay" "$_NRU_DONE" "$current"
     return 0
   fi
 
-  local _cur="$current" _lat="$latest" _cfg="$NIXOS_CONFIG"
+  local _cur="$current" _lat="$latest" _gm="$gaming_module"
   _nru_pkg_bar "$_NRU_GH" "GOverlay" "$_lat" \
     zsh -c "
-      sed -i 's|refs/tags/${_cur}\.tar|refs/tags/${_lat}.tar|g' \"${_cfg}/flake.nix\"
-      sed -i 's|version = \"${_cur}\"; # goverlay-nru|version = \"${_lat}\"; # goverlay-nru|g' \"${_cfg}/flake.nix\"
-      nix flake update goverlay-src --flake \"${_cfg}\"
+      local new_url=\"https://github.com/benjamimgois/goverlay/archive/refs/tags/${_lat}.tar.gz\"
+      local new_hash=\$(nix store prefetch-file --hash-type sha256 --unpack \"\$new_url\" 2>&1 | grep -oP 'sha256-[A-Za-z0-9+/=]+')
+      sed -i \"s|refs/tags/${_cur}\.tar|refs/tags/${_lat}.tar|g\" \"${_gm}\"
+      sed -i \"s|version = \\\"${_cur}\\\"; # goverlay-nru|version = \\\"${_lat}\\\"; # goverlay-nru|\" \"${_gm}\"
+      sed -i \"s|hash = \\\"sha256-[A-Za-z0-9+/=]*\\\"; # goverlay-hash|hash = \\\"\$new_hash\\\"; # goverlay-hash|\" \"${_gm}\"
     "
 }
 

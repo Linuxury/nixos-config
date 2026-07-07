@@ -16,7 +16,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   ...
 }:
 let
@@ -75,11 +74,18 @@ in
   # =========================================================================
   # Gaming-only overlays — scoped here so headless hosts never fetch these
   # source tarballs during evaluation.
+  #
+  # proton-ge-custom and goverlay use inline pkgs.fetchzip (not flake inputs)
+  # so headless servers never resolve these tarballs when building from GitHub.
+  # nru updates the URL, version, and hash in this file directly.
   # =========================================================================
   nixpkgs.overlays = [
     (final: prev: {
       proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
-        proton-ge-src = inputs.proton-ge-custom;
+        proton-ge-src = pkgs.fetchzip {
+          url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz"; # proton-ge-nru
+          hash = "sha256-I7SSvzQQ/NqdvwjpJ9IFFtAaTS+rgHUyXx0us1vIOnw="; # proton-ge-hash
+        };
       };
 
       # GOverlay — pinned ahead of nixpkgs; nru keeps the version current.
@@ -92,8 +98,11 @@ in
       goverlay = prev.goverlay.overrideAttrs (old:
         let mangohudBin = prev.lib.getExe' prev.mangohud "mangohud"; in
         {
-          version = "1.8.4"; # goverlay-nru
-          src     = inputs.goverlay-src;
+          version = "1.8.6"; # goverlay-nru
+          src     = pkgs.fetchzip {
+            url  = "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.6.tar.gz"; # goverlay-nru
+            hash = "sha256-oPte8wDXF6bzD6eNP5O/iubwQ8l7pf+W7TJeouRJVlY="; # goverlay-hash
+          };
           # pascube (new in 1.8.4) links against SDL2 — not needed by goverlay itself.
           buildInputs = old.buildInputs ++ [ prev.SDL2 ];
           buildPhase = old.buildPhase + ''
