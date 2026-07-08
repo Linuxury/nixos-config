@@ -345,7 +345,7 @@ in
     [ -e /bin/true ] || ln -sf ${pkgs.coreutils}/bin/true /bin/true
   '';
 
-  boot.kernelModules = ["ntsync" "uinput"];
+  boot.kernelModules = ["ntsync" "uinput" "hid_steam"];
   services.udev.extraRules = ''
     KERNEL=="ntsync", TAG+="uaccess"
   '';
