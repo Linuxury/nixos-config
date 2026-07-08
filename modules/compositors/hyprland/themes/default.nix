@@ -31,7 +31,9 @@
     theme=kvantum-colors
   '';
 
-  home.file.".config/qt6ct/qt6ct.conf".text = ''
+  home.file.".config/qt6ct/qt6ct.conf" = {
+    force = true;
+    text = ''
     [Appearance]
     color_scheme_path=%h/.config/qt6ct/colors/matugen.conf
     custom_palette=true
@@ -42,6 +44,7 @@
     fixed=@Variant(\0\0\0@\0\0\0\x12JetBrainsMono Nerd Font\0\0\0\0\0\0\0\0\0\xfe\xff\xff\xff)
     general=@Variant(\0\0\0@\0\0\0\nNoto Sans\0\0\0\0\0\0\0\0\0\xfe\xff\xff\xff)
   '';
+  };
 
   # =========================================================================
   # Window button layout — GTK CSD apps (Firefox, GTK4 apps)
