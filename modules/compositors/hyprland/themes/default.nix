@@ -16,6 +16,34 @@
   imports = [ ../../../themes/gtk/default.nix ];
 
   # =========================================================================
+  # Qt theming — Kvantum + qt6ct
+  #
+  # Kvantum reads its active theme from kvantumrc. matugen writes the
+  # kvantum-colors theme files to ~/.config/Kvantum/kvantum-colors/ on each
+  # wallpaper change, so the palette stays in sync automatically.
+  #
+  # qt6ct.conf tells qt6ct to use the Kvantum style and the matugen color
+  # scheme. QT_STYLE_OVERRIDE=kvantum (set in the Hyprland NixOS module)
+  # ensures Qt apps load Kvantum without needing QT_QPA_PLATFORMTHEME=qt6ct.
+  # =========================================================================
+  home.file.".config/Kvantum/kvantumrc".text = ''
+    [General]
+    theme=kvantum-colors
+  '';
+
+  home.file.".config/qt6ct/qt6ct.conf".text = ''
+    [Appearance]
+    color_scheme_path=%h/.config/qt6ct/colors/matugen.conf
+    custom_palette=true
+    icon_theme=Tela-dark
+    style=kvantum
+
+    [Fonts]
+    fixed=@Variant(\0\0\0@\0\0\0\x12JetBrainsMono Nerd Font\0\0\0\0\0\0\0\0\0\xfe\xff\xff\xff)
+    general=@Variant(\0\0\0@\0\0\0\nNoto Sans\0\0\0\0\0\0\0\0\0\xfe\xff\xff\xff)
+  '';
+
+  # =========================================================================
   # Window button layout — GTK CSD apps (Firefox, GTK4 apps)
   #
   # Without this, Firefox on Hyprland shows only a close button because

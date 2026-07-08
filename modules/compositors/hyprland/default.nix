@@ -105,6 +105,10 @@ in
   # It hangs for its full 90 s startup timeout, which blocks graphical.target,
   # which blocks UWSM, causing a ~65 s delay before Hyprland launches.
   environment.sessionVariables.LIBSEAT_BACKEND = "logind";
+  # Force Kvantum as the Qt style engine on Hyprland — overrides the default
+  # fusion/windowsvista style so Qt apps pick up the matugen color palette.
+  # Scoped here so COSMIC/KDE hosts are unaffected (they manage Qt theming themselves).
+  environment.sessionVariables.QT_STYLE_OVERRIDE = "kvantum";
   services.seatd.enable = lib.mkForce false;
 
   services.displayManager.sddm.settings.Theme = {
@@ -217,8 +221,9 @@ in
     libnotify
 
     # Theming
-    nwg-look            # GTK theme settings for Wayland compositors
-    qt6Packages.qt6ct   # Qt6 theme settings outside of KDE/GNOME
+    nwg-look                              # GTK theme settings for Wayland compositors
+    qt6Packages.qt6ct                     # Qt6 theme settings outside of KDE/GNOME
+    kdePackages.qtstyleplugin-kvantum     # Kvantum style engine — lets Qt apps follow the matugen palette
 
     # Polkit authentication agent
     polkit_gnome

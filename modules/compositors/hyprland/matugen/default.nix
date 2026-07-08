@@ -148,5 +148,17 @@
     [templates.neovim]
     input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/nvim/matugen/colors.lua.template"
     output_path = "${config.home.homeDirectory}/.local/share/nvim/lua/matugen-colors.lua"
+
+    [templates.kvantum-kvconfig]
+    input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/kvantum-colors.kvconfig"
+    output_path = "${config.home.homeDirectory}/.config/Kvantum/kvantum-colors/kvantum-colors.kvconfig"
+
+    [templates.kvantum-svg]
+    input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/kvantum-colors.svg"
+    output_path = "${config.home.homeDirectory}/.config/Kvantum/kvantum-colors/kvantum-colors.svg"
+
+    [templates.qt6ct-colors]
+    input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/qtct-colors.conf"
+    output_path = "${config.home.homeDirectory}/.config/qt6ct/colors/matugen.conf"
   '';
 }

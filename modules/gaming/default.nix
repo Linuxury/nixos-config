@@ -281,6 +281,31 @@ in
     vulkan-tools # vulkaninfo — useful for checking Vulkan is working
     mesa-demos # glxinfo, glxgears — check OpenGL info and verify drivers
 
+    # -----------------------------------------------------------------------
+    # Graphics compatibility / post-processing
+    # -----------------------------------------------------------------------
+    vkbasalt # Vulkan post-processing layer — FSR1, CAS sharpening, SMAA,
+    # FXAA applied to any Vulkan game without touching launch options.
+    # GOverlay has a dedicated config tab for it (needs the package installed).
+
+    gamescope-wsi # Vulkan WSI layer that ships separately from the gamescope
+    # binary. Required for gamescope HDR and frame-timing features to work
+    # inside running games on Wayland.
+
+    # -----------------------------------------------------------------------
+    # Launchers — non-Steam storefronts
+    # -----------------------------------------------------------------------
+    heroic # Epic Games + GOG launcher — wraps Proton/Wine the same way
+    # Steam does; uses UMU internally for compatibility.
+
+    umu-launcher # Valve's universal compatibility tool (umu-run <exe>).
+    # Faugus-launcher pulls this in transitively, but having it explicitly
+    # lets you run any non-Steam EXE with Proton from the CLI.
+
+    steam-run # Run arbitrary Linux binaries inside Steam's FHS sandbox.
+    # Some game launchers and tools require a standard FHS layout which
+    # NixOS doesn't provide by default — this wraps any binary cleanly.
+
     # Controller support
     antimicrox # Map controller buttons to keyboard/mouse
     # Useful for games with no controller support
