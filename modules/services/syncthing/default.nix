@@ -79,8 +79,8 @@
         # "obsidian" folder ID so they participate in the single sync group.
 
         "Pixel-Pro-8" = {
-          id = "DHN7MUP-UBRZGR4-PXHDLCY-54O2IJI-Q7K7WKH-QQMQZWV-SXLAVNV-ALFCQQI";
-          addresses = [ "tcp://100.126.77.126:22000" ];
+          id = "7PCGWBQ-DK3DAYL-A7ANW7E-TDWSUGW-IEVJHXH-34SAGCG-JEQ6ZH5-YRZL7A7";
+          addresses = [ "tcp://100.102.143.76:22000" ];
         };
       };
 
