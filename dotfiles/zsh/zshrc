@@ -222,7 +222,7 @@ _nix_fetch_filter() {
     for (i = 0; i < bw; i++) bar = bar "■"
     if (build_done < build_total) {
       count_str = sprintf("%d/%d", build_total, build_total)
-      printf "\r\033[1A  ⚒  %8s  [%s]  100%%  cached\033[K\r\n\r\033[K", count_str, bar > "/dev/tty"
+      printf "\r\033[1A  ⚒  %12s  [%s]  100%%  cached\033[K\r\n\r\033[K", count_str, bar > "/dev/tty"
     } else {
       printf "\r\033[K" > "/dev/tty"
     }
@@ -283,7 +283,7 @@ _nix_fetch_filter() {
     build_label = ""
     bar = sprintf("%*s", bw, ""); gsub(/ /, "□", bar)
     sec_bar = sprintf("%*s", bw, ""); gsub(/ /, "╌", sec_bar)
-    printf "  ⚒  %8s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-8s  [%s]    0%%  \033[K", \
+    printf "  ⚒  %12s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-12s  [%s]    0%%  \033[K", \
       "0/" build_total, bar, "building", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     in_build = 1
@@ -307,7 +307,7 @@ _nix_fetch_filter() {
     count_str = sprintf("%d/%d", build_done, build_total)
     print "building|" path > statef; close(statef)
     spawn_anim()
-    printf "\r\033[1A  ⚒  %8s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-8s  [%s]    0%%\033[K", \
+    printf "\r\033[1A  ⚒  %12s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-12s  [%s]    0%%\033[K", \
       count_str, bar, pct, build_label, "building", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     next
@@ -323,7 +323,7 @@ _nix_fetch_filter() {
     fetch_label = ""
     bar = sprintf("%*s", bw, ""); gsub(/ /, "□", bar)
     sec_bar = sprintf("%*s", bw, ""); gsub(/ /, "╌", sec_bar)
-    printf "  ⬇  %8s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-8s  [%s]    0%%  \033[K", \
+    printf "  ⬇  %12s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-12s  [%s]    0%%  \033[K", \
       "0/" total, bar, "fetching", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     in_progress = 1
@@ -347,7 +347,7 @@ _nix_fetch_filter() {
     count_str = sprintf("%d/%d", done, total)
     print "fetching|" path > statef; close(statef)
     spawn_anim()
-    printf "\r\033[1A  ⬇  %8s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-8s  [%s]    0%%\033[K", \
+    printf "\r\033[1A  ⬇  %12s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-12s  [%s]    0%%\033[K", \
       count_str, bar, pct, path, "fetching", sec_bar > "/dev/tty"
     fflush("/dev/tty")
     next
@@ -381,8 +381,8 @@ _nix_fetch_filter() {
 
   {
     killspinner()
-    close_build(0)
-    close_fetch(0)
+    close_build(1)
+    close_fetch(1)
     print
   }
 
@@ -455,7 +455,7 @@ while true; do
   act=$(printf '%s' "$state" | cut -d'|' -f1)
   pkg=$(printf '%s' "$state" | cut -d'|' -f2-)
   [ -z "$act" ] && act="fetching"
-  printf '\r  %s  %-8s  [%s]  %3d%%\033[K' "$schar" "$act" "$bar" "$pct" > /dev/tty
+  printf '\r  %s  %-12s  [%s]  %3d%%\033[K' "$schar" "$act" "$bar" "$pct" > /dev/tty
   sleep 0.1
   si=$(( si % 10 + 1 ))
   step=$(( step < 18 ? step + 1 : 18 ))
@@ -486,15 +486,27 @@ ANIMEOF
   # _nix_fetch_filter receives the spinner PID so it can kill the spinner
   # before writing its own progress bars to /dev/tty.
   # The log (tee) captures raw output before the filter, so nothing is lost.
-  systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
-    --why="NixOS rebuild in progress" \
-    "$@" 2>&1 | tee "$tmplog" | _nix_fetch_filter "$_spin_pid" "$_anim_script" "$_anim_pid" "$_anim_state"
-  exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
-
-  # Kill spinner if still running (no build/fetch bars took over), then clear
-  # its line so the next output starts on a clean line.
-  kill "$_spin_pid" 2>/dev/null
-  printf "\r\033[K" > /dev/tty
+  # { } always { } is zsh's "finally" block — cleanup runs even on Ctrl+C.
+  # Without this, the animation script (orphaned grandchild of awk) keeps
+  # writing to /dev/tty after the pipeline is killed, leaving stale bars.
+  {
+    systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
+      --why="NixOS rebuild in progress" \
+      "$@" 2>&1 | tee "$tmplog" | _nix_fetch_filter "$_spin_pid" "$_anim_script" "$_anim_pid" "$_anim_state"
+    exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
+  } always {
+    kill "$_spin_pid" 2>/dev/null || true
+    local _anim_cleanup_pid
+    _anim_cleanup_pid=$(cat "$_anim_pid" 2>/dev/null)
+    # Only clear two-line display if animation is still running (not already
+    # cleaned up by awk on normal exit — avoids eating a real output line).
+    if [[ -n "$_anim_cleanup_pid" ]] && kill -0 "$_anim_cleanup_pid" 2>/dev/null; then
+      kill "$_anim_cleanup_pid" 2>/dev/null || true
+      printf "\r\033[K\033[1A\r\033[K\n" > /dev/tty
+    else
+      printf "\r\033[K" > /dev/tty
+    fi
+  }
 
   # Package diff — only shown on successful switch with real package changes.
   # _fmt_nvd outputs the complete formatted block (header + table + footer +
@@ -871,6 +883,25 @@ _nru_git_bar() {
 #   failed       → offer to retry (without re-pulling or re-updating)
 # ---------------------------------------------------------------------------
 nru() {
+  # TRAPINT fires on Ctrl+C even in interactive zsh (unlike `always` blocks).
+  # Kills the orphaned animation script and clears the two-line bar display.
+  # Self-removes so subsequent Ctrl+C in the shell behaves normally.
+  TRAPINT() {
+    unfunction TRAPINT 2>/dev/null
+    local _ap
+    _ap=$(cat "/tmp/nru_anim_pid_${$}" 2>/dev/null)
+    if [[ -n "$_ap" ]] && kill -0 "$_ap" 2>/dev/null; then
+      kill "$_ap" 2>/dev/null
+      printf "\r\033[K\033[1A\r\033[K\n" >/dev/tty
+    else
+      printf "\r\033[K\n" >/dev/tty
+    fi
+    if _nru_prompt "✗" "Rebuild Interrupted :: Retry Rebuild?"; then
+      _NRU_NO_HEADER=1 _nru_rebuild
+    fi
+    return 130
+  }
+
   # ── Header ──────────────────────────────────────────────────────────────────
   echo ""
   echo "══════════════════════════════════════════════════════════"
@@ -879,10 +910,10 @@ nru() {
   echo ""
 
   # ── Git pull ─────────────────────────────────────────────────────────────────
-  _nru_git_bar || return 1
+  _nru_git_bar || { unfunction TRAPINT 2>/dev/null; return 1 }
 
   # ── nixpkgs ──────────────────────────────────────────────────────────────────
-  _nru_nixpkgs_bar || return 1
+  _nru_nixpkgs_bar || { unfunction TRAPINT 2>/dev/null; return 1 }
 
   # ── GitHub packages (gaming hosts only) ─────────────────────────────────────
   command -v steam   &>/dev/null && { _nru_update_proton_ge || true }
@@ -891,6 +922,7 @@ nru() {
   # ── Rebuild ───────────────────────────────────────────────────────────────────
   echo ""
   _NRU_NO_HEADER=1 _nru_rebuild
+  unfunction TRAPINT 2>/dev/null
 }
 
 # NixOS aliases — available to all users on all hosts

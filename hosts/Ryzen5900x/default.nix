@@ -509,11 +509,9 @@
   # ==============================================================
   # Multi-monitor support
   #
-  # arandr gives a GUI for arranging monitors.
   # autorandr remembers and restores monitor layouts automatically.
   # ==============================================================
   environment.systemPackages = with pkgs; [
-    arandr     # GUI monitor arrangement tool
     autorandr  # Automatic monitor layout switching
     cifs-utils # Required for CIFS/Samba mounts
     xfsprogs   # XFS filesystem tools (mkfs.xfs, xfs_repair, etc.)
