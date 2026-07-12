@@ -284,6 +284,7 @@ in
   #   3. GTK cursor config (via gtk.enable below)
   # =========================================================================
   home.pointerCursor = {
+    enable     = true;
     name       = "BreezeX-Light";
     package    = breezex-cursors;
     size       = 24;

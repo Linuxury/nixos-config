@@ -63,6 +63,7 @@ in
   #   3. Writes cursor settings to GTK config (gtk.enable = true below)
   # =========================================================================
   home.pointerCursor = {
+    enable     = true;
     name       = "BreezeX-Light";
     package    = breezex-cursors;
     size       = 24;
