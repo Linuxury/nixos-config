@@ -159,6 +159,7 @@ in
     persistent         = true;
   };
 
+
   # Primary host: custom system timer that calls nixos-auto-update (which has
   # the 20h cooldown). If nru was run within 20h the script exits early —
   # system.autoUpgrade has no such logic, so we replace it here.
@@ -228,6 +229,28 @@ in
   # =========================================================================
   systemd.services.nixos-upgrade.onSuccess = [ "notify-vault@success.service" ];
   systemd.services.nixos-upgrade.onFailure = [ "notify-vault@failure.service" ];
+
+  # Boot-time race guard — prevents the persistent timer from running
+  # immediately after boot while the user is actively running nru.
+  #
+  # Persistent = true fires the timer as soon as the system starts if
+  # the scheduled time (3am) was missed. On desktop machines this collides
+  # with an interactive nru session started right after login: both try to
+  # run switch-to-configuration under the same transient unit name and one
+  # fails with "Unit already loaded". ExecCondition skips the auto-upgrade
+  # (CONDITION result — no failure email) if the machine booted less than
+  # 20 minutes ago. The session-start user service already handles the
+  # "check for updates on login" case via a 2-minute delay, so no updates
+  # are missed; the next 3am window catches any remaining drift.
+  systemd.services.nixos-upgrade.serviceConfig.ExecCondition = lib.mkIf (!cfg.isPrimary) (
+    pkgs.writeShellScript "nixos-upgrade-boot-guard" ''
+      uptime_secs=$(awk '{print int($1)}' /proc/uptime)
+      if [ "$uptime_secs" -lt 1200 ]; then
+        echo "System booted ''${uptime_secs}s ago (<20min) — skipping to avoid race with interactive nru"
+        exit 1
+      fi
+    ''
+  );
 
   # =========================================================================
   # Update log and stamp files — pre-created with primaryUser ownership
