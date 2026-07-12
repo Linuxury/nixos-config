@@ -25,10 +25,7 @@
   # Becomes a no-op once the directory is gone. Remove this block after all
   # linuxury hosts have been rebuilt and confirmed clean.
   system.activationScripts.removeObsidianDirLinuxury.text = ''
-    if [ -d /home/linuxury/Obsidian ]; then
-      echo "Cleanup: removing stale /home/linuxury/Obsidian (vault is now /home/linuxury/Jarvis)"
-      rm -rf /home/linuxury/Obsidian
-    fi
+    rm -rf /home/linuxury/Obsidian
   '';
 
 

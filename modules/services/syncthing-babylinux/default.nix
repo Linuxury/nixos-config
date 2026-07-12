@@ -21,10 +21,7 @@
   # Becomes a no-op once the directory is gone. Remove this block after both
   # Ryzen5800x and Asus-A15 have been rebuilt and confirmed clean.
   system.activationScripts.removeObsidianDirBabylinux.text = ''
-    if [ -d /home/babylinux/Obsidian ]; then
-      echo "Cleanup: removing stale /home/babylinux/Obsidian (vault is now /home/babylinux/Jarvis)"
-      rm -rf /home/babylinux/Obsidian
-    fi
+    rm -rf /home/babylinux/Obsidian
   '';
 
 
