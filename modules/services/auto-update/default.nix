@@ -159,7 +159,6 @@ in
     persistent         = true;
   };
 
-
   # Primary host: custom system timer that calls nixos-auto-update (which has
   # the 20h cooldown). If nru was run within 20h the script exits early —
   # system.autoUpgrade has no such logic, so we replace it here.
