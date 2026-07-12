@@ -3,8 +3,8 @@
 #
 # Imported by: Ryzen5800x, Asus-A15
 #
-# Runs as babylinux. Participates in the same single Obsidian sync group
-# as all other hosts — folder ID "obsidian" matches syncthing/default.nix.
+# Runs as babylinux. Participates in the same Jarvis vault sync group
+# as all other hosts — folder ID "jarvis" matches syncthing/default.nix.
 #
 # SETUP — after first rebuild on each new machine:
 #   1. Get the Syncthing device ID:
@@ -17,6 +17,17 @@
 { ... }:
 
 {
+  # ── One-time cleanup: remove stale ~/Obsidian (vault migrated to ~/Jarvis) ─
+  # Becomes a no-op once the directory is gone. Remove this block after both
+  # Ryzen5800x and Asus-A15 have been rebuilt and confirmed clean.
+  system.activationScripts.removeObsidianDirBabylinux.text = ''
+    if [ -d /home/babylinux/Obsidian ]; then
+      echo "Cleanup: removing stale /home/babylinux/Obsidian (vault is now /home/babylinux/Jarvis)"
+      rm -rf /home/babylinux/Obsidian
+    fi
+  '';
+
+
   services.syncthing = {
     enable    = true;
     user      = "babylinux";
@@ -70,10 +81,10 @@
 
       # ── Folders ──────────────────────────────────────────────────────────
       folders = {
-        "Obsidian" = {
-          id               = "obsidian";
-          label            = "Obsidian Vault";
-          path             = "/home/babylinux/Obsidian";
+        "Jarvis" = {
+          id               = "jarvis";
+          label            = "Jarvis Vault";
+          path             = "/home/babylinux/Jarvis";
           devices          = [
             "Ryzen5800x"
             # "Asus-A15"  # add back once ID is filled in above

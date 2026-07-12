@@ -21,6 +21,17 @@
 { ... }:
 
 {
+  # ── One-time cleanup: remove stale ~/Obsidian (vault migrated to ~/Jarvis) ─
+  # Becomes a no-op once the directory is gone. Remove this block after all
+  # linuxury hosts have been rebuilt and confirmed clean.
+  system.activationScripts.removeObsidianDirLinuxury.text = ''
+    if [ -d /home/linuxury/Obsidian ]; then
+      echo "Cleanup: removing stale /home/linuxury/Obsidian (vault is now /home/linuxury/Jarvis)"
+      rm -rf /home/linuxury/Obsidian
+    fi
+  '';
+
+
   services.syncthing = {
     enable    = true;
     user      = "linuxury";
@@ -76,7 +87,7 @@
 
         # babylinux and alex machines have their own Syncthing instances
         # (syncthing-babylinux.nix, syncthing-alex.nix) but share the same
-        # "obsidian" folder ID so they participate in the single sync group.
+        # "jarvis" folder ID so they participate in the single sync group.
 
         "Pixel-Pro-8" = {
           id = "7PCGWBQ-DK3DAYL-A7ANW7E-TDWSUGW-IEVJHXH-34SAGCG-JEQ6ZH5-YRZL7A7";
