@@ -789,6 +789,38 @@ _nru_update_proton_ge() {
 }
 
 # ---------------------------------------------------------------------------
+# _nru_update_proton_cachyos — checks GitHub for a new Proton-CachyOS release
+# and updates the inline fetchzip in modules/gaming/default.nix.
+# ---------------------------------------------------------------------------
+_nru_update_proton_cachyos() {
+  local latest current gaming_module
+
+  gaming_module="${NIXOS_CONFIG}/modules/gaming/default.nix"
+
+  latest=$(curl -fsSL "https://api.github.com/repos/CachyOS/proton-cachyos/releases/latest" \
+    | jq -r '.tag_name' 2>/dev/null) || {
+    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "Proton-Cachy" "$_NRU_DONE"
+    return 0
+  }
+
+  current=$(grep 'protonCachyosTag = ' "$gaming_module" | grep -oP '"[^"]+"' | tr -d '"')
+
+  if [[ "$latest" == "$current" ]]; then
+    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "Proton-Cachy" "$_NRU_DONE" "$current"
+    return 0
+  fi
+
+  local _cur="$current" _lat="$latest" _gm="$gaming_module"
+  _nru_pkg_bar "$_NRU_GH" "Proton-Cachy" "$_lat" \
+    zsh -c "
+      local new_url=\"https://github.com/CachyOS/proton-cachyos/releases/download/${_lat}/proton-${_lat}-x86_64.tar.xz\"
+      local new_hash=\$(nix store prefetch-file --hash-type sha256 --unpack \"\$new_url\" 2>&1 | grep -oP 'sha256-[A-Za-z0-9+/=]+')
+      sed -i \"s|protonCachyosTag = \\\"[^\\\"]*\\\"; # proton-cachyos-nru|protonCachyosTag = \\\"${_lat}\\\"; # proton-cachyos-nru|\" \"${_gm}\"
+      sed -i \"s|hash = \\\"sha256-[A-Za-z0-9+/=]*\\\"; # proton-cachyos-hash|hash = \\\"\$new_hash\\\"; # proton-cachyos-hash|\" \"${_gm}\"
+    "
+}
+
+# ---------------------------------------------------------------------------
 # _nru_git_bar — pulls latest nixos-config with animated progress bar.
 # Restores flake.lock first to avoid merge conflicts with local nix updates.
 # ---------------------------------------------------------------------------
@@ -880,7 +912,8 @@ nru() {
   _nru_nixpkgs_bar || { unfunction TRAPINT 2>/dev/null; return 1 }
 
   # ── GitHub packages (gaming hosts only) ─────────────────────────────────────
-  command -v steam &>/dev/null && { _nru_update_proton_ge || true }
+  command -v steam &>/dev/null && { _nru_update_proton_ge      || true }
+  command -v steam &>/dev/null && { _nru_update_proton_cachyos || true }
 
   # ── Rebuild ───────────────────────────────────────────────────────────────────
   echo ""

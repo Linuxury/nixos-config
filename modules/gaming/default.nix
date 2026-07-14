@@ -80,7 +80,11 @@ in
   # nru updates the URL, version, and hash in this file directly.
   # =========================================================================
   nixpkgs.overlays = [
-    (final: prev: {
+    (final: prev:
+    let
+      protonCachyosTag = "cachyos-11.0-20260702-slr"; # proton-cachyos-nru
+    in
+    {
       proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
         proton-ge-src = pkgs.fetchzip {
           url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz"; # proton-ge-nru
@@ -88,6 +92,13 @@ in
         };
       };
 
+      proton-cachyos = prev.callPackage ../../pkgs/proton-cachyos/package.nix {
+        tag = protonCachyosTag;
+        proton-cachyos-src = pkgs.fetchzip {
+          url  = "https://github.com/CachyOS/proton-cachyos/releases/download/${protonCachyosTag}/proton-${protonCachyosTag}-x86_64.tar.xz"; # proton-cachyos-nru
+          hash = "sha256-ZyyhEf6NcW7MzswWAlMdE4Ok8KnBOmB81yvu8ZwVxl4="; # proton-cachyos-hash
+        };
+      };
     })
   ];
 
@@ -108,8 +119,8 @@ in
     # Opens firewall ports for Steam's game server browser
     dedicatedServer.openFirewall = true;
 
-    # Proton-GE — prebuilt release tarball, updated automatically via nru
-    extraCompatPackages = [ pkgs.proton-ge-custom ];
+    # Proton-GE and Proton-CachyOS — prebuilt release tarballs, updated automatically via nru
+    extraCompatPackages = [ pkgs.proton-ge-custom pkgs.proton-cachyos ];
 
     # Adds a compatibility layer so Steam's own runtime libraries
     # work correctly on NixOS's non-standard filesystem layout
