@@ -75,8 +75,8 @@ in
   # Gaming-only overlays — scoped here so headless hosts never fetch these
   # source tarballs during evaluation.
   #
-  # proton-ge-custom and goverlay use inline pkgs.fetchzip (not flake inputs)
-  # so headless servers never resolve these tarballs when building from GitHub.
+  # proton-ge-custom uses inline pkgs.fetchzip (not a flake input)
+  # so headless servers never resolve this tarball when building from GitHub.
   # nru updates the URL, version, and hash in this file directly.
   # =========================================================================
   nixpkgs.overlays = [
@@ -88,37 +88,6 @@ in
         };
       };
 
-      # GOverlay — pinned ahead of nixpkgs; nru keeps the version current.
-      # All build inputs (lazarus-qt6, fpc, etc.) are inherited from prev.goverlay.
-      #
-      # 1.8.4 added pascube as a bundled binary (pascube_src/pascube.lpi).
-      # The upstream Makefile install target expects it but has a bug: it doesn't
-      # list pascube_bin as a prerequisite of install, so make install runs without
-      # building it. We extend buildPhase to build and copy it manually.
-      goverlay = prev.goverlay.overrideAttrs (old:
-        let mangohudBin = prev.lib.getExe' prev.mangohud "mangohud"; in
-        {
-          version = "1.8.6"; # goverlay-nru
-          src     = pkgs.fetchzip {
-            url  = "https://github.com/benjamimgois/goverlay/archive/refs/tags/1.8.6.tar.gz"; # goverlay-nru
-            hash = "sha256-oPte8wDXF6bzD6eNP5O/iubwQ8l7pf+W7TJeouRJVlY="; # goverlay-hash
-          };
-          # pascube (new in 1.8.4) links against SDL2 — not needed by goverlay itself.
-          buildInputs = old.buildInputs ++ [ prev.SDL2 ];
-          buildPhase = old.buildPhase + ''
-            HOME=$(mktemp -d) lazbuild --lazarusdir=${prev.lazarus-qt6}/share/lazarus -B pascube_src/pascube.lpi
-            cp pascube_src/pascube ./pascube
-          '';
-          # goverlay.sh.in in 1.8.4 unconditionally calls `mangohud ./goverlay`
-          # (LD_PRELOAD injection) which aborts on NixOS — wrapQtAppsHook doesn't
-          # wrap the Lazarus ELF so qtWrapperArgs is ineffective here.
-          # Fix: uncomment QT_QPA_PLATFORM=xcb and strip the mangohud wrapper,
-          # calling the goverlay ELF directly instead.
-          postPatch = old.postPatch + ''
-            sed -i 's|^#export QT_QPA_PLATFORM=xcb|export QT_QPA_PLATFORM=wayland\nunset QT_QPA_PLATFORMTHEME|' data/goverlay.sh.in
-            sed -i 's|${mangohudBin} @libexecdir@/goverlay|@libexecdir@/goverlay|' data/goverlay.sh.in
-          '';
-        });
     })
   ];
 
@@ -272,9 +241,6 @@ in
     # -----------------------------------------------------------------------
     gamemode # CLI access to GameMode (already enabled above)
     mangohud # CLI access to MangoHud (already enabled above)
-    goverlay # GUI configurator for MangoHud and vkBasalt overlays
-    # Makes tweaking your overlay much easier than editing
-    # the dotfile directly
     sgdboop # SteamGridDB asset manager — apply custom banners/icons
     # to Steam games from SteamGridDB with one click
 
@@ -286,7 +252,6 @@ in
     # -----------------------------------------------------------------------
     vkbasalt # Vulkan post-processing layer — FSR1, CAS sharpening, SMAA,
     # FXAA applied to any Vulkan game without touching launch options.
-    # GOverlay has a dedicated config tab for it (needs the package installed).
 
     gamescope-wsi # Vulkan WSI layer that ships separately from the gamescope
     # binary. Required for gamescope HDR and frame-timing features to work
