@@ -273,7 +273,7 @@ _nix_fetch_filter() {
   /^reloading user units for /                          { next }
   /^Skipping "\//                                       { next }
   /^this path will be fetched/                          { next }
-  /^unpacking '.*' into the Git cache/                  { next }
+  /^unpacking \47.*\47 into the Git cache/               { next }
 
   /^these [0-9]+ derivations will be built:/ {
     killspinner()
