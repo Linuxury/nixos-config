@@ -15,8 +15,32 @@
 # work in non-gaming contexts too (desktop navigation, media control).
 # ===========================================================================
 
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
+let
+  # =========================================================================
+  # sc-controller — patched to support the Steam Controller Puck (28de:1304)
+  #
+  # nixpkgs ships sc-controller 0.5.5 which only registers hotplug callbacks
+  # for the wired controller (0x1102), the original wireless dongle (0x1142),
+  # and the Steam Deck (0x1205). The newer "Puck" wireless receiver (0x1304)
+  # uses the identical Valve HID protocol — only the USB product ID differs.
+  #
+  # One extra register_hotplug_device call in sc_dongle.py is all that's
+  # needed. The full Dongle class (touchpads, gyro, haptics, serial) works
+  # unchanged.
+  #
+  # Track upstream: https://github.com/C0rn3j/sc-controller
+  # Remove this override once sc-controller natively registers 0x1304.
+  # =========================================================================
+  sc-controller = pkgs.sc-controller.overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      sed -i \
+        's|register_hotplug_device(cb, VENDOR_ID, PRODUCT_ID)$|register_hotplug_device(cb, VENDOR_ID, PRODUCT_ID)\n\tregister_hotplug_device(cb, VENDOR_ID, 0x1304)  # Steam Controller Puck|' \
+        scc/drivers/sc_dongle.py
+    '';
+  });
+in
 {
   # =========================================================================
   # Kernel modules
@@ -41,6 +65,9 @@
   # The Anbernic RG P01 (3537:1007) is not in the upstream package yet so
   # a manual rule is added below. Without it the device is only accessible
   # as root and antimicrox / SDL games won't see it on Wayland.
+  #
+  # Track upstream: https://codeberg.org/fabiscafe/game-devices-udev
+  # Remove the extraRules block once Anbernic 3537:1007 is merged upstream.
   # =========================================================================
   services.udev.packages = with pkgs; [
     game-devices-udev-rules
@@ -61,14 +88,14 @@
   #   The GUI (sc-controller) lets you build profiles: map touchpads to mouse
   #   or d-pad, configure gyro, set per-application profiles, create macros.
   #   The daemon (scc-daemon) runs in the background and applies the active
-  #   profile without Steam.
+  #   profile without Steam. Patched above to add Puck support (28de:1304).
   #
   # antimicrox — maps any controller's buttons/sticks to keyboard keys or
   #   mouse actions. Useful for apps with no native controller support.
   # =========================================================================
-  environment.systemPackages = with pkgs; [
-    sc-controller  # Steam Controller daemon + profile GUI
-    antimicrox     # Controller → keyboard/mouse mapping
+  environment.systemPackages = [
+    sc-controller
+    pkgs.antimicrox
   ];
 
   # =========================================================================
@@ -80,6 +107,9 @@
   #
   # To configure profiles: run `sc-controller` from the app launcher.
   # Profiles are saved to ~/.config/scc/profiles/ and persist across reboots.
+  # The built-in "Desktop" profile (loaded by default) mirrors the Steam Deck
+  # desktop layout: right pad = trackball mouse, left pad = scroll, RT = left
+  # click, LT = right click, stick = arrow keys.
   #
   # The daemon exits cleanly when the graphical session ends (partOf ensures
   # systemd stops it on logout rather than leaving it orphaned).
@@ -90,7 +120,7 @@
     after       = [ "graphical-session.target" ];
     partOf      = [ "graphical-session.target" ];
     serviceConfig = {
-      ExecStart = "${pkgs.sc-controller}/bin/scc-daemon --foreground start";
+      ExecStart = "${sc-controller}/bin/scc-daemon --foreground start";
       Restart    = "on-failure";
       RestartSec = 3;
     };
