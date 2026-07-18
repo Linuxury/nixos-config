@@ -83,7 +83,7 @@ _fmt_nvd() {
         [[ -z "$pkg" ]] && continue
         ver="${pkg##*  }"
         pkg="${pkg%%  *}"
-        [[ "$pkg" == "source" || "$pkg" == "home-manager-"* || "$pkg" == "hm_"* || "$pkg" == "activation-script" ]] && continue
+        [[ "$pkg" == "source" || "$pkg" == "home-manager-"* || "$pkg" == "hm_"* || "$pkg" == "activation-script" || "$pkg" == "unit-"* ]] && continue
         ver=$(printf '%s' "$ver" | sed 's/, .*//')
         names+=("$pkg")
         actions+=("$section")
@@ -396,7 +396,7 @@ _nix_fetch_filter() {
       for (j = 0; j < hlen; j++) hfill = hfill "─"
       close_line = ""
       for (j = 0; j < 58; j++) close_line = close_line "─"
-      printf "%s%s\n", htitle, hfill
+      printf "\n%s%s\n", htitle, hfill
       print_group("Stopped",   stopped_ord,   n_stopped)
       print_group("Restarted", restarted_ord, n_restarted)
       print_group("Reloaded",  reloaded_ord,  n_reloaded)
