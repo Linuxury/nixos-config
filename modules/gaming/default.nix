@@ -69,6 +69,7 @@ in
 {
   imports = [
     ./dmemcg-booster/default.nix
+    ../controllers/default.nix
   ];
 
   # =========================================================================
@@ -282,10 +283,6 @@ in
     # Some game launchers and tools require a standard FHS layout which
     # NixOS doesn't provide by default — this wraps any binary cleanly.
 
-    # Controller support
-    antimicrox # Map controller buttons to keyboard/mouse
-    # Useful for games with no controller support
-
     # Steam Big Picture Mode launcher (gamescope-wrapped, see let block above)
     steamBpm
 
@@ -321,21 +318,10 @@ in
     [ -e /bin/true ] || ln -sf ${pkgs.coreutils}/bin/true /bin/true
   '';
 
-  boot.kernelModules = ["ntsync" "uinput" "hid_steam"];
+  boot.kernelModules = [ "ntsync" ];
   services.udev.extraRules = ''
     KERNEL=="ntsync", TAG+="uaccess"
   '';
-
-  # =========================================================================
-  # Controller support — udev rules
-  #
-  # Without these rules, controllers need root access to be read.
-  # This gives your user permission to use controllers without sudo.
-  # Covers PlayStation, Xbox, Nintendo Switch Pro, and generic controllers.
-  # =========================================================================
-  services.udev.packages = with pkgs; [
-    game-devices-udev-rules
-  ];
 
   # =========================================================================
   # Kernel parameters for better gaming performance
