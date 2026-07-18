@@ -90,7 +90,7 @@
     after       = [ "graphical-session.target" ];
     partOf      = [ "graphical-session.target" ];
     serviceConfig = {
-      ExecStart = "${pkgs.sc-controller}/bin/scc-daemon start foreground";
+      ExecStart = "${pkgs.sc-controller}/bin/scc-daemon --foreground start";
       Restart    = "on-failure";
       RestartSec = 3;
     };
