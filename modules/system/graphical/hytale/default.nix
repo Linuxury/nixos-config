@@ -7,6 +7,13 @@
 #   - Flatpak overrides applied on every rebuild:
 #       ELECTRON_OZONE_PLATFORM_HINT=x11  (prevents blank window on COSMIC/MangoWC)
 #       --device=input                    (controller support)
+#       --filesystem=/run/udev:ro         (SDL2 udev enumeration)
+#   - ~/bin/hytale-launcher wrapper: switches sc-controller to gamepad profile
+#       before launch and restores Desktop profile on exit. Required because
+#       the Desktop profile consumes Steam Controller input as mouse/keyboard,
+#       making it invisible to Hytale's Chromium gamepad API.
+#   - xdg.desktopEntries override: app launcher / shortcut points at the
+#       wrapper so clicking the icon does the same as running hytale-launcher.
 #
 # Usage (in user home.nix):
 #   imports = [ ../../modules/system/graphical/hytale/default.nix ];
@@ -50,11 +57,31 @@ in
     # CDN users (linuxury): plain dir created by the activation below so the
     # downloaded file has a writable home (can't symlink into the git repo).
     # =========================================================================
-    home.file = lib.mkIf (!cfg.cdnFallback) {
-      "Documents/assets/flatpaks".source =
-        config.lib.file.mkOutOfStoreSymlink
-          "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
-    };
+    home.file = lib.mkMerge [
+      (lib.mkIf (!cfg.cdnFallback) {
+        "Documents/assets/flatpaks".source =
+          config.lib.file.mkOutOfStoreSymlink
+            "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
+      })
+      {
+        "bin/hytale-launcher" = {
+          executable = true;
+          text = ''
+            #!/usr/bin/env bash
+            PREV=$(scc info 2>/dev/null | grep -i 'profile:' | awk '{print $2}')
+            [[ -z "$PREV" ]] && PREV="Desktop"
+
+            scc set-profile "XBox Controller" 2>/dev/null
+            trap 'scc set-profile "$PREV" 2>/dev/null' EXIT INT TERM
+
+            ${pkgs.flatpak}/bin/flatpak run com.hypixel.HytaleLauncher "$@"
+
+            scc set-profile "$PREV" 2>/dev/null
+            trap - EXIT INT TERM
+          '';
+        };
+      }
+    ];
 
     home.activation.hytale-flatpak-dir = lib.mkIf cfg.cdnFallback
       (lib.hm.dag.entryBefore [ "writeBoundary" ] ''
@@ -142,17 +169,38 @@ in
     };
 
     # =========================================================================
+    # Desktop entry override — launcher icon uses the wrapper above
+    #
+    # ~/.local/share/applications/ takes priority over the Flatpak-exported
+    # entry in ~/.local/share/flatpak/exports/share/applications/, so this
+    # silently replaces it without touching any system files.
+    # =========================================================================
+    xdg.desktopEntries.hytale = {
+      name       = "Hytale";
+      comment    = "Hytale Launcher";
+      icon       = "com.hypixel.HytaleLauncher";
+      exec       = "${config.home.homeDirectory}/bin/hytale-launcher %U";
+      categories = [ "Game" ];
+      terminal   = false;
+    };
+
+    # =========================================================================
     # Flatpak overrides — applied on every HM rebuild (idempotent)
     #
     # ELECTRON_OZONE_PLATFORM_HINT=x11: forces XWayland mode so Hytale's
     #   Electron renderer doesn't use native Wayland GPU paths that produce
     #   a blank window on COSMIC and MangoWC.
-    # --device=input: grants access to input devices for controller support.
+    # --device=input: grants the sandbox access to /dev/input/* nodes so
+    #   the kernel-visible controllers are reachable inside the Flatpak.
+    # --filesystem=/run/udev:ro: SDL2's udev enumeration backend walks
+    #   /run/udev/data/ to map device nodes to capabilities. Without this,
+    #   SDL2 reports zero gamepads even though the nodes are accessible.
     # =========================================================================
     home.activation.hytale-overrides = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       ${pkgs.flatpak}/bin/flatpak override --user \
         --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
         --device=input \
+        --filesystem=/run/udev:ro \
         com.hypixel.HytaleLauncher 2>/dev/null || true
     '';
   };

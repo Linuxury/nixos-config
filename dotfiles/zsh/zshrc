@@ -923,12 +923,134 @@ alias ngc='sudo nix-collect-garbage --delete-older-than 30d'
 alias ngens='sudo nix-env --list-generations --profile /nix/var/nix/profiles/system'
 
 # ---------------------------------------------------------------------------
+# hytale — launch Hytale with gamepad sc-controller profile, restore after
+#
+# sc-controller's Desktop profile consumes all Steam Controller input as
+# mouse/keyboard. Switching to "XBox Controller" before launch makes it
+# emit real gamepad events that Hytale (Chromium gamepad API) can detect.
+# The Desktop profile is restored when the game exits, whether cleanly or
+# via Ctrl-C / kill.
+# ---------------------------------------------------------------------------
+hytale() {
+  local SCC="scc"
+  local PREV_PROFILE
+  PREV_PROFILE=$($SCC info 2>/dev/null | grep -i 'profile:' | awk '{print $2}')
+  [[ -z "$PREV_PROFILE" ]] && PREV_PROFILE="Desktop"
+
+  $SCC set-profile "XBox Controller" 2>/dev/null
+  trap '$SCC set-profile "$PREV_PROFILE" 2>/dev/null' EXIT INT TERM
+
+  flatpak run com.hypixel.HytaleLauncher "$@"
+
+  $SCC set-profile "$PREV_PROFILE" 2>/dev/null
+  trap - EXIT INT TERM
+}
+
+# ---------------------------------------------------------------------------
 # OpenCode — runs with OpenRouter API (key from agenix)
 # ---------------------------------------------------------------------------
 opencode() {
   ANTHROPIC_API_KEY="$(cat /run/agenix/openrouter-api-key 2>/dev/null)" \
   ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
   command opencode "$@"
+}
+
+# ---------------------------------------------------------------------------
+# ctrl-check — detect connected controllers and report their status
+#
+# Shows three layers that games (SDL2 / Hytale) depend on:
+#   js*     — legacy joystick nodes (SDL fallback)
+#   event*  — evdev nodes flagged as joystick/gamepad by udev
+#   hidraw* — raw HID nodes used by sc-controller for the Steam Controller
+#
+# For each device: name, vendor:product ID, and whether the current user
+# has access (uaccess tag or readable node). A ✓ means the game can see it;
+# an ✗ means a udev rule is missing or the user isn't in the right group.
+# ---------------------------------------------------------------------------
+ctrl-check() {
+  local bold='\e[1m' reset='\e[0m'
+  local green='\e[32m' red='\e[31m' dim='\e[2m' cyan='\e[36m'
+
+  _cc_access() {
+    # Returns ✓ (green) if readable, ✗ (red) if not
+    [[ -r "$1" ]] && echo "${green}✓${reset}" || echo "${red}✗${reset}"
+  }
+
+  _cc_udev_attr() {
+    # Extract a udevadm property by key, e.g. ID_VENDOR_ID
+    udevadm info --query=property --name="$1" 2>/dev/null \
+      | grep "^${2}=" | cut -d= -f2-
+  }
+
+  echo ""
+  printf "${bold}  Controller Check${reset}\n"
+  printf "${dim}  ─────────────────────────────────────────────────${reset}\n"
+
+  # ── 1. Joystick nodes (js*) ────────────────────────────────────────────
+  printf "\n${cyan}${bold}  js nodes${reset}  ${dim}(legacy joystick API)${reset}\n"
+  local found_js=0
+  for dev in /dev/input/js*; do
+    [[ -e "$dev" ]] || continue
+    found_js=1
+    local name vendor product
+    name=$(udevadm info --query=property --name="$dev" 2>/dev/null \
+           | grep '^ID_MODEL=' | cut -d= -f2-)
+    vendor=$(_cc_udev_attr "$dev" ID_VENDOR_ID)
+    product=$(_cc_udev_attr "$dev" ID_MODEL_ID)
+    [[ -z "$name"    ]] && name="unknown"
+    [[ -z "$vendor"  ]] && vendor="????"
+    [[ -z "$product" ]] && product="????"
+    printf "  $(_cc_access "$dev") ${bold}%-20s${reset}  ${dim}%s:%s${reset}  %s\n" \
+      "$dev" "$vendor" "$product" "$name"
+  done
+  [[ $found_js -eq 0 ]] && printf "  ${dim}  none${reset}\n"
+
+  # ── 2. Evdev gamepad nodes (event* with joystick/gamepad flag) ─────────
+  printf "\n${cyan}${bold}  evdev nodes${reset}  ${dim}(SDL2 / game input layer)${reset}\n"
+  local found_ev=0
+  for dev in /dev/input/event*; do
+    [[ -e "$dev" ]] || continue
+    local props
+    props=$(udevadm info --query=property --name="$dev" 2>/dev/null)
+    echo "$props" | grep -qE '^ID_INPUT_(JOYSTICK|GAMEPAD|ACCELEROMETER)=1' || continue
+    found_ev=1
+    local name vendor product
+    name=$(echo   "$props" | grep '^ID_MODEL='     | cut -d= -f2-)
+    vendor=$(echo  "$props" | grep '^ID_VENDOR_ID=' | cut -d= -f2-)
+    product=$(echo "$props" | grep '^ID_MODEL_ID='  | cut -d= -f2-)
+    [[ -z "$name"    ]] && name="unknown"
+    [[ -z "$vendor"  ]] && vendor="????"
+    [[ -z "$product" ]] && product="????"
+    printf "  $(_cc_access "$dev") ${bold}%-25s${reset}  ${dim}%s:%s${reset}  %s\n" \
+      "$dev" "$vendor" "$product" "$name"
+  done
+  [[ $found_ev -eq 0 ]] && printf "  ${dim}  none${reset}\n"
+
+  # ── 3. HID raw nodes (hidraw*) — sc-controller / Steam Controller ──────
+  printf "\n${cyan}${bold}  hidraw nodes${reset}  ${dim}(sc-controller / HID mode)${reset}\n"
+  local found_hid=0
+  for dev in /dev/hidraw*; do
+    [[ -e "$dev" ]] || continue
+    found_hid=1
+    local name vendor product
+    name=$(udevadm info --query=property --name="$dev" 2>/dev/null \
+           | grep '^HID_NAME=' | cut -d= -f2-)
+    vendor=$(_cc_udev_attr "$dev" HID_ID)
+    # HID_ID is "BUS:VENDOR:PRODUCT" — extract last two fields
+    [[ -n "$vendor" ]] && product=$(echo "$vendor" | cut -d: -f3) \
+                       && vendor=$(echo  "$vendor" | cut -d: -f2)
+    [[ -z "$name"    ]] && name="unknown"
+    [[ -z "$vendor"  ]] && vendor="????"
+    [[ -z "$product" ]] && product="????"
+    printf "  $(_cc_access "$dev") ${bold}%-20s${reset}  ${dim}%s:%s${reset}  %s\n" \
+      "$dev" "$vendor" "$product" "$name"
+  done
+  [[ $found_hid -eq 0 ]] && printf "  ${dim}  none${reset}\n"
+
+  printf "\n${dim}  ─────────────────────────────────────────────────${reset}\n"
+  printf "  ${dim}✓ = readable by $USER   ✗ = missing udev rule or group${reset}\n\n"
+
+  unfunction _cc_access _cc_udev_attr 2>/dev/null
 }
 
 # ---------------------------------------------------------------------------
