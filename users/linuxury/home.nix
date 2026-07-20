@@ -65,6 +65,20 @@
   };
 
   # =========================================================================
+  # GSettings default apps — GNOME apps check this instead of mimeapps.list
+  #
+  # Nautilus "Open Terminal Here" reads terminal.exec from GSettings, not
+  # mimeapps.list. The schema default is xdg-terminal-exec which is not
+  # installed, so "Open Terminal Here" silently fails. Set kitty directly.
+  # =========================================================================
+  dconf.settings = {
+    "org/gnome/desktop/default-applications/terminal" = {
+      exec     = "kitty";
+      exec-arg = "--";
+    };
+  };
+
+  # =========================================================================
   # XDG MIME type associations
   #
   # Tells the desktop environment which app opens each file type.
@@ -299,6 +313,14 @@
   # at ~/Pictures/Avatar. Same for Minecraft and SteamGridDB.
   # Remove manually-created AI symlinks/files so home-manager can take ownership.
   # Safe to run repeatedly — only acts on symlinks or plain files, never dirs.
+  # Remove the old mimeapps.list location so it never diverges from the
+  # HM-managed ~/.config/mimeapps.list. Apps that call `xdg-mime default`
+  # write here (old spec location), but ~/.config/mimeapps.list takes
+  # precedence. Having both risks apps reading conflicting data over time.
+  home.activation.cleanupOldMimeApps = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    rm -f "$HOME/.local/share/applications/mimeapps.list"
+  '';
+
   home.activation.migrateAiSymlinks = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
     # Clean up top-level symlinks/files so HM can recreate them
     for f in \
