@@ -163,7 +163,7 @@ in
       pkgs.xdg-desktop-portal-hyprland
       pkgs.xdg-desktop-portal-gtk
     ];
-    config.common.default = "hyprland";
+    config.common.default = [ "hyprland" "gtk" ];
   };
 
   # Register the quiet session wrapper so greeters can offer it.

@@ -52,6 +52,19 @@
   ];
 
   # =========================================================================
+  # Default app env vars
+  #
+  # Some apps (scripts, Claude Code, file managers' "Open Terminal Here",
+  # language runtimes, etc.) use $BROWSER/$TERMINAL instead of xdg-open.
+  # home.sessionVariables writes to ~/.config/environment.d/ so every
+  # app in the systemd user session inherits them — not just shell children.
+  # =========================================================================
+  home.sessionVariables = {
+    BROWSER  = "zen-beta";
+    TERMINAL = "kitty";
+  };
+
+  # =========================================================================
   # XDG MIME type associations
   #
   # Tells the desktop environment which app opens each file type.
