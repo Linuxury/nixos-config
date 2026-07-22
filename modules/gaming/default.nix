@@ -83,7 +83,7 @@ in
   nixpkgs.overlays = [
     (final: prev:
     let
-      protonCachyosTag = "cachyos-11.0-20260702-slr"; # proton-cachyos-nru
+      protonCachyosTag = "cachyos-11.0-20260703-slr"; # proton-cachyos-nru
     in
     {
       proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
@@ -97,7 +97,7 @@ in
         tag = protonCachyosTag;
         proton-cachyos-src = pkgs.fetchzip {
           url  = "https://github.com/CachyOS/proton-cachyos/releases/download/${protonCachyosTag}/proton-${protonCachyosTag}-x86_64.tar.xz"; # proton-cachyos-nru
-          hash = "sha256-ZyyhEf6NcW7MzswWAlMdE4Ok8KnBOmB81yvu8ZwVxl4="; # proton-cachyos-hash
+          hash = "sha256-jOcPeEkBBPPNqyjXBoHm1Nk8AexPiLhx5+385NjUPT0="; # proton-cachyos-hash
         };
       };
     })
