@@ -6,8 +6,8 @@
 #   - Steam Controller (28de:1102/1142/1205) — sc-controller daemon
 #   - Anbernic RG P01  (3537:1007) — custom udev rule (not in upstream yet)
 #
-# sc-controller daemon autostarts on graphical login so the Steam Controller
-# works at the desktop without Steam running. Open `sc-controller` GUI to
+# sc-controller does NOT autostart (see note below) — start it manually with
+# `systemctl --user start scc-daemon` or open the `sc-controller` GUI to
 # configure profiles, touchpad behaviour, gyro, and button mappings.
 #
 # The Steam Controller "Puck" (28de:1304) is deliberately NOT supported here.
@@ -85,24 +85,26 @@
   ];
 
   # =========================================================================
-  # sc-controller daemon — autostart on graphical login
+  # sc-controller daemon — available, but NOT autostarted
   #
-  # Starts scc-daemon as a user systemd service tied to the graphical session.
-  # This means the Steam Controller is active the moment you log in —
-  # no need to open Steam or launch sc-controller manually.
+  # scc-daemon unconditionally creates a virtual "Xbox360" uinput gamepad
+  # (scc.uinput.Gamepad, hardcoded vendor=0x045e product=0x028e — real
+  # Microsoft Xbox 360 pad IDs) the moment it starts, regardless of whether
+  # it's actually managing any real hardware. With Steam now handling the
+  # Puck natively (see note above), there's nothing left for scc-daemon to
+  # do by default unless you own the wired/wireless dongle or a Deck — so
+  # autostarting it just adds a permanent phantom "Xbox 360 Controller" to
+  # Steam's controller list. Verified 2026-07-22.
   #
+  # Start manually when needed: `systemctl --user start scc-daemon`
   # To configure profiles: run `sc-controller` from the app launcher.
   # Profiles are saved to ~/.config/scc/profiles/ and persist across reboots.
-  # The built-in "Desktop" profile (loaded by default) mirrors the Steam Deck
-  # desktop layout: right pad = trackball mouse, left pad = scroll, RT = left
-  # click, LT = right click, stick = arrow keys.
-  #
-  # The daemon exits cleanly when the graphical session ends (partOf ensures
-  # systemd stops it on logout rather than leaving it orphaned).
+  # The built-in "Desktop" profile mirrors the Steam Deck desktop layout:
+  # right pad = trackball mouse, left pad = scroll, RT = left click, LT =
+  # right click, stick = arrow keys.
   # =========================================================================
   systemd.user.services.scc-daemon = {
     description = "SC Controller — standalone Steam Controller daemon";
-    wantedBy    = [ "graphical-session.target" ];
     after       = [ "graphical-session.target" ];
     partOf      = [ "graphical-session.target" ];
     serviceConfig = {
