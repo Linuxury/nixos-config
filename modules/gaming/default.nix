@@ -69,7 +69,7 @@ in
 {
   imports = [
     ./dmemcg-booster/default.nix
-    ../controllers/default.nix
+    ./controller.nix
   ];
 
   # =========================================================================
@@ -142,6 +142,17 @@ in
           keyutils
           SDL2
         ];
+
+      # Lemokey Link keyboard (362d:d030) exposes a HID interface that
+      # Steam's controller scanner misreads as a gamepad, showing up as
+      # "Lemokey Link — Begin Setup" on the Controller page. Both SDL
+      # hints are needed: GAMECONTROLLER_IGNORE_DEVICES for the classic
+      # SDL_GameController scan, HIDAPI_IGNORE_DEVICES for Steam's own
+      # hidraw-based controller scan (what actually populates that page).
+      extraEnv = {
+        SDL_GAMECONTROLLER_IGNORE_DEVICES = "0x362d/0xd030";
+        SDL_HIDAPI_IGNORE_DEVICES = "0x362d/0xd030";
+      };
     };
   };
 

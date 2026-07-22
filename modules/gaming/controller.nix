@@ -1,46 +1,31 @@
 # ===========================================================================
-# modules/controllers/default.nix — Controller support
+# modules/gaming/controller.nix — Controller support
 #
 # System-wide plug-and-play support for all controllers in the house:
 #   - 8BitDo Ultimate (2dc8:*)     — covered by game-devices-udev-rules
-#   - Steam Controller (28de:1304) — sc-controller daemon + Valve udev rules
+#   - Steam Controller (28de:1102/1142/1205) — sc-controller daemon
 #   - Anbernic RG P01  (3537:1007) — custom udev rule (not in upstream yet)
 #
 # sc-controller daemon autostarts on graphical login so the Steam Controller
 # works at the desktop without Steam running. Open `sc-controller` GUI to
 # configure profiles, touchpad behaviour, gyro, and button mappings.
 #
-# Import this module on any host where controllers will be used.
-# It pairs with modules/gaming/default.nix but is independent — controllers
-# work in non-gaming contexts too (desktop navigation, media control).
+# The Steam Controller "Puck" (28de:1304) is deliberately NOT supported here.
+# nixpkgs' sc-controller 0.5.5 doesn't register its hotplug ID, and a local
+# patch to add it (endpoint offset + hotplug ID) got the daemon past its
+# LIBUSB_ERROR_IO crash but never got a real controller/HOTPLUG handshake —
+# the Puck's wire protocol differs from the wired/wireless dongle and Deck
+# in more than just endpoint layout. Verified live against real hardware
+# 2026-07-21. Puck support is intentionally left to Steam's own Steam Input
+# (Steam Controller profiles) instead of sc-controller.
+#
+# Imported by modules/gaming/default.nix — every host that enables gaming
+# gets controller support automatically. Not currently imported standalone
+# anywhere, so controller support and the gaming stack are coupled today.
 # ===========================================================================
 
 { pkgs, lib, ... }:
 
-let
-  # =========================================================================
-  # sc-controller — patched to support the Steam Controller Puck (28de:1304)
-  #
-  # nixpkgs ships sc-controller 0.5.5 which only registers hotplug callbacks
-  # for the wired controller (0x1102), the original wireless dongle (0x1142),
-  # and the Steam Deck (0x1205). The newer "Puck" wireless receiver (0x1304)
-  # uses the identical Valve HID protocol — only the USB product ID differs.
-  #
-  # One extra register_hotplug_device call in sc_dongle.py is all that's
-  # needed. The full Dongle class (touchpads, gyro, haptics, serial) works
-  # unchanged.
-  #
-  # Track upstream: https://github.com/C0rn3j/sc-controller
-  # Remove this override once sc-controller natively registers 0x1304.
-  # =========================================================================
-  sc-controller = pkgs.sc-controller.overrideAttrs (old: {
-    postPatch = (old.postPatch or "") + ''
-      sed -i \
-        's|register_hotplug_device(cb, VENDOR_ID, PRODUCT_ID)$|register_hotplug_device(cb, VENDOR_ID, PRODUCT_ID)\n\tregister_hotplug_device(cb, VENDOR_ID, 0x1304)  # Steam Controller Puck|' \
-        scc/drivers/sc_dongle.py
-    '';
-  });
-in
 {
   # =========================================================================
   # Kernel modules
@@ -88,13 +73,14 @@ in
   #   The GUI (sc-controller) lets you build profiles: map touchpads to mouse
   #   or d-pad, configure gyro, set per-application profiles, create macros.
   #   The daemon (scc-daemon) runs in the background and applies the active
-  #   profile without Steam. Patched above to add Puck support (28de:1304).
+  #   profile without Steam. Only recognizes the wired/wireless dongle and
+  #   Deck (28de:1102/1142/1205) — not the Puck, see note above.
   #
   # antimicrox — maps any controller's buttons/sticks to keyboard keys or
   #   mouse actions. Useful for apps with no native controller support.
   # =========================================================================
   environment.systemPackages = [
-    sc-controller
+    pkgs.sc-controller
     pkgs.antimicrox
   ];
 
@@ -120,7 +106,7 @@ in
     after       = [ "graphical-session.target" ];
     partOf      = [ "graphical-session.target" ];
     serviceConfig = {
-      ExecStart = "${sc-controller}/bin/scc-daemon --foreground start";
+      ExecStart = "${pkgs.sc-controller}/bin/scc-daemon --foreground start";
       Restart    = "on-failure";
       RestartSec = 3;
     };
