@@ -8,12 +8,12 @@
 #       ELECTRON_OZONE_PLATFORM_HINT=x11  (prevents blank window on COSMIC/MangoWC)
 #       --device=input                    (controller support)
 #       --filesystem=/run/udev:ro         (SDL2 udev enumeration)
-#   - ~/bin/hytale-launcher wrapper: switches sc-controller to gamepad profile
-#       before launch and restores Desktop profile on exit. Required because
-#       the Desktop profile consumes Steam Controller input as mouse/keyboard,
-#       making it invisible to Hytale's Chromium gamepad API.
-#   - xdg.desktopEntries override: app launcher / shortcut points at the
-#       wrapper so clicking the icon does the same as running hytale-launcher.
+#
+# Steam Controller support: Hytale Update 5 added native controller support
+# (Xbox/PlayStation/Switch pads, auto-detected) but Steam Input translation
+# isn't in yet — it's on Hytale's own roadmap. A Steam Controller/Puck can't
+# be recognized until then, so there's no in-repo workaround for it; revisit
+# once Hytale ships Steam Input support.
 #
 # Usage (in user home.nix):
 #   imports = [ ../../modules/system/graphical/hytale/default.nix ];
@@ -57,31 +57,11 @@ in
     # CDN users (linuxury): plain dir created by the activation below so the
     # downloaded file has a writable home (can't symlink into the git repo).
     # =========================================================================
-    home.file = lib.mkMerge [
-      (lib.mkIf (!cfg.cdnFallback) {
-        "Documents/assets/flatpaks".source =
-          config.lib.file.mkOutOfStoreSymlink
-            "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
-      })
-      {
-        "bin/hytale-launcher" = {
-          executable = true;
-          text = ''
-            #!/usr/bin/env bash
-            PREV=$(scc info 2>/dev/null | grep -i 'profile:' | awk '{print $2}')
-            [[ -z "$PREV" ]] && PREV="Desktop"
-
-            scc set-profile "XBox Controller" 2>/dev/null
-            trap 'scc set-profile "$PREV" 2>/dev/null' EXIT INT TERM
-
-            ${pkgs.flatpak}/bin/flatpak run com.hypixel.HytaleLauncher "$@"
-
-            scc set-profile "$PREV" 2>/dev/null
-            trap - EXIT INT TERM
-          '';
-        };
-      }
-    ];
+    home.file = lib.mkIf (!cfg.cdnFallback) {
+      "Documents/assets/flatpaks".source =
+        config.lib.file.mkOutOfStoreSymlink
+          "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
+    };
 
     home.activation.hytale-flatpak-dir = lib.mkIf cfg.cdnFallback
       (lib.hm.dag.entryBefore [ "writeBoundary" ] ''
@@ -166,22 +146,6 @@ in
       };
 
       Install.WantedBy = [ "graphical-session.target" ];
-    };
-
-    # =========================================================================
-    # Desktop entry override — launcher icon uses the wrapper above
-    #
-    # ~/.local/share/applications/ takes priority over the Flatpak-exported
-    # entry in ~/.local/share/flatpak/exports/share/applications/, so this
-    # silently replaces it without touching any system files.
-    # =========================================================================
-    xdg.desktopEntries.hytale = {
-      name       = "Hytale";
-      comment    = "Hytale Launcher";
-      icon       = "com.hypixel.HytaleLauncher";
-      exec       = "${config.home.homeDirectory}/bin/hytale-launcher %U";
-      categories = [ "Game" ];
-      terminal   = false;
     };
 
     # =========================================================================
