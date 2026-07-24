@@ -865,7 +865,7 @@ _nru_update_noctalia() {
   }
 
   current=$(grep '# noctalia-version-nru' "${NIXOS_CONFIG}/flake.nix" \
-    | grep -oP 'v[^"]+')
+    | grep -oP '/\Kv[^"]+(?=")')
 
   if [[ "$latest" == "$current" ]]; then
     printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "Noctalia" "$_NRU_DONE" "$current"
