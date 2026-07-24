@@ -64,9 +64,21 @@ in
     "sha256-ol0WH3L7Vh1ao5rQw0svegWna4Yn8qsq4+uwELLPPN0=" # cosmic-src-cosmic-app-library
     "sha256-Lq1Gs1/dcIxfWM4jNIH2qGu94HCC+JKxFdUTb/MDHzg="; # cosmic-cargo-cosmic-app-library
 
-  cosmic-applets = mkCosmic "cosmic-applets" "cosmic-applets"
-    "sha256-ZtbU3bDpBiC4cDGBiKKY//zBjNqrLYKhR9rIwVZ9aGY=" # cosmic-src-cosmic-applets
-    "sha256-xgpsIynrVcN62IQ++ABZqqbP0ak86eQYTc1SCSxy2l4="; # cosmic-cargo-cosmic-applets
+  cosmic-applets =
+    let _src = fetchCosmic "cosmic-applets"
+      "sha256-ZtbU3bDpBiC4cDGBiKKY//zBjNqrLYKhR9rIwVZ9aGY="; # cosmic-src-cosmic-applets
+    in prev.cosmic-applets.overrideAttrs (old: {
+      version   = cosmicVersion;
+      src       = _src;
+      cargoDeps = final.rustPlatform.fetchCargoVendor {
+        inherit (old) pname;
+        version = cosmicVersion;
+        src     = _src;
+        hash    = "sha256-xgpsIynrVcN62IQ++ABZqqbP0ak86eQYTc1SCSxy2l4="; # cosmic-cargo-cosmic-applets
+      };
+      # dedup-cosmic-settings-daemon.patch targets old Cargo.lock; 1.4.0 fixes this upstream
+      patches = [];
+    });
 
   cosmic-bg = mkCosmic "cosmic-bg" "cosmic-bg"
     "sha256-yPUbkcQmJGOcKkpi3pfHHW8ggw7juTW3GHD8l+kDI9w=" # cosmic-src-cosmic-bg
@@ -132,9 +144,21 @@ in
     "sha256-lL8is6WveKxOn/Ej3SrMfLrulnb+Qw9QAPcCbdLo07E=" # cosmic-src-cosmic-session
     "sha256-5dLG40X+yxJo566guyHqOCLNp+uNSE+HONS8GIDm58A="; # cosmic-cargo-cosmic-session
 
-  cosmic-settings = mkCosmic "cosmic-settings" "cosmic-settings"
-    "sha256-+MpSThb9+9S/M//eNKL6Yr+pphrHN/3vMDKT8lo7lT8=" # cosmic-src-cosmic-settings
-    "sha256-+2Z0KbZKWbWtKA1jWY6/431i9/ax0ncivD2qzlNNIiE="; # cosmic-cargo-cosmic-settings
+  cosmic-settings =
+    let _src = fetchCosmic "cosmic-settings"
+      "sha256-+MpSThb9+9S/M//eNKL6Yr+pphrHN/3vMDKT8lo7lT8="; # cosmic-src-cosmic-settings
+    in prev.cosmic-settings.overrideAttrs (old: {
+      version   = cosmicVersion;
+      src       = _src;
+      cargoDeps = final.rustPlatform.fetchCargoVendor {
+        inherit (old) pname;
+        version = cosmicVersion;
+        src     = _src;
+        hash    = "sha256-+2Z0KbZKWbWtKA1jWY6/431i9/ax0ncivD2qzlNNIiE="; # cosmic-cargo-cosmic-settings
+      };
+      # dedup-libcosmic.patch targets old Cargo.lock; 1.4.0 fixes this upstream
+      patches = [];
+    });
 
   cosmic-settings-daemon =
     let _src = fetchCosmic "cosmic-settings-daemon"
