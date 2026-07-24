@@ -11,7 +11,7 @@ $line_break\
 $character"""
 
 add_newline = true
-palette = 'nord'
+palette = 'noctalia'
 
 [directory]
 style = 'bold fg:dark_blue'
@@ -61,6 +61,23 @@ style = 'fg:gray'
 format = '[$duration]($style)'
 
 [palettes.nord]
+dark_blue = '#5E81AC'
+blue      = '#81A1C1'
+teal      = '#88C0D0'
+red       = '#BF616A'
+orange    = '#D08770'
+green     = '#A3BE8C'
+yellow    = '#EBCB8B'
+purple    = '#B48EAD'
+gray      = '#434C5E'
+black     = '#2E3440'
+white     = '#D8DEE9'
+
+# Default noctalia palette — Noctalia overwrites this block on wallpaper change
+# with wallpaper-derived colors. These nord-based defaults prevent the
+# "Could not find color palette: noctalia" warning between HM switch and
+# first wallpaper change.
+[palettes.noctalia]
 dark_blue = '#5E81AC'
 blue      = '#81A1C1'
 teal      = '#88C0D0'
