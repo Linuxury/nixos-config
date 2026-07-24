@@ -108,12 +108,19 @@
 
       # Noctalia v5 injects a [palettes.noctalia] block into starship.toml on
       # each wallpaper change (assets/templates/builtin.toml + apply.sh).
-      # HM deploys starship.toml as read-only (444); sed -i can rename the file
-      # (bypassing read-only via directory write permission) but the subsequent
-      # >> append fails because the renamed file still has 444 perms.
-      # Fix: make starship.toml owner-writable after HM deploys it so noctalia
-      # can complete the append.  Non-noctalia hosts never import this module
-      # so they keep the read-only HM-managed file unmodified.
+      #
+      # Two problems to solve:
+      #   1. HM deploys starship.toml as read-only (444); sed -i renames it
+      #      (bypasses 444 via directory perms) but the >> append still fails.
+      #      Fix: chmod 644 after writeBoundary so the append succeeds.
+      #   2. On the next HM switch, noctalia has already modified the file;
+      #      HM refuses to overwrite ("would be clobbered"). Fix: force = true
+      #      tells HM to always clobber regardless of current content.
+      #
+      # Cycle per switch: HM force-writes nord → activation makes it 644 →
+      # noctalia re-applies noctalia palette on next wallpaper change. ✓
+      home.file.".config/starship.toml".force = lib.mkForce true;
+
       home.activation.starshipWritableForNoctalia = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         _sf="''${STARSHIP_CONFIG:-''${XDG_CONFIG_HOME:-$HOME/.config}/starship.toml}"
         [ -f "$_sf" ] && chmod 644 "$_sf" || true
