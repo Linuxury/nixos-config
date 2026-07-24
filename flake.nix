@@ -126,6 +126,24 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # -------------------------------------------------------------------------
+    # noctalia — Noctalia shell (v5+), built from the upstream flake
+    #
+    # v5 is a full C++ rewrite of the Quickshell/QML v4 shell. Not yet in
+    # nixpkgs. The upstream flake ships homeModules.default with a proper
+    # programs.noctalia HM module (systemd service, settings TOML, etc.).
+    #
+    # nru updates the ref tag when a new release appears (scripts/noctalia-update.sh).
+    # The sentinel comment below is the sed target — do not change its format.
+    #
+    # nixpkgs.follows ensures the noctalia binary is linked against the same
+    # glibc/wayland/etc as the rest of the system.
+    # -------------------------------------------------------------------------
+    noctalia = {
+      url = "github:noctalia-dev/noctalia/v5.0.0-beta.4"; # noctalia-version-nru
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   # ===========================================================================
@@ -224,6 +242,12 @@
                   # (timing-sensitive); skip tests to unblock the build.
                   openldap    = prev.openldap.overrideAttrs (_: { doCheck = false; });
                 })
+
+                # COSMIC Desktop version overlay — tracks pop-os/cosmic-epoch
+                # releases directly. Overrides nixpkgs COSMIC packages with the
+                # latest epoch tag. nru updates hashes via scripts/cosmic-update.sh.
+                # Safe on headless servers: packages are only built when actually used.
+                (import ./pkgs/cosmic-overlay/default.nix)
               ];
             }
 

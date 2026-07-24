@@ -145,7 +145,7 @@ hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("~/.config/hypr/scripts/powermenu
 hl.bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
 hl.bind(mod .. " + SHIFT + N", hl.dsp.exec_cmd("~/.config/hypr/scripts/nightlight.sh"))  -- Night light toggle
 -- Restart Noctalia — clears stale workspace window counts after Wine/Steam ghost windows
-hl.bind(mod .. " + CTRL + N",  hl.dsp.exec_cmd("bash -c 'kill -9 $(pgrep quickshell); sleep 0.3; noctalia-shell'"))
+hl.bind(mod .. " + CTRL + N",  hl.dsp.exec_cmd("systemctl --user restart noctalia.service"))
 
 -- ── Gaming ────────────────────────────────────────────────────────────────────
 -- Bounce to WS2 and back to break a stuck pointer-lock from a fullscreen game
