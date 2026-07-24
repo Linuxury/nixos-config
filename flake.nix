@@ -241,15 +241,16 @@
                   # openldap 2.6.13 test017-syncreplication-refresh is flaky
                   # (timing-sensitive); skip tests to unblock the build.
                   openldap    = prev.openldap.overrideAttrs (_: { doCheck = false; });
-                  # poetry 2.4.1 test_executor tests fail on python 3.14 — upstream
+                  # poetry 2.4.1 install-check tests fail on python 3.14 — upstream
                   # string-formatting assertions don't account for py3.14 output changes.
-                  # Must go through python3.override/packageOverrides because pkgs.poetry
-                  # wraps python3.pkgs.poetry; a top-level override doesn't reach it.
-                  python3 = prev.python3.override {
-                    packageOverrides = _pself: psuper: {
-                      poetry = psuper.poetry.overrideAttrs (_: { doCheck = false; });
-                    };
-                  };
+                  # pkgs.poetry/package.nix uses a self-contained private python3 scope;
+                  # all overlay approaches that target doInstallCheck/python3.pkgs are
+                  # swallowed by newPackageOverrides re-calling callPackage ./unwrapped.nix.
+                  # Removing nativeCheckInputs from the final drv changes the build inputs
+                  # directly, producing a new drv that skips pytestCheckHook entirely.
+                  poetry = prev.poetry.overridePythonAttrs (_: {
+                    nativeCheckInputs = [ ];
+                  });
                 })
 
                 # COSMIC Desktop version overlay — tracks pop-os/cosmic-epoch
