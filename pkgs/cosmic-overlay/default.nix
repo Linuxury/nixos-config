@@ -136,9 +136,21 @@ in
     "sha256-+MpSThb9+9S/M//eNKL6Yr+pphrHN/3vMDKT8lo7lT8=" # cosmic-src-cosmic-settings
     "sha256-+2Z0KbZKWbWtKA1jWY6/431i9/ax0ncivD2qzlNNIiE="; # cosmic-cargo-cosmic-settings
 
-  cosmic-settings-daemon = mkCosmic "cosmic-settings-daemon" "cosmic-settings-daemon"
-    "sha256-j+AT56HYnenu5WQrBi9gqyog7oxDDf8vbUsKeGCiARM=" # cosmic-src-cosmic-settings-daemon
-    "sha256-Le0FRKuSJWx6zRwU2b1+hyJzZJ+bsT039vn/Nhkf+k0="; # cosmic-cargo-cosmic-settings-daemon
+  cosmic-settings-daemon =
+    let _src = fetchCosmic "cosmic-settings-daemon"
+      "sha256-j+AT56HYnenu5WQrBi9gqyog7oxDDf8vbUsKeGCiARM="; # cosmic-src-cosmic-settings-daemon
+    in prev.cosmic-settings-daemon.overrideAttrs (old: {
+      version   = cosmicVersion;
+      src       = _src;
+      cargoDeps = final.rustPlatform.fetchCargoVendor {
+        inherit (old) pname;
+        version = cosmicVersion;
+        src     = _src;
+        hash    = "sha256-Le0FRKuSJWx6zRwU2b1+hyJzZJ+bsT039vn/Nhkf+k0="; # cosmic-cargo-cosmic-settings-daemon
+      };
+      # 1.4.0 added smithay-client-toolkit which needs xkbcommon at build time
+      buildInputs = (old.buildInputs or []) ++ [ final.libxkbcommon ];
+    });
 
   cosmic-store = mkCosmic "cosmic-store" "cosmic-store"
     "sha256-GEDsty2F52U1/WODd0a8n6GLX+2uyt6NOAxDOjzAnZo=" # cosmic-src-cosmic-store
