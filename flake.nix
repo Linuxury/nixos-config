@@ -243,7 +243,13 @@
                   openldap    = prev.openldap.overrideAttrs (_: { doCheck = false; });
                   # poetry 2.4.1 test_executor tests fail on python 3.14 — upstream
                   # string-formatting assertions don't account for py3.14 output changes.
-                  poetry      = prev.poetry.overrideAttrs (_: { doCheck = false; });
+                  # Must go through python3.override/packageOverrides because pkgs.poetry
+                  # wraps python3.pkgs.poetry; a top-level override doesn't reach it.
+                  python3 = prev.python3.override {
+                    packageOverrides = _pself: psuper: {
+                      poetry = psuper.poetry.overrideAttrs (_: { doCheck = false; });
+                    };
+                  };
                 })
 
                 # COSMIC Desktop version overlay — tracks pop-os/cosmic-epoch
