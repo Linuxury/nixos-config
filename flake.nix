@@ -241,6 +241,9 @@
                   # openldap 2.6.13 test017-syncreplication-refresh is flaky
                   # (timing-sensitive); skip tests to unblock the build.
                   openldap    = prev.openldap.overrideAttrs (_: { doCheck = false; });
+                  # poetry 2.4.1 test_executor tests fail on python 3.14 — upstream
+                  # string-formatting assertions don't account for py3.14 output changes.
+                  poetry      = prev.poetry.overrideAttrs (_: { doCheck = false; });
                 })
 
                 # COSMIC Desktop version overlay — tracks pop-os/cosmic-epoch

@@ -40,3 +40,6 @@ safe_dofile(home .. "/.config/hypr/shell-autostart.lua")
 safe_dofile(home .. "/.config/hypr/components/bar.lua")
 safe_dofile(home .. "/.config/hypr/components/launcher.lua")
 safe_dofile(home .. "/.config/hypr/components/notifications.lua")
+
+-- For Noctalia Color templates
+require("noctalia").apply_theme()

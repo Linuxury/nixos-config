@@ -105,6 +105,19 @@
           [ -d "$(dirname "$_f")" ] && : > "$_f"
         done
       '';
+
+      # Noctalia v5 injects a [palettes.noctalia] block into starship.toml on
+      # each wallpaper change (assets/templates/builtin.toml + apply.sh).
+      # HM deploys starship.toml as read-only (444); sed -i can rename the file
+      # (bypassing read-only via directory write permission) but the subsequent
+      # >> append fails because the renamed file still has 444 perms.
+      # Fix: make starship.toml owner-writable after HM deploys it so noctalia
+      # can complete the append.  Non-noctalia hosts never import this module
+      # so they keep the read-only HM-managed file unmodified.
+      home.activation.starshipWritableForNoctalia = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _sf="''${STARSHIP_CONFIG:-''${XDG_CONFIG_HOME:-$HOME/.config}/starship.toml}"
+        [ -f "$_sf" ] && chmod 644 "$_sf" || true
+      '';
     })
 
   ];
