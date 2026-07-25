@@ -607,6 +607,7 @@ ENDSSH
     _src_ver="$(cat "$_src/version" 2>/dev/null)"
     _dst_ver="$(cat "$_dest/version" 2>/dev/null)"
     if [ "$_src_ver" != "$_dst_ver" ]; then
+      chmod -R u+w "$_dest" 2>/dev/null || true
       rm -rf "$_dest"
       cp -r "$_src" "$_dest"
       chmod -R u+w "$_dest"
