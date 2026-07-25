@@ -158,6 +158,8 @@ in
       };
       # dedup-libcosmic.patch targets old Cargo.lock; 1.4.0 fixes this upstream
       patches = [];
+      # 1.4.0 added dav1d-sys which needs dav1d at build time
+      buildInputs = (old.buildInputs or []) ++ [ final.dav1d ];
     });
 
   cosmic-settings-daemon =
