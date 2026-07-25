@@ -31,6 +31,8 @@ let
   };
 
   # Override a Rust COSMIC package — bumps version, src, and cargo vendor hash.
+  # libxkbcommon added globally: 1.4.0 pulls in smithay-client-toolkit across
+  # almost all packages, which requires xkbcommon at build time.
   mkCosmic = pkg: repo: srcHash: cargoHash:
     let _src = fetchCosmic repo srcHash;
     in prev.${pkg}.overrideAttrs (old: {
@@ -42,6 +44,7 @@ let
         src     = _src;
         hash    = cargoHash;
       };
+      buildInputs = (old.buildInputs or []) ++ [ final.libxkbcommon ];
     });
 
   # Override a non-Rust COSMIC package (icons, wallpapers, sound-theme).
@@ -78,11 +81,24 @@ in
       };
       # dedup-cosmic-settings-daemon.patch targets old Cargo.lock; 1.4.0 fixes this upstream
       patches = [];
+      buildInputs = (old.buildInputs or []) ++ [ final.libxkbcommon ];
     });
 
-  cosmic-bg = mkCosmic "cosmic-bg" "cosmic-bg"
-    "sha256-yPUbkcQmJGOcKkpi3pfHHW8ggw7juTW3GHD8l+kDI9w=" # cosmic-src-cosmic-bg
-    "sha256-wU9McdejpTFNJd2VTrMREzdW4WIw0p5GTuhynt/vVro="; # cosmic-cargo-cosmic-bg
+  cosmic-bg =
+    let _src = fetchCosmic "cosmic-bg"
+      "sha256-yPUbkcQmJGOcKkpi3pfHHW8ggw7juTW3GHD8l+kDI9w="; # cosmic-src-cosmic-bg
+    in prev.cosmic-bg.overrideAttrs (old: {
+      version   = cosmicVersion;
+      src       = _src;
+      cargoDeps = final.rustPlatform.fetchCargoVendor {
+        inherit (old) pname;
+        version = cosmicVersion;
+        src     = _src;
+        hash    = "sha256-wU9McdejpTFNJd2VTrMREzdW4WIw0p5GTuhynt/vVro="; # cosmic-cargo-cosmic-bg
+      };
+      # 1.4.0 added smithay-client-toolkit (xkbcommon) and dav1d-sys (dav1d)
+      buildInputs = (old.buildInputs or []) ++ [ final.libxkbcommon final.dav1d ];
+    });
 
   cosmic-comp = mkCosmic "cosmic-comp" "cosmic-comp"
     "sha256-r1VllV3BLXYJPt8XMk9mtaLaWEr1noyUnS45wgczzkM=" # cosmic-src-cosmic-comp
@@ -158,8 +174,7 @@ in
       };
       # dedup-libcosmic.patch targets old Cargo.lock; 1.4.0 fixes this upstream
       patches = [];
-      # 1.4.0 added dav1d-sys which needs dav1d at build time
-      buildInputs = (old.buildInputs or []) ++ [ final.dav1d ];
+      buildInputs = (old.buildInputs or []) ++ [ final.libxkbcommon final.dav1d ];
     });
 
   cosmic-settings-daemon =
