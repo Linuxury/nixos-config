@@ -274,6 +274,7 @@ _nix_fetch_filter() {
   /^Skipping "\//                                       { next }
   /^this path will be fetched/                          { next }
   /^unpacking \47.*\47 into the Git cache/               { next }
+  /^NOT restarting the following changed units:/         { next }
 
   /^these [0-9]+ derivations will be built:/ {
     killspinner()
