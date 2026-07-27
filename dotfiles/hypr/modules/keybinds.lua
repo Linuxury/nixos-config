@@ -10,6 +10,7 @@
 local mod = "SUPER"
 
 -- ── Core apps ─────────────────────────────────────────────────────────────────
+hl.bind(mod .. " + Space",         hl.dsp.exec_cmd("noctalia msg panel-toggle launcher"))
 hl.bind(mod .. " + Return",        hl.dsp.exec_cmd("kitty"))
 hl.bind(mod .. " + E",             hl.dsp.exec_cmd("nautilus"))
 hl.bind(mod .. " + SHIFT + Return",hl.dsp.exec_cmd("kitty --class floating-term"))
