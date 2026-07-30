@@ -202,6 +202,7 @@
                   # so they are only fetched on hosts that import the gaming module.
                   ant-dark-kde                  = prev.callPackage ./pkgs/ant-dark-kde/package.nix {};
                   breeze-chameleon-dark-icons   = prev.callPackage ./pkgs/breeze-chameleon-dark-icons/package.nix {};
+                  breezex-cursors               = prev.callPackage ./pkgs/breezex-cursors/package.nix {};
                   # openldap 2.6.13 test017-syncreplication-refresh is flaky
                   # (timing-sensitive); skip tests to unblock the build.
                   openldap    = prev.openldap.overrideAttrs (_: { doCheck = false; });

@@ -38,23 +38,6 @@ let
       EOF
     '';
 
-  # BreezeX cursor theme — installed system-wide so SDDM (no
-  # home-manager at login time) can use it on the login screen.
-  breezex-cursors = pkgs.stdenv.mkDerivation {
-    pname   = "breezex-cursor-theme";
-    version = "2.0.1";
-    src = pkgs.fetchzip {
-      url       = "https://github.com/ful1e5/BreezeX_Cursor/releases/download/v2.0.1/BreezeX.tar.xz";
-      sha256    = "10fbvbls52cgp5kshlcxbh3nqarh2mwhpj0w5kkk4hrl3sdc1bcj";
-      stripRoot = false;
-    };
-    dontBuild     = true;
-    dontConfigure = true;
-    installPhase  = ''
-      mkdir -p $out/share/icons
-      cp -r . $out/share/icons/
-    '';
-  };
 in
 
 {
@@ -190,7 +173,7 @@ in
   # =========================================================================
   environment.systemPackages = with pkgs; [
     # Cursor theme — installed system-wide so SDDM greeter picks it up
-    breezex-cursors
+    pkgs.breezex-cursors
 
     # Screenshots
     grim            # Screenshot tool for Wayland

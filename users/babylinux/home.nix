@@ -18,34 +18,6 @@
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
 { config, pkgs, inputs, lib, wallpaperDir, ... }:
 
-let
-  # ===========================================================================
-  # BreezeX cursor theme — not in nixpkgs, fetched from GitHub releases
-  #
-  # Same derivation used by linuxury in cosmic-theme.nix.
-  # BreezeX-Light is a refined KDE Breeze cursor with larger sizes.
-  # ===========================================================================
-  breezex-cursors = pkgs.stdenv.mkDerivation {
-    pname   = "breezex-cursor-theme";
-    version = "2.0.1";
-
-    src = pkgs.fetchzip {
-      url       = "https://github.com/ful1e5/BreezeX_Cursor/releases/download/v2.0.1/BreezeX.tar.xz";
-      sha256    = "10fbvbls52cgp5kshlcxbh3nqarh2mwhpj0w5kkk4hrl3sdc1bcj";
-      stripRoot = false; # archive has multiple top-level dirs (BreezeX, BreezeX-Black, …)
-    };
-
-    dontBuild     = true;
-    dontConfigure = true;
-
-    installPhase = ''
-      mkdir -p $out/share/icons
-      cp -r . $out/share/icons/
-    '';
-  };
-
-in
-
 {
   imports = [
     ../../modules/system/graphical/hytale/default.nix
@@ -286,7 +258,7 @@ in
   home.pointerCursor = {
     enable     = true;
     name       = "BreezeX-Light";
-    package    = breezex-cursors;
+    package    = pkgs.breezex-cursors;
     size       = 24;
     gtk.enable = false; # KDE manages GTK theming — don't let HM overwrite it
   };

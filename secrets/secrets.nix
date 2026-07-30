@@ -223,7 +223,7 @@ in
   # Deployed only to Media-Server.
   # After updating: nix run nixpkgs#agenix -- -r
   # --------------------------------------------------------------------------
-  "postgres-ai-memory".publicKeys = uniq (
+  "postgres-ai-memory.age".publicKeys = uniq (
     linuxury-admins ++ [ Media-Server ]
   );
 
