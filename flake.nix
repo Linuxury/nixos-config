@@ -140,7 +140,7 @@
     # glibc/wayland/etc as the rest of the system.
     # -------------------------------------------------------------------------
     noctalia = {
-      url = "github:noctalia-dev/noctalia/v5.0.0-beta.5"; # noctalia-version-nru
+      url = "github:noctalia-dev/noctalia/v5.0.0-beta.6"; # noctalia-version-nru
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -253,11 +253,6 @@
                   });
                 })
 
-                # COSMIC Desktop version overlay — tracks pop-os/cosmic-epoch
-                # releases directly. Overrides nixpkgs COSMIC packages with the
-                # latest epoch tag. nru updates hashes via scripts/cosmic-update.sh.
-                # Safe on headless servers: packages are only built when actually used.
-                (import ./pkgs/cosmic-overlay/default.nix)
               ];
             }
 

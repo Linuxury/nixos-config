@@ -817,38 +817,6 @@ _nru_update_proton_cachyos() {
     "
 }
 
-# ---------------------------------------------------------------------------
-# _nru_update_cosmic — checks pop-os/cosmic-epoch for a new epoch tag and
-# updates all 27 package hashes in pkgs/cosmic-overlay/default.nix.
-# Guard: only runs if cosmic-session is installed (COSMIC host).
-# The heavy lifting (parallel src + cargo fetches) runs in the background
-# via _nru_pkg_bar so the animated bar stays visible throughout.
-# ---------------------------------------------------------------------------
-_nru_update_cosmic() {
-  local latest current overlay
-
-  overlay="${NIXOS_CONFIG}/pkgs/cosmic-overlay/default.nix"
-  [[ -f "$overlay" ]] || return 0
-
-  latest=$(curl -fsSL \
-    "https://api.github.com/repos/pop-os/cosmic-epoch/tags?per_page=1" \
-    | jq -r '.[0].name' 2>/dev/null | sed 's/epoch-//') || {
-    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "COSMIC" "$_NRU_DONE"
-    return 0
-  }
-
-  current=$(grep '# cosmic-version-nru' "$overlay" \
-    | grep -oP '[0-9]+\.[0-9]+\.[0-9]+')
-
-  if [[ "$latest" == "$current" ]]; then
-    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "COSMIC" "$_NRU_DONE" "$current"
-    return 0
-  fi
-
-  local _lat="$latest" _cur="$current"
-  _nru_pkg_bar "$_NRU_GH" "COSMIC" "${_cur} → ${_lat}" \
-    bash "${NIXOS_CONFIG}/scripts/cosmic-update.sh" "$NIXOS_CONFIG" "$_lat"
-}
 
 # ---------------------------------------------------------------------------
 # _nru_update_noctalia — checks noctalia-dev/noctalia for a new release tag
@@ -972,9 +940,6 @@ nru() {
   # ── GitHub packages (gaming hosts only) ─────────────────────────────────────
   command -v steam &>/dev/null && { _nru_update_proton_ge      || true }
   command -v steam &>/dev/null && { _nru_update_proton_cachyos || true }
-
-  # ── COSMIC (COSMIC hosts only) ───────────────────────────────────────────────
-  command -v cosmic-session &>/dev/null && { _nru_update_cosmic    || true }
 
   # ── Noctalia (Hyprland hosts only) ───────────────────────────────────────────
   command -v noctalia &>/dev/null && { _nru_update_noctalia || true }
