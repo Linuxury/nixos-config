@@ -264,7 +264,7 @@ in
     signing.format = null; # Silence HM 25.05 default change warning
     settings = {
       user.name  = "babylinux";
-      user.email = "her@email.com"; # Replace with her actual email
+      user.email = "babylinux69@gmail.com";
       init.defaultBranch = "main";
       pull.rebase        = false;
     };
@@ -356,17 +356,6 @@ PYEOF
   # Extensions and settings are managed manually through the GUI.
   # =========================================================================
   home.packages = [ pkgs.vscodium ];
-
-  # =========================================================================
-  # Obsidian vault directory
-  #
-  # Creates ~/Obsidian on first activation so Syncthing has a target path
-  # to sync into. Without this the syncthing service logs an error on boot
-  # because the folder doesn't exist yet.
-  # =========================================================================
-  home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    mkdir -p "$HOME/Obsidian"
-  '';
 
   # =========================================================================
   # SDDM wallpaper sync

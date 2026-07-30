@@ -38,7 +38,7 @@
   # =========================================================================
   # Session PATH — expose Nix profile bin to GUI apps
   #
-  # GUI apps launched from COSMIC run inside a systemd user session whose
+  # GUI apps launched from Hyprland run inside a systemd user session whose
   # PATH comes from environment.d configs, not from shell profiles.
   # Without this, apps like Zed can't find binaries installed via
   # Home Manager (e.g. claude-code, nil, nixfmt).
@@ -402,8 +402,8 @@
         age-edit = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -e";
         age-rekey = "env -C ~/nixos-config/secrets nix run github:ryantm/agenix -- -r";
 
-        # Obsidian notes
-        notes = "cd ~/Obsidian && nvim .";
+        # Jarvis vault
+        notes = "cd ~/Jarvis && nvim .";
 
         # Snapper snapshot management
         snaps = "sudo snapper -c root list";
@@ -559,10 +559,6 @@ ENDSSH
     enable      = true;
     cdnFallback = true;  # Download from CDN if local bundle not found
   };
-
-  home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    mkdir -p "$HOME/Obsidian"
-  '';
 
   # VSCodium Claude wrapper — moved to modules/development/editors/vscodium/hm.nix
 
