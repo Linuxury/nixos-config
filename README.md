@@ -67,7 +67,7 @@ nixos-config/
 │   └── MinisForum/
 ├── modules/
 │   ├── system/                  # Core kernel settings, graphical base, server shell
-│   ├── compositors/             # Hyprland, MangoWC, Niri
+│   ├── compositors/             # Hyprland, Niri
 │   ├── desktops/                # COSMIC DE, GNOME, KDE
 │   ├── hardware/                # GPU driver logic (AMD / Nvidia / Intel)
 │   ├── services/                # Samba, Syncthing, Snapper, wallpaper slideshow, VPN
@@ -90,7 +90,6 @@ nixos-config/
 │   ├── zsh/                     # Shared zsh init and completions
 │   ├── starship/                # Prompt config
 │   ├── MangoHud/                # Performance overlay config
-│   ├── mangowc/                 # MangoWC compositor config + matugen template
 │   ├── nvim-extra/              # Neovim extras
 │   └── ...                      # rofi, wofi, vscodium, opencode, swappy, topgrade
 ├── secrets/                     # age-encrypted secrets (safe to commit)

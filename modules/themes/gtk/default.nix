@@ -12,7 +12,6 @@
 #   compositors/hyprland/themes/default.nix  → + gtk-decoration-layout
 #   desktops/cosmic/themes/default.nix       → + CosmicTk files + favorites
 #   desktops/gnome/themes/default.nix        → (base is sufficient for GNOME)
-#   compositors/mangowc/themes/default.nix      → + gtk-decoration-layout + noctalia.css
 #
 # Extracted from the 4 separate theme modules to eliminate the BreezeX
 # derivation duplication. One sha256 to update, one place to change.
@@ -58,7 +57,7 @@ in
   #
   # home.pointerCursor handles three layers at once:
   #   1. Sets XCURSOR_THEME + XCURSOR_SIZE in the systemd user environment
-  #      so Wayland compositors (COSMIC, Hyprland, Niri, MangoWC) pick it up
+  #      so Wayland compositors (COSMIC, Hyprland, Niri) pick it up
   #   2. Creates ~/.icons/default/index.theme for X11 / XWayland fallback
   #   3. Writes cursor settings to GTK config (gtk.enable = true below)
   # =========================================================================

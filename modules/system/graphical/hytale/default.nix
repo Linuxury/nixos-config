@@ -5,7 +5,7 @@
 #   - Installs from bundled flatpak on first login (symlinked from assets repo)
 #   - Optional CDN fallback (linuxury only — downloads if local bundle missing)
 #   - Flatpak overrides applied on every rebuild:
-#       ELECTRON_OZONE_PLATFORM_HINT=x11  (prevents blank window on COSMIC/MangoWC)
+#       ELECTRON_OZONE_PLATFORM_HINT=x11  (prevents blank window on COSMIC)
 #       --device=input                    (controller support)
 #       --filesystem=/run/udev:ro         (SDL2 udev enumeration)
 #
@@ -153,7 +153,7 @@ in
     #
     # ELECTRON_OZONE_PLATFORM_HINT=x11: forces XWayland mode so Hytale's
     #   Electron renderer doesn't use native Wayland GPU paths that produce
-    #   a blank window on COSMIC and MangoWC.
+    #   a blank window on COSMIC.
     # --device=input: grants the sandbox access to /dev/input/* nodes so
     #   the kernel-visible controllers are reachable inside the Flatpak.
     # --filesystem=/run/udev:ro: SDL2's udev enumeration backend walks

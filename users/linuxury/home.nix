@@ -155,13 +155,6 @@
     ".config/hypr".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/hypr";
 
-    # MangoWC — autostart script (live symlink; edits take effect via SUPER+r)
-    # config.conf is NOT a symlink — it is written by matugen on each wallpaper
-    # change so border/focus colors stay in sync with the current palette.
-    # The seed activation below creates an initial copy if the file is absent.
-    ".config/mango/autostart.sh".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/mangowc/autostart.sh";
-
     # Zed editor — dotfile managed by modules/development/editors/zed/default.nix
     # OpenCode dotfiles — managed by modules/development/ai-tools/opencode/default.nix
 
@@ -572,19 +565,6 @@ ENDSSH
   '';
 
   # VSCodium Claude wrapper — moved to modules/development/editors/vscodium/hm.nix
-
-  # Seed MangoWC config on first install.
-  # After this point matugen owns ~/.config/mango/config.conf and regenerates
-  # it on every wallpaper change (see wallpaper-slideshow.nix [templates.mangowc]).
-  # We only copy if the file is absent so we don't stomp live matugen output.
-  home.activation.mangowcConfigSeed = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    _mangowc_conf="$HOME/.config/mango/config.conf"
-    if [ ! -f "$_mangowc_conf" ]; then
-      mkdir -p "$(dirname "$_mangowc_conf")"
-      cp "${../../dotfiles/mangowc/config.conf}" "$_mangowc_conf"
-      chmod 644 "$_mangowc_conf"
-    fi
-  '';
 
   # hypridle — symlink the profile config into the .config/hypr directory.
   # Since .config/hypr is a directory symlink to dotfiles/hypr/, we can't use

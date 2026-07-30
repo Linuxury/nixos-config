@@ -163,16 +163,6 @@
       # x86_64-linux covers all standard AMD and Intel 64-bit machines.
       system = "x86_64-linux";
 
-      # A shortcut to the nixpkgs package set with our settings applied.
-      pkgs = import nixpkgs {
-        inherit system;
-        config = {
-          # Allows installation of proprietary software (Nvidia drivers,
-          # Steam, etc). Required for gaming and some hardware support.
-          allowUnfree = true;
-        };
-      };
-
       # -----------------------------------------------------------------------
       # mkHost — A helper function to build a NixOS host configuration
       #
@@ -303,11 +293,9 @@
           userConfig      = ./users/linuxury/home.nix;
           wallpaperDir    = "4k";
           hypridleProfile = "laptop";
-          extraModules = [
-            # nixos-hardware profile for ThinkPad AMD laptops
-            # Handles power management, thermal, etc automatically
-            nixos-hardware.nixosModules.lenovo-thinkpad
-          ];
+          # The host config imports lenovo-thinkpad-t14s-amd-gen4 which already
+          # includes the generic lenovo-thinkpad profile in its import chain.
+          # No extra modules needed here.
         };
 
         Ryzen5900x = mkHost {

@@ -37,8 +37,6 @@ in
   # System packages — CLI tools available to all users
   # =========================================================================
   environment.systemPackages = [
-    pkgs.ponytrail
-
     # Bash wrapper: claude-code uses bash-specific features that break under sh.
     (pkgs.writeShellScriptBin "claude" ''
       exec env SHELL=${pkgs.bash}/bin/bash ${pkgs.claude-code}/bin/claude "$@"
@@ -50,6 +48,11 @@ in
   # =========================================================================
   home-manager.sharedModules = [
     ({ pkgs, lib, config, ... }: {
+
+      # =====================================================================
+      # ponytrail — dev tool, only for HM users (not installed on servers)
+      # =====================================================================
+      home.packages = [ pkgs.ponytrail ];
 
       # =====================================================================
       # ~/.agents/skills — full agent harness skill library

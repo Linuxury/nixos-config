@@ -497,7 +497,6 @@
   #   3. git clone git@github.com:Linuxury/nixos-config.git ~/nixos-config
   #   4. sudo chown -R linuxury:users ~/nixos-config   ← required if cloned as root
   # ==============================================================
-  services.tailscale.enable = true;
   services.tailscale.extraUpFlags = [ "--advertise-tags=tag:ssh" ];
 
   # ==============================================================

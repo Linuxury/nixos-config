@@ -120,6 +120,7 @@
     settings = {
       shared_preload_libraries = "vector";
     };
+    extraPlugins = ps: [ ps.pgvector ];
   };
 
   # ==============================================================
@@ -612,6 +613,5 @@
   # Tailscale — remote access to FreshRSS and management
   # After first boot: sudo tailscale up
   # ==============================================================
-  services.tailscale.enable = true;
   services.tailscale.extraUpFlags = [ "--advertise-tags=tag:ssh" ];
 }

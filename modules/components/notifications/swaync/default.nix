@@ -2,7 +2,7 @@
 # modules/components/notifications/swaync/default.nix — SwayNC notification daemon
 #
 # Compositor-agnostic notification daemon with a slide-in control center.
-# Works on any wlr-layer-shell compositor (Hyprland, Niri, Sway, MangoWC…).
+# Works on any wlr-layer-shell compositor (Hyprland, Niri, Sway…).
 #
 # When imported, this module:
 #   1. Adds swaync to system packages.

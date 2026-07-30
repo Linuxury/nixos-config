@@ -11,7 +11,6 @@
 # DE coverage:
 #   Hyprland — dotfiles/hypr/modules/keybinds.lua (managed in dotfile; Hyprland's
 #              Lua config is a dotfile, not a NixOS/HM module)
-#   MangoWC  — dotfiles/mangowc/config.conf (managed in dotfile; same reason)
 #   COSMIC   — RON files in ~/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/
 #   KDE      — kglobalshortcutsrc (appended via home.activation; must be
 #              writable because KDE modifies it at runtime — no symlinks)

@@ -59,7 +59,6 @@
     # Compositor — enable ONE, pair with Shell + Greeter below
     # ==============================================================
     #../../modules/compositors/hyprland/default.nix
-    #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
 
     # ==============================================================
@@ -437,9 +436,11 @@
   # linuxury user — needed for Syncthing (vault sync) and auto-update notifications
   users.users.linuxury = {
     isNormalUser = true;
+    extraGroups  = [ "wheel" "networkmanager" ];
     home         = "/home/linuxury";
     createHome   = true;
     group        = "users";
+    shell        = pkgs.zsh;
   };
 
   # Hide linuxury from the login screen — emergency account only

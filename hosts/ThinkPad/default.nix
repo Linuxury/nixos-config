@@ -69,7 +69,6 @@
     # Compositor — enable ONE, pair with Shell + Greeter below
     # ==============================================================
     #../../modules/compositors/hyprland/default.nix
-    #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
 
     # ==============================================================
@@ -575,10 +574,8 @@
   };
 
   # ==============================================================
-  # Tailscale — system daemon required for Home Manager's tailscale service
-  # After first boot: sudo tailscale up
+  # Tailscale — enabled in core; after first boot: sudo tailscale up
   # ==============================================================
-  services.tailscale.enable = true;
 
   # ==============================================================
   # Zsh — enable system-wide so it's available as a login shell

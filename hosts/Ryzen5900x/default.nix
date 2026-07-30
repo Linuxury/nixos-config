@@ -9,7 +9,6 @@
 # Enabled modules:
 #   - AMD drivers
 #   - Hyprland + Wayle + SDDM (active)
-#   - MangoWC + Noctalia (disabled — VRR/wlroots assertion crash on RDNA3)
 #   - COSMIC (disabled)
 #   - Niri (disabled)
 #   - Gaming
@@ -65,10 +64,8 @@
 
     # ==============================================================
     # Compositor — enable ONE, pair with Shell + Greeter below
-    #   mangowc disabled — VRR/wlroots assertion crash on RDNA3
     # ==============================================================
     ../../modules/compositors/hyprland/default.nix
-    #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
 
     # ==============================================================
@@ -193,10 +190,6 @@
   # ==============================================================
   services.displayManager.defaultSession = "hyprland-session";
 
-  # ==============================================================
-  # Network — prefer ethernet, auto-disable WiFi when ethernet is up
-  #
-  # ==============================================================
   # GPU driver selection
   # ==============================================================
   hardware.gpu = "amd";
@@ -562,10 +555,8 @@
   };
 
   # ==============================================================
-  # Tailscale — system daemon required for Home Manager's tailscale service
-  # After first boot: sudo tailscale up
+  # Tailscale — enabled in core; after first boot: sudo tailscale up
   # ==============================================================
-  services.tailscale.enable = true;
 
   programs.zsh.enable = true;
 }

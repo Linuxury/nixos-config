@@ -83,7 +83,6 @@ Writes colors to template outputs:
   ~/.config/kitty/colors.conf                        (Kitty terminal)
   ~/.config/btop/themes/matugen.theme                (btop)
   ~/.config/zed/themes/matugen.json                  (Zed editor)
-  ~/.config/mango/config.conf                        (MangoWC bar)
 ```
 
 ### Setting the wallpaper
@@ -179,13 +178,11 @@ Fires 10 seconds after session start. Gives the shell time to initialize and set
 
 Module: `modules/shells/noctalia/color-sync/default.nix` — imported automatically by the Noctalia shell module.
 
-A separate path unit watches `~/.config/noctalia/colors.json`. Noctalia writes that file whenever it derives a new accent color from the wallpaper. The service reads `mPrimary` from the JSON and patches MangoWC's `focuscolor` in `~/.config/mango/config.conf` directly, then reloads via `mmsg -d reload_config`.
-
-This is a faster, targeted update — it sets the focus border immediately on accent change without waiting for the full matugen run.
+A separate path unit watches `~/.config/noctalia/colors.json`. Noctalia writes that file whenever it derives a new accent color from the wallpaper. The service reads `mPrimary`, writes it to the matugen color hint file, clears the dedup stamp, and starts matugen.service — keeping Hyprland borders in sync with the bar accent without waiting for the next wallpaper change.
 
 ### GTK4 Noctalia accent CSS
 
-Noctalia also writes `~/.config/gtk-4.0/noctalia.css` with the current accent color. Both the Hyprland and MangoWC theme modules import it via `gtk.gtk4.extraCss = '@import url("noctalia.css");'` so GTK4 apps follow the active accent.
+Noctalia also writes `~/.config/gtk-4.0/noctalia.css` with the current accent color. The Hyprland theme module imports it via `gtk.gtk4.extraCss = '@import url("noctalia.css");'` so GTK4 apps follow the active accent.
 
 ### Checking the service
 

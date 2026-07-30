@@ -2,7 +2,7 @@
 # modules/components/bar/waybar/default.nix — Waybar status bar
 #
 # Compositor-agnostic status bar.
-# Works on any wlr-layer-shell compositor (Hyprland, Niri, Sway, MangoWC…).
+# Works on any wlr-layer-shell compositor (Hyprland, Niri, Sway…).
 #
 # When imported, this module:
 #   1. Adds waybar to system packages.

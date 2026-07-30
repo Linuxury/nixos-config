@@ -59,12 +59,6 @@
   };
 
   # =========================================================================
-  # Pipewire screen sharing support
-  # Required for screen sharing to work in browsers and apps under COSMIC.
-  # =========================================================================
-  services.pipewire.enable = true; # Already set in system/core but safe to repeat
-
-  # =========================================================================
   # COSMIC-specific packages
   #
   # COSMIC apps (files, text-editor, store, terminal, etc.) are bundled

@@ -97,11 +97,6 @@
       input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
       output_path = "~/.config/zed/themes/matugen.json"
 
-      [templates.mangowc]
-      input_path  = "~/nixos-config/dotfiles/mangowc/config.conf.template"
-      output_path = "~/.config/mango/config.conf"
-      post_hook   = "mmsg -d reload_config 2>/dev/null || true"
-
     '';
   };
 

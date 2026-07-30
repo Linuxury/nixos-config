@@ -233,7 +233,7 @@ in
   systemd.services.display-manager.restartIfChanged = false;
 
   # seatd manages seat (GPU/input device) access for Wayland compositors.
-  # With seatd running, libseat in weston and MangoWC/kwin uses seatd's backend
+  # With seatd running, libseat in weston and kwin uses seatd's backend
   # instead of logind's. seatd handles DRM master handoff between compositors
   # cleanly (greeter exits → user compositor takes over) without the VT race
   # condition that occurs with the logind backend.

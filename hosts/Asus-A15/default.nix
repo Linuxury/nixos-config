@@ -63,7 +63,6 @@
     # Compositor — enable ONE, pair with Shell + Greeter below
     # ==============================================================
     #../../modules/compositors/hyprland/default.nix
-    #../../modules/compositors/mangowc/default.nix
     #../../modules/compositors/niri/default.nix
 
     # ==============================================================
