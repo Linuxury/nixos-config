@@ -108,7 +108,7 @@ EOF
         "/data/config/odysseus/local:/app/.local:z"
         # Host paths — readable and writable by the Odysseus agent
         "/home/linuxury/nixos-config:/home/linuxury/nixos-config:z"
-        "/home/linuxury/Obsidian:/home/linuxury/Obsidian:z"
+        "/home/linuxury/Jarvis:/home/linuxury/Jarvis:z"
         "/home/linuxury/.agents:/home/linuxury/.agents:z"
       ];
       environment = {
