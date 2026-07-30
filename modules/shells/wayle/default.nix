@@ -11,7 +11,7 @@
 # Importing this module activates Wayle. No enable flag needed.
 # Wayle does not provide a login screen — add greeters/sddm to your host.
 #
-# To switch shell: remove this import, add shells/dms or shells/noctalia.
+# To switch shell: remove this import, add shells/noctalia.
 # ===========================================================================
 
 { pkgs, ... }:

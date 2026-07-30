@@ -5,7 +5,6 @@
 # and extensive customization potential.
 #
 # Shell layer and greeter are separate — import them in your host config:
-#   modules/shells/dms/default.nix       # DankMaterialShell (bundles greeter)
 #   modules/shells/wayle/default.nix     # Wayle (needs greeters/sddm)
 #   modules/shells/noctalia/default.nix  # Noctalia (needs greeters/sddm)
 #
@@ -39,7 +38,7 @@ let
       EOF
     '';
 
-  # BreezeX cursor theme — installed system-wide so dms-greeter (no
+  # BreezeX cursor theme — installed system-wide so SDDM (no
   # home-manager at login time) can use it on the login screen.
   breezex-cursors = pkgs.stdenv.mkDerivation {
     pname   = "breezex-cursor-theme";
@@ -181,8 +180,7 @@ in
   # Keyring — Secret storage for apps
   #
   # GNOME Keyring works fine outside of GNOME.
-  # PAM integration: greetd path handled by shells/dms;
-  #                  login/TTY fallback always present here.
+  # PAM integration: login/TTY fallback always present here.
   # =========================================================================
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.login.enableGnomeKeyring = true;
@@ -191,7 +189,7 @@ in
   # Hyprland companion tools
   # =========================================================================
   environment.systemPackages = with pkgs; [
-    # Cursor theme — needed by dms-greeter (runs before home-manager)
+    # Cursor theme — installed system-wide so SDDM greeter picks it up
     breezex-cursors
 
     # Screenshots

@@ -78,32 +78,6 @@
     # -------------------------------------------------------------------------
     affinity-nix.url = "github:mrshmllow/affinity-nix";
 
-    # -------------------------------------------------------------------------
-    # dms — DankMaterialShell
-    #
-    # Full Quickshell-based shell layer for Hyprland: bar, launcher,
-    # notifications, OSD, sidebar, dynamic matugen theming, wallpaper
-    # management, and dms-greeter login screen.
-    #
-    # nixpkgs.follows pins DMS and its bundled Quickshell to the same
-    # Qt version as the rest of the system — prevents Qt version mismatch crashes.
-    # -------------------------------------------------------------------------
-    dms = {
-      url = "github:AvengeMedia/DankMaterialShell/stable";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # -------------------------------------------------------------------------
-    # danksearch — Indexed filesystem search service
-    #
-    # Powers the file search feature in the DMS launcher (Spotlight-style).
-    # Runs as a user systemd service, indexes configured paths, and exposes
-    # a local REST API that DMS queries for file results.
-    # -------------------------------------------------------------------------
-    danksearch = {
-      url = "github:AvengeMedia/danksearch";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     # -------------------------------------------------------------------------
     # helium-browser — Nix flake for the Helium browser

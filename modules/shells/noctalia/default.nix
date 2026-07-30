@@ -15,17 +15,12 @@
 #     the matugen path unit (hyprland/matugen/default.nix) fires as before
 #   - notification daemon disabled — swaync handles notifications
 #
-# matugen color-hint integration (dropped from v4):
-#   v4 watched ~/.config/noctalia/colors.json and forwarded noctalia's
-#   mPrimary accent to matugen. v5 removes colors.json; theming now uses
-#   a template system. The color-sync path unit has been dropped. Matugen
-#   still fires on every wallpaper change via the hook — it falls back to
-#   ImageMagick dominant-color extraction, which is correct behavior.
-#   Re-enable noctalia→matugen accent sync when the template output path
-#   is stable in v5 stable release.
+# matugen fires on every wallpaper change via the hook — it falls back to
+# ImageMagick dominant-color extraction. Re-enable noctalia→matugen accent
+# sync when v5's template output path is stable.
 #
 # Importing this module activates Noctalia. No enable flag needed.
-# To switch shell: remove this import, add shells/dms or shells/wayle.
+# To switch shell: remove this import, add shells/wayle.
 # ===========================================================================
 
 { inputs, pkgs, ... }:

@@ -9,9 +9,8 @@
 #
 # Path unit watches current-wallpaper. If a color hint file exists, it is
 # used as the matugen input; otherwise ImageMagick extracts the dominant
-# color as a fallback. Shell modules (e.g. noctalia/color-sync) write the
-# hint file and clear the dedup stamp so matugen re-runs with the shell's
-# own color after its extraction pass completes.
+# color as a fallback. Shell modules can write the hint file and clear the
+# dedup stamp so matugen re-runs with the shell's own color.
 #
 # matugen 4.0.0 HashMap iteration bug: crashes after 2–3 of 5 templates per
 # run — run 3× to ensure full coverage. hyprctl reload applies colors.lua.
@@ -63,9 +62,8 @@
 
         log "Applying: $(basename "$WALLPAPER")"
 
-        # Prefer the shell-provided color hint (e.g. Noctalia's mPrimary written
-        # by noctalia/color-sync). Fall back to ImageMagick dominant-color extraction
-        # so this works with any shell that only writes current-wallpaper.
+        # Prefer the shell-provided color hint. Fall back to ImageMagick
+        # dominant-color extraction for shells that only write current-wallpaper.
         HEX=""
         if [ -f "$COLOR_HINT" ]; then
           _hint=$(cat "$COLOR_HINT" | tr -d '[:space:]')

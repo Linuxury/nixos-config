@@ -65,16 +65,14 @@
 
     # ==============================================================
     # Shell — enable ONE for the active compositor
-    #   dms      — bundles its own greeter, skip Greeter section
     #   wayle    — needs greeters/sddm
     #   noctalia — needs greeters/sddm
     # ==============================================================
     #../../modules/shells/wayle/default.nix
-    #../../modules/shells/dms/default.nix
     #../../modules/shells/noctalia/default.nix
 
     # ==============================================================
-    # Greeter — skip if using dms or a full DE (they bundle their own)
+    # Greeter — skip if using a full DE (they bundle their own)
     # ==============================================================
     #../../modules/greeters/sddm/default.nix
 
