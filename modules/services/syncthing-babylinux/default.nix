@@ -17,14 +17,6 @@
 { ... }:
 
 {
-  # ── One-time cleanup: remove stale ~/Obsidian (vault migrated to ~/Jarvis) ─
-  # Becomes a no-op once the directory is gone. Remove this block after both
-  # Ryzen5800x and Asus-A15 have been rebuilt and confirmed clean.
-  system.activationScripts.removeObsidianDirBabylinux.text = ''
-    rm -rf /home/babylinux/Obsidian
-  '';
-
-
   services.syncthing = {
     enable    = true;
     user      = "babylinux";

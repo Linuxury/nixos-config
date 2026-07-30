@@ -21,14 +21,6 @@
 { ... }:
 
 {
-  # ── One-time cleanup: remove stale ~/Obsidian (vault migrated to ~/Jarvis) ─
-  # Becomes a no-op once the directory is gone. Remove this block after all
-  # linuxury hosts have been rebuilt and confirmed clean.
-  system.activationScripts.removeObsidianDirLinuxury.text = ''
-    rm -rf /home/linuxury/Obsidian
-  '';
-
-
   services.syncthing = {
     enable    = true;
     user      = "linuxury";

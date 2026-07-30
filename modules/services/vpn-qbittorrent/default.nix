@@ -42,9 +42,10 @@
 #   Masquerade on the host rewrites the source IP for that traffic.
 #
 # Manual steps before first boot:
-#   1. Export WireGuard config from VPN Unlimited app
-#        Tools → WireGuard → select server → Export Config
+#   1. Export WireGuard config from Mullvad app or web dashboard
+#        Account → WireGuard configuration → Generate key → Download config
 #   2. Save it to /etc/wireguard/vpnunlimited.conf  (wg-quick format)
+#        (file is still named vpnunlimited.conf for historical reasons)
 #   3. chmod 600 /etc/wireguard/vpnunlimited.conf
 #        (private key inside — must not be world-readable)
 #

@@ -592,6 +592,7 @@
   users.users = {
     linuxury = {
       isNormalUser = true;
+      uid          = 1000; # ZenNotes container runs as --user=1000:1000; must match
       extraGroups  = [ "wheel" "networkmanager" "video" "render" "media" ];
       shell        = pkgs.zsh;
     };
