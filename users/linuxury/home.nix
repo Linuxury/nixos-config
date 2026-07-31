@@ -177,6 +177,13 @@
     ".claude.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Claude/state.json";
 
+    # Pi (pi-acp, used via Zed's agent_servers) reads its global instructions
+    # from ~/.pi/agent/AGENTS.md at startup — same shared rules file as the
+    # top-level ~/AGENTS.md, so Pi follows the same conventions as Claude
+    # Agent and opencode when run as a Zed external agent.
+    ".pi/agent/AGENTS.md".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/Shared/AGENTS.md";
+
 
     # Wayle desktop shell — static config (runtime.toml stores GUI/CLI overrides)
     ".config/wayle/config.toml".source =
@@ -320,7 +327,8 @@
       "$HOME/AGENTS.md" \
       "$HOME/CLAUDE.md" \
       "$HOME/.config/opencode/opencode.json" \
-      "$HOME/.claude.json"; do
+      "$HOME/.claude.json" \
+      "$HOME/.pi/agent/AGENTS.md"; do
       if [ -L "$f" ] || [ -f "$f" ]; then
         rm -f "$f"
       fi

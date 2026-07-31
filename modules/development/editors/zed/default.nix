@@ -7,9 +7,19 @@
 # Enable per host by importing this module:
 #   ../../modules/development/editors/zed/default.nix
 #
+# Settings portability: dotfiles/zed/settings.json holds the full baseline
+# config (fonts, panels, keymap, agent setup, etc). On first activation on
+# any host, if ~/.config/zed/settings.json doesn't exist yet, it's copied
+# from that tracked template — so enabling this module on a new host brings
+# the same setup instead of starting blank. After that first copy, the file
+# is left alone (Zed writes to it directly via its Settings UI, and the key
+# injection below edits it in place), so per-host drift afterward is fine —
+# it just won't be clobbered back to the template on every rebuild.
+#
 # AI: Claude via OpenRouter (language_model_providers.openai → openrouter.ai).
 # The OpenRouter key is injected from /run/agenix/openrouter-api-key at
-# activation time — never stored in the Nix store.
+# activation time — never stored in the Nix store. dotfiles/zed/settings.json
+# ships with api_key = "" — the secret only ever lives in the live file.
 # ===========================================================================
 
 { lib, pkgs, ... }:
@@ -40,6 +50,24 @@
       };
 
       # =====================================================================
+      # Bootstrap ~/.config/zed/settings.json from the tracked template.
+      #
+      # Only fires if the file doesn't exist yet — first activation on a
+      # fresh host. Existing configs (like the one already hand-tuned on
+      # Ryzen5900x) are never overwritten.
+      # =====================================================================
+      home.activation.zedBootstrapSettings =
+        lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          _cfg="$HOME/.config/zed/settings.json"
+          _template="$HOME/nixos-config/dotfiles/zed/settings.json"
+          mkdir -p "$HOME/.config/zed"
+          if [ ! -f "$_cfg" ] && [ -f "$_template" ]; then
+            cp "$_template" "$_cfg"
+          fi
+          unset _cfg _template
+        '';
+
+      # =====================================================================
       # Inject OpenRouter API key into Zed's settings.json at activation time.
       #
       # Zed doesn't support environment variable expansion in settings values,
@@ -50,7 +78,7 @@
       # jq parses; the result is written back as plain JSON — Zed accepts both.
       # =====================================================================
       home.activation.zedInjectOpenRouterKey =
-        lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        lib.hm.dag.entryAfter [ "zedBootstrapSettings" ] ''
           _key_file="/run/agenix/openrouter-api-key"
           _cfg="$HOME/.config/zed/settings.json"
           if [ -r "$_key_file" ] && [ -f "$_cfg" ]; then
