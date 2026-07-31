@@ -40,10 +40,6 @@ hl.on("hyprland.start", function()
     -- Sets per-display opacity (e.g. OLED needs lower opacity than LCD)
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/host-overrides.sh")
 
-    -- ── Auto column width ─────────────────────────────────────────────────────
-    -- Scrolling layout: 67% for 1 window, 50% for 2+
-    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/col-width-auto.sh")
-
     -- ── Game workspace ────────────────────────────────────────────────────────
     -- Move Proton/native-Wayland games to WS 2 after Steam places them.
     -- Windowrules fire too early (before Steam's set_fullscreen request); this
