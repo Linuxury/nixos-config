@@ -53,5 +53,9 @@ local function _apply_col_width()
 end
 
 hl.on("window.open",      function() _apply_col_width() end)
-hl.on("window.destroy",   function() _apply_col_width() end)
+-- window.destroy fires from inside CWindow::~CWindow(). Calling movefocus
+-- synchronously here re-enters the renderer/cursor code mid-destruction and
+-- crashes Hyprland (double-free in CRegion during simulateMouseMovement).
+-- Defer to the next event-loop tick so the destructor has fully unwound.
+hl.on("window.destroy",   function() hl.timer(_apply_col_width, { timeout = 1, type = "oneshot" }) end)
 hl.on("workspace.active", function() _apply_col_width() end)
