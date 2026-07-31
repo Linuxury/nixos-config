@@ -219,6 +219,12 @@
         # cache.garnix.io key is in modules/system/graphical/affinity/default.nix
       ];
 
+      # If a substituter (cache.nixos.org, garnix, etc.) is down or a narinfo
+      # lookup fails, build locally instead of hard-erroring the whole rebuild.
+      # Without this, a cache outage (e.g. garnix 502s) fails `nru` on every
+      # host, even ones that don't need the missing derivation from that cache.
+      fallback = true;
+
       # Allow your user to manage the Nix store without sudo for some operations
       trusted-users = [ "root" "@wheel" ];
 
