@@ -18,9 +18,17 @@
 # Phone (Pixel Pro 8) ID obtained from Syncthing-Fork app.
 # ===========================================================================
 
-{ ... }:
+{ lib, ... }:
 
 {
+  # Upstream's syncthing-init unit uses `Requisite=syncthing.service`, which
+  # only checks that syncthing.service is *already active* at job-queue time
+  # instead of waiting for it — during a rebuild/restart race this fails with
+  # "Dependency failed", then systemd retries and it succeeds a moment later.
+  # Swap Requisite for Requires so it waits instead of racing.
+  systemd.services.syncthing-init.requisite = lib.mkForce [ ];
+  systemd.services.syncthing-init.requires  = [ "syncthing.service" ];
+
   services.syncthing = {
     enable    = true;
     user      = "linuxury";

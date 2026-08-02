@@ -14,9 +14,15 @@
 #   3. Rebuild all her machines so they know each other's IDs
 # ===========================================================================
 
-{ ... }:
+{ lib, ... }:
 
 {
+  # See modules/services/syncthing/default.nix for why: upstream's
+  # syncthing-init unit races Requisite=syncthing.service against the
+  # service's own startup during a rebuild. Requires instead waits for it.
+  systemd.services.syncthing-init.requisite = lib.mkForce [ ];
+  systemd.services.syncthing-init.requires  = [ "syncthing.service" ];
+
   services.syncthing = {
     enable    = true;
     user      = "babylinux";
