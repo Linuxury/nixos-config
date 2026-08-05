@@ -216,6 +216,22 @@
                   poetry = prev.poetry.overridePythonAttrs (_: {
                     nativeCheckInputs = [ ];
                   });
+                  # Hyprland 0.56.1's CMakeLists pins find_package(glaze 7...<8),
+                  # but nixpkgs bumped glaze to 8.0.0. The version mismatch makes
+                  # CMake fall back to FetchContent (git clone), which fails in the
+                  # sandboxed build. Pin glaze back to 7.2.0 for Hyprland only.
+                  # Remove once nixpkgs/Hyprland realign on a compatible glaze.
+                  hyprland = prev.hyprland.override {
+                    glaze = prev.glaze.overrideAttrs (_: {
+                      version = "7.2.0";
+                      src = prev.fetchFromGitHub {
+                        owner = "stephenberry";
+                        repo = "glaze";
+                        tag = "v7.2.0";
+                        hash = "sha256-f3NVRi3SXKo42hn0WCw7JsOK3EkdOVJIcuzhPorKjFY=";
+                      };
+                    });
+                  };
                 })
 
               ];
