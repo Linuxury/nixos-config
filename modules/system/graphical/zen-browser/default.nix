@@ -28,10 +28,15 @@
     programs.zen-browser = {
       enable = true;
 
-      # gfx.wayland.hdr — Linux/Wayland HDR video playback (experimental, uses
-      # the color-management-v1 protocol Hyprland now speaks). Status =
-      # "default" leaves it user-changeable in about:config.
-      policies.Preferences."gfx.wayland.hdr" = {
+      # gfx.color_management.hdr — Linux/Wayland HDR video playback
+      # (experimental, uses the color-management-v1 protocol Hyprland now
+      # speaks). Confirmed via `strings libxul.so` on the installed Firefox
+      # build that this is the real pref — gfx.wayland.hdr (an earlier guess
+      # from a secondary source) doesn't exist in the binary and was a
+      # silent no-op. Status = "default" leaves it user-changeable in
+      # about:config. See modules/system/graphical/firefox/default.nix for
+      # the force_enabled fallback if this alone doesn't trigger HDR.
+      policies.Preferences."gfx.color_management.hdr" = {
         Value  = true;
         Status = "default";
       };
