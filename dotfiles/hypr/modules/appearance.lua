@@ -115,6 +115,8 @@ end
 hl.config({
     render = {
         direct_scanout = 0,   -- Disabled — causes flickering when entering/leaving fullscreen
+        cm_auto_hdr    = true, -- Auto-enable HDR for fullscreen HDR-capable clients (games,
+                                -- mpv, HDR video in Chromium-based browsers) and revert on exit.
     },
     misc = {
         force_default_wallpaper  = 0,
@@ -123,6 +125,7 @@ hl.config({
         mouse_move_enables_dpms  = true,
         key_press_enables_dpms   = true,
         animate_manual_resizes   = true,
-        vrr                      = 2,   -- Fullscreen-only VRR
+        -- VRR is set per-monitor in monitors.lua (DP-3 only) — more precise
+        -- than a global default since the ThinkPad panel has no VRR hardware.
     },
 })

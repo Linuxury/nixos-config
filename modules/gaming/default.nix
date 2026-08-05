@@ -79,6 +79,14 @@ in
   # proton-ge-custom uses inline pkgs.fetchzip (not a flake input)
   # so headless servers never resolve this tarball when building from GitHub.
   # nru updates the URL, version, and hash in this file directly.
+  #
+  # HDR launch options (2026) — differ per compat layer, neither needs the
+  # old PROTON_ENABLE_HDR=1-only workflow anymore:
+  #   - proton-cachyos 11+: auto-HDR by default, PROTON_ENABLE_HDR was removed
+  #     upstream. No launch option needed; DXVK_NO_HDR=1 disables it per-game.
+  #   - proton-ge-custom (GE-Proton11-x): still uses PROTON_ENABLE_HDR=1 (sets
+  #     DXVK_HDR=1), usually paired with PROTON_ENABLE_WAYLAND=1 for native
+  #     Wayland HDR. Also gained auto-HDR detection; DXVK_NO_HDR=1 disables it.
   # =========================================================================
   nixpkgs.overlays = [
     (final: prev:
