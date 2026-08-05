@@ -18,11 +18,17 @@
   # default but leaves it user-changeable in about:config, keeping this
   # module's "no managed policies" intent.
   #
-  # If HDR still doesn't trigger with this pref, also try
-  # gfx.color_management.hdr.force_enabled — bypasses whatever
-  # capability/heuristic check gates the plain pref.
+  # .force_enabled bypasses whatever capability/heuristic check gates the
+  # plain pref — Linux has no OS-level HDR toggle the way Windows does,
+  # which is likely what that check expects and fails to find. Both
+  # confirmed present in libxul.so; neither guarantees this Firefox build's
+  # HDR support is actually wired up end-to-end yet — it's experimental.
   programs.firefox.policies.Preferences = {
     "gfx.color_management.hdr" = {
+      Value  = true;
+      Status = "default";
+    };
+    "gfx.color_management.hdr.force_enabled" = {
       Value  = true;
       Status = "default";
     };

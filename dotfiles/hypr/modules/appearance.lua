@@ -115,8 +115,21 @@ end
 hl.config({
     render = {
         direct_scanout = 0,   -- Disabled — causes flickering when entering/leaving fullscreen
-        cm_auto_hdr    = true, -- Auto-enable HDR for fullscreen HDR-capable clients (games,
-                                -- mpv, HDR video in Chromium-based browsers) and revert on exit.
+        -- cm_auto_hdr = 2 (not 1/true) is reported to pass HDR through to
+        -- native-Wayland game clients more reliably — plain "true" only
+        -- reliably auto-switches for mpv. Confirmed live via `hyprctl
+        -- getoption render:cm_auto_hdr` on this exact build (0.56.1).
+        -- render:cm_fs_passthrough (also recommended alongside this in some
+        -- reports) does NOT exist in 0.56.1 — confirmed via `hyprctl
+        -- getoption`, silently ignored rather than erroring. Revisit once
+        -- Hyprland ships it.
+        -- Games under Proton also need to run under Proton's native Wayland
+        -- driver (PROTON_ENABLE_WAYLAND=1 launch option) for Hyprland to see
+        -- them as HDR-capable at all — Xwayland clients (Proton's default)
+        -- don't negotiate the color-management-v1 protocol. This is an
+        -- actively-evolving area upstream (hyprwm/Hyprland#10993), not
+        -- guaranteed to work even with all flags set.
+        cm_auto_hdr = 2,
     },
     misc = {
         force_default_wallpaper  = 0,

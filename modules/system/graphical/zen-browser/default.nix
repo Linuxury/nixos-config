@@ -34,11 +34,17 @@
       # build that this is the real pref — gfx.wayland.hdr (an earlier guess
       # from a secondary source) doesn't exist in the binary and was a
       # silent no-op. Status = "default" leaves it user-changeable in
-      # about:config. See modules/system/graphical/firefox/default.nix for
-      # the force_enabled fallback if this alone doesn't trigger HDR.
-      policies.Preferences."gfx.color_management.hdr" = {
-        Value  = true;
-        Status = "default";
+      # about:config. .force_enabled bypasses whatever capability/heuristic
+      # check gates the plain pref — see firefox/default.nix for details.
+      policies.Preferences = {
+        "gfx.color_management.hdr" = {
+          Value  = true;
+          Status = "default";
+        };
+        "gfx.color_management.hdr.force_enabled" = {
+          Value  = true;
+          Status = "default";
+        };
       };
     };
   };
