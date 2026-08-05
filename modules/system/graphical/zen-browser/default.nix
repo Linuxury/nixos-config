@@ -28,24 +28,12 @@
     programs.zen-browser = {
       enable = true;
 
-      # gfx.color_management.hdr — Linux/Wayland HDR video playback
-      # (experimental, uses the color-management-v1 protocol Hyprland now
-      # speaks). Confirmed via `strings libxul.so` on the installed Firefox
-      # build that this is the real pref — gfx.wayland.hdr (an earlier guess
-      # from a secondary source) doesn't exist in the binary and was a
-      # silent no-op. Status = "default" leaves it user-changeable in
-      # about:config. .force_enabled bypasses whatever capability/heuristic
-      # check gates the plain pref — see firefox/default.nix for details.
-      policies.Preferences = {
-        "gfx.color_management.hdr" = {
-          Value  = true;
-          Status = "default";
-        };
-        "gfx.color_management.hdr.force_enabled" = {
-          Value  = true;
-          Status = "default";
-        };
-      };
+      # gfx.color_management.hdr / .force_enabled — tried for Linux/Wayland
+      # HDR video playback, reverted. Same result as Firefox: HDR did engage
+      # (Hyprland switched the monitor to HDR mode) but video rendered with a
+      # blown-out red tint. See modules/system/graphical/firefox/default.nix
+      # for the Mozilla bug references — genuine upstream Gecko issue, not
+      # fixable from config.
     };
   };
 }
