@@ -518,9 +518,9 @@
     procs              # Modern ps replacement with color and filtering
     whois              # Domain registration lookup
     traceroute         # Trace network path to a host
-    obsidian           # Markdown-based knowledge base / note-taking app
+    # obsidian           # Markdown-based knowledge base / note-taking app
     fluent-reader      # RSS feed reader — clean GTK app for following news/blogs
-    obs-studio         # Screen recording and streaming
+    # obs-studio         # Screen recording and streaming
     p7zip              # Extract .7z, .rar, and many other archive formats
     imagemagick        # CLI image conversion and manipulation
     nix-output-monitor # Progress bar + TUI for nix builds (nom)

@@ -351,7 +351,7 @@
     # babylinux — everyday tools
     nix-output-monitor # Progress bar + TUI for nix builds (nom)
     zoom-us            # Video conferencing
-    obsidian           # Markdown-based knowledge base / note-taking app
+    # obsidian           # Markdown-based knowledge base / note-taking app
 
     # ==============================================================
     # Host-specific apps
