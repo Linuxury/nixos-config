@@ -80,16 +80,22 @@ in
   # so headless servers never resolve this tarball when building from GitHub.
   # nru updates the URL, version, and hash in this file directly.
   #
-  # HDR launch options (2026) — differ per compat layer:
-  #   - proton-cachyos 11+: PROTON_ADD_CONFIG=hdr,wayland,wow64 set globally
-  #     below (programs.steam.package.extraEnv) — the current shorthand,
-  #     superseded the old individual PROTON_ENABLE_HDR/_WAYLAND flags as of
-  #     cachyos-11.0-20260601. Confirmed working live for Diablo 4. Disable
-  #     per-game with DXVK_NO_HDR=1 if a title's tone mapping looks wrong.
-  #   - proton-ge-custom (GE-Proton11-x): still uses PROTON_ENABLE_HDR=1 (sets
-  #     DXVK_HDR=1), usually paired with PROTON_ENABLE_WAYLAND=1 for native
-  #     Wayland HDR — not covered by the global PROTON_ADD_CONFIG above, which
-  #     is CachyOS-specific syntax. Set per-game if using GE instead of CachyOS.
+  # HDR launch options (2026) — per-game, not global. Tried globalizing
+  # PROTON_ADD_CONFIG via programs.steam.package.extraEnv, but Steam Linux
+  # Runtime (the pressure-vessel/bubblewrap container most modern Proton
+  # titles run inside, including Diablo 4) sanitizes the environment when
+  # building the sandbox — it doesn't inherit Steam's own process env, only
+  # what's threaded through via the launch-options field. Confirmed live:
+  # the var was present on Steam's own process but HDR still greyed out
+  # in-game with just `gamemoderun %command%`. So it has to be per-game:
+  #   - proton-cachyos 11+: `PROTON_ADD_CONFIG=hdr,wayland,wow64 gamemoderun
+  #     %command%` — current shorthand, superseded the old individual
+  #     PROTON_ENABLE_HDR/_WAYLAND flags as of cachyos-11.0-20260601.
+  #     Confirmed working for Diablo 4. Disable with DXVK_NO_HDR=1 if a
+  #     title's tone mapping looks wrong.
+  #   - proton-ge-custom (GE-Proton11-x): `PROTON_ENABLE_HDR=1
+  #     PROTON_ENABLE_WAYLAND=1 gamemoderun %command%` (sets DXVK_HDR=1
+  #     internally) — CachyOS's PROTON_ADD_CONFIG shorthand doesn't apply.
   # =========================================================================
   nixpkgs.overlays = [
     (final: prev:
@@ -161,22 +167,13 @@ in
       # SDL_GameController scan, HIDAPI_IGNORE_DEVICES for Steam's own
       # hidraw-based controller scan (what actually populates that page).
       #
-      # PROTON_ADD_CONFIG — Proton-CachyOS's HDR/native-Wayland/wow64
-      # shorthand (superseded the old PROTON_ENABLE_HDR/_WAYLAND flag stack
-      # as of the cachyos-11.0-20260601 release). Set global here so every
-      # game's launch options only need `gamemoderun %command%` — the env
-      # var alone can't be added to Steam's launch-options field the way
-      # gamemoderun can, so global is the only way to avoid per-game typing.
-      # "wayland" switches Proton's own rendering backend for every game,
-      # which is the part with real per-title compatibility risk (recent,
-      # actively-changing upstream feature). If a specific game regresses,
-      # override just that game's Steam launch options with
-      # `PROTON_ADD_CONFIG=hdr gamemoderun %command%` to drop wayland/wow64
-      # for that title only.
+      # PROTON_ADD_CONFIG is NOT set here — tried it, doesn't reach games
+      # run inside Steam Linux Runtime's container (see the HDR comment
+      # above this let-block for why). Set it per-game in Steam launch
+      # options instead.
       extraEnv = {
         SDL_GAMECONTROLLER_IGNORE_DEVICES = "0x362d/0xd030";
         SDL_HIDAPI_IGNORE_DEVICES = "0x362d/0xd030";
-        PROTON_ADD_CONFIG = "hdr,wayland,wow64";
       };
     };
   };
