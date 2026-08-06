@@ -12,14 +12,18 @@
 
 -- Ryzen5900x — LG 34" ultrawide (3440x1440, 240Hz, VRR)
 -- bitdepth 10 = 10-bit color
--- HDR enabled per-game via PROTON_ENABLE_HDR=1 %command%
--- VRR is managed by DMS when active; static config here for non-DMS sessions.
+-- cm = "srgb" pairs with render:cm_auto_hdr (appearance.lua) to auto-enable
+-- HDR only for fullscreen HDR-capable clients and correctly revert on exit —
+-- "wide"/"auto" have an open upstream bug where they don't revert (hyprwm/Hyprland#12971).
+-- Per-compat-layer Proton HDR flags (now mostly obsolete) are documented in
+-- modules/gaming/default.nix.
 hl.monitor({
     output   = "DP-3",
     mode     = "3440x1440@240",
     position = "0x0",
     scale    = "1",
     bitdepth = 10,
+    cm       = "srgb",
     vrr      = 2,   -- fullscreen-only VRR (avoids flickering on the desktop)
 })
 

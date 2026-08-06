@@ -79,6 +79,46 @@ in
   # proton-ge-custom uses inline pkgs.fetchzip (not a flake input)
   # so headless servers never resolve this tarball when building from GitHub.
   # nru updates the URL, version, and hash in this file directly.
+  #
+  # HDR launch options (2026) — per-game, not global. Tried globalizing
+  # PROTON_ADD_CONFIG via programs.steam.package.extraEnv, but Steam Linux
+  # Runtime (the pressure-vessel/bubblewrap container most modern Proton
+  # titles run inside, including Diablo 4) sanitizes the environment when
+  # building the sandbox — it doesn't inherit Steam's own process env, only
+  # what's threaded through via the launch-options field. So it has to be
+  # per-game regardless of which mechanism is used.
+  #
+  # IMPORTANT: proton-cachyos and proton-ge-custom each have their OWN
+  # PROTON_ADD_CONFIG implementation with a DIFFERENT recognized-key table —
+  # they are not interchangeable. Verify against the actual installed
+  # build's source (grep utilities.py / proton for the token) before
+  # trusting any web-sourced list of "valid" keys; unrecognized keys are
+  # silently accepted and dropped, not an error, so a wrong key looks
+  # identical to a wrong config until you check the actual monitor/HDR
+  # state, not just whether the game's own HDR toggle is un-greyed.
+  #   - proton-cachyos 11.0-20260703-slr (pinned here): _config_envvars only
+  #     maps wow64/dlss/xess/fsr3/fsr4/ffx3/ffx4/optiscaler. "hdr" and
+  #     "wayland" are NOT recognized on this build.
+  #   - proton-ge-custom GE-Proton11-3 (pinned here): DOES have its own
+  #     PROTON_ADD_CONFIG parsing (contrary to an earlier note here) with a
+  #     wider key set including hdr, wayland, fsr4, fsr4rdna3, wow64,
+  #     optiscaler, sdlinput. "hdr" → sets DXVK_HDR=1 only. It does NOT
+  #     imply PROTON_ENABLE_WAYLAND — that's a separate "wayland" key.
+  #
+  # Confirmed live for Diablo 4 on GE-Proton — real trade-off, not a bug:
+  #   - WITH PROTON_ENABLE_WAYLAND=1: Hyprland actually switches the monitor
+  #     into HDR mode (true compositor HDR, needs the Wayland
+  #     color-management-v1 protocol negotiation — DXVK_HDR=1 alone under
+  #     Xwayland does NOT get this, see hyprwm/Hyprland#10993). But Steam
+  #     Controller Puck (28de:1304, see controller.nix) L4/L5/R4/R5 back
+  #     paddles stop working — Wine's native Wayland driver has a gap in
+  #     whatever code path Steam uses to surface those as gamepad buttons.
+  #   - WITHOUT PROTON_ENABLE_WAYLAND=1 (settled on this):
+  #     `PROTON_ADD_CONFIG=fsr4,fsr4rdna3,hdr,wow64,optiscaler gamemoderun
+  #     %command%` — paddles work, DXVK does internal HDR tone-mapping via
+  #     DXVK_HDR=1, but the monitor itself likely isn't switched into true
+  #     HDR by Hyprland. Chose controller support over verified compositor
+  #     HDR for this title/controller combo.
   # =========================================================================
   nixpkgs.overlays = [
     (final: prev:
@@ -149,6 +189,11 @@ in
       # hints are needed: GAMECONTROLLER_IGNORE_DEVICES for the classic
       # SDL_GameController scan, HIDAPI_IGNORE_DEVICES for Steam's own
       # hidraw-based controller scan (what actually populates that page).
+      #
+      # PROTON_ADD_CONFIG is NOT set here — tried it, doesn't reach games
+      # run inside Steam Linux Runtime's container (see the HDR comment
+      # above this let-block for why). Set it per-game in Steam launch
+      # options instead.
       extraEnv = {
         SDL_GAMECONTROLLER_IGNORE_DEVICES = "0x362d/0xd030";
         SDL_HIDAPI_IGNORE_DEVICES = "0x362d/0xd030";
