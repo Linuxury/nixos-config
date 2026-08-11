@@ -114,7 +114,7 @@
     # glibc/wayland/etc as the rest of the system.
     # -------------------------------------------------------------------------
     noctalia = {
-      url = "github:noctalia-dev/noctalia/v5.0.0-beta.7"; # noctalia-version-nru
+      url = "github:noctalia-dev/noctalia/v5.0.0-beta.8"; # noctalia-version-nru
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
