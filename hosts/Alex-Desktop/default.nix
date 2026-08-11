@@ -67,8 +67,8 @@
 
     # ==============================================================
     # Shell — enable ONE for the active compositor
-    #   wayle    — needs greeters/sddm
-    #   noctalia — needs greeters/sddm
+    #   wayle    — needs greeters/sddm (imported below)
+    #   noctalia — bundles its own greeter (noctalia-greeter/greetd)
     # ==============================================================
     #../../modules/shells/wayle/default.nix
     #../../modules/shells/noctalia/default.nix

@@ -118,6 +118,25 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # -------------------------------------------------------------------------
+    # noctalia-greeter — first-party greetd-based login greeter for Noctalia v5
+    #
+    # Built for greetd: ships its own wlroots compositor
+    # (noctalia-greeter-session), so it's independent of SDDM/Qt6. Matches
+    # Noctalia Shell's look and can sync wallpaper/palette from it via the
+    # shell's Settings -> Security -> Noctalia Greeter -> Sync Now action.
+    #
+    # No versioned release tags upstream yet (unlike noctalia/noctalia-shell)
+    # — tracks the default branch directly, no nru sentinel needed here.
+    #
+    # nixpkgs.follows ensures the binary links against the same glibc/wayland
+    # as the rest of the system.
+    # -------------------------------------------------------------------------
+    noctalia-greeter = {
+      url = "github:noctalia-dev/noctalia-greeter";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   # ===========================================================================

@@ -14,18 +14,24 @@
 #     wallpaper_changed hook writes ~/.local/share/current-wallpaper so
 #     the matugen path unit (hyprland/matugen/default.nix) fires as before
 #   - notification daemon disabled — swaync handles notifications
+#   - greeters/noctalia — noctalia-greeter (greetd), bundled automatically
+#     so hosts don't need a separate greeter import. It matches the shell's
+#     look natively; unlike wayle it does NOT need greeters/sddm.
 #
 # matugen fires on every wallpaper change via the hook — it falls back to
 # ImageMagick dominant-color extraction. Re-enable noctalia→matugen accent
 # sync when v5's template output path is stable.
 #
-# Importing this module activates Noctalia. No enable flag needed.
-# To switch shell: remove this import, add shells/wayle.
+# Importing this module activates Noctalia (shell + greeter). No enable
+# flag needed. To switch shell: remove this import, add shells/wayle
+# (+ greeters/sddm).
 # ===========================================================================
 
 { inputs, pkgs, ... }:
 
 {
+  imports = [ ../../greeters/noctalia/default.nix ];
+
   home-manager.sharedModules = [
 
     # =========================================================================

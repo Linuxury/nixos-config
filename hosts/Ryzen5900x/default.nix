@@ -8,7 +8,7 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - Hyprland + Wayle + SDDM (active)
+#   - Hyprland + Noctalia shell + noctalia-greeter (active)
 #   - COSMIC (disabled)
 #   - Niri (disabled)
 #   - Gaming
@@ -70,16 +70,16 @@
 
     # ==============================================================
     # Shell — enable ONE for the active compositor
-    #   wayle    — needs greeters/sddm
-    #   noctalia — needs greeters/sddm
+    #   wayle    — needs greeters/sddm (imported below)
+    #   noctalia — bundles its own greeter (noctalia-greeter/greetd)
     # ==============================================================
     #../../modules/shells/wayle/default.nix
     ../../modules/shells/noctalia/default.nix
 
     # ==============================================================
-    # Greeter
+    # Greeter — only needed for wayle; noctalia brings its own
     # ==============================================================
-    ../../modules/greeters/sddm/default.nix
+    #../../modules/greeters/sddm/default.nix
 
     # ==============================================================
     # Components — individual desktop components
