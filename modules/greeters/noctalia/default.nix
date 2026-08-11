@@ -12,7 +12,11 @@
 #   - services.greetd + programs.noctalia-greeter (enabled via the upstream
 #     NixOS module — see inputs.noctalia-greeter.nixosModules.default)
 #   - Default session (matches services.displayManager.defaultSession)
-#   - Cursor theme (Adwaita, matches the SDDM greeter's fallback)
+#   - Cursor theme (BreezeX-Light, matches the Hyprland/Noctalia session —
+#     see modules/themes/gtk/default.nix). Not in nixpkgs; provided by the
+#     breezex-cursors overlay (flake.nix). Installed system-wide below so the
+#     greeter compositor can find it under /run/current-system/sw/share/icons
+#     regardless of which compositor module is paired with this shell.
 #
 # What this module does NOT own:
 #   - Wallpaper/palette sync — appearance.scheme = "Synced" below picks up
@@ -41,9 +45,12 @@
       };
 
       cursor = {
-        theme = "Adwaita";
+        theme = "BreezeX-Light";
         size = 24;
+        path = "/run/current-system/sw/share/icons";
       };
     };
   };
+
+  environment.systemPackages = [ pkgs.breezex-cursors ];
 }
