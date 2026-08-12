@@ -29,8 +29,8 @@ let
       mkdir -p $out/share/wayland-sessions
       cat > $out/share/wayland-sessions/hyprland-session.desktop <<'EOF'
       [Desktop Entry]
-      Name=Hyprland
-      Comment=Hyprland Wayland Compositor (UWSM)
+      Name=Hyprland (quiet)
+      Comment=Hyprland Wayland Compositor (UWSM, log suppressed)
       Exec=${hyprland-session-start}
       Type=Application
       DesktopNames=Hyprland
@@ -172,6 +172,13 @@ in
   # Hyprland companion tools
   # =========================================================================
   environment.systemPackages = with pkgs; [
+    # Quiet UWSM session wrapper — services.displayManager.sessionPackages
+    # (below) only reaches SDDM's own session-file provider; greetd-based
+    # greeters (noctalia-greeter) scan /run/current-system/sw/share directly,
+    # which is populated from environment.systemPackages. Needs to be listed
+    # here too or it never appears in a greetd session picker.
+    hyprland-session-pkg
+
     # Cursor theme — installed system-wide so SDDM greeter picks it up
     pkgs.breezex-cursors
 
