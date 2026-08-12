@@ -120,9 +120,9 @@
     #   vscodium — GUI editor: Catppuccin theme, Claude Code + OpenCode extensions
     #   zed      — fast Wayland-native editor (Rust), vim mode
     # ==============================================================
-    ../../modules/development/editors/neovim/default.nix
-    ../../modules/development/editors/vscodium/default.nix
-    #../../modules/development/editors/zed/default.nix
+    #../../modules/development/editors/neovim/default.nix
+    #../../modules/development/editors/vscodium/default.nix
+    ../../modules/development/editors/zed/default.nix
 
     # ==============================================================
     # Development — Languages
