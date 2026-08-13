@@ -328,7 +328,7 @@ in
     # -----------------------------------------------------------------------
     # Launchers — non-Steam storefronts
     # -----------------------------------------------------------------------
-    heroic # Epic Games + GOG launcher — wraps Proton/Wine the same way
+    # heroic # Epic Games + GOG launcher — wraps Proton/Wine the same way
     # Steam does; uses UMU internally for compatibility.
 
     umu-launcher # Valve's universal compatibility tool (umu-run <exe>).
