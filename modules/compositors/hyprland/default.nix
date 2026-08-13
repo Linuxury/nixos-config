@@ -188,7 +188,9 @@ in
     swappy          # Screenshot annotation tool
 
     # Screen recording
-    wf-recorder     # Wayland screen recorder (lightweight, keybind toggle)
+    # wf-recorder 0.6.0 fails to build against current nixpkgs ffmpeg — sample_fmts
+    # was removed from AVCodec upstream (2026-08-13). Re-enable once nixpkgs fixes/bumps it.
+    # wf-recorder     # Wayland screen recorder (lightweight, keybind toggle)
     wl-screenrec    # GPU-accelerated screen recorder (AMD/NVIDIA)
 
     # Night light
