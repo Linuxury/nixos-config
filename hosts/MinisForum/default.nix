@@ -340,7 +340,7 @@
   virtualisation.oci-containers = {
     backend = "docker";
     containers.crafty = {
-      image     = "registry.gitlab.com/crafty-controller/crafty-4:latest";
+      image     = "registry.gitlab.com/crafty-controller/crafty-4:4.10.8";
       autoStart = true;
       ports = [
         "8443:8443"       # Web UI
