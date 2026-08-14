@@ -312,8 +312,16 @@
   # ==============================================================
   # Crafty Controller — web-based Minecraft server manager
   #
-  # Runs in Docker. Manages Minecraft servers only (Java + Bedrock).
-  # Hytale is managed directly via systemd (see below).
+  # Runs in Docker. Primarily manages Minecraft servers (Java + Bedrock).
+  # The main Hytale instance is managed directly via systemd (see below).
+  #
+  # A second, test/experimental Hytale server also lives inside Crafty
+  # itself (custom/generic server type — Crafty has no native Hytale
+  # support, so it does NOT auto-publish its UDP port the way it does for
+  # Minecraft). That container-internal server binds 5520/udp inside the
+  # container's network namespace; it's published to the HOST on 5521/udp
+  # below to avoid clashing with the systemd instance's host port 5520.
+  # Point that Hytale client at MinisForum:5521.
   #
   # Web UI:  https://MinisForum:8443  (self-signed cert, click through)
   #          or https://<tailscale-ip>:8443
@@ -322,6 +330,7 @@
   # Ports mapped to host:
   #   8443        — Crafty web UI (HTTPS)
   #   25565       — Minecraft Java default (add more in Crafty UI as needed)
+  #   5521/udp    — Crafty-managed Hytale test server (container port 5520)
   #
   # To add more Minecraft ports (e.g. a second server on 25566):
   #   Add "25566:25566" to ports below and 25566 to allowedTCPPorts.
@@ -336,6 +345,7 @@
       ports = [
         "8443:8443"       # Web UI
         "25565:25565"     # Minecraft Java (default server)
+        "5521:5520/udp"   # Crafty-managed Hytale test server
       ];
       volumes = [
         "/data/gameservers/crafty/backups:/crafty/backups"
@@ -467,7 +477,7 @@
   };
 
   networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 ];
-  networking.firewall.allowedUDPPorts = [ 137 138 5520 ]; # 5520/udp — Hytale uses QUIC (UDP only)
+  networking.firewall.allowedUDPPorts = [ 137 138 5520 5521 ]; # 5520 — systemd Hytale; 5521 — Crafty-managed Hytale (QUIC/UDP only)
 
   # ==============================================================
   # Sudo — NOPASSWD for Hytale service control
