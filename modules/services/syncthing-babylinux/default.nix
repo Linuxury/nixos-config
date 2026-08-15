@@ -65,8 +65,8 @@
           addresses = [ "tcp://100.126.220.53:22000" ];
         };
         "Radxa-X4" = {
-          id        = "BGJEXC3-YNHVMOF-PAG2C43-5C3GI33-TTNMFCF-D5BSZL6-IXMN56R-BY7N5QH";
-          addresses = [ "tcp://100.107.245.87:22000" ];
+          id        = "HEWJMUJ-SQMIWXS-2XSAQDS-JXFU7JO-Z7CH3CR-U3AU6JK-R3BTDXN-ZZDFIAK";
+          addresses = [ "tcp://100.118.218.97:22000" ];
         };
         "Pixel-Pro-8" = {
           id        = "7PCGWBQ-DK3DAYL-A7ANW7E-TDWSUGW-IEVJHXH-34SAGCG-JEQ6ZH5-YRZL7A7";
