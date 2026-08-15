@@ -190,7 +190,7 @@
       fsType = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
-        "uid=1000"
+        "uid=1002"   # linuxury — NOT 1000 on this host; UIDs vary per host by install-time declaration order (alex=1000, babylinux=1001, linuxury=1002 here)
         "gid=100"
         "nofail"
         "_netdev"
