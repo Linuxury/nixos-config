@@ -143,41 +143,67 @@ sudo smartctl -a /dev/sda      # check SMART health for a specific drive (replac
 
 ## Radxa-X4
 
-**Role:** Dedicated torrent host with Mullvad WireGuard VPN killswitch. All qBittorrent traffic is routed through the VPN. If the VPN drops, qBittorrent's network access is cut by the killswitch — your home IP is never exposed.
+**Role:** Dedicated torrent host with Mullvad WireGuard VPN killswitch. All qBittorrent traffic is routed through the VPN, inside a network namespace (`vpn-qbt`). If the VPN drops, qBittorrent's network access is cut by the killswitch — your home IP is never exposed.
 
-**Key constraint:** The qBittorrent web UI runs inside a network namespace (`qbt-vpn`) that can only reach the internet through the VPN interface. It is not accessible from the regular network.
+**Key services** (`systemctl list-units "*qbt*" "*qbittorrent*"`):
 
-### VPN Status
+- `vpn-qbt-netns.service` — creates the network namespace + WireGuard interface (`wg-qbt`) + veth pair to the host
+- `qbittorrent-vpn.service` — the qBittorrent daemon, running *inside* the namespace
+- `qbittorrent-vpn-proxy.service` — proxies the web UI from the namespace out to the host's normal network, so it's reachable at a normal LAN address instead of requiring `ip netns exec` or an SSH tunnel
+- `vpn-qbt-failover.timer` — checks VPN connectivity every 5 minutes, triggers `vpn-qbt-failover.service` to rotate to the next server in `failoverServers` (see `hosts/Radxa-X4/default.nix`) if the active one is down
+
+### VPN Status & Killswitch Verification
 
 ```bash
-sudo wg show                                                  # check WireGuard interface — shows peer handshake time
-sudo systemctl status vpn-qbt-netns wireguard-vpnunlimited   # check both VPN services
-sudo ip netns exec qbt-vpn curl https://am.i.mullvad.net/ip  # verify traffic exits through Mullvad
+sudo ip netns exec vpn-qbt ip addr    # confirm wg-qbt interface has an IP
+sudo ip netns exec vpn-qbt ip route   # default route MUST be `dev wg-qbt` — a route to the WG endpoint itself via veth is normal, not a leak
+
+# The real test — external IP MUST differ between these two:
+sudo ip netns exec vpn-qbt curl -s --max-time 8 ifconfig.me   # should show a Mullvad exit IP
+curl -s --max-time 8 ifconfig.me                                # should show your real home IP
 ```
 
-Current active server: **us-mia-wg-001** (US Miami) — confirmed working at ~18 MB/s.
+If both commands return the same IP, or the namespace command times out entirely, the killswitch is not isolating traffic correctly — stop and fix this before letting any torrents run.
 
 ### qBittorrent
 
-The web UI is inside the VPN network namespace — only reachable via Tailscale or an SSH tunnel:
+The web UI is proxied to the host's normal network — reachable directly, no tunnel needed:
 
-- Web UI: `http://10.200.200.2:8080`
-- Default login: `admin` / `adminadmin` — **change this on first boot**
+- Web UI: `http://Radxa-X4:8080` (or `http://10.0.0.5:8080` on LAN, or via Tailscale hostname)
+- **Login is not `admin`/`adminadmin`.** Modern qBittorrent (4.6+) generates a random temporary password on every service (re)start instead, logged only to journalctl:
+  ```bash
+  journalctl -u qbittorrent-vpn.service --no-pager | grep -i "temporary password" | tail -1
+  ```
+  Log in immediately and set a permanent password (Options → WebUI → Change password) — until you do, it re-randomizes on every restart/reboot, locking you out again each time.
+- If login fails even with a freshly-grabbed temp password, check for an IP ban first before assuming the password is stale — qBittorrent's brute-force protection locks out an IP after repeated failed attempts (common after a couple of expired-password attempts in a row):
+  ```bash
+  curl -s -i -X POST http://Radxa-X4:8080/api/v2/auth/login -d "username=admin&password=<pw>"
+  # "Your IP address has been banned..." means restart the service to clear the ban
+  # (this also generates a fresh temp password — grab the new one after restarting)
+  sudo systemctl restart qbittorrent-vpn.service
+  ```
 
 Manage the service:
 
 ```bash
-sudo systemctl status qbittorrent-vpn    # check status
-sudo systemctl restart qbittorrent-vpn   # restart — VPN handshake runs automatically before qBit starts
-journalctl -u qbittorrent-vpn -f         # follow live logs
+sudo systemctl status qbittorrent-vpn.service    # check status
+sudo systemctl restart qbittorrent-vpn.service   # restart — also clears any WebUI IP ban and issues a new temp password
+journalctl -u qbittorrent-vpn.service -f          # follow live logs
 ```
 
-The `ExecStartPre` hook in `vpn-qbittorrent.nix` triggers a WireGuard handshake before qBittorrent starts. This prevents the DHT bootstrap race condition where qBittorrent tries to connect before the VPN tunnel is fully established.
-
-Download paths:
+Download paths (created via `systemd.tmpfiles.rules`, owned by `linuxury:users`):
 
 - Complete: `/data/torrents/complete`
 - Incomplete: `/data/torrents/incomplete`
+
+### Post-Reinstall Checklist
+
+Beyond the generic reinstall steps in [02-install-uefi.md](02-install-uefi.md), Radxa-X4 specifically needs these checked after any wipe/reformat:
+
+1. **CIFS mount UIDs** — `/mnt/Media-Server`'s mount options hardcode a numeric `uid=`. NixOS assigns UIDs by declaration order at install time, and it is **not guaranteed to match previous installs or other hosts** — a reinstall can silently reassign `linuxury` to a different UID than before. Verify with `id linuxury` and compare against the hardcoded `uid=` in `hosts/Radxa-X4/default.nix`'s `fileSystems."/mnt/Media-Server"` block; fix if they don't match. (The same class of bug is separately tracked for MinisForum — this isn't a one-off, check it on every host with a hardcoded CIFS uid after a reinstall.)
+2. **qBittorrent WebUI password** — see above; grab the fresh temp password and set a permanent one before doing anything else with it.
+3. **Killswitch verification** — run the external-IP comparison above *before* trusting the VPN with real traffic, every time, not just after a fresh install.
+4. **Directory ownership** — `ls -la /data /data/torrents/{complete,incomplete}` should all show `linuxury:users`; these are declarative (`systemd.tmpfiles.rules`) so they should self-correct on rebuild, but worth a glance.
 
 ### Samba Share
 
