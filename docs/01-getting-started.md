@@ -17,6 +17,7 @@ This page covers everything you need to do before touching a disk — what this 
   - [Option D — Terminal with dd (Linux / macOS)](#option-d--terminal-with-dd-linux--macos)
 - [Step 3 — Boot from the USB](#step-3--boot-from-the-usb)
 - [Step 4 — First Things in the Installer](#step-4--first-things-in-the-installer)
+- [Common Problems: Bad USB Drives](#common-problems-bad-usb-drives)
 - [You're Ready](#youre-ready)
 
 ---
@@ -238,6 +239,36 @@ ls /sys/firmware/efi   # if this directory exists: UEFI boot confirmed
 ```
 
 If the result does not match your expected boot mode, go back into the firmware settings and check that Secure Boot is off and that the boot mode (sometimes labeled "CSM" or "Legacy Boot") is configured correctly.
+
+---
+
+## Common Problems: Bad USB Drives
+
+Counterfeit USB flash drives are common on marketplace listings — the firmware reports a large capacity (128GB, 1TB, whatever sounds appealing) while the real NAND behind it is a tiny fraction of that, often 1-2GB. `dd`, Etcher, and every other flashing tool will happily attempt to write the full ISO and fail partway through, because they trust whatever the drive claims about itself. This is a hardware problem, not a NixOS or tool problem — no `wipefs`, `blockdev --rereadpt`, or retry will fix it.
+
+**Symptoms that point to a fake-capacity drive:**
+
+- `dd` fails with `No space left on device` at the same byte offset on every retry, regardless of block size or flags (`oflag=direct` included)
+- The failure offset has no relationship to the drive's advertised size — it fails at (for example) 1.6GB whether the drive claims to be 8GB or 128GB
+- `dd`'s reported write speed is implausibly fast (multiple GB/s) — no USB flash drive writes anywhere near that fast; a near-instant "success" followed by an immediate error means the kernel rejected the write in software, not that it attempted a slow physical write and failed
+- `sudo dmesg | tail -60` shows no corresponding I/O error or USB disconnect event around the failure — the drive isn't misbehaving at the hardware/bus level, the write is being rejected before it gets that far
+- `/sys/block/sdX/size` (the kernel's live view of the device) correctly reports the large advertised size — the OS isn't confused, the drive's firmware is lying about what it can actually store
+
+**Definitive test — write past the point of failure:**
+
+```bash
+# Replace /dev/sdX with your drive. This targets an offset (2GB here)
+# comfortably past whatever byte offset the ISO write failed at.
+echo "test-marker" | sudo dd of=/dev/sdX bs=1M seek=2000 conv=fsync
+```
+
+If this tiny write fails immediately with `No space left on device`, the drive's real capacity is below that offset — full stop, no further troubleshooting will help. Retire the drive (or return it if still possible) and use a different one. If you want conclusive proof for a batch of drives from the same source (worth doing before buying more from the same seller), use `f3probe`:
+
+```bash
+nix-shell -p f3 --run "sudo f3probe --destructive --time-ops /dev/sdX"
+```
+
+**What doesn't help, and why:** rescanning the partition table (`blockdev --rereadpt`), clearing filesystem signatures (`wipefs -a`), physically unplugging and replugging, or switching USB ports/cables — none of these change what the drive's firmware actually does with write commands past its real capacity. If you find yourself trying a third or fourth variation of the same `dd` command hoping for a different result, stop and run the far-offset test above instead — it answers the question in seconds instead of minutes per attempt.
 
 ---
 

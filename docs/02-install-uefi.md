@@ -419,6 +419,25 @@ Pull and rebuild on the reinstalled machine:
 ssh <user>@<hostname> "cd ~/nixos-config && git pull && nr"
 ```
 
+**If `git pull` fails with `Permission denied` on a `.git/` file** (e.g. `cannot open '.git/FETCH_HEAD': Permission denied`), some files under `~/nixos-config/.git/` are still owned by `root` — a leftover from install-time git operations that ran as root before the `chown -R 1000:100` step. Fix it directly on the reinstalled host:
+
+```bash
+sudo chown -R <user>:users ~/nixos-config
+```
+
+**If `git pull` fails with `Could not resolve hostname github.com`**, the host has no working network yet — this is expected on hosts (like Radxa-X4) whose only internet route is WiFi, since a fresh install has no saved WiFi credentials. Connect it first with `sudo nmtui` (see Step 1), then retry.
+
+### No Personal SSH Key Backup? Generate a Fresh One
+
+If the personal SSH key backup (from "Before Formatting" above) wasn't taken before the wipe — easy to skip if you're moving fast — there's nothing to restore. Generate a new one on the reinstalled host and register it with GitHub instead:
+
+```bash
+ssh-keygen -t ed25519 -C "<user>@<hostname>" -f ~/.ssh/id_ed25519 -N ""
+cat ~/.ssh/id_ed25519.pub   # note: .pub — never cat the private key to a screen you'll photograph or share
+```
+
+Add the printed line at **github.com/settings/keys** → "New SSH key". If you accidentally `cat` the private key (no `.pub`) and it ends up visible anywhere — a screenshot, a screen share, a photo — treat it as compromised and regenerate immediately (`rm ~/.ssh/id_ed25519*` and repeat the command above). The private key never needs to leave the machine it was generated on; only the `.pub` file goes anywhere else.
+
 ### After Reinstall — Restore the Personal Key
 
 ```bash
@@ -439,3 +458,6 @@ ssh -T git@github.com   # verify GitHub still accepts the restored key
 | `echo $HOST` shows nothing | SSH session dropped and variables were lost — re-export all three before continuing |
 | System boots to emergency shell | Run `journalctl -b` — usually a subvolume mount option mismatch in the generated hardware config |
 | Can't log in after first boot | Password wasn't set — boot the ISO again and run `nixos-enter --root /mnt -- passwd $NIXUSER` |
+| `git pull` fails: "Permission denied" on a `.git/` file | Some files are still root-owned from install-time git operations — run `sudo chown -R $NIXUSER:users ~/nixos-config` |
+| `git pull` fails: "Could not resolve hostname github.com" | No network yet — WiFi-dependent hosts need `sudo nmtui` run first (see [01-getting-started.md](01-getting-started.md)) |
+| USB flashes fine but the ISO write fails partway, every time | Likely a counterfeit/fake-capacity drive — see [Common Problems: Bad USB Drives](01-getting-started.md#common-problems-bad-usb-drives) |
