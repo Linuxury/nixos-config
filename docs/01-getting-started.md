@@ -17,7 +17,7 @@ This page covers everything you need to do before touching a disk — what this 
   - [Option D — Terminal with dd (Linux / macOS)](#option-d--terminal-with-dd-linux--macos)
 - [Step 3 — Boot from the USB](#step-3--boot-from-the-usb)
 - [Step 4 — First Things in the Installer](#step-4--first-things-in-the-installer)
-- [Common Problems: Bad USB Drives](#common-problems-bad-usb-drives)
+- [Common Problems: `dd` Fails Partway Through, Every Time](#common-problems-dd-fails-partway-through-every-time)
 - [You're Ready](#youre-ready)
 
 ---
@@ -242,33 +242,35 @@ If the result does not match your expected boot mode, go back into the firmware 
 
 ---
 
-## Common Problems: Bad USB Drives
+## Common Problems: `dd` Fails Partway Through, Every Time
 
-Counterfeit USB flash drives are common on marketplace listings — the firmware reports a large capacity (128GB, 1TB, whatever sounds appealing) while the real NAND behind it is a tiny fraction of that, often 1-2GB. `dd`, Etcher, and every other flashing tool will happily attempt to write the full ISO and fail partway through, because they trust whatever the drive claims about itself. This is a hardware problem, not a NixOS or tool problem — no `wipefs`, `blockdev --rereadpt`, or retry will fix it.
+If flashing the ISO fails repeatedly at the same byte offset — same error, same position, no matter how many times you retry — there are two distinct causes that produce nearly identical symptoms. Telling them apart matters, because the fix is completely different: one means retire the drive, the other means stop blaming the drive.
 
-**Symptoms that point to a fake-capacity drive:**
+**Symptoms common to both causes:**
 
 - `dd` fails with `No space left on device` at the same byte offset on every retry, regardless of block size or flags (`oflag=direct` included)
-- The failure offset has no relationship to the drive's advertised size — it fails at (for example) 1.6GB whether the drive claims to be 8GB or 128GB
-- `dd`'s reported write speed is implausibly fast (multiple GB/s) — no USB flash drive writes anywhere near that fast; a near-instant "success" followed by an immediate error means the kernel rejected the write in software, not that it attempted a slow physical write and failed
-- `sudo dmesg | tail -60` shows no corresponding I/O error or USB disconnect event around the failure — the drive isn't misbehaving at the hardware/bus level, the write is being rejected before it gets that far
-- `/sys/block/sdX/size` (the kernel's live view of the device) correctly reports the large advertised size — the OS isn't confused, the drive's firmware is lying about what it can actually store
+- `dd`'s reported write speed is implausibly fast (multiple GB/s) — no USB flash drive writes anywhere near that fast; a near-instant "success" followed by an immediate error means the write was rejected before real hardware I/O happened, not that a slow physical write was attempted and failed
+- `sudo dmesg | tail -60` shows no corresponding I/O error or USB disconnect event around the failure
+- `wipefs -a`, `blockdev --rereadpt`, unplugging/replugging, and switching ports/cables all change nothing
 
-**Definitive test — write past the point of failure:**
+**The fastest way to tell them apart: try a completely different physical machine.** Not a different port on the same machine — an entirely different computer. This is faster and more conclusive than any of the tests below, and should be the *first* thing you reach for once a retry-with-different-flags hasn't fixed it:
 
-```bash
-# Replace /dev/sdX with your drive. This targets an offset (2GB here)
-# comfortably past whatever byte offset the ISO write failed at.
-echo "test-marker" | sudo dd of=/dev/sdX bs=1M seek=2000 conv=fsync
-```
+- **Works cleanly on a different machine** → the original host has a USB controller/driver-level fault (bad xHCI controller, a marginal port, or a kernel/hardware quirk specific to that machine). The drive is fine. This kind of fault can reproduce identically across multiple different drives on the same host — including landing on the exact same byte offset every time — because the failure happens below the level `dmesg` normally logs, which is what makes it look so much like a bad drive. Worth flagging the host itself for a closer look (check other USB ports, consider a different port/hub, watch for the same behavior with unrelated USB peripherals later).
+- **Fails the same way everywhere** → now it's worth suspecting the drive. Counterfeit USB flash drives are common on marketplace listings — firmware reports a large capacity (128GB, 1TB, whatever sounds appealing) while the real NAND behind it is a tiny fraction of that, often 1-2GB. Confirm with a targeted write past the failure point:
 
-If this tiny write fails immediately with `No space left on device`, the drive's real capacity is below that offset — full stop, no further troubleshooting will help. Retire the drive (or return it if still possible) and use a different one. If you want conclusive proof for a batch of drives from the same source (worth doing before buying more from the same seller), use `f3probe`:
+  ```bash
+  # Replace /dev/sdX with your drive. This targets an offset (2GB here)
+  # comfortably past whatever byte offset the ISO write failed at.
+  echo "test-marker" | sudo dd of=/dev/sdX bs=1M seek=2000 conv=fsync
+  ```
 
-```bash
-nix-shell -p f3 --run "sudo f3probe --destructive --time-ops /dev/sdX"
-```
+  If this tiny write fails immediately with `No space left on device` **on more than one machine**, the drive's real capacity is below that offset. For conclusive proof (worth doing before buying more from the same seller), use `f3probe`:
 
-**What doesn't help, and why:** rescanning the partition table (`blockdev --rereadpt`), clearing filesystem signatures (`wipefs -a`), physically unplugging and replugging, or switching USB ports/cables — none of these change what the drive's firmware actually does with write commands past its real capacity. If you find yourself trying a third or fourth variation of the same `dd` command hoping for a different result, stop and run the far-offset test above instead — it answers the question in seconds instead of minutes per attempt.
+  ```bash
+  nix-shell -p f3 --run "sudo f3probe --destructive --time-ops /dev/sdX"
+  ```
+
+**Don't declare a drive counterfeit on the strength of same-host testing alone** — a same-byte-offset failure across multiple drives feels like damning proof of fake capacity, but it's exactly what a host-side fault produces too. Cross-machine confirmation is what actually distinguishes them.
 
 ---
 

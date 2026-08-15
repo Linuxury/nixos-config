@@ -460,4 +460,4 @@ ssh -T git@github.com   # verify GitHub still accepts the restored key
 | Can't log in after first boot | Password wasn't set — boot the ISO again and run `nixos-enter --root /mnt -- passwd $NIXUSER` |
 | `git pull` fails: "Permission denied" on a `.git/` file | Some files are still root-owned from install-time git operations — run `sudo chown -R $NIXUSER:users ~/nixos-config` |
 | `git pull` fails: "Could not resolve hostname github.com" | No network yet — WiFi-dependent hosts need `sudo nmtui` run first (see [01-getting-started.md](01-getting-started.md)) |
-| USB flashes fine but the ISO write fails partway, every time | Likely a counterfeit/fake-capacity drive — see [Common Problems: Bad USB Drives](01-getting-started.md#common-problems-bad-usb-drives) |
+| USB flashes fine but the ISO write fails partway, every time | Could be a fake-capacity drive *or* a host-side USB fault — try a different machine first. See [Common Problems: `dd` Fails Partway Through, Every Time](01-getting-started.md#common-problems-dd-fails-partway-through-every-time) |
