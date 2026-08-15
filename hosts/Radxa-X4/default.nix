@@ -360,7 +360,12 @@
   # Setup steps:
   #   1. Export WireGuard config from VPN Unlimited app
   #      (already managed by agenix — decrypted to /etc/wireguard/vpnunlimited.conf)
-  #   2. On first access change the default password: admin / adminadmin
+  #   2. On first access, log in with a temporary password — modern qBittorrent
+  #      no longer defaults to admin/adminadmin. It generates a random temp
+  #      password on every service (re)start, logged only to journalctl:
+  #        journalctl -u qbittorrent-vpn.service | grep "temporary password"
+  #      Set a permanent one immediately (Options -> WebUI -> Change password)
+  #      or it keeps randomizing on every restart/reboot.
   #   3. Set download paths to /data/torrents/incomplete and /data/torrents/complete
   #   4. Configure qBittorrent in Sonarr/Radarr as remote download client
   # ==============================================================
