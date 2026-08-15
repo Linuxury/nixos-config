@@ -77,14 +77,40 @@ get_diff() {
 
 # ── Extract actionable warnings ────────────────────────────────────────────
 # Keep NixOS config/module-level warnings.
-# Filter out C/C++/cmake/linker build noise — those are upstream pkg issues.
+# Filter out C/C++/cmake/linker build noise — those are upstream pkg issues —
+# and network/cache noise (garnix cache misses) that "does not exist" would
+# otherwise false-positive on; nix.settings.fallback already handles those.
 WARNINGS=$(grep -E "warning:" "$LOG_FILE" 2>/dev/null | \
   grep -ivE \
-    '/nix/store/[a-z0-9]{32}|\.c:[0-9]|\.cpp:[0-9]|\.h:[0-9]|gcc|g\+\+|clang\+\+|cmake|fortify|implicit declaration|unused (variable|parameter|function|result)|-W[a-z]|ld: warning|linker warning' | \
+    '/nix/store/[a-z0-9]{32}|\.c:[0-9]|\.cpp:[0-9]|\.h:[0-9]|gcc|g\+\+|clang\+\+|cmake|fortify|implicit declaration|unused (variable|parameter|function|result)|-W[a-z]|ld: warning|linker warning|does not exist in binary cache' | \
   grep -iE \
     'renamed|deprecated|removed|does not exist|unknown option|no longer supported|has been|will be removed|type error|infinite recursion|undefined variable|is not defined' | \
   sed 's/^[[:space:]]*//' | \
   sort -u || true)
+
+# Unit/job failures from a successful-but-warned switch (exit 4): a service
+# didn't come back up. These don't say "warning:" so the grep above misses
+# them entirely — always treated as HIGH impact. Restricted to .service units
+# specifically (not .scope/.mount) so transient nix-daemon build scopes don't
+# false-positive as real post-switch service failures.
+UNIT_FAILURES=$(grep -E "Job for [^ ]*\.service failed|Failed to (start|restart|reload) [^ ]*\.service|start request repeated too quickly" "$LOG_FILE" 2>/dev/null | \
+  sed 's/^[[:space:]]*//' | \
+  sort -u || true)
+
+# ── Severity classification ────────────────────────────────────────────────
+# HIGH:   build-breaking or service-breaking (unit failures always HIGH)
+# MEDIUM: works today, has a stated removal/sunset horizon
+# LOW:    cosmetic — renamed/deprecated with a compat shim still in place
+classify_severity() {
+  local line="$1"
+  if echo "$line" | grep -qiE 'does not exist|infinite recursion|undefined variable|type error|is not defined'; then
+    echo "HIGH"
+  elif echo "$line" | grep -qiE 'no longer supported|will be removed'; then
+    echo "MEDIUM"
+  else
+    echo "LOW"
+  fi
+}
 
 # ── Insert row into PENDING.md ⚡ Next table (deduplicated) ────────────────
 pending_insert() {
@@ -110,15 +136,48 @@ pending_insert() {
 
 # Failure row
 if [[ "$OUTCOME" == "failure" ]]; then
-  pending_insert "| NixOS failure — ${HOST} | nixos-rebuild failed — see \`hosts/${HOST}.md\` | ${DATE} |"
+  pending_insert "| [HIGH] NixOS failure — ${HOST} | nixos-rebuild failed — see \`hosts/${HOST}.md\` | ${DATE} |"
 fi
 
-# Warning rows (one per warning, deduplicated)
+# Unit failure rows (one per failed unit, deduplicated) — always HIGH
+if [[ -n "$UNIT_FAILURES" ]]; then
+  while IFS= read -r u; do
+    short=$(echo "$u" | cut -c1-80)
+    pending_insert "| [HIGH] NixOS unit failure — ${HOST} | ${short} | ${DATE} |"
+  done <<< "$UNIT_FAILURES"
+fi
+
+# Warning rows (one per warning, deduplicated), tagged by severity
 if [[ -n "$WARNINGS" ]]; then
   while IFS= read -r w; do
+    sev=$(classify_severity "$w")
     short=$(echo "$w" | sed 's/^warning:[[:space:]]*//' | cut -c1-80)
-    pending_insert "| NixOS warning — ${HOST} | ${short} | ${DATE} |"
+    pending_insert "| [${sev}] NixOS warning — ${HOST} | ${short} | ${DATE} |"
   done <<< "$WARNINGS"
+fi
+
+# ── Terminal-visible summary (printed to stdout; zshrc surfaces it live) ───
+if [[ -n "$WARNINGS" || -n "$UNIT_FAILURES" ]]; then
+  echo ""
+  echo "─── Flagged ──────────────────────────────────────────────"
+  if [[ -n "$UNIT_FAILURES" ]]; then
+    while IFS= read -r u; do
+      printf '  ✗ HIGH   %s\n' "$(echo "$u" | cut -c1-90)"
+    done <<< "$UNIT_FAILURES"
+  fi
+  if [[ -n "$WARNINGS" ]]; then
+    while IFS= read -r w; do
+      sev=$(classify_severity "$w")
+      short=$(echo "$w" | sed 's/^warning:[[:space:]]*//' | cut -c1-90)
+      case "$sev" in
+        HIGH)   printf '  ✗ HIGH   %s\n' "$short" ;;
+        MEDIUM) printf '  ⚠ MEDIUM %s\n' "$short" ;;
+        LOW)    printf '  · LOW    %s\n' "$short" ;;
+      esac
+    done <<< "$WARNINGS"
+  fi
+  echo "  → filed to PENDING.md ⚡ Next"
+  echo "──────────────────────────────────────────────────────────"
 fi
 
 # ── Initialize host update log ────────────────────────────────────────────
@@ -148,11 +207,19 @@ if [[ -n "$LOG_HEADER_LINE" ]]; then
     echo ""
     echo "### ${DATE} ${TIME} — ${STATUS_ICON} ${OUTCOME} — gen ${GEN}${PREV_GEN:+ (was ${PREV_GEN})}"
 
+    if [[ -n "$UNIT_FAILURES" ]]; then
+      UNIT_COUNT=$(echo "$UNIT_FAILURES" | wc -l)
+      echo "**Unit failures (${UNIT_COUNT}):**"
+      while IFS= read -r u; do
+        echo "- [HIGH] $u"
+      done <<< "$UNIT_FAILURES"
+    fi
+
     if [[ -n "$WARNINGS" ]]; then
       WARN_COUNT=$(echo "$WARNINGS" | wc -l)
       echo "**Warnings (${WARN_COUNT}):**"
       while IFS= read -r w; do
-        echo "- $w"
+        echo "- [$(classify_severity "$w")] $w"
       done <<< "$WARNINGS"
     fi
 

@@ -523,14 +523,18 @@ ANIMEOF
   fi
 
   # Write warnings + update log to vault (non-blocking, never fails the shell).
-  # Output is captured silently; the generation number is extracted into
-  # _NIXOS_LAST_GEN so callers (nru) can fold it into their success line.
+  # The generation number is extracted into _NIXOS_LAST_GEN so callers (nru)
+  # can fold it into their success line. Everything else in log_out is the
+  # "─── Flagged ───" summary block (if any warnings/unit failures were
+  # found) — printed here instead of discarded, so it's visible at rebuild
+  # time and not just buried in PENDING.md until someone reads it later.
   _NIXOS_LAST_GEN=""
   if command -v nixos-log-rebuild &>/dev/null; then
     local outcome="success" log_out
     [[ $exit_code -eq 1 ]] && outcome="failure"
     log_out=$(nixos-log-rebuild --outcome "$outcome" --log "$tmplog" 2>&1) || true
     _NIXOS_LAST_GEN=$(printf '%s' "$log_out" | grep -oE 'gen [0-9]+' | grep -oE '[0-9]+' | head -1)
+    [[ -n "$log_out" ]] && printf '%s\n' "$log_out" | grep -v '^nixos-log-rebuild:'
   fi
 
   kill "$(cat "$_anim_pid" 2>/dev/null)" 2>/dev/null || true
