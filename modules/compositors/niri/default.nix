@@ -94,7 +94,8 @@
     # Screenshots
     grim
     slurp
-    swappy
+    hyprpicker
+    satty
 
     # Clipboard
     wl-clipboard

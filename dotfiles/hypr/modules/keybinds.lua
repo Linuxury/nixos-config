@@ -104,12 +104,13 @@ hl.bind(mod .. " + S",         hl.dsp.workspace.toggle_special("scratch"))
 hl.bind(mod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:scratch" }))
 
 -- ── Screenshots ───────────────────────────────────────────────────────────────
-hl.bind("Print",                   hl.dsp.exec_cmd('grim -g "$(slurp)" - | swappy -f -'))   -- Region → annotate
-hl.bind(mod .. " + Print",         hl.dsp.exec_cmd("grim - | swappy -f -"))                  -- Full screen → annotate
-hl.bind(mod .. " + Z",             hl.dsp.exec_cmd('grim -g "$(slurp)" - | swappy -f -'))   -- Region → annotate (alt key)
-hl.bind(mod .. " + X",             hl.dsp.exec_cmd("grim - | swappy -f -"))                  -- Full screen → annotate (alt key)
-hl.bind("SHIFT + Print",           hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))        -- Region → clipboard
-hl.bind(mod .. " + SHIFT + Print", hl.dsp.exec_cmd("grim - | wl-copy"))                      -- Full screen → clipboard
+hl.bind("Print",                   hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh area save"))        -- Region → save + copy, edit on demand
+hl.bind(mod .. " + Print",         hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh fullscreen save"))  -- Full screen → save + copy, edit on demand
+hl.bind(mod .. " + Z",             hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh area save"))        -- Region (alt key)
+hl.bind(mod .. " + X",             hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh fullscreen save"))  -- Full screen (alt key)
+hl.bind(mod .. " + CTRL + Z",      hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh smart save"))       -- Smart select (window/monitor snap)
+hl.bind("SHIFT + Print",           hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh area copy"))        -- Region → clipboard only
+hl.bind(mod .. " + SHIFT + Print", hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh fullscreen copy"))  -- Full screen → clipboard only
 
 -- ── Screen recording ─────────────────────────────────────────────────────────
 hl.bind(mod .. " + ALT + R",         hl.dsp.exec_cmd("~/.config/hypr/scripts/screen-record.sh area"))

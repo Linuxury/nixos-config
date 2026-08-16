@@ -185,7 +185,8 @@ in
     # Screenshots
     grim            # Screenshot tool for Wayland
     slurp           # Region selector (used with grim)
-    swappy          # Screenshot annotation tool
+    hyprpicker      # Freezes screen during screenshot selection
+    satty           # Screenshot annotation tool
 
     # Screen recording
     # wf-recorder 0.6.0 fails to build against current nixpkgs ffmpeg — sample_fmts
