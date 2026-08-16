@@ -47,6 +47,7 @@
   # sessions read automatically — no shell involved.
   # =========================================================================
   home.sessionPath = [
+    "/run/wrappers/bin"
     "/etc/profiles/per-user/linuxury/bin"
     "/run/current-system/sw/bin"
   ];
