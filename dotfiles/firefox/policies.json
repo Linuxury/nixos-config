@@ -1,0 +1,176 @@
+{
+  "policies": {
+    "ExtensionSettings": {
+      "uBlock0@raymondhill.net": {
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi",
+        "installation_mode": "force_installed"
+      },
+      "78272b6fa58f4a1abaac99321d503a20@proton.me": {
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/proton-pass/latest.xpi",
+        "installation_mode": "force_installed"
+      }
+    },
+    "3rdparty": {
+      "Extensions": {
+        "uBlock0@raymondhill.net": {
+          "toOverwrite": {
+            "filterLists": [
+              "user-filters",
+              "ublock-filters",
+              "ublock-badware",
+              "ublock-privacy",
+              "ublock-quick-fixes",
+              "ublock-unbreak",
+              "easylist",
+              "easyprivacy",
+              "adguard-spyware-url",
+              "urlhaus-1",
+              "plowe-0",
+              "fanboy-cookiemonster",
+              "ublock-cookies-easylist",
+              "fanboy-thirdparty_social",
+              "ublock-annoyances"
+            ]
+          },
+          "toAdd": {
+            "externalLists": [
+              "https://raw.githubusercontent.com/gijsdev/ublock-hide-yt-shorts/master/list.txt"
+            ]
+          }
+        }
+      }
+    },
+    "UserMessaging": {
+      "WhatsNew": false,
+      "ExtensionRecommendations": false,
+      "UrlbarInterventions": false,
+      "SkipOnboarding": true
+    },
+    "OverridePostUpdatePage": "",
+    "OverrideFirstRunPage": "",
+    "EnableTrackingProtection": {
+      "Value": true,
+      "Cryptomining": true,
+      "Fingerprinting": true,
+      "Locked": false
+    },
+    "Cookies": {
+      "Behavior": "reject-tracker-and-partition-foreign",
+      "BehaviorPrivateBrowsing": "reject-tracker-and-partition-foreign"
+    },
+    "NoDefaultBookmarks": true,
+    "DisablePocket": true,
+    "DisableAppUpdate": true,
+    "CaptivePortal": false,
+    "DisableFeedbackCommands": true,
+    "DisableFirefoxAccounts": true,
+    "DisableFirefoxStudies": true,
+    "DisableTelemetry": true,
+    "DontCheckDefaultBrowser": true,
+    "OfferToSaveLoginsDefault": false,
+    "DNSOverHTTPS": {
+      "Enabled": false
+    },
+    "SearchSuggestEnabled": false,
+    "Homepage": {
+      "URL": "about:home",
+      "StartPage": "homepage"
+    },
+    "SearchEngines": {
+      "Add": [
+        {
+          "Name": "ddg",
+          "URLTemplate": "https://duckduckgo.com/?q={searchTerms}",
+          "Method": "GET",
+          "IconURL": "https://duckduckgo.com/favicon.ico",
+          "Alias": "ddg",
+          "Description": "DuckDuckGo",
+          "SuggestURLTemplate": "https://duckduckgo.com/ac/?q={searchTerms}&type=list"
+        }
+      ],
+      "Default": "ddg"
+    },
+    "FirefoxHome": {
+      "Search": true,
+      "TopSites": false,
+      "SponsoredTopSites": false,
+      "Highlights": false,
+      "Pocket": false,
+      "SponsoredPocket": false,
+      "Snippets": false
+    },
+    "AIControls": {
+      "Default": {
+        "Value": "blocked",
+        "Locked": true
+      }
+    },
+    "ExtensionUpdate": true,
+    "Preferences": {
+      "dom.security.https_only_mode": {
+        "Value": true,
+        "Status": "locked"
+      },
+      "dom.push.connection.enabled": {
+        "Value": false,
+        "Status": "default"
+      },
+      "browser.urlbar.suggest.quicksuggest.nonsponsored": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.urlbar.suggest.quicksuggest.sponsored": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.urlbar.suggest.quicksuggest.all": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.toolbars.bookmarks.visibility": {
+        "Value": "newtab",
+        "Status": "default"
+      },
+      "browser.safebrowsing.malware.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.safebrowsing.phishing.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.safebrowsing.downloads.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.newtabpage.activity-stream.feeds.section.topstories": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.newtabpage.activity-stream.showSponsoredCheckboxes": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "browser.newtabpage.activity-stream.widgets.system.weather.enabled": {
+        "Value": false,
+        "Status": "default"
+      },
+      "browser.tabs.groups.smart.userEnabled": {
+        "Value": false,
+        "Status": "default"
+      },
+      "signon.management.page.breach-alerts.enabled": {
+        "Value": false,
+        "Status": "locked"
+      },
+      "privacy.fingerprintingProtection.pbmode": {
+        "Value": false,
+        "Status": "default"
+      },
+      "signon.firefoxRelay.feature": {
+        "Value": "disabled",
+        "Status": "locked"
+      }
+    }
+  }
+}

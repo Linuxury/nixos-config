@@ -1,0 +1,79 @@
+{
+  "AdvancedProtectionAllowed": false,
+  "AlternateErrorPagesEnabled": false,
+  "AutofillCreditCardEnabled": false,
+  "BackgroundModeEnabled": false,
+  "BlockThirdPartyCookies": true,
+  "BrowserGuestModeEnabled": false,
+  "BrowserLabsEnabled": false,
+  "BrowserNetworkTimeQueriesEnabled": false,
+  "BrowserSignin": 0,
+  "CloudPrintProxyEnabled": false,
+  "CloudReportingEnabled": false,
+  "DefaultBrowserSettingEnabled": false,
+  "DefaultCookiesSetting": 1,
+  "DnsOverHttpsMode": "off",
+  "EnableAuthNegotiatePort": true,
+  "EnableMediaRouter": false,
+  "MetricsReportingEnabled": false,
+  "NetworkPredictionOptions": 2,
+  "PasswordManagerEnabled": false,
+  "PaymentMethodQueryEnabled": false,
+  "PrivacySandboxAdMeasurementEnabled": false,
+  "PrivacySandboxAdTopicsEnabled": false,
+  "PrivacySandboxPromptEnabled": false,
+  "PrivacySandboxSiteEnabledAdsEnabled": false,
+  "PromotionalTabsEnabled": false,
+  "SafeBrowsingProtectionLevel": 0,
+  "SearchSuggestEnabled": false,
+  "SyncDisabled": true,
+  "TranslateEnabled": false,
+  "UrlKeyedAnonymizedDataCollectionEnabled": false,
+  "DefaultSearchProviderEnabled": true,
+  "DefaultSearchProviderName": "DuckDuckGo",
+  "DefaultSearchProviderImageURL": "https://duckduckgo.com/favicon.ico",
+  "DefaultSearchProviderEncodings": ["UTF-8"],
+  "DefaultSearchProviderSearchURL": "https://duckduckgo.com/?q={searchTerms}",
+  "DefaultSearchProviderSuggestURL": "https://duckduckgo.com/ac/?q={searchTerms}&type=list",
+  "DefaultSearchProviderNewTabURL": "https://duckduckgo.com/chrome_newtab",
+  "ExtensionSettings": {
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm": {
+      "installation_mode": "force_installed",
+      "update_url": "https://clients2.google.com/service/update2/crx"
+    },
+    "ghmbeldphafepmbegfdlkpapadhbakde": {
+      "installation_mode": "force_installed",
+      "update_url": "https://clients2.google.com/service/update2/crx"
+    }
+  },
+  "3rdparty": {
+    "extensions": {
+      "cjpalhdlnbpafiamejdnhcphjbkeiagm": {
+        "toOverwrite": {
+          "filterLists": [
+            "user-filters",
+            "ublock-filters",
+            "ublock-badware",
+            "ublock-privacy",
+            "ublock-quick-fixes",
+            "ublock-unbreak",
+            "easylist",
+            "easyprivacy",
+            "adguard-spyware-url",
+            "urlhaus-1",
+            "plowe-0",
+            "fanboy-cookiemonster",
+            "ublock-cookies-easylist",
+            "fanboy-thirdparty_social",
+            "ublock-annoyances"
+          ]
+        },
+        "toAdd": {
+          "externalLists": [
+            "https://raw.githubusercontent.com/gijsdev/ublock-hide-yt-shorts/master/list.txt"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,14 +1,40 @@
 # ===========================================================================
 # modules/system/graphical/firefox/default.nix — Firefox
 #
-# Installs Firefox with no managed policies — pure out-of-box experience.
+# Installs Firefox. By default also deploys the "de-slop" managed policy
+# (../../../../dotfiles/firefox/policies.json) to /etc/firefox/policies/
+# policies.json — telemetry/AI/password-manager off, uBlock Origin and
+# Proton Pass force-installed, uBlock preloaded with a hardened filter list
+# plus the yt-shorts hider (github.com/gijsdev/ublock-hide-yt-shorts). Set
+# programs.firefox.deSlop.enable = false; on a host to opt out.
+#
+# The uBlock filterLists/externalLists set is duplicated in
+# dotfiles/chromium/policies.json (different browser, same extension) —
+# keep them in sync by hand when editing either.
 # Imported per-host via the host imports list.
 # ===========================================================================
 
-{ ... }:
+{ config, lib, ... }:
+
+let
+  cfg = config.programs.firefox;
+in
 
 {
-  programs.firefox.enable = true;
+  options.programs.firefox.deSlop.enable = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
+    description = "Deploy the de-slop managed policy (dotfiles/firefox/policies.json).";
+  };
+
+  config = lib.mkMerge [
+    { programs.firefox.enable = true; }
+
+    (lib.mkIf cfg.deSlop.enable {
+      programs.firefox.policies =
+        (builtins.fromJSON (builtins.readFile ../../../../dotfiles/firefox/policies.json)).policies;
+    })
+  ];
 
   # gfx.color_management.hdr / .force_enabled — tried for Linux/Wayland HDR
   # video playback, reverted. Confirmed live: HDR did engage (Hyprland
