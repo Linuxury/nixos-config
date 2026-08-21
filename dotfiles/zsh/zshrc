@@ -261,6 +261,11 @@ _nix_fetch_filter() {
   }
 
   /^\[agenix\]/ || /^decrypting /                      { next }
+  # Eval-time warnings (renamed/deprecated options, etc.) already get parsed
+  # from the log by nixos-log-rebuild and shown in the tidy "Flagged" block
+  # after the build — hiding them here avoids showing the same warning twice
+  # and keeps the live progress bars from getting interrupted mid-render.
+  /^evaluation warning:/                                { next }
   /^warning: Git tree .* is dirty/                      { next }
   /^warning: ignoring substitute for /                  { next }
   /^warning: file .* does not exist in binary cache /   { next }
@@ -598,9 +603,14 @@ _nru_rebuild() {
   touch /run/user/$UID/nixos-update-done 2>/dev/null || true
 
   # Push the updated flake.lock so other hosts get the same nixpkgs pin.
+  # Only linuxury@Ryzen5900x/ThinkPad push — every other host (including
+  # headless servers, which lack GitHub push credentials) just pulls; their
+  # local flake.lock bump is transient and gets discarded by _nru_git_bar's
+  # `git restore flake.lock` on the next run.
   # Git output is captured and hidden on success; shown in full on failure
   # so auth/divergence errors are never silently swallowed.
-  if ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
+  if [[ "$(whoami)" == "linuxury" && "$(hostname)" == (Ryzen5900x|ThinkPad) ]] \
+     && ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
     echo "→ Pushing updated flake.lock..."
     local git_out
     git -C "$NIXOS_CONFIG" add flake.lock
