@@ -873,7 +873,10 @@ _nru_git_bar() {
   local _xf="/tmp/nru_git_$$.exit"
   rm -f "$_xf"
 
-  git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null || true
+  # --staged too: a prior nru's push block may have `git add`ed flake.lock
+  # and then failed before/after commit (e.g. no git identity configured,
+  # or the host isn't allowed to push), leaving it staged and blocking pull.
+  git -C "$NIXOS_CONFIG" restore --staged --worktree flake.lock 2>/dev/null || true
 
   { git -C "$NIXOS_CONFIG" pull >/tmp/nru_git_$$.log 2>&1; echo $? >"$_xf" } &|
   local pid=$!
