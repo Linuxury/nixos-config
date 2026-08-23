@@ -587,7 +587,7 @@ ENDSSH
     _dest="$HOME/.local/share/Steam/compatibilitytools.d/Proton-GE Latest"
     _src="${pkgs.proton-ge-custom}"
     _src_ver="$(cat "$_src/version" 2>/dev/null)"
-    _dst_ver="$(cat "$_dest/version" 2>/dev/null)"
+    _dst_ver="$(cat "$_dest/version" 2>/dev/null || true)"
     if [ "$_src_ver" != "$_dst_ver" ]; then
       chmod -R u+w "$_dest" 2>/dev/null || true
       rm -rf "$_dest"
