@@ -42,4 +42,17 @@ safe_dofile(home .. "/.config/hypr/components/launcher.lua")
 safe_dofile(home .. "/.config/hypr/components/notifications.lua")
 
 -- For Noctalia Color templates
-require("noctalia").apply_theme()
+-- require() caches `true` if the module ever loads with no `return` (e.g. a
+-- reload races Noctalia rewriting this file mid-write) and keeps serving that
+-- stale value forever, crashing "attempt to index a boolean value" here on
+-- every future reload even after the file is valid again. Guard against it:
+-- if the cached value isn't a table, drop it and require fresh once; if it's
+-- still not valid, skip applying the theme this pass instead of crashing.
+local noctalia = require("noctalia")
+if type(noctalia) ~= "table" then
+    package.loaded["noctalia"] = nil
+    noctalia = require("noctalia")
+end
+if type(noctalia) == "table" and noctalia.apply_theme then
+    noctalia.apply_theme()
+end
