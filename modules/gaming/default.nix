@@ -65,6 +65,30 @@ if primary:
 
     exec gamescope -W "$W" -H "$H" -w "$W" -h "$H" -r "$R" -e -- steam -gamepadui
   '';
+
+  # =========================================================================
+  # prismlauncher — wrapped to strip Steam's overlay injection
+  #
+  # Steam sets LD_PRELOAD to its gameoverlayrenderer.so (32-bit and 64-bit
+  # paths) in the session environment while running. Prism inherits this when
+  # launched from the same session and passes it straight through to the JVM
+  # — confirmed via PrismLauncher's own logs ("Env: stripped LD_PRELOAD..."
+  # only normalizes a leading colon, never removes the paths). The 32-bit
+  # overlay fails to load (ELFCLASS32 on a 64-bit JVM) but the 64-bit one
+  # succeeds, hooking a rendering pipeline it was never designed for —
+  # occurrence across PrismLauncher's rotated logs correlates with whichever
+  # sessions had Steam already running, matching reported Minecraft FPS
+  # collapsing from 300+ to under 5. Unsetting LD_PRELOAD on Prism itself
+  # means it has nothing inherited to pass through to Java.
+  # =========================================================================
+  prismLauncherClean = pkgs.symlinkJoin {
+    name = "prismlauncher";
+    paths = [ pkgs.prismlauncher ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/prismlauncher --unset LD_PRELOAD
+    '';
+  };
 in
 {
   imports = [
@@ -345,7 +369,8 @@ in
     # -----------------------------------------------------------------------
     # Minecraft — all three family members play
     # -----------------------------------------------------------------------
-    prismlauncher # Java Minecraft launcher — manages its own Java runtimes
+    prismLauncherClean # Java Minecraft launcher, wrapped to unset LD_PRELOAD
+    # (strips Steam's overlay injection — see let-block comment above)
     # Set up each user's Mojang account in Prism after first boot
     jdk17 # Java 17 runtime — required for Minecraft 1.17 and newer
     # Prism manages older Java versions internally for legacy versions
