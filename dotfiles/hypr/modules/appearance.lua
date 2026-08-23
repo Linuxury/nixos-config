@@ -125,10 +125,13 @@ hl.config({
         -- Hyprland ships it.
         -- Games under Proton also need to run under Proton's native Wayland
         -- driver (PROTON_ENABLE_WAYLAND=1 launch option) for Hyprland to see
-        -- them as HDR-capable at all — Xwayland clients (Proton's default)
-        -- don't negotiate the color-management-v1 protocol. This is an
-        -- actively-evolving area upstream (hyprwm/Hyprland#10993), not
-        -- guaranteed to work even with all flags set.
+        -- them as HDR-capable at all. Suspected — NOT confirmed on this exact
+        -- build — that Xwayland clients (Proton's default; also the actual
+        -- state for Diablo 4 on proton-cachyos, see modules/gaming/default.nix)
+        -- don't negotiate the color-management-v1 protocol. The previous
+        -- citation here (hyprwm/Hyprland#10993) was the wrong issue — that one
+        -- covers native-Wayland HDR detection, unrelated to Xwayland. Needs
+        -- live verification via hyprctl before treating as settled fact.
         cm_auto_hdr = 2,
     },
     misc = {

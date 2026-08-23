@@ -111,8 +111,10 @@ handle() {
             addr="${addr#0x}"   # normalize — strip 0x if present in event
             local rest="${payload#*,}"
             state="${rest%%,*}"
-            # Only act on actual fullscreen (2), not maximized (1) or restored (0)
-            [[ "$state" == "2" ]] || return
+            # Act on fullscreen (2) and maximized (1) — some games (e.g. Windowed
+            # Fullscreen display modes) request maximize instead of true fullscreen.
+            # Not restored (0). Still filtered through is_non_game() below.
+            [[ "$state" == "2" || "$state" == "1" ]] || return
         else
             # Older format: 1=entered fullscreen, 0=left
             [[ "$payload" == "1" ]] || return

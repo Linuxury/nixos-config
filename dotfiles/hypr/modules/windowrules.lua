@@ -7,13 +7,6 @@
 --   effects = all other fields (workspace, float, size, move, opacity, …)
 -- ===========================================================================
 
--- ── Global ───────────────────────────────────────────────────────────────────
-hl.window_rule({
-    name           = "suppress-maximize",
-    match          = { class = ".*" },
-    suppress_event = "maximize",
-})
-
 -- ── Workspace assignments ─────────────────────────────────────────────────────
 -- WS 1: Regular apps (default — no rule needed)
 -- WS 2: Games / fullscreen
