@@ -33,7 +33,8 @@ local function _apply_col_width()
 
     -- Single window: resize current column and done.
     if n == 1 then
-        hl.dispatch(hl.dsp.layout("colresize 0.67"))
+        local w = hl.get_config("scrolling.column_width")
+        hl.dispatch(hl.dsp.layout("colresize " .. tostring(w)))
         return
     end
 

@@ -94,9 +94,12 @@ hl.config({
     },
     scrolling = {
         fullscreen_on_one_column = false,
-        column_width             = 0.67,   -- 67%: default for new columns; layout-hooks.lua
+        column_width             = 0.75,   -- 75%: single-window/new-column width; layout-hooks.lua
                                            -- dynamically adjusts to 50% when 2+ windows exist.
         direction                = "right",
+        focus_fit_method         = 1,
+        explicit_column_widths   = "0.333, 0.5, 0.667, 1.0",
+        follow_focus             = true,
     },
 })
 
