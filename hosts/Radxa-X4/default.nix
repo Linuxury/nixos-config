@@ -382,8 +382,9 @@
   };
 
   services.vpn-qbittorrent = {
-    enable = true;
-    user   = "linuxury";
+    enable        = true;
+    user          = "linuxury";
+    watchedFolder = "/data/torrents/queued";
 
     # Failover servers — tried in order when the active tunnel goes down.
     # Primary (us-atl-wg-001) is in the agenix secret; these are the backups.

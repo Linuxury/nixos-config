@@ -339,6 +339,38 @@ let
     exit 1
   '';
 
+  # ===========================================================================
+  # watchedFolderScript — adds any *.torrent file found in cfg.watchedFolder
+  #
+  # Runs on the HOST (not inside vpn-qbt), so it reaches the WebUI directly at
+  # nsVethIP — a separate path from the public-facing socat proxy, and one
+  # that qBittorrent's own WebUI\AuthSubnetWhitelist (set manually, not
+  # Nix-managed) is scoped to, so no stored credentials are needed here.
+  #
+  # Deletes each file only after a successful add, so a transient failure
+  # (e.g. qBittorrent still starting up) leaves it in place to retry on the
+  # next path-unit trigger instead of silently losing it.
+  # ===========================================================================
+  watchedFolderScript = pkgs.writeShellScript "vpn-qbt-watched-folder" ''
+    set -uo pipefail
+
+    WATCH_DIR="${cfg.watchedFolder}"
+    URL="http://${cfg.nsVethIP}:${toString cfg.webUIPort}/api/v2/torrents/add"
+
+    log() { echo "[vpn-qbt-watched-folder] $*"; }
+
+    shopt -s nullglob
+    for f in "$WATCH_DIR"/*.torrent; do
+      log "Adding: $f"
+      if ${pkgs.curl}/bin/curl -sf -F "torrents=@$f" "$URL"; then
+        rm -f "$f"
+        log "Added and removed: $f"
+      else
+        log "Failed to add $f — leaving in place for retry"
+      fi
+    done
+  '';
+
 in {
 
   # ===========================================================================
@@ -391,6 +423,18 @@ in {
         loses connectivity the failover timer tries each entry in sequence
         until one works.  The private key is preserved from the live config
         file — only the [Peer] block is replaced.
+      '';
+    };
+
+    watchedFolder = lib.mkOption {
+      type        = lib.types.nullOr lib.types.path;
+      default     = null;
+      description = ''
+        Directory to watch for dropped .torrent files. Each one found is
+        added to qBittorrent via its Web API and removed on success.
+        Requires WebUI\AuthSubnetWhitelist to include the host-side veth
+        IP (hostVethIP) in qBittorrent's own config — not Nix-managed,
+        set manually since qBittorrent owns that file at runtime.
       '';
     };
   };
@@ -596,6 +640,30 @@ in {
         OnBootSec       = "2min";    # first check shortly after boot
         OnUnitActiveSec = "5min";    # then every 5 minutes
         Unit            = "vpn-qbt-failover.service";
+      };
+    };
+
+    # =========================================================================
+    # Service 5 — Watched folder: auto-add dropped .torrent files
+    #
+    # Runs on the HOST (not inside vpn-qbt) so it reaches the WebUI directly
+    # at nsVethIP, bypassing the public-facing socat proxy entirely — avoids
+    # that proxy's shared-source-IP characteristic, where every real client
+    # going through it looks like the same IP to qBittorrent's own
+    # rate-limiting/ban logic.
+    # =========================================================================
+    systemd.paths.qbt-watched-folder = lib.mkIf (cfg.watchedFolder != null) {
+      description = "Watch for dropped .torrent files in ${cfg.watchedFolder}";
+      wantedBy    = [ "multi-user.target" ];
+      pathConfig.PathExistsGlob = "${cfg.watchedFolder}/*.torrent";
+    };
+
+    systemd.services.qbt-watched-folder = lib.mkIf (cfg.watchedFolder != null) {
+      description = "Add dropped .torrent files to qBittorrent";
+      after       = [ "qbittorrent-vpn.service" ];
+      serviceConfig = {
+        Type      = "oneshot";
+        ExecStart = watchedFolderScript;
       };
     };
   };
