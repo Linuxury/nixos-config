@@ -8,10 +8,26 @@
 # the MIME defaults only exist when the package is actually installed.
 # ===========================================================================
 
-{ pkgs, ... }:
+{ ... }:
 
 {
-  environment.systemPackages = [ pkgs.thunderbird ];
+  programs.thunderbird = {
+    enable = true;
+
+    # Force-installed extensions — same pywalfox pattern as Firefox
+    # (dotfiles/firefox/policies.json). Same extension ID on both stores
+    # (confirmed via each store's actual .xpi manifest), so the native
+    # messaging host manifest's allowed_extensions doesn't need a second
+    # entry — just a copy of the manifest itself in Thunderbird's own
+    # native-messaging-hosts directory (~/.thunderbird/, separate from
+    # Firefox's ~/.mozilla/), installed per-user same as Firefox's.
+    policies.ExtensionSettings = {
+      "pywalfox@frewacom.org" = {
+        install_url = "https://addons.thunderbird.net/thunderbird/downloads/latest/pywalfox/latest.xpi";
+        installation_mode = "force_installed";
+      };
+    };
+  };
 
   home-manager.sharedModules = [{
     xdg.mimeApps.defaultApplications = {
