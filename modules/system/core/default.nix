@@ -284,6 +284,10 @@
     tree         # Directory tree viewer
     jq           # JSON processor — used by Claude Code hooks and shell scripts
 
+    # Firefox Theming
+    pywalfox-native
+
+
     # Network tools
     iproute2     # ip command for network management
     nmap         # Network scanner (useful for finding your machines on the network)
