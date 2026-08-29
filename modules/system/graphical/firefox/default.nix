@@ -34,6 +34,27 @@ in
       programs.firefox.policies =
         (builtins.fromJSON (builtins.readFile ../../../../dotfiles/firefox/policies.json)).policies;
     })
+
+    {
+      # userChrome.css — profile dir has a random suffix (e.g.
+      # yhtttubw.default under NixOS's ~/.config/mozilla/firefox/, not the
+      # traditional ~/.mozilla/firefox/), so it can't be a static home.file
+      # path. Discovered at activation time instead; live symlink so edits
+      # in the repo take effect on next Firefox restart, no rebuild needed.
+      # home-manager.sharedModules applies this to every user on the host
+      # (moved here from users/linuxury/home.nix, which only covered one).
+      home-manager.sharedModules = [
+        ({ lib, ... }: {
+          home.activation.firefoxUserChrome = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            _profile=$(ls -d "$HOME/.config/mozilla/firefox/"*.default* 2>/dev/null | head -1)
+            if [ -n "$_profile" ]; then
+              mkdir -p "$_profile/chrome"
+              ln -sf "$HOME/nixos-config/dotfiles/firefox/userChrome.css" "$_profile/chrome/userChrome.css"
+            fi
+          '';
+        })
+      ];
+    }
   ];
 
   # gfx.color_management.hdr / .force_enabled — tried for Linux/Wayland HDR

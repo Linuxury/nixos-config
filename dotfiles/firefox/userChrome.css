@@ -1,10 +1,34 @@
 /* Requires toolkit.legacyUserProfileCustomizations.stylesheets = true
-   (dotfiles/firefox/policies.json) — Firefox ignores this file otherwise. */
+   (dotfiles/firefox/policies.json) — Firefox ignores this file otherwise.
+
+   #personal-bookmarks isn't the actual layout container — it wraps a
+   <scrollbox id="PlacesToolbarItems" flex="1"> that grows to fill by
+   default (flex="1" is an XML attribute on the element, not just CSS),
+   which is why constraining only the outer toolbaritem doesn't visibly
+   center anything. Both need constraining, and !important is needed
+   since Firefox's own browser-shared.css targets these same IDs. */
 
 #PersonalToolbar {
-  display: flex;
-  justify-content: center;
+  display: flex !important;
+  justify-content: center !important;
+
+  /* Auto-hide: collapsed by default, reveals on hovering the toolbar
+     itself or #nav-bar right above it (confirmed siblings under
+     #navigator-toolbox) — a generous "near the area" trigger instead
+     of needing to hit a 1px sliver. */
+  max-height: 0px !important;
+  min-height: 0px !important;
+  overflow: hidden !important;
+  transition: max-height 0.15s ease-out;
 }
 #PersonalToolbar > #personal-bookmarks {
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
+}
+#PersonalToolbar #PlacesToolbarItems {
+  flex: 0 0 auto !important;
+}
+
+#nav-bar:hover ~ #PersonalToolbar,
+#PersonalToolbar:hover {
+  max-height: 32px !important;
 }

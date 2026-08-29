@@ -132,7 +132,7 @@
         "Status": "locked"
       },
       "browser.toolbars.bookmarks.visibility": {
-        "Value": "newtab",
+        "Value": "always",
         "Status": "default"
       },
       "browser.safebrowsing.malware.enabled": {
