@@ -1,0 +1,10 @@
+/* Requires toolkit.legacyUserProfileCustomizations.stylesheets = true
+   (dotfiles/firefox/policies.json) — Firefox ignores this file otherwise. */
+
+#PersonalToolbar {
+  display: flex;
+  justify-content: center;
+}
+#PersonalToolbar > #personal-bookmarks {
+  flex: 0 0 auto;
+}

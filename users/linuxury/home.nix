@@ -596,5 +596,18 @@ ENDSSH
     fi
   '';
 
+  # Firefox userChrome.css — profile dir has a random suffix (e.g.
+  # yhtttubw.default under NixOS's ~/.config/mozilla/firefox/, not the
+  # traditional ~/.mozilla/firefox/), so it can't be a static home.file
+  # path. Discovered at activation time instead; live symlink so edits
+  # in the repo take effect on next Firefox restart, no rebuild needed.
+  home.activation.firefoxUserChrome = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _profile=$(ls -d "$HOME/.config/mozilla/firefox/"*.default* 2>/dev/null | head -1)
+    if [ -n "$_profile" ]; then
+      mkdir -p "$_profile/chrome"
+      ln -sf "$HOME/nixos-config/dotfiles/firefox/userChrome.css" "$_profile/chrome/userChrome.css"
+    fi
+  '';
+
   # Personal packages live in modules/users/linuxury-packages.nix
 }
