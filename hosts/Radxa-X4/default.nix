@@ -266,14 +266,10 @@
     IdleAction                   = "ignore";
   };
 
-  # ==============================================================
-  # Scheduled reboots (4x daily)
-  #
-  # Resolves recurring WiFi/network state issues that accumulate
-  # over time and are fixed by a clean restart. Persistent = true
-  # means if the machine was off at a scheduled time it reboots
-  # on next boot (catches up once, not all missed times).
-  # ==============================================================
+  # Scheduled reboot (1x daily) — coarse backstop now that
+  # wifi-watchdog (below) handles routine recovery; also covers
+  # wifi-watchdog itself getting stuck. Persistent = true catches
+  # up once if the machine was off at the scheduled time.
   systemd.services.daily-reboot = {
     description = "Scheduled reboot";
     serviceConfig = {
@@ -283,10 +279,10 @@
   };
 
   systemd.timers.daily-reboot = {
-    description = "Reboot timer — 4x daily (00:00, 06:00, 12:00, 18:00)";
+    description = "Reboot timer — 1x daily (06:00)";
     wantedBy    = [ "timers.target" ];
     timerConfig = {
-      OnCalendar         = [ "00:00" "06:00" "12:00" "18:00" ];
+      OnCalendar         = "06:00";
       Persistent         = true;      # catch up if machine was off at scheduled time
       RandomizedDelaySec = "5min";    # jitter so services don't always restart at exact times
     };
@@ -342,6 +338,82 @@
       OnBootSec  = "2min";
       OnUnitActiveSec = "5min";
       Unit = "tailscale-watchdog.service";
+    };
+  };
+
+  # WiFi watchdog — reboots wlp1s0's NM connection (then the host)
+  # if real internet is unreachable. Checks 1.1.1.1/8.8.8.8, not the
+  # gateway directly: the gateway can silently drop direct pings from
+  # wlp1s0 while routing/NAT still works fine (router-side ICMP
+  # quirk, confirmed live 2026-08-29) — a gateway-only check
+  # false-positives on that and reboots for no reason. nmcli, not raw
+  # `ip link`, since wlp1s0 is NM-managed. Two attempts with backoff
+  # before rebooting, so a brief upstream blip doesn't reboot the
+  # host mid-torrent.
+  systemd.services.wifi-watchdog = {
+    description = "Recover wlp1s0 if it loses real internet connectivity";
+    serviceConfig = {
+      Type = "oneshot";
+      # ~156s worst case (2 internet checks + 2 bounded reconnect
+      # attempts + backoff) — default 90s TimeoutStartSec is too tight.
+      TimeoutStartSec = "240s";
+      ExecStart = pkgs.writeShellScript "wifi-watchdog" ''
+        IFACE="wlp1s0"
+        GATEWAY="10.0.0.100"
+        EXT1="1.1.1.1"
+        EXT2="8.8.8.8"
+        NMCLI="${pkgs.networkmanager}/bin/nmcli"
+        PING="${pkgs.iputils}/bin/ping"
+
+        check_internet() {
+          $PING -I "$IFACE" -c 3 -W 2 "$EXT1" &>/dev/null && return 0
+          $PING -I "$IFACE" -c 3 -W 2 "$EXT2" &>/dev/null && return 0
+          return 1
+        }
+
+        if check_internet; then
+          exit 0
+        fi
+
+        echo "wifi-watchdog: $IFACE cannot reach $EXT1 or $EXT2, attempting recovery"
+        if $PING -I "$IFACE" -c 1 -W 2 "$GATEWAY" &>/dev/null; then
+          echo "wifi-watchdog: note — gateway $GATEWAY IS reachable, so this isn't a gateway-level failure"
+        else
+          echo "wifi-watchdog: gateway $GATEWAY also unreachable"
+        fi
+        $NMCLI device show "$IFACE" 2>&1 || true
+
+        for attempt in 1 2; do
+          echo "wifi-watchdog: attempt $attempt — reconnecting $IFACE via NetworkManager"
+          timeout 15 $NMCLI device disconnect "$IFACE" &>/dev/null || true
+          sleep 2
+          timeout 20 $NMCLI device connect "$IFACE" &>/dev/null || true
+
+          sleep 8
+          if check_internet; then
+            echo "wifi-watchdog: recovered on attempt $attempt"
+            exit 0
+          fi
+
+          echo "wifi-watchdog: attempt $attempt did not recover connectivity"
+          if [ "$attempt" -eq 1 ]; then
+            sleep 30
+          fi
+        done
+
+        echo "wifi-watchdog: still unreachable after 2 recovery attempts, rebooting"
+        systemctl reboot
+      '';
+    };
+  };
+
+  systemd.timers.wifi-watchdog = {
+    description = "WiFi connectivity watchdog timer";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "2min";
+      OnUnitActiveSec = "60s";
+      Unit = "wifi-watchdog.service";
     };
   };
 
