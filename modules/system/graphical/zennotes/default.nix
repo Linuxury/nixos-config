@@ -2,42 +2,19 @@
 # modules/system/graphical/zennotes/default.nix — ZenNotes desktop client
 #
 # Keyboard-first Markdown notes with Vim motions, live math/diagrams,
-# and MCP integration. Packaged as an AppImage (not in nixpkgs).
+# and MCP integration. Landed in nixpkgs as `zennotes-desktop` — ships its
+# own .desktop entry, icon, and MIME associations, so nothing else is needed
+# here (previously an AppImage requiring a manual desktop-entry workaround).
 #
 # After install, connect to the self-hosted server:
 #   Settings → Connect to Remote Vault → http://Media-Server:7879
 #   Enter the auth token from secrets/zennotes-auth-token.age
 #
 # Server module: modules/services/zennotes/default.nix (Media-Server)
-#
-# Version: 2.3.0
 # ===========================================================================
 
 { pkgs, ... }:
 
-let
-  zennotes = pkgs.appimageTools.wrapType2 {
-    pname   = "zennotes";
-    version = "2.3.0";
-    src     = pkgs.fetchurl {
-      url  = "https://github.com/ZenNotes/zennotes/releases/download/v2.3.0/ZenNotes-2.3.0-linux-x86_64.AppImage";
-      hash = "sha256-IvFGK7n3KQVGETmt6hQUy+bZNTOCkfuwH8ifl4KTxxw=";
-    };
-  };
-in
-
 {
-  environment.systemPackages = [ zennotes ];
-
-  # appimageTools does not install a .desktop file — add one manually
-  # so ZenNotes appears in the app launcher (COSMIC, GNOME, KDE).
-  home-manager.sharedModules = [{
-    xdg.desktopEntries.zennotes = {
-      name       = "ZenNotes";
-      exec       = "zennotes %U";
-      comment    = "Keyboard-first Markdown notes";
-      categories = [ "Office" "TextEditor" ];
-      terminal   = false;
-    };
-  }];
+  environment.systemPackages = [ pkgs.zennotes-desktop ];
 }
