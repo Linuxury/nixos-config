@@ -98,24 +98,6 @@
     };
 
     # -------------------------------------------------------------------------
-    # noctalia — Noctalia shell (v5+), built from the upstream flake
-    #
-    # v5 is a full C++ rewrite of the Quickshell/QML v4 shell. Not yet in
-    # nixpkgs. The upstream flake ships homeModules.default with a proper
-    # programs.noctalia HM module (systemd service, settings TOML, etc.).
-    #
-    # nru updates the ref tag when a new release appears (scripts/noctalia-update.sh).
-    # The sentinel comment below is the sed target — do not change its format.
-    #
-    # nixpkgs.follows ensures the noctalia binary is linked against the same
-    # glibc/wayland/etc as the rest of the system.
-    # -------------------------------------------------------------------------
-    noctalia = {
-      url = "github:noctalia-dev/noctalia/v5.0.0-beta.10"; # noctalia-version-nru
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # -------------------------------------------------------------------------
     # noctalia-greeter — first-party greetd-based login greeter for Noctalia v5
     #
     # Built for greetd: ships its own wlroots compositor

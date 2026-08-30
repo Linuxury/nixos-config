@@ -837,34 +837,6 @@ _nru_update_proton_cachyos() {
 
 
 # ---------------------------------------------------------------------------
-# _nru_update_noctalia — checks noctalia-dev/noctalia for a new release tag
-# and updates the flake input ref in flake.nix, then re-locks flake.lock.
-# Guard: only runs if the noctalia binary is installed (Hyprland host).
-# ---------------------------------------------------------------------------
-_nru_update_noctalia() {
-  local latest current
-
-  latest=$(curl -fsSL \
-    "https://api.github.com/repos/noctalia-dev/noctalia/releases?per_page=1" \
-    | jq -r '.[0].tag_name' 2>/dev/null) || {
-    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "Noctalia" "$_NRU_DONE"
-    return 0
-  }
-
-  current=$(grep '# noctalia-version-nru' "${NIXOS_CONFIG}/flake.nix" \
-    | grep -oP '/\Kv[^"]+(?=")')
-
-  if [[ "$latest" == "$current" ]]; then
-    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "Noctalia" "$_NRU_DONE" "$current"
-    return 0
-  fi
-
-  local _lat="$latest" _cur="$current"
-  _nru_pkg_bar "$_NRU_GH" "Noctalia" "${_cur} → ${_lat}" \
-    bash "${NIXOS_CONFIG}/scripts/noctalia-update.sh" "$NIXOS_CONFIG" "$_lat"
-}
-
-# ---------------------------------------------------------------------------
 # _nru_git_bar — pulls latest nixos-config with animated progress bar.
 # Restores flake.lock first to avoid merge conflicts with local nix updates.
 # ---------------------------------------------------------------------------
@@ -961,9 +933,6 @@ nru() {
   # ── GitHub packages (gaming hosts only) ─────────────────────────────────────
   command -v steam &>/dev/null && { _nru_update_proton_ge      || true }
   command -v steam &>/dev/null && { _nru_update_proton_cachyos || true }
-
-  # ── Noctalia (Hyprland hosts only) ───────────────────────────────────────────
-  command -v noctalia &>/dev/null && { _nru_update_noctalia || true }
 
   # ── Rebuild ───────────────────────────────────────────────────────────────────
   echo ""

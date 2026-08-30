@@ -2,8 +2,11 @@
 # modules/shells/noctalia/default.nix — Noctalia shell layer (v5+)
 #
 # Noctalia v5 is a full C++ rewrite of the v4 Quickshell/QML shell.
-# The upstream flake (inputs.noctalia) provides homeModules.default with
-# a first-class programs.noctalia HM module.
+# Landed in nixpkgs as pkgs.noctalia — uses home-manager's own first-party
+# programs.noctalia module (modules/programs/noctalia.nix upstream), not a
+# dedicated flake input. package resolves to pkgs.noctalia automatically
+# (mkPackageOption default) since useGlobalPkgs = true makes the pkgs HM
+# modules see here the system's own instantiated nixpkgs.
 #
 # What this module sets up:
 #   - programs.noctalia.enable     — installs the package
@@ -27,21 +30,12 @@
 # (+ greeters/sddm).
 # ===========================================================================
 
-{ inputs, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   imports = [ ../../greeters/noctalia/default.nix ];
 
   home-manager.sharedModules = [
-
-    # =========================================================================
-    # Noctalia v5 Home Manager module — from upstream flake
-    #
-    # homeModules.default wires programs.noctalia.package automatically to
-    # inputs.noctalia.packages.${system}.default. All we do here is enable
-    # the module and configure it.
-    # =========================================================================
-    inputs.noctalia.homeModules.default
 
     ({ lib, ... }: {
       programs.noctalia = {
