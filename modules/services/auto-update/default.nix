@@ -139,17 +139,13 @@ in
   # =========================================================================
   # Scheduled weekly update — safety net for always-on machines
   #
-  # Rebuilds from GitHub every Saturday 3am. On non-primary hosts this picks
-  # up whatever flake.lock the primary pushed during the week (including the
-  # updated nixpkgs pin). On the primary host it also runs, but the session-
-  # start service is what does the real work (flake update + push).
+  # Rebuilds from GitHub every Saturday 3am, picking up whatever flake.lock
+  # the primary pushed that week. Non-primary hosts use system.autoUpgrade
+  # directly; the primary uses its own timer below instead, so the 20h
+  # cooldown is respected when nru is run manually.
   #
-  # Persistent = true (via systemd): if the machine was off at 3am Saturday,
-  # the timer fires on next boot. This catches "missed auto-update" cases.
+  # Persistent = true: a missed 3am slot (machine off) fires on next boot.
   # =========================================================================
-  # Non-primary hosts use system.autoUpgrade (pulls from GitHub).
-  # Primary host uses its own timer below so the 20h cooldown is respected
-  # when nru is run manually.
   system.autoUpgrade = lib.mkIf (!cfg.isPrimary) {
     enable             = true;
     flake              = "github:linuxury/nixos-config";
@@ -229,18 +225,13 @@ in
   systemd.services.nixos-upgrade.onSuccess = [ "notify-vault@success.service" ];
   systemd.services.nixos-upgrade.onFailure = [ "notify-vault@failure.service" ];
 
-  # Boot-time race guard — prevents the persistent timer from running
-  # immediately after boot while the user is actively running nru.
-  #
-  # Persistent = true fires the timer as soon as the system starts if
-  # the scheduled time (3am) was missed. On desktop machines this collides
-  # with an interactive nru session started right after login: both try to
-  # run switch-to-configuration under the same transient unit name and one
-  # fails with "Unit already loaded". ExecCondition skips the auto-upgrade
-  # (CONDITION result — no failure email) if the machine booted less than
-  # 20 minutes ago. The session-start user service already handles the
-  # "check for updates on login" case via a 2-minute delay, so no updates
-  # are missed; the next 3am window catches any remaining drift.
+  # Boot-time race guard: a missed 3am slot fires the persistent timer
+  # immediately on boot, which can collide with an interactive nru run
+  # right after login — both hit "Unit already loaded" on the same
+  # transient unit. ExecCondition skips the auto-upgrade (CONDITION
+  # result, no failure email) if the machine booted <20min ago; the
+  # session-start service's 2-minute login delay already covers that
+  # window, so nothing is missed.
   systemd.services.nixos-upgrade.serviceConfig.ExecCondition = lib.mkIf (!cfg.isPrimary) (
     pkgs.writeShellScript "nixos-upgrade-boot-guard" ''
       uptime_secs=$(awk '{print int($1)}' /proc/uptime)

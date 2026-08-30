@@ -108,18 +108,15 @@
       '';
 
       # Noctalia v5 injects a [palettes.noctalia] block into starship.toml on
-      # each wallpaper change (assets/templates/builtin.toml + apply.sh).
+      # each wallpaper change (assets/templates/builtin.toml + apply.sh). Two
+      # problems: (1) HM deploys starship.toml read-only (444); sed -i renames
+      # around that, but the >> append still fails — chmod 644 after
+      # writeBoundary fixes it. (2) On the next switch HM refuses to overwrite
+      # a file noctalia already modified ("would be clobbered") — force = true
+      # makes HM always clobber it regardless of current content.
       #
-      # Two problems to solve:
-      #   1. HM deploys starship.toml as read-only (444); sed -i renames it
-      #      (bypasses 444 via directory perms) but the >> append still fails.
-      #      Fix: chmod 644 after writeBoundary so the append succeeds.
-      #   2. On the next HM switch, noctalia has already modified the file;
-      #      HM refuses to overwrite ("would be clobbered"). Fix: force = true
-      #      tells HM to always clobber regardless of current content.
-      #
-      # Cycle per switch: HM force-writes nord → activation makes it 644 →
-      # noctalia re-applies noctalia palette on next wallpaper change. ✓
+      # Net effect per switch: HM force-writes its version, activation chmods
+      # it 644, noctalia re-applies its palette on the next wallpaper change.
       home.file.".config/starship.toml".force = lib.mkForce true;
 
       home.activation.starshipWritableForNoctalia = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

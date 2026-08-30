@@ -11,13 +11,11 @@
 # configure profiles, touchpad behaviour, gyro, and button mappings.
 #
 # The Steam Controller "Puck" (28de:1304) is deliberately NOT supported here.
-# nixpkgs' sc-controller 0.5.5 doesn't register its hotplug ID, and a local
-# patch to add it (endpoint offset + hotplug ID) got the daemon past its
-# LIBUSB_ERROR_IO crash but never got a real controller/HOTPLUG handshake —
-# the Puck's wire protocol differs from the wired/wireless dongle and Deck
-# in more than just endpoint layout. Verified live against real hardware
-# 2026-07-21. Puck support is intentionally left to Steam's own Steam Input
-# (Steam Controller profiles) instead of sc-controller.
+# nixpkgs' sc-controller 0.5.5 doesn't register its hotplug ID, and even a
+# patched hotplug ID never gets a working handshake — the Puck's wire
+# protocol differs from the wired/wireless dongle and Deck in more than
+# just endpoint layout (confirmed against real hardware). Puck support is
+# left to Steam's own Steam Input instead.
 #
 # Imported by modules/gaming/default.nix — every host that enables gaming
 # gets controller support automatically. Not currently imported standalone
@@ -88,13 +86,11 @@
   # sc-controller daemon — available, but NOT autostarted
   #
   # scc-daemon unconditionally creates a virtual "Xbox360" uinput gamepad
-  # (scc.uinput.Gamepad, hardcoded vendor=0x045e product=0x028e — real
-  # Microsoft Xbox 360 pad IDs) the moment it starts, regardless of whether
-  # it's actually managing any real hardware. With Steam now handling the
-  # Puck natively (see note above), there's nothing left for scc-daemon to
-  # do by default unless you own the wired/wireless dongle or a Deck — so
-  # autostarting it just adds a permanent phantom "Xbox 360 Controller" to
-  # Steam's controller list. Verified 2026-07-22.
+  # (hardcoded vendor=0x045e product=0x028e) the moment it starts, whether
+  # or not it's managing real hardware. With Steam handling the Puck
+  # natively (see note above), there's nothing for it to manage unless you
+  # own the wired/wireless dongle or a Deck — autostarting would just add a
+  # permanent phantom "Xbox 360 Controller" to Steam's list.
   #
   # Start manually when needed: `systemctl --user start scc-daemon`
   # To configure profiles: run `sc-controller` from the app launcher.

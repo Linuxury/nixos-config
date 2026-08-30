@@ -70,16 +70,12 @@ if primary:
   # prismlauncher — wrapped to strip Steam's overlay injection
   #
   # Steam sets LD_PRELOAD to its gameoverlayrenderer.so (32-bit and 64-bit
-  # paths) in the session environment while running. Prism inherits this when
-  # launched from the same session and passes it straight through to the JVM
-  # — confirmed via PrismLauncher's own logs ("Env: stripped LD_PRELOAD..."
-  # only normalizes a leading colon, never removes the paths). The 32-bit
+  # paths) in the session environment. Prism inherits it when launched from
+  # the same session and passes it through to the JVM unchanged; the 32-bit
   # overlay fails to load (ELFCLASS32 on a 64-bit JVM) but the 64-bit one
-  # succeeds, hooking a rendering pipeline it was never designed for —
-  # occurrence across PrismLauncher's rotated logs correlates with whichever
-  # sessions had Steam already running, matching reported Minecraft FPS
-  # collapsing from 300+ to under 5. Unsetting LD_PRELOAD on Prism itself
-  # means it has nothing inherited to pass through to Java.
+  # succeeds, hooking a rendering pipeline it was never designed for and
+  # tanking Minecraft's FPS (300+ down to under 5). Unsetting LD_PRELOAD on
+  # Prism itself means it has nothing inherited to pass through.
   # =========================================================================
   prismLauncherClean = pkgs.symlinkJoin {
     name = "prismlauncher";
@@ -104,45 +100,36 @@ in
   # so headless servers never resolve this tarball when building from GitHub.
   # nru updates the URL, version, and hash in this file directly.
   #
-  # HDR launch options (2026) — per-game, not global. Tried globalizing
-  # PROTON_ADD_CONFIG via programs.steam.package.extraEnv, but Steam Linux
-  # Runtime (the pressure-vessel/bubblewrap container most modern Proton
-  # titles run inside, including Diablo 4) sanitizes the environment when
-  # building the sandbox — it doesn't inherit Steam's own process env, only
-  # what's threaded through via the launch-options field. So it has to be
-  # per-game regardless of which mechanism is used.
+  # HDR launch options are per-game, not global: Steam Linux Runtime (the
+  # pressure-vessel/bubblewrap container most modern Proton titles run in,
+  # including Diablo 4) sanitizes the sandbox environment, so
+  # programs.steam.package.extraEnv never reaches the game — only the
+  # per-game launch-options field does.
   #
   # IMPORTANT: proton-cachyos and proton-ge-custom each have their OWN
-  # PROTON_ADD_CONFIG implementation with a DIFFERENT recognized-key table —
-  # they are not interchangeable. Verify against the actual installed
-  # build's source (grep utilities.py / proton for the token) before
-  # trusting any web-sourced list of "valid" keys; unrecognized keys are
-  # silently accepted and dropped, not an error, so a wrong key looks
-  # identical to a wrong config until you check the actual monitor/HDR
-  # state, not just whether the game's own HDR toggle is un-greyed.
-  #   - proton-cachyos 11.0-20260703-slr (pinned here): _config_envvars only
-  #     maps wow64/dlss/xess/fsr3/fsr4/ffx3/ffx4/optiscaler. "hdr" and
+  # PROTON_ADD_CONFIG implementation with a DIFFERENT recognized-key table
+  # — not interchangeable. Verify against the installed build's source
+  # (grep utilities.py / proton for the token) before trusting a web list
+  # of "valid" keys; unrecognized keys are silently dropped, not an error,
+  # so check actual HDR/monitor state, not just the game's HDR toggle.
+  #   - proton-cachyos 11.0-20260703-slr (pinned here): _config_envvars
+  #     only maps wow64/dlss/xess/fsr3/fsr4/ffx3/ffx4/optiscaler. "hdr" and
   #     "wayland" are NOT recognized on this build.
-  #   - proton-ge-custom GE-Proton11-6 (pinned here): DOES have its own
-  #     PROTON_ADD_CONFIG parsing (contrary to an earlier note here) with a
-  #     wider key set including hdr, wayland, fsr4, fsr4rdna3, wow64,
-  #     optiscaler, sdlinput. "hdr" → sets DXVK_HDR=1 only. It does NOT
-  #     imply PROTON_ENABLE_WAYLAND — that's a separate "wayland" key.
+  #   - proton-ge-custom GE-Proton11-6 (pinned here): wider key set
+  #     including hdr, wayland, fsr4, fsr4rdna3, wow64, optiscaler,
+  #     sdlinput. "hdr" only sets DXVK_HDR=1 — it does NOT imply
+  #     PROTON_ENABLE_WAYLAND, a separate "wayland" key.
   #
-  # Confirmed live for Diablo 4 on GE-Proton — real trade-off, not a bug:
-  #   - WITH PROTON_ENABLE_WAYLAND=1: Hyprland actually switches the monitor
-  #     into HDR mode (true compositor HDR, needs the Wayland
-  #     color-management-v1 protocol negotiation — DXVK_HDR=1 alone under
-  #     Xwayland does NOT get this, see hyprwm/Hyprland#10993). But Steam
-  #     Controller Puck (28de:1304, see controller.nix) L4/L5/R4/R5 back
-  #     paddles stop working — Wine's native Wayland driver has a gap in
-  #     whatever code path Steam uses to surface those as gamepad buttons.
-  #   - WITHOUT PROTON_ENABLE_WAYLAND=1 (settled on this):
-  #     `PROTON_ADD_CONFIG=fsr4,fsr4rdna3,hdr,wow64,optiscaler gamemoderun
-  #     %command%` — paddles work, DXVK does internal HDR tone-mapping via
-  #     DXVK_HDR=1, but the monitor itself likely isn't switched into true
-  #     HDR by Hyprland. Chose controller support over verified compositor
-  #     HDR for this title/controller combo.
+  # Diablo 4 + GE-Proton trade-off (real, not a bug):
+  #   - WITH PROTON_ENABLE_WAYLAND=1: Hyprland switches the monitor into
+  #     true compositor HDR (needs Wayland color-management-v1 — DXVK_HDR=1
+  #     alone under Xwayland doesn't get this, see hyprwm/Hyprland#10993).
+  #     But Steam Controller Puck L4/L5/R4/R5 back paddles stop working —
+  #     a gap in Wine's native Wayland driver.
+  #   - WITHOUT (settled on this): `PROTON_ADD_CONFIG=fsr4,fsr4rdna3,hdr,
+  #     wow64,optiscaler gamemoderun %command%` — paddles work, DXVK does
+  #     internal HDR tone-mapping, but the monitor isn't switched into true
+  #     HDR. Chose controller support over verified compositor HDR.
   # =========================================================================
   nixpkgs.overlays = [
     (final: prev:

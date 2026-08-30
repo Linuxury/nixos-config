@@ -213,18 +213,12 @@ let
     ${ip} netns exec "$NS" ${ip} link set "$WG_IFACE" up
 
     # -----------------------------------------------------------------------
-    # Routing inside the namespace
-    #
-    # ORDER MATTERS here.
-    #
-    # 1. First add a specific route to the VPN endpoint via the veth/host.
-    #    Without this, WireGuard cannot send its initial handshake because
-    #    the default route would try to go through a tunnel that isn't up yet.
-    #
-    # 2. Then set the default route through WireGuard.
-    #    This is the killswitch: all other traffic must go through the VPN.
-    #    If the tunnel fails, there is no fallback route and qBittorrent
-    #    loses connectivity immediately.
+    # Routing inside the namespace — ORDER MATTERS:
+    #   1. Endpoint route first, via the veth/host. Without it, WireGuard
+    #      can't send its initial handshake (default route would already
+    #      point into the not-yet-up tunnel).
+    #   2. Default route through WireGuard second — the killswitch. No
+    #      fallback route, so a dead tunnel means no traffic for qBittorrent.
     # -----------------------------------------------------------------------
     log "Configuring routes"
 
@@ -532,16 +526,13 @@ in {
         # No VPN → no route → no traffic. Leaks are structurally impossible.
         NetworkNamespacePath = "/run/netns/${ns}";
 
-        # Wait for the WireGuard tunnel to complete its first handshake before
-        # qBittorrent starts. WireGuard is lazy — it does not handshake until
-        # the first packet is sent. Without this, qBittorrent's DNS queries fire
-        # before the tunnel is alive, DHT bootstrap fails, and torrents get stuck
-        # at "Downloading metadata" until manually restarted.
-        #
-        # This script runs inside vpn-qbt (NetworkNamespacePath applies to all
-        # ExecStart* commands). It sends a test request through WireGuard to
-        # trigger the handshake, retrying for up to 30 seconds, then starts
-        # qBittorrent regardless so a dead VPN doesn't block the service forever.
+        # WireGuard handshakes lazily (first packet only), so without this,
+        # qBittorrent's DNS queries fire before the tunnel is up — DHT
+        # bootstrap fails and torrents get stuck at "Downloading metadata".
+        # Runs inside vpn-qbt (NetworkNamespacePath covers all ExecStart*):
+        # pings through WireGuard to trigger the handshake, retrying up to
+        # 30s, then starts qBittorrent regardless so a dead VPN doesn't
+        # block the service forever.
         ExecStartPre = pkgs.writeShellScript "qbt-wait-for-vpn" ''
           for i in 1 2 3 4 5 6 7 8 9 10; do
             if ${pkgs.curl}/bin/curl -sf --max-time 3 -o /dev/null https://1.1.1.1; then

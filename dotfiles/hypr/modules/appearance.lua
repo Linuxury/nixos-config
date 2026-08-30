@@ -118,23 +118,15 @@ end
 hl.config({
     render = {
         direct_scanout = 0,   -- Disabled — causes flickering when entering/leaving fullscreen
-        -- cm_auto_hdr = 2 (not 1/true) is reported to pass HDR through to
-        -- native-Wayland game clients more reliably — plain "true" only
-        -- reliably auto-switches for mpv. Confirmed live via `hyprctl
-        -- getoption render:cm_auto_hdr` on this exact build (0.56.1).
-        -- render:cm_fs_passthrough (also recommended alongside this in some
-        -- reports) does NOT exist in 0.56.1 — confirmed via `hyprctl
-        -- getoption`, silently ignored rather than erroring. Revisit once
-        -- Hyprland ships it.
-        -- Games under Proton also need to run under Proton's native Wayland
-        -- driver (PROTON_ENABLE_WAYLAND=1 launch option) for Hyprland to see
-        -- them as HDR-capable at all. Suspected — NOT confirmed on this exact
-        -- build — that Xwayland clients (Proton's default; also the actual
-        -- state for Diablo 4 on proton-cachyos, see modules/gaming/default.nix)
-        -- don't negotiate the color-management-v1 protocol. The previous
-        -- citation here (hyprwm/Hyprland#10993) was the wrong issue — that one
-        -- covers native-Wayland HDR detection, unrelated to Xwayland. Needs
-        -- live verification via hyprctl before treating as settled fact.
+        -- cm_auto_hdr = 2 (not 1/true) passes HDR through to native-Wayland
+        -- clients more reliably than "true" (which only reliably switches
+        -- mpv) — confirmed via hyprctl getoption, 0.56.1. Sibling option
+        -- render:cm_fs_passthrough doesn't exist on 0.56.1; silently
+        -- ignored rather than erroring.
+        -- Proton games also need PROTON_ENABLE_WAYLAND=1 to be seen as
+        -- HDR-capable; Xwayland clients (Proton's default, e.g. Diablo 4 —
+        -- see modules/gaming/default.nix) may not negotiate
+        -- color-management-v1 — suspected, not confirmed.
         cm_auto_hdr = 2,
     },
     misc = {

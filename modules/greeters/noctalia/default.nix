@@ -11,14 +11,11 @@
 # What this module owns:
 #   - services.greetd + programs.noctalia-greeter (enabled via the upstream
 #     NixOS module — see inputs.noctalia-greeter.nixosModules.default)
-#   - Default session — "Hyprland (quiet)", the log-suppressed UWSM wrapper
-#     from modules/compositors/hyprland/default.nix (hyprland-session-pkg).
-#     noctalia-greeter's session.default matches by picker label, not
-#     .desktop id, so this must be the exact Name= string in that .desktop
-#     file. Plain "Hyprland" (skips UWSM) and "Hyprland (uwsm-managed)"
-#     (UWSM without output suppression, flashes boot text on handoff) are
-#     also in the picker — both come from programs.hyprland.enable itself
-#     and can't be hidden, but the quiet wrapper is the one to actually use.
+#   - Default session — "Hyprland (quiet)" (hyprland-session-pkg from
+#     modules/compositors/hyprland/default.nix). session.default matches by
+#     picker label (the .desktop Name=), not id. Two other Hyprland entries
+#     also show in the picker (from programs.hyprland.enable itself, can't
+#     be hidden) — ignore them, the quiet wrapper is the one to use.
 #   - Cursor theme (BreezeX-Light, matches the Hyprland/Noctalia session —
 #     see modules/themes/gtk/default.nix). Not in nixpkgs; provided by the
 #     breezex-cursors overlay (flake.nix). Installed system-wide below so the

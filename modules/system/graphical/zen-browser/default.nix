@@ -50,11 +50,8 @@ in
         policies = lib.mkIf cfg.deSlop.enable
           (builtins.fromJSON (builtins.readFile ../../../../dotfiles/firefox/policies.json)).policies;
 
-        # gfx.color_management.hdr / .force_enabled — tried for Linux/Wayland
-        # HDR video playback, reverted. Same result as Firefox: HDR did engage
-        # (Hyprland switched the monitor to HDR mode) but video rendered with a
-        # blown-out red tint. See modules/system/graphical/firefox/default.nix
-        # for the Mozilla bug references — genuine upstream Gecko issue, not
+        # gfx.color_management.hdr / .force_enabled are left unset — same
+        # red-tint Gecko bug as Firefox (see firefox/default.nix), not
         # fixable from config.
       };
     };

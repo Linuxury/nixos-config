@@ -49,19 +49,12 @@ in
     #   modules/components/notifications/swaync/default.nix — swaync
   ];
 
-  # Switch SDDM greeter compositor from Weston to KWin.
-  #
-  # Root cause of no-cursor: Weston sends wl_seat.capabilities(2) = keyboard
-  # only and never updates to include the pointer bit, even though libinput
-  # detects the keyboard-dongle devices (Keychron Ultra-Link, Lemokey Link)
-  # as pointer devices. Qt correctly sees no pointer capability and never
-  # creates a wl_pointer → wl_pointer.set_cursor is never called → no cursor,
-  # regardless of cursor theme. Confirmed via WAYLAND_DEBUG=1 trace.
-  #
-  # KWin properly advertises pointer capability for these combo devices and
-  # natively supports layer-shell-qt (auto-added by the NixOS SDDM module
-  # when compositor = "kwin"), which makes QT_WAYLAND_SHELL_INTEGRATION=
-  # layer-shell actually work.
+  # Switch SDDM greeter compositor from Weston to KWin: Weston never sends a
+  # pointer capability for the keyboard-dongle devices (Keychron Ultra-Link,
+  # Lemokey Link), so Qt never creates a wl_pointer and the cursor is
+  # invisible regardless of theme. KWin advertises pointer capability
+  # correctly for these devices and natively supports layer-shell-qt, which
+  # makes QT_WAYLAND_SHELL_INTEGRATION=layer-shell actually work.
   services.displayManager.sddm.wayland.compositor = "kwin";
 
   # Override the NixOS kwin GreeterEnvironment (which only sets layer-shell)
@@ -70,22 +63,15 @@ in
   services.displayManager.sddm.settings.General.GreeterEnvironment = lib.mkForce
     "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,QT_WAYLAND_SHELL_INTEGRATION=layer-shell,XCURSOR_THEME=BreezeX-Light,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
 
-  # KWin (SDDM compositor) uses logind directly for seat management — it does NOT
-  # talk to seatd. When KWin holds the DRM device via logind, seatd can never
-  # complete its initialisation and times out after 90 s (systemd kills it).
+  # KWin (SDDM's compositor) manages its seat via logind directly, not seatd.
+  # Hyprland's aquamarine backend tries seatd first, then logind — but with
+  # KWin already holding the DRM device via logind, seatd can never start,
+  # so aquamarine's seatd attempts just crash-loop. Forcing the logind
+  # backend makes both compositors share the same seat, as intended.
   #
-  # Hyprland's aquamarine backend uses libseat with the "auto" mode: seatd first,
-  # then logind. After each seatd crash the socket disconnects, aquamarine logs
-  # "Couldn't dispatch libseat events" in a flood, and Hyprland eventually dies.
-  #
-  # Fix: force libseat to use the logind backend, skipping seatd entirely.
-  # Both KWin and Hyprland then talk to the same logind seat, which is exactly
-  # what logind was designed for.
-  #
-  # seatd must also be disabled: the greeters/sddm module enables it, but here
-  # KWin already holds the DRM device via logind so seatd can never start.
-  # It hangs for its full 90 s startup timeout, which blocks graphical.target,
-  # which blocks UWSM, causing a ~65 s delay before Hyprland launches.
+  # seatd itself must be disabled too: greeters/sddm enables it, but it can
+  # never acquire the DRM device here, so it blocks graphical.target (and
+  # UWSM) for its full 90s startup timeout before Hyprland can launch.
   environment.sessionVariables.LIBSEAT_BACKEND = "logind";
   # Force Kvantum as the Qt style engine on Hyprland — overrides the default
   # fusion/windowsvista style so Qt apps pick up the matugen color palette.

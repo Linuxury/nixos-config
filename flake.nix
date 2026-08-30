@@ -8,11 +8,8 @@
   #   2. Declares WHAT systems/hosts exist (outputs)
   #   3. Wires everything together
   #
-  # Changes from previous version:
-  #   - mkHost now accepts a wallpaperDir argument
-  #   - wallpaperDir is passed into Home Manager via extraSpecialArgs
-  #   - Each host passes the correct wallpaper folder for its user
-  #   - Servers unchanged — no Home Manager, no wallpaper
+  # mkHost takes a per-host wallpaperDir, passed into Home Manager via
+  # extraSpecialArgs. Servers skip Home Manager entirely, so it's unused there.
   # ===========================================================================
 
   description = "Linuxury Family NixOS Configuration";

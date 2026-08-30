@@ -531,11 +531,10 @@
   #
   # thinkpad_acpi — fan control, hotkeys, LED control, battery events
   #
-  # NOTE: acpi_call was previously included for TLP battery thresholds,
-  # but the T14s Gen 4 (2022+) exposes charge thresholds natively via sysfs
-  # (NATACPI interface). TLP 1.4+ uses that automatically — no acpi_call
-  # needed. Loading it caused ACPI method execution during TLP restarts
-  # (e.g. on nixos-rebuild switch) which could freeze the system.
+  # No acpi_call: the T14s Gen 4 exposes charge thresholds natively via
+  # sysfs (NATACPI), which TLP 1.4+ uses automatically. Loading acpi_call
+  # triggers ACPI method execution during TLP restarts (e.g. nixos-rebuild
+  # switch) that can freeze the system.
   # ==============================================================
   boot.kernelModules = [ "thinkpad_acpi" ];
 

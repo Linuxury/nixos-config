@@ -186,27 +186,23 @@ in
   security.pam.services.login.enableGnomeKeyring = true;  # TTY login fallback
 
   # sddm-greeter-qt6 must run as a pure Wayland client inside weston.
+  # GreeterEnvironment is comma-separated and only reaches the Qt greeter
+  # process (NOT weston — weston inherits SDDM's own env, see
+  # systemd.services.sddm below).
   #
-  # GreeterEnvironment is comma-separated and only reaches the Qt greeter process
-  # (NOT weston — weston inherits SDDM's process env, see systemd.services.sddm below).
+  # QT_QPA_PLATFORM=wayland                  — forces Qt6's Wayland QPA plugin.
+  # QT_QPA_PLATFORMTHEME=                    — CRITICAL: empty disables the gtk3
+  #                                             platform theme; otherwise Qt loads
+  #                                             gtk3, which tries X11 and crashes.
+  # QT_WAYLAND_SHELL_INTEGRATION=layer-shell — CRITICAL: without wlr-layer-shell,
+  #                                             the surface gets no pointer focus in
+  #                                             Weston kiosk mode (invisible cursor).
+  #                                             Matches NixOS's upstream SDDM module.
+  # XCURSOR_THEME / XCURSOR_SIZE / XCURSOR_PATH — cursor theme, size, search path.
+  # XDG_DATA_DIRS                            — Qt6's cursor plugin also checks here.
   #
-  # QT_QPA_PLATFORM=wayland              — forces Qt6 to use the Wayland QPA plugin.
-  # QT_QPA_PLATFORMTHEME=                — CRITICAL: disables the gtk3 platform theme plugin.
-  #                                         Without this, Qt loads gtk3 → gtk_init() → tries
-  #                                         X11 → no display → exit(1) → greeter crashes.
-  # QT_WAYLAND_SHELL_INTEGRATION=layer-shell — CRITICAL: makes the greeter surface use the
-  #                                         wlr-layer-shell protocol instead of xdg-shell.
-  #                                         Without this, the greeter surface doesn't receive
-  #                                         wl_pointer focus in Weston kiosk mode, so Qt never
-  #                                         calls wl_pointer.set_cursor → cursor invisible.
-  #                                         This matches what NixOS's upstream SDDM module sets.
-  # XCURSOR_THEME                        — cursor theme name for libwayland-cursor.
-  # XCURSOR_SIZE                         — cursor size in pixels.
-  # XCURSOR_PATH                         — libXcursor search path for cursor themes.
-  # XDG_DATA_DIRS                        — Qt6's cursor plugin also searches here for themes.
-  #
-  # Compositor modules override this via a plain assignment (priority 100 > mkDefault 1000).
-  # KDE overrides it in desktops/kde/default.nix.
+  # Compositor modules override this via a plain assignment (priority 100 >
+  # mkDefault 1000). KDE overrides it in desktops/kde/default.nix.
   services.displayManager.sddm.settings.General.GreeterEnvironment =
     lib.mkDefault "QT_QPA_PLATFORM=wayland,QT_QPA_PLATFORMTHEME=,XCURSOR_THEME=Adwaita,XCURSOR_SIZE=24,XCURSOR_PATH=/run/current-system/sw/share/icons,XDG_DATA_DIRS=/run/current-system/sw/share";
 
@@ -233,11 +229,10 @@ in
   systemd.services.display-manager.restartIfChanged = false;
 
   # seatd manages seat (GPU/input device) access for Wayland compositors.
-  # With seatd running, libseat in weston and kwin uses seatd's backend
-  # instead of logind's. seatd handles DRM master handoff between compositors
-  # cleanly (greeter exits → user compositor takes over) without the VT race
-  # condition that occurs with the logind backend.
-  # The 'seat' group is required for any user/process that needs seat access.
+  # libseat in weston/kwin uses seatd's backend instead of logind's, which
+  # avoids a VT race condition during DRM master handoff (greeter exits,
+  # user compositor takes over). The 'seat' group is required for any
+  # user/process that needs seat access.
   services.seatd.enable = true;
   users.users.sddm.extraGroups = [ "video" "input" "seat" ];
 
@@ -263,13 +258,10 @@ in
   ];
 
   # SDDM reads /var/lib/sddm/state.conf AFTER /etc/sddm.conf.d/*.conf, so any
-  # [Theme] Current= entry written there overrides our declarative config.
-  # KDE's "Login Screen" settings panel (sddm-kcm) writes this key whenever
-  # the user opens System Settings → Login Screen, and SDDM itself re-writes
-  # state.conf on every logout — so an activation script is too early (the
-  # user logs out after nru and SDDM re-writes breeze before reboot).
-  # A systemd oneshot runs on every boot, before display-manager, so it always
-  # strips the override regardless of what happened at last logout.
+  # [Theme] Current= entry there overrides our declarative config. sddm-kcm
+  # (KDE's Login Screen panel) writes this key, and SDDM itself rewrites
+  # state.conf on every logout — after any activation script already ran —
+  # so only a boot-time oneshot (before display-manager) reliably strips it.
   systemd.services.sddm-clear-theme-state = {
     description = "Strip [Theme] Current override from SDDM state.conf";
     before  = [ "display-manager.service" ];
