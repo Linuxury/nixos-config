@@ -26,6 +26,7 @@
     coreutils     # shuf for random selection
     git           # needed by matugenTemplates activation below
     python3       # needed by matugen's COSMIC post-hook (cosmic_postprocess.py)
+    jq            # merges the pywalfox template output with the wallpaper path below
   ];
 
   # =========================================================================
@@ -96,6 +97,13 @@
       [templates.zed]
       input_path  = "~/.config/matugen/templates/templates/zed-colors.json"
       output_path = "~/.config/zed/themes/matugen.json"
+
+      # Repo-tracked (not the InioX clone above) — feeds pywalfox's color
+      # source, merged with the wallpaper path into ~/.cache/wal/colors.json
+      # by the jq step below. Reuses kitty's own color0-15 mapping.
+      [templates.pywalfox]
+      input_path  = "~/nixos-config/dotfiles/hypr/pywalfox-colors.json.template"
+      output_path = "~/.cache/matugen/pywal-colors-raw.json"
 
     '';
   };
@@ -186,8 +194,27 @@
         fi
 
         log "Dominant color: #$DOMINANT_HEX — running matugen"
-        matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1
+        # matugen 4.0.0 has a HashMap iteration bug: it crashes after
+        # processing only 2-3 of N templates per run (see the Hyprland
+        # pipeline's own note on this). Run 3x under || true so one
+        # crashed attempt doesn't abort the rest of this script (set -e
+        # above) before every template gets a chance to render.
+        matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1 || true
+        matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1 || true
+        matugen color hex "#$DOMINANT_HEX" >> "$LOG" 2>&1 || true
         log "matugen complete"
+
+        # Merge the pywalfox color template with the wallpaper path into
+        # the file pywalfox actually reads. Key order in the source JSON
+        # is load-bearing — pywalfox indexes colors positionally
+        # (color0..color15), not by key name — never pipe this through
+        # anything that sorts keys (e.g. jq -S).
+        mkdir -p "$HOME/.cache/wal"
+        if [ -f "$HOME/.cache/matugen/pywal-colors-raw.json" ]; then
+          jq --arg wallpaper "$WALLPAPER" '{wallpaper: $wallpaper, colors: .}' \
+            "$HOME/.cache/matugen/pywal-colors-raw.json" > "$HOME/.cache/wal/colors.json" \
+            && log "pywal colors synced" || log "WARN pywal colors sync failed"
+        fi
       ''}";
     };
   };

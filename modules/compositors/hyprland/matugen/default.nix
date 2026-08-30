@@ -86,6 +86,18 @@
         ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 || true
         ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 || true
 
+        # Merge the pywalfox color template with the wallpaper path into
+        # the file pywalfox actually reads. Key order in the source JSON
+        # is load-bearing — pywalfox indexes colors positionally
+        # (color0..color15), not by key name — never pipe this through
+        # anything that sorts keys (e.g. jq -S).
+        mkdir -p "$HOME/.cache/wal"
+        if [ -f "$HOME/.cache/matugen/pywal-colors-raw.json" ]; then
+          ${pkgs.jq}/bin/jq --arg wallpaper "$WALLPAPER" '{wallpaper: $wallpaper, colors: .}' \
+            "$HOME/.cache/matugen/pywal-colors-raw.json" > "$HOME/.cache/wal/colors.json" \
+            && log "pywal colors synced" || log "WARN pywal colors sync failed"
+        fi
+
         # Reload Hyprland config so colors.lua (written by matugen) takes effect.
         # hyprctl keyword no longer works with the Lua parser — reload is the
         # correct mechanism since Hyprland 0.41+ with non-legacy configs.
@@ -158,5 +170,12 @@
     [templates.qt6ct-colors]
     input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/qtct-colors.conf"
     output_path = "${config.home.homeDirectory}/.config/qt6ct/colors/matugen.conf"
+
+    # Feeds pywalfox's color source, merged with the wallpaper path into
+    # ~/.cache/wal/colors.json by the jq step above. Reuses kitty's own
+    # color0-15 mapping.
+    [templates.pywalfox]
+    input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/pywalfox-colors.json.template"
+    output_path = "${config.home.homeDirectory}/.cache/matugen/pywal-colors-raw.json"
   '';
 }
