@@ -74,7 +74,7 @@
             # ── Core apps ──────────────────────────────────────────────────
             "Mod+Return"       = "spawn:kitty";
             "Mod+Shift+Return" = "spawn:kitty --class floating-term";
-            "Mod+Space"        = "spawn:noctalia msg panel-toggle launcher";
+            "Mod"              = "spawn:noctalia msg panel-toggle launcher";
             "Mod+E"            = "spawn:nautilus";
 
             # ── Window management ───────────────────────────────────────────
@@ -102,10 +102,15 @@
             "Mod+Ctrl+Space" = "window-restore-from-scratchpad";
             "Mod+Tab"        = "scratchpad-focus-next";
 
-            # ── Screenshots (grim + slurp + satty) ─────────────────────────
-            "Print" = "spawn:sh -c 'grim -g \"$(slurp)\" - | satty --filename -'";
-            "Mod+Z" = "spawn:sh -c 'grim -g \"$(slurp)\" - | satty --filename -'";
-            "Mod+X" = "spawn:sh -c 'grim - | satty --filename -'";
+            # ── Screenshots — save+notify, edit only if you click the
+            # notification (matches Hyprland's screenshot.sh behavior,
+            # ported to scripts/screenshot.sh) ─────────────────────────────
+            "Print"             = "spawn:~/.config/umbriel/scripts/screenshot.sh area save";
+            "Mod+Print"         = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen save";
+            "Mod+Z"             = "spawn:~/.config/umbriel/scripts/screenshot.sh area save";
+            "Mod+X"             = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen save";
+            "Shift+Print"       = "spawn:~/.config/umbriel/scripts/screenshot.sh area copy";
+            "Mod+Shift+Print"   = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen copy";
 
             # ── Media keys ──────────────────────────────────────────────────
             "XF86AudioRaiseVolume" = "spawn:wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+";
@@ -121,6 +126,11 @@
             "XF86MonBrightnessDown" = { action = "spawn:brightnessctl set 5%-"; allow_when_locked = true; };
           };
         };
+      };
+
+      home.file.".config/umbriel/scripts/screenshot.sh" = {
+        source = ../../../dotfiles/umbriel/scripts/screenshot.sh;
+        executable = true;
       };
     })
   ];
@@ -138,6 +148,7 @@
     grim
     slurp
     satty
+    hyprpicker  # freeze-overlay during area selection — protocol-based, not Hyprland-only
 
     # Screen recording
     wl-screenrec
