@@ -11,11 +11,13 @@
 # What this module owns:
 #   - services.greetd + programs.noctalia-greeter (enabled via the upstream
 #     NixOS module — see inputs.noctalia-greeter.nixosModules.default)
-#   - Default session — "Hyprland (quiet)" (hyprland-session-pkg from
-#     modules/compositors/hyprland/default.nix). session.default matches by
-#     picker label (the .desktop Name=), not id. Two other Hyprland entries
-#     also show in the picker (from programs.hyprland.enable itself, can't
-#     be hidden) — ignore them, the quiet wrapper is the one to use.
+#   - Default session — "Umbriel" (Name= from Umbriel's own session .desktop
+#     entry, registered automatically by modules/compositors/umbriel).
+#     session.default matches by picker label, not id. This module is shared
+#     across every host that imports shells/noctalia — currently only
+#     Ryzen5900x — so if a second Noctalia-shell host later runs a different
+#     compositor, this default needs to become per-host instead of hardcoded
+#     here. Not worth solving until there's a second such host.
 #   - Cursor theme (BreezeX-Light, matches the Hyprland/Noctalia session —
 #     see modules/themes/gtk/default.nix). Not in nixpkgs; provided by the
 #     breezex-cursors overlay (flake.nix). Installed system-wide below so the
@@ -41,7 +43,7 @@
     package = inputs.noctalia-greeter.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     settings = {
-      session.default = "Hyprland (quiet)";
+      session.default = "Umbriel";
 
       appearance = {
         scheme = "Synced";

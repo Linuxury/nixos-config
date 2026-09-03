@@ -8,7 +8,8 @@
 #
 # Enabled modules:
 #   - AMD drivers
-#   - Hyprland + Noctalia shell + noctalia-greeter (active)
+#   - Umbriel + Noctalia shell + noctalia-greeter (active)
+#   - Hyprland (disabled)
 #   - COSMIC (disabled)
 #   - Niri (disabled)
 #   - Gaming
@@ -65,8 +66,9 @@
     # ==============================================================
     # Compositor — enable ONE, pair with Shell + Greeter below
     # ==============================================================
-    ../../modules/compositors/hyprland/default.nix
+    #../../modules/compositors/hyprland/default.nix
     #../../modules/compositors/niri/default.nix
+    ../../modules/compositors/umbriel/default.nix
 
     # ==============================================================
     # Shell — enable ONE for the active compositor
@@ -186,7 +188,7 @@
   # ==============================================================
   # Default session — tells SDDM which session to pre-select at login
   # ==============================================================
-  services.displayManager.defaultSession = "hyprland-session";
+  services.displayManager.defaultSession = "umbriel";
 
   # GPU driver selection
   # ==============================================================

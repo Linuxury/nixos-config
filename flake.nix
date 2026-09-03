@@ -116,6 +116,28 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # -------------------------------------------------------------------------
+    # umbriel — noctalia-dev's independent Wayland compositor
+    #
+    # Sibling project to Noctalia Shell and noctalia-greeter, designed to
+    # pair with Noctalia as a first-class alternative to Hyprland. Ships
+    # scrolling/dwindle/master layouts, blur, shadows, per-output workspaces.
+    # Bundles xdg-desktop-portal-umbriel as its own input, wired in
+    # automatically by nixosModules.default — no separate input needed here.
+    #
+    # Landed in nixpkgs-unstable as a raw package on 2026-08-31, but there's
+    # no programs.umbriel module upstream (nixpkgs or home-manager) yet —
+    # same situation as noctalia-greeter above, same fix: use the flake's
+    # own nixosModules/homeModules instead of the bare pkgs.umbriel package.
+    #
+    # No versioned releases upstream yet — tracks the default branch
+    # directly, no nru sentinel needed here (same as noctalia-greeter).
+    # -------------------------------------------------------------------------
+    umbriel = {
+      url = "github:noctalia-dev/umbriel";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   # ===========================================================================
