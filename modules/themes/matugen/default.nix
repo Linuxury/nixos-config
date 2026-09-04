@@ -1,12 +1,17 @@
 # ===========================================================================
-# modules/compositors/umbriel/matugen/default.nix — matugen color sync
+# modules/themes/matugen/default.nix — matugen color sync (Kvantum only)
 #
-# Scoped down to only the apps Noctalia's own native app-theming has no
-# template for: neovim, pywalfox, Kvantum (confirmed by reading Noctalia's
-# installed template list — no kvantum/neovim/pywalfox entries). Everything
-# else Noctalia can theme (kitty, gtk, qt, starship, umbriel's own colors)
-# is handled by Noctalia directly now — see modules/shells/noctalia/
-# default.nix for how that's enabled and why matugen used to fight it.
+# Trimmed down to Kvantum — the one remaining app with no Noctalia native
+# theming template (confirmed by reading Noctalia's installed + community
+# template lists: no kvantum entry anywhere). Everything else that used to
+# live here (kitty, gtk, qt, starship, neovim, pywalfox, umbriel's own
+# colors) is handled by Noctalia's own app-theming now — see
+# modules/shells/noctalia/default.nix for how that's enabled.
+#
+# Moved out of modules/compositors/umbriel/ — Kvantum theming has nothing
+# to do with which compositor is running, it was only nested under Umbriel
+# by historical accident (copied from Hyprland's original matugen module).
+# Import this from any compositor module that wants Kvantum theming.
 #
 # Shell-agnostic color sync. Works with any shell that writes the two
 # handoff files below when the wallpaper changes:
@@ -19,7 +24,7 @@
 # color as a fallback.
 #
 # matugen 4.0.0 HashMap iteration bug: crashes after 2–3 of 5 templates per
-# run — run 3× to ensure full coverage (same workaround as Hyprland's module).
+# run — run 3× to ensure full coverage.
 # ===========================================================================
 { config, pkgs, ... }:
 
@@ -31,7 +36,7 @@
 
   systemd.user.services.matugen = {
     Unit = {
-      Description = "Apply matugen color theme for current Umbriel wallpaper";
+      Description = "Apply matugen color theme (Kvantum) for current wallpaper";
       After       = [ "graphical-session.target" ];
       StartLimitIntervalSec = 0;
     };
@@ -86,21 +91,6 @@
         ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 || true
         ${pkgs.matugen}/bin/matugen color hex "$HEX" >> "$LOG" 2>&1 || true
 
-        # Merge the pywalfox color template with the wallpaper path into
-        # the file pywalfox actually reads. Key order in the source JSON
-        # is load-bearing — pywalfox indexes colors positionally
-        # (color0..color15), not by key name — never pipe this through
-        # anything that sorts keys (e.g. jq -S).
-        mkdir -p "$HOME/.cache/wal"
-        if [ -f "$HOME/.cache/matugen/pywal-colors-raw.json" ]; then
-          ${pkgs.jq}/bin/jq --arg wallpaper "$WALLPAPER" '{wallpaper: $wallpaper, colors: .}' \
-            "$HOME/.cache/matugen/pywal-colors-raw.json" > "$HOME/.cache/wal/colors.json" \
-            && log "pywal colors synced" || log "WARN pywal colors sync failed"
-        fi
-
-        # Umbriel applies config.toml + its [include] files live on write —
-        # no reload command needed (unlike Hyprland's `hyprctl reload`).
-
         if [ -d "$(dirname "$SDDM_WALLPAPER")" ]; then
           cp "$WALLPAPER" "$SDDM_WALLPAPER" 2>/dev/null \
             && log "SDDM wallpaper synced: $(basename "$WALLPAPER")" \
@@ -131,10 +121,6 @@
     mode = "dark"
     reload_apps = false
 
-    [templates.neovim]
-    input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/nvim/matugen/colors.lua.template"
-    output_path = "${config.home.homeDirectory}/.local/share/nvim/lua/matugen-colors.lua"
-
     [templates.kvantum-kvconfig]
     input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/kvantum-colors.kvconfig"
     output_path = "${config.home.homeDirectory}/.config/Kvantum/kvantum-colors/kvantum-colors.kvconfig"
@@ -142,12 +128,5 @@
     [templates.kvantum-svg]
     input_path = "${config.home.homeDirectory}/.config/matugen/templates/templates/kvantum-colors.svg"
     output_path = "${config.home.homeDirectory}/.config/Kvantum/kvantum-colors/kvantum-colors.svg"
-
-    # Feeds pywalfox's color source, merged with the wallpaper path into
-    # ~/.cache/wal/colors.json by the jq step above. Reuses kitty's own
-    # color0-15 mapping.
-    [templates.pywalfox]
-    input_path = "${config.home.homeDirectory}/nixos-config/dotfiles/hypr/pywalfox-colors.json.template"
-    output_path = "${config.home.homeDirectory}/.cache/matugen/pywal-colors-raw.json"
   '';
 }

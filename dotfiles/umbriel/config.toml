@@ -1,0 +1,16 @@
+# Umbriel main config — split into smaller files per docs/user/
+# configuration.md's [include] guidance. Later files override earlier
+# ones; values here in the main file override every include.
+#
+# noctalia-fixed.toml is gitignored — regenerated on every wallpaper
+# change by modules/compositors/umbriel/noctalia-bridge/default.nix,
+# which remaps Noctalia's own umbriel theming output into Umbriel's real
+# colors.border.*/colors.overview.* schema (upstream schema mismatch,
+# see that module's own comments for the full story).
+#
+# This whole directory is deployed as a live symlink (mkOutOfStoreSymlink,
+# same pattern as dotfiles/hypr/) — edits here take effect immediately,
+# no rebuild needed. See modules/compositors/umbriel/default.nix.
+
+[include]
+files = ["general.toml", "keybinds.toml", "outputs.toml", "noctalia-fixed.toml"]

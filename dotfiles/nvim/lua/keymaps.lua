@@ -43,7 +43,8 @@ vim.keymap.set("n", "<leader>rc", "<Cmd>e ~/.config/nvim/init.lua<CR>", { desc =
 -- Reload config and reapply matugen theme
 vim.keymap.set("n", "<leader>rr", function()
   vim.cmd.source(vim.fn.stdpath("config") .. "/init.lua")
-  require("theme").setup()
+  package.loaded["matugen"] = nil
+  require("matugen").setup()
   vim.notify("Config reloaded", vim.log.levels.INFO)
 end, { desc = "Reload config" })
 

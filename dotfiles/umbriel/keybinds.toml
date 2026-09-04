@@ -1,0 +1,67 @@
+# Keybinds. Included from config.toml.
+#
+# Umbriel built-ins (active without any config, not redeclared here):
+# Mod+H/J/K/L focus, Mod+Shift+Arrow move, Mod+F fullscreen,
+# Mod+Ctrl+F maximize, Mod+R cycle width, Mod+1-9 workspaces.
+# Everything below is NOT built-in and must be declared.
+
+[keybinds]
+
+# ── Core apps ────────────────────────────────────────────────────────────
+"Mod+Return"       = "spawn:kitty"
+"Mod+Shift+Return" = "spawn:kitty --class floating-term"
+"Mod"              = "spawn:noctalia msg panel-toggle launcher"
+"Mod+E"            = "spawn:nautilus"
+
+# ── Window management ────────────────────────────────────────────────────
+"Mod+Q"       = "window-close"
+"Mod+F"       = "window-toggle-fullscreen"
+"Mod+T"       = "window-toggle-floating"
+"Mod+Shift+T" = "window-focus-switch-floating"
+"Mod+P"       = "window-toggle-pinned"
+"Mod+M"       = "window-toggle-maximize-to-edges"
+
+# ── Focus navigation (arrow keys; Mod+H/J/K/L are built-in) ─────────────
+"Mod+Left"  = "window-focus-left"
+"Mod+Down"  = "window-focus-down"
+"Mod+Up"    = "window-focus-up"
+"Mod+Right" = "window-focus-right"
+
+# ── Overview ──────────────────────────────────────────────────────────────
+"Mod+O" = { action = "overview-toggle", repeat = false }
+
+# ── Screen lock — overrides the built-in Mod+Escape=session-quit (matches
+# Hyprland's own binding; quit is still reachable via the power menu once
+# that's ported — see PENDING.md) ────────────────────────────────────────
+"Mod+Escape"      = "spawn:hyprlock"
+"Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
+
+# ── Scratchpad — Mod+S/Shift+S matches Hyprland muscle memory (example
+# default is Mod+Space/Shift+Space, but those are taken by launcher and
+# kitty-float; scratchpad is per-output in Umbriel) ──────────────────────
+"Mod+S"          = "scratchpad-toggle"
+"Mod+Shift+S"    = "window-move-to-scratchpad"
+"Mod+Ctrl+Space" = "window-restore-from-scratchpad"
+"Mod+Tab"        = "scratchpad-focus-next"
+
+# ── Screenshots — save+notify, edit only if you click the notification
+# (matches Hyprland's screenshot.sh behavior, ported to scripts/screenshot.sh)
+"Print"           = "spawn:~/.config/umbriel/scripts/screenshot.sh area save"
+"Mod+Print"       = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen save"
+"Mod+Z"           = "spawn:~/.config/umbriel/scripts/screenshot.sh area save"
+"Mod+X"           = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen save"
+"Shift+Print"     = "spawn:~/.config/umbriel/scripts/screenshot.sh area copy"
+"Mod+Shift+Print" = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen copy"
+
+# ── Media keys ────────────────────────────────────────────────────────────
+XF86AudioRaiseVolume = "spawn:wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
+XF86AudioLowerVolume = "spawn:wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+XF86AudioMute        = "spawn:wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+XF86AudioMicMute     = "spawn:wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+XF86AudioPlay        = "spawn:playerctl play-pause"
+XF86AudioNext        = "spawn:playerctl next"
+XF86AudioPrev        = "spawn:playerctl previous"
+
+# ── Brightness (allow_when_locked = works on the lock screen) ────────────
+XF86MonBrightnessUp   = { action = "spawn:brightnessctl set +5%", allow_when_locked = true }
+XF86MonBrightnessDown = { action = "spawn:brightnessctl set 5%-", allow_when_locked = true }

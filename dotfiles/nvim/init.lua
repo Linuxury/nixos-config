@@ -1,8 +1,3 @@
--- Prepend the matugen-generated colors dir so require("matugen-colors") works.
--- This file is written by the matugen systemd service on every wallpaper change.
-vim.opt.runtimepath:prepend(vim.fn.expand("~/.local/share/nvim"))
-vim.fn.mkdir(vim.fn.expand("~/.local/share/nvim/lua"), "p")
-
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
@@ -23,5 +18,7 @@ require("lazy").setup("plugins", {
   rocks = { hererocks = false },
 })
 
--- Apply matugen colorscheme (pure Lua, no plugin dep — safe to call immediately)
-require("theme").setup()
+-- Colorscheme comes from lua/plugins/base16.lua (RRethy/base16-nvim) +
+-- lua/matugen.lua (Noctalia's "neovim" community template output, gitignored
+-- — regenerated on every wallpaper change). No explicit setup call needed
+-- here; base16.lua's plugin config runs matugen.setup() on load.

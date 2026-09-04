@@ -20,7 +20,7 @@ require("modules.autostart")
 require("modules.keybinds")
 
 -- Shell-specific injections — written at HM activation by the active shell module.
---   shell-active.lua      = per-shell config overrides  (e.g. DMS colors/outputs)
+--   shell-active.lua      = per-shell config overrides
 --   shell-autostart.lua   = per-shell exec-once launch  (e.g. noctalia-shell)
 -- Both files always exist (activation writes them, even if empty).
 --

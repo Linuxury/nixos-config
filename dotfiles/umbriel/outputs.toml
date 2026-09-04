@@ -1,0 +1,16 @@
+# Per-output monitor config. Included from config.toml.
+#
+# Ryzen5900x's LG 34" ultrawide — mode/vrr match Hyprland's own
+# monitors.lua exactly (fullscreen-only VRR avoids desktop flickering).
+# Named by monitor identity, not connector (DP-3), per Umbriel's own docs
+# recommendation — survives a port change.
+#
+# HDR/10-bit color (bitdepth=10, cm=srgb in the Hyprland config)
+# deliberately not ported — Umbriel's HDR model isn't confirmed
+# equivalent, and Hyprland's own docs flagged real upstream bugs in this
+# exact area; not worth guessing at.
+
+[output."LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"]
+mode = "3440x1440@240"
+scale = 1.0
+vrr = "fullscreen"

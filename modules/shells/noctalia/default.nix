@@ -23,11 +23,13 @@
 #
 # Theming split: Noctalia's own native app-theming (enabled via its
 # settings.json, not Nix — see the activation block below) owns kitty, gtk,
-# qt, starship, and umbriel's colors. matugen (still fired by the
-# wallpaper_changed hook above) only covers what Noctalia has no template
-# for: neovim, pywalfox, Kvantum. See this repo's theming docs / session
-# history for why — Noctalia's patching model needs genuinely writable
-# config files, which fought Nix's default immutable symlinks.
+# qt, starship, umbriel's colors, pywalfox, and neovim (the last two via
+# Noctalia's community-template catalog, same mechanism as the built-in
+# ones). matugen (still fired by the wallpaper_changed hook above) only
+# covers what Noctalia has no template for at all: Kvantum. See this
+# repo's theming docs / session history for why — Noctalia's patching
+# model needs genuinely writable config files, which fought Nix's default
+# immutable symlinks.
 #
 # Importing this module activates Noctalia (shell + greeter). No enable
 # flag needed. To switch shell: remove this import, add shells/wayle
@@ -115,25 +117,30 @@
     })
 
     # =========================================================================
-    # Enable Noctalia's native "umbriel" app-theming template.
+    # Enable Noctalia's native app-theming templates: umbriel (built-in),
+    # pywalfox and neovim (community-catalog templates — already fetched
+    # into ~/.local/state/noctalia/community-templates/ via Settings ->
+    # Templates -> Browse Templates; this just flips them on).
     #
-    # Noctalia's own app-theming (kitty/gtk/qt/starship/etc.) is controlled
-    # by ~/.config/noctalia/settings.json's templates.activeTemplates list —
-    # a file Noctalia owns entirely at runtime, never Nix-managed. It already
-    # had kitty/gtk/qt/starship enabled by hand well before Umbriel existed;
-    # this just adds "umbriel" to that same list idempotently, so Umbriel's
-    # own colors (border, accent) come from Noctalia instead of matugen too
-    # (see modules/compositors/umbriel/matugen/default.nix).
+    # Noctalia's own app-theming is controlled by ~/.config/noctalia/
+    # settings.json's templates.activeTemplates list — a file Noctalia owns
+    # entirely at runtime, never Nix-managed. It already had kitty/gtk/qt/
+    # starship enabled by hand well before Umbriel existed; this adds the
+    # rest idempotently, one jq pass per ID, only touching the ones missing.
     # =========================================================================
     ({ pkgs, lib, ... }: {
-      home.activation.noctaliaEnableUmbrielTemplate = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      home.activation.noctaliaEnableTemplates = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         _sf="$HOME/.config/noctalia/settings.json"
         if [ -f "$_sf" ]; then
-          if ! ${pkgs.jq}/bin/jq -e '.templates.activeTemplates[]? | select(.id == "umbriel")' "$_sf" >/dev/null 2>&1; then
-            _tmp="$(mktemp)"
-            ${pkgs.jq}/bin/jq '.templates.activeTemplates += [{"enabled": true, "id": "umbriel"}]' "$_sf" > "$_tmp" \
-              && mv "$_tmp" "$_sf"
-          fi
+          for _id in umbriel pywalfox neovim; do
+            if ! ${pkgs.jq}/bin/jq -e --arg id "$_id" \
+                '.templates.activeTemplates[]? | select(.id == $id)' "$_sf" >/dev/null 2>&1; then
+              _tmp="$(mktemp)"
+              ${pkgs.jq}/bin/jq --arg id "$_id" \
+                '.templates.activeTemplates += [{"enabled": true, "id": $id}]' "$_sf" > "$_tmp" \
+                && mv "$_tmp" "$_sf"
+            fi
+          done
         fi
       '';
     })
