@@ -24,6 +24,29 @@ scale = 1.0
 vrr = "fullscreen"
 hdr = "auto"
 
+# Reference — every other available per-output key, upstream's own
+# generic example (still commented; ours above already sets the ones
+# that matter for this monitor).
+# enabled = true                                # False removes the output but preserves its state
+# position = [0, 0]                             # Logical top-left; omit for automatic placement
+# transform = "normal"                          # normal, 90, 180, 270, or a flipped variant
+# tearing = true                                # Permit eligible fullscreen asynchronous flips
+# direct_scanout = true                         # False forces composition on this output
+# sdr_white = 203                               # SDR reference white in cd/m2 during HDR
+# workspaces = 5                                # Omit for dynamic workspaces
+
+# Replace the count with ["WEB", "CHAT", "MEDIA"] for named static workspaces,
+# or with "dynamic" to state the dynamic default explicitly. A dynamic output
+# can keep a minimum number of workspaces instead, so a bar always shows them:
+# [output."LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"]
+# min_workspaces = 3                            # Dynamic floor; rejected with a static inventory
+
+# New scrolling columns on this output can use a different initial width. This
+# affects new columns only; existing columns keep their current size.
+# Documentation: https://docs.noctalia.dev/umbriel/outputs/#initial-scrolling-width
+# [output."LG Electronics LG ULTRAGEAR+ 410NTDVAJ338".layout.scrolling]
+# default_width_fraction = 0.4
+
 # ─────────────────────────────── Workspaces ──────────────────────────────────
 # Global workspace behavior. Each output uses dynamic workspaces unless its
 # own output section above defines a static count or list of names.
@@ -33,10 +56,23 @@ back_and_forth = false                          # Re-select active workspace to 
 empty_above = false                             # Keep one empty workspace above active range
 
 # Workspace rules customize layout without creating workspaces. Select exactly
-# one `index` or `name`; `output` is optional. Uncomment the complete block.
+# one `index` or `name`; `output` is optional. This recipe works with dynamic
+# inventories and static inventories that contain workspace 2. Uncomment the
+# complete block.
 
 # [[workspace]]
 # index = 2
 # output = "LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"
 # layout.mode = "dwindle"
 # layout.gap = 4
+# layout.struts.top = 24
+# layout.scrolling.center_underfull_strip = false
+# layout.dwindle.preserve_split = true
+
+# A name selector must exist in a static output inventory, for example
+# `workspaces = ["WEB", "CHAT"]` in the matching output block.
+
+# [[workspace]]
+# name = "CHAT"
+# output = "LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"
+# layout.mode = "master"

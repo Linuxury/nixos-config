@@ -7,17 +7,25 @@
 [general]
 autostart = ["noctalia", "hypridle"]   # ours
 mod_key = "Super"                      # explicit — removes nested-vs-DRM auto-detection ambiguity
-xwayland = true                        # upstream default — requires xwayland-satellite; restart to change
-show_cheatsheet = true                 # upstream default — keybind overlay on startup
-focus_on_activate = false              # upstream default — do not let unsolicited requests steal focus
-honor_restored_maximize = false        # upstream default — honor restored maximized state
+xwayland = true                        # Requires xwayland-satellite; restart to change
+show_cheatsheet = true                 # Show the keybind overlay on startup
+focus_on_activate = false              # Do not let unsolicited requests steal focus
+honor_restored_maximize = false        # Honor restored maximized state
 
-# Session environment — values apply only at session startup.
+# Session environment
+# Values apply only at session startup. Native sessions also publish them to
+# newly started systemd user services. Add or uncomment values as needed.
+# Documentation: https://docs.noctalia.dev/umbriel/configuration/#environment
+
 [environment]
 # GTK_THEME = "Adwaita:dark"
 # QT_QPA_PLATFORMTHEME = "qt5ct"
 
-# Hardware events — run when a laptop lid opens or closes.
+# Hardware events
+# These commands run when a laptop lid opens or closes. Uncomment either hook
+# to enable it.
+# Documentation: https://docs.noctalia.dev/umbriel/configuration/#events
+
 [events]
 # lid_close = "notify-send 'The laptop lid is closed'"
 # lid_open = "notify-send 'The laptop lid is open'"
