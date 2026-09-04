@@ -5,7 +5,7 @@
 # 2026-09-04, see dotfiles/umbriel/upstream-default.toml).
 
 [general]
-autostart = ["noctalia", "hypridle", "~/.config/umbriel/scripts/auto-column-width.py"]   # ours
+autostart = ["noctalia", "hypridle"]   # ours — auto-column-width.py pulled back out, still thrashing on some window combos, needs more debugging before it's safe unattended
 # mod_key = "Super"                    # Force Super instead of nested-session Alt
 xwayland = true                        # Requires xwayland-satellite; restart to change
 show_cheatsheet = true                 # Show the keybind overlay on startup
