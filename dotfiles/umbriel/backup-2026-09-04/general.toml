@@ -1,6 +1,0 @@
-# General settings — autostart, etc.
-# Included from config.toml. See docs/user/configuration.md's [include]
-# section — later files override earlier ones, main file wins over all.
-
-[general]
-autostart = ["noctalia", "hypridle"]
