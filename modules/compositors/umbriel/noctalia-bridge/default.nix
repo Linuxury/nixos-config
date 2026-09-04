@@ -18,11 +18,52 @@
 #
 # Delete this whole directory (and its import + the include.files entry)
 # once noctalia-dev reconciles the two projects' schemas upstream.
+#
+# Second problem, discovered live: Noctalia's own umbriel apply.sh also
+# tries to inject "noctalia.toml" into config.toml's [include] list on
+# every wallpaper change — previously a silent no-op against the old
+# Nix-store-symlinked config.toml, but now that config.toml is a real
+# writable file (dotfiles/umbriel/, live-symlinked), that write succeeds.
+# Since it appends last and "later files override earlier ones" in
+# Umbriel's [include] rule, the raw (wrong-schema) noctalia.toml wins
+# over our own noctalia-fixed.toml include every time, bringing the 8
+# unknown-key warnings straight back. configGuard below watches
+# config.toml itself and strips that injection right back out — reacts
+# to Noctalia's own write directly rather than guessing at ordering
+# relative to noctalia.toml's own write. Idempotent: once removed, the
+# next run finds nothing to fix and doesn't rewrite, so this can't loop.
 # ===========================================================================
 
 { pkgs, ... }:
 
 let
+  configGuard = pkgs.writeShellScript "umbriel-config-guard" ''
+    exec ${pkgs.python3}/bin/python3 - <<'PYEOF'
+    import pathlib
+    import re
+
+    cfg = pathlib.Path.home() / ".config/umbriel/config.toml"
+    if not cfg.exists():
+        raise SystemExit(0)
+
+    text = cfg.read_text()
+
+    def strip_noctalia_toml(match):
+        items = re.findall(r'"[^"]*"', match.group(2))
+        items = [i for i in items if i != '"noctalia.toml"']
+        return match.group(1) + ", ".join(items) + match.group(3)
+
+    new_text = re.sub(
+        r'(\[include\]\s*\nfiles\s*=\s*\[)([^\]]*)(\])',
+        strip_noctalia_toml,
+        text,
+    )
+
+    if new_text != text:
+        cfg.write_text(new_text)
+    PYEOF
+  '';
+
   bridge = pkgs.writeShellScript "noctalia-umbriel-bridge" ''
     exec ${pkgs.python3}/bin/python3 - <<'PYEOF'
     import pathlib
@@ -107,6 +148,20 @@ in
   systemd.user.timers.noctaliaUmbrielBridge = {
     Unit.Description = "Run the umbriel theme key remap once on session start";
     Timer.OnActiveSec = "15s";
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  systemd.user.services.umbrielConfigGuard = {
+    Unit.Description = "Strip Noctalia's noctalia.toml include injection from umbriel config.toml";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${configGuard}";
+    };
+  };
+
+  systemd.user.paths.umbrielConfigGuard = {
+    Unit.Description = "Watch umbriel config.toml for Noctalia's own include injection";
+    Path.PathChanged = "%h/.config/umbriel/config.toml";
     Install.WantedBy = [ "graphical-session.target" ];
   };
 }
