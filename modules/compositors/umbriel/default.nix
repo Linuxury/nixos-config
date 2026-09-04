@@ -46,6 +46,7 @@
     inputs.umbriel.homeModules.default  # programs.umbriel HM options (settings -> config.toml)
     ./themes/default.nix    # BreezeX-Light cursor + Tela-dark icons + GTK + Kvantum/qt6ct
     ./matugen/default.nix   # matugen color sync on wallpaper change
+    ./noctalia-bridge/default.nix  # remaps Noctalia's umbriel theme keys to Umbriel's real schema (upstream mismatch)
 
     ({ ... }: {
       # =====================================================================
@@ -75,7 +76,12 @@
           # Declaring the include ourselves here sidesteps needing Umbriel's
           # config.toml to be writable at all — Noctalia's own apply.sh
           # would have added this exact line if it could reach the file.
-          include.files = [ "noctalia.toml" ];
+          #
+          # Points at noctalia-fixed.toml, not noctalia.toml directly —
+          # ./noctalia-bridge remaps Noctalia's appearance.border_* keys
+          # into Umbriel's real colors.border.* schema (upstream mismatch
+          # between noctalia-dev's own two projects, not our bug).
+          include.files = [ "noctalia-fixed.toml" ];
 
           keybinds = {
             # ── Core apps ──────────────────────────────────────────────────
