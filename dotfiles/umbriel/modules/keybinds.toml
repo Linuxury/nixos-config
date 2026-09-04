@@ -35,7 +35,7 @@
 # included keybind file can override them without this main file winning again.
 # Uncomment a chord only when this file should own that override.
 
-# "Mod+Escape" = "session-quit"
+"Mod+Escape" = "session-quit"
 # "Mod+F1" = "window-focus-next"
 # "Mod+H" = "window-focus-left"
 # "Mod+J" = "window-focus-down"
@@ -45,7 +45,7 @@
 # "Mod+Shift+Down" = "window-move-down"
 # "Mod+Shift+Up" = "window-move-up"
 # "Mod+Shift+Right" = "column-move-right"
-# "Mod+F" = "window-toggle-fullscreen"
+"Mod+F" = "window-toggle-fullscreen"
 # "Mod+Ctrl+F" = "window-toggle-maximize"
 # "Mod+R" = "window-cycle-width"
 # "Mod+Shift+R" = "window-cycle-width-back"
