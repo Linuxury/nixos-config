@@ -38,12 +38,6 @@
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.login.enableGnomeKeyring = true;
 
-  # hyprlock needs this to authenticate with the user's password. hyprlock
-  # itself is protocol-based (ext-session-lock-v1, confirmed from Umbriel's
-  # own docs — see docs/user/security.md and configuration.md's idle
-  # inhibition section), not Hyprland-exclusive, same as hyprpicker.
-  security.pam.services.hyprlock = {};
-
   # =========================================================================
   # Shared Home Manager modules — injected into every user on this host.
   # These are compositor-level concerns, not shell-specific.
@@ -91,8 +85,8 @@
 
   # =========================================================================
   # Umbriel companion tools — compositor-agnostic subset of the Hyprland
-  # toolset. hyprlock/hypridle confirmed protocol-based (ext-session-lock-v1
-  # / ext-idle-notify-v1), not Hyprland-exclusive, same as hyprpicker.
+  # toolset. hypridle confirmed protocol-based (ext-idle-notify-v1), not
+  # Hyprland-exclusive, same as hyprpicker.
   # =========================================================================
   environment.systemPackages = with pkgs; [
     # Cursor theme — installed system-wide so the greeter picks it up
@@ -104,8 +98,7 @@
     satty
     hyprpicker  # freeze-overlay during area selection — protocol-based, not Hyprland-only
 
-    # Screen lock / idle management
-    hyprlock
+    # Idle management — locking now goes through `noctalia msg session lock`
     hypridle
 
     # Screen recording

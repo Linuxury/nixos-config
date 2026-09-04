@@ -31,10 +31,19 @@
 "Mod+O" = { action = "overview-toggle", repeat = false }
 
 # ── Screen lock — overrides the built-in Mod+Escape=session-quit (matches
-# Hyprland's own binding; quit is still reachable via the power menu once
-# that's ported — see PENDING.md) ────────────────────────────────────────
-"Mod+Escape"      = "spawn:hyprlock"
+# Hyprland's own binding). Power menu (Mod+Shift+E) reaches the rest of
+# session control (logout/suspend/reboot/shutdown) via Noctalia's own panel.
+"Mod+Escape"      = "spawn:noctalia msg session lock"
 "Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
+"Mod+Shift+E"     = "spawn:noctalia msg panel-open control-center session"
+
+# ── Night light ───────────────────────────────────────────────────────────
+"Mod+Shift+N" = "spawn:noctalia msg nightlight-toggle"
+
+# ── Audio device switching — opens Noctalia's audio panel (output+input
+# pickers together, so both binds open the same panel) ──────────────────
+"Mod+A"       = "spawn:noctalia msg panel-open control-center audio"
+"Mod+Shift+A" = "spawn:noctalia msg panel-open control-center audio"
 
 # ── Scratchpad — Mod+S/Shift+S matches Hyprland muscle memory (example
 # default is Mod+Space/Shift+Space, but those are taken by launcher and
@@ -54,10 +63,10 @@
 "Mod+Shift+Print" = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen copy"
 
 # ── Media keys ────────────────────────────────────────────────────────────
-XF86AudioRaiseVolume = "spawn:wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
-XF86AudioLowerVolume = "spawn:wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-XF86AudioMute        = "spawn:wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-XF86AudioMicMute     = "spawn:wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+XF86AudioRaiseVolume = "spawn:noctalia msg volume-up"
+XF86AudioLowerVolume = "spawn:noctalia msg volume-down"
+XF86AudioMute        = "spawn:noctalia msg volume-mute"
+XF86AudioMicMute     = "spawn:noctalia msg mic-mute"
 XF86AudioPlay        = "spawn:playerctl play-pause"
 XF86AudioNext        = "spawn:playerctl next"
 XF86AudioPrev        = "spawn:playerctl previous"
