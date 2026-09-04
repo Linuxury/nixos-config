@@ -12,6 +12,23 @@
 blur = true
 blur_optimized = false
 
+# Steam client -> workspace 3. Games -> workspace 2. Ported from
+# dotfiles/hypr/modules/windowrules.lua's precedent: Steam (XWayland-only,
+# no native Wayland client) reports app_id "steam" for the client itself;
+# Proton/Steam games report "steam_app_<appid>" via XWayland, or the
+# "proton-game" XDG toplevel tag for native Wayland titles.
+[[window_rule]]
+match.app_id = "^steam$"
+default_workspace = 3
+
+[[window_rule]]
+match.app_id = "^steam_app_.*$"
+default_workspace = 2
+
+[[window_rule]]
+match.xdg_tag = "^proton-game$"
+default_workspace = 2
+
 # Noctalia settings
 [[window_rule]]
 match.app_id = "^dev.noctalia.Noctalia$"
