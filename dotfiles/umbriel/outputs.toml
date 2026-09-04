@@ -23,3 +23,20 @@ mode = "3440x1440@240"
 scale = 1.0
 vrr = "fullscreen"
 hdr = "auto"
+
+# ─────────────────────────────── Workspaces ──────────────────────────────────
+# Global workspace behavior. Each output uses dynamic workspaces unless its
+# own output section above defines a static count or list of names.
+
+[workspaces]
+back_and_forth = false                          # Re-select active workspace to switch back
+empty_above = false                             # Keep one empty workspace above active range
+
+# Workspace rules customize layout without creating workspaces. Select exactly
+# one `index` or `name`; `output` is optional. Uncomment the complete block.
+
+# [[workspace]]
+# index = 2
+# output = "LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"
+# layout.mode = "dwindle"
+# layout.gap = 4
