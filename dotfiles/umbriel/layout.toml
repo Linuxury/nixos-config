@@ -1,0 +1,33 @@
+# Default tiling mode and shared sizing behavior. Workspace rules in
+# outputs.toml can override these values for individual workspaces.
+# Included from config.toml. Base structure follows upstream's
+# examples/config.toml (fetched 2026-09-04, see
+# dotfiles/umbriel/upstream-default.toml).
+
+[layout]
+mode = "scrolling"                              # scrolling, dwindle, or master
+gap = 8                                         # Logical pixels between tiles, 0-500
+width_presets = [0.333, 0.5, 0.667]             # Width and height cycling fractions
+
+[layout.struts]
+# Signed logical pixels reserved after panel exclusive zones. Negative
+# values expand the tiled area beyond that edge.
+left = 0                                        # -65535 to 65535
+right = 0
+top = 0
+bottom = 0
+
+[layout.scrolling]
+# direction = "horizontal"                      # horizontal or vertical strip axis
+default_width_fraction = 0.5                    # Initial width for new columns, 0.1-1.0
+center_underfull_strip = true                   # Center a strip narrower than the viewport
+center_focused = false                          # Always center the focused column
+expand_single_column = true                     # Let a lone column fill the viewport
+
+[layout.dwindle]
+# preserve_split = false                        # Keep every split direction fixed after creation
+
+[layout.master]
+position = "left"                               # left or right master area
+default_width_fraction = 0.55                   # Initial master area fraction, 0.1-0.9
+new_on_top = true                               # Put new windows at the top of the stack

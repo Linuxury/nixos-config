@@ -1,0 +1,56 @@
+# Colors and window appearance (blur/shadow/decoration). Included from
+# config.toml. Base structure follows upstream's examples/config.toml
+# (fetched 2026-09-04, see dotfiles/umbriel/upstream-default.toml).
+
+# Colors stay commented so an included Noctalia-generated palette
+# (noctalia-fixed.toml, later in the include list) can supply them without
+# this file winning.
+
+[colors]
+# background = "#141419FF"                      # Internal panels and banners
+# text_primary = "#E8E8EAFF"                    # Primary text
+# text_muted = "#8A8A92FF"                      # Secondary help and status text
+# accent_primary = "#7AA3FFFF"                  # Titles, key chords, and primary emphasis
+# accent_secondary = "#F5C96BFF"                # Group headings and secondary emphasis
+# warning = "#F5C96BFF"                         # Warning text and warning-only diagnostics
+# error = "#FF6B6BFF"                           # Error text, confirmations, and diagnostics
+# insert_hint = "#7FC8FF80"                     # Drag-and-drop target preview
+# backdrop = "#000000FF"                        # Fullscreen gaps and lock screen
+# shadow = "#0000007F"                          # Window shadow
+
+[colors.border]
+# focused = "#7AA3FFFF"                         # Focused window border
+# unfocused = "#292933FF"                       # Unfocused window border
+# scratchpad_focused = "#E5C07BFF"              # Focused scratchpad border
+# scratchpad_unfocused = "#5C4A2AFF"            # Unfocused scratchpad border
+# outer = "#1A1A1FFF"                           # Outer border ring
+
+[colors.overview]
+# background_tint = "#10101430"                 # Tint over the desktop background
+# workspace_background = "#00000044"            # Background behind each workspace
+# badge = "#7AA3FFFF"                           # Overview shortcut badge
+
+[appearance]
+prefer_no_csd = true                            # Prefer Umbriel's border-only decoration
+border_width = 2                                # Inner border width, 0-100 logical pixels
+outer_border_width = 0                          # Optional outer ring, 0-100 logical pixels
+corner_radius = 10                              # Radius of the final decorated edge, 0-100
+drag_opacity = 0.75                             # Window opacity during a tiled or floating drag
+
+[appearance.blur]
+# Global blur engine. A matching window or layer rule must still opt a
+# surface into blur (see window-rules.toml / layer-rules.toml).
+enabled = true
+optimized = true                                # Reuse one cached background blur per output
+passes = 3                                      # Blur passes, 0-8
+radius = 3                                       # Blur radius, 0-100
+noise = 0.02                                    # Noise overlay, 0.0-1.0
+brightness = 0.9                                # 0.0-2.0
+contrast = 0.9                                  # 0.0-2.0
+saturation = 1.1                                # 0.0-2.0
+
+[appearance.shadow]
+enabled = true                                  # Draw shadows behind non-fullscreen windows
+softness = 10                                   # Gaussian softness, 0-200; 0 is a hard edge
+offset_x = 2                                    # Horizontal offset, -200 to 200
+offset_y = 2                                    # Vertical offset, -200 to 200

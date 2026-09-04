@@ -1,0 +1,13 @@
+# Match layer-shell surfaces such as panels, launchers, notifications, and
+# desktop widgets by namespace. Run `umbriel layers` to inspect live names.
+# Included from config.toml. Base structure follows upstream's
+# examples/config.toml (fetched 2026-09-04, see
+# dotfiles/umbriel/upstream-default.toml) — this rule is upstream's own
+# active default for Noctalia surfaces, not just an example.
+
+[[layer_rule]]
+match.namespace = "^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd|desktop-widget-[^\"]*)$"
+blur = true
+blur_ignore_alpha = 0.5
+blur_popups = true
+blur_optimized = false

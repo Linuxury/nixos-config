@@ -1,0 +1,33 @@
+# All-workspaces overview and pointer-triggered corner actions. Included
+# from config.toml. Base structure follows upstream's examples/config.toml
+# (fetched 2026-09-04, see dotfiles/umbriel/upstream-default.toml) — the
+# top-left hot corner is upstream's own active default, not just an
+# example.
+
+[overview]
+zoom = 0.5                                      # Workspace scale in overview, 0.1-0.75
+# Pinned windows stay hidden until overview closes; visible scratchpads are dismissed.
+# background_blur = true                        # Blur the wallpaper behind overview rows
+# workspace_wallpaper = true                    # Mirror wallpapers inside workspace previews
+# shortcuts = true                              # Show keyboard shortcut badges on windows
+# shortcut_keys = "1234567890"                  # Badge keys in preference order
+
+[hot_corners.top_left]
+enabled = true                                  # Open the overview after resting here
+delay_ms = 500                                  # 0 activates immediately; maximum is 10000
+action = "overview-open"                        # Any normal Umbriel action is accepted
+
+[hot_corners.top_right]
+enabled = false
+delay_ms = 500
+action = "overview-close"
+
+[hot_corners.bottom_left]
+enabled = false
+delay_ms = 500
+action = "overview-toggle"
+
+[hot_corners.bottom_right]
+enabled = false
+delay_ms = 500
+action = "spawn:notify-send 'Bottom right'"

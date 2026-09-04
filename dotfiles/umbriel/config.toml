@@ -13,4 +13,4 @@
 # no rebuild needed. See modules/compositors/umbriel/default.nix.
 
 [include]
-files = ["general.toml", "keybinds.toml", "outputs.toml", "noctalia-fixed.toml"]
+files = ["general.toml", "keybinds.toml", "outputs.toml", "input.toml", "layout.toml", "animation.toml", "overview.toml", "window-rules.toml", "layer-rules.toml", "security.toml", "appearance.toml", "noctalia-fixed.toml"]

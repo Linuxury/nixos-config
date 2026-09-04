@@ -1,0 +1,123 @@
+# Match windows by application ID, title, XDG tag, content type, or focus
+# state. Opening settings apply once; effects and output policies update
+# while mapped. Included from config.toml. Base structure follows
+# upstream's examples/config.toml (fetched 2026-09-04, see
+# dotfiles/umbriel/upstream-default.toml) — the rules below (blur-all,
+# Noctalia windows, PiP, Steam toasts) are upstream's own active defaults,
+# not just examples, kept enabled as shipped.
+
+# Blur every window. Keep this selectorless rule first so later matching
+# rules can override individual blur settings.
+[[window_rule]]
+blur = true
+blur_optimized = false
+
+# Noctalia settings
+[[window_rule]]
+match.app_id = "^dev.noctalia.Noctalia$"
+default_floating = true
+default_size = [1020, 900]
+
+# Noctalia share picker
+[[window_rule]]
+match.app_id = "^dev.noctalia.UmbrielSharePicker$"
+default_floating = true
+default_size = [800, 600]
+
+# Browsers expose no semantic PiP role or global position control.
+[[window_rule]]
+match.title = "^(Picture-in-Picture|Picture in picture)$"
+default_floating = true
+default_maximize = false
+default_position = { x = 20, y = 20, anchor = "bottom_right" }
+
+# Keep Steam notification toasts in the bottom-right corner without
+# stealing focus, and pin them so workspace switches do not hide them.
+[[window_rule]]
+match.title = "^notificationtoasts_.+_desktop"
+default_position = { x = 0, y = 0, anchor = "bottom_right" }
+default_focused = false
+default_pinned = true
+
+# Optional placement recipe. Output names follow the same rules as [output.*].
+
+# [[window_rule]]
+# match.app_id = "^org[.]example[.]Chat$"
+# default_output = "LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"
+# default_workspace = 2
+# default_focused = false
+
+# Open an application maximized while keeping its parented dialogs natural-sized.
+
+# [[window_rule]]
+# match.app_id = "^example-app$"
+# default_maximize = true
+
+# Open an application maximized to usable-area edges, without gaps or borders.
+
+# [[window_rule]]
+# match.app_id = "^discord$"
+# default_maximize_to_edges = true
+
+# Match a standardized surface content hint.
+
+# [[window_rule]]
+# match.content_type = "game"
+# vrr = "always"
+
+# Match a client-defined XDG toplevel tag, such as Proton-EM's game tag.
+
+# [[window_rule]]
+# match.xdg_tag = "^proton-game$"
+# default_fullscreen = true
+
+# Seed a new horizontal scrolling column with a pixel width. The layout
+# controls its tiled height, and existing named columns keep their
+# established width.
+
+# [[window_rule]]
+# match.app_id = "^org[.]example[.]Wide$"
+# default_size = [1200, 600]
+
+# Size a floating window as fractions of the usable area. `default_size`
+# wins on both axes if it is also present.
+
+# [[window_rule]]
+# match.app_id = "^org[.]example[.]Utility$"
+# default_floating = true
+# default_width = 0.5
+# default_height = 0.6
+
+# Dynamic effects and output policies can be combined in one matching rule.
+
+# [[window_rule]]
+# match.app_id = "^firefox$"
+# match.title = "^Library$"
+# default_floating = true
+# default_focused = false
+# focus_on_activate = true
+# opacity = 0.95
+# blur_popups = true
+# blur_ignore_alpha = 0.1
+# vrr = "always"
+# tearing = true
+# hdr = "fullscreen"
+
+# Keep related tiled windows in one named scrolling column. Lower orders
+# appear higher in horizontal scrolling and farther left in vertical
+# scrolling.
+
+# [[window_rule]]
+# match.app_id = "^firefox$"
+# default_scrolling_column = "browsers"
+# default_scrolling_column_order = 10
+
+# Focus-aware rules update as focus changes.
+
+# [[window_rule]]
+# match.is_focused = false
+# opacity = 0.85
+
+# [[window_rule]]
+# match.is_focused = true
+# opacity = 1.0

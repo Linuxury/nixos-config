@@ -1,0 +1,76 @@
+# Keyboards, pointers, tablets, cursor behavior, and focus policy. Included
+# from config.toml. Base structure follows upstream's examples/config.toml
+# (fetched 2026-09-04, see dotfiles/umbriel/upstream-default.toml).
+
+[input]
+middle_click_paste = true                       # Primary-selection paste; applies on reload
+
+[input.keyboard]
+# Physical keyboard XKB settings. Virtual keyboards provide their own keymaps.
+layout = ""                                     # Example: "us,de"; empty uses the system default
+variant = ""                                    # Example: ",nodeadkeys" for two layouts
+options = ""                                    # Example: "grp:alt_shift_toggle"
+repeat_rate = 25                                # Key repeats per second, 0-1000
+repeat_delay = 600                              # Delay before repeating, 0-10000 ms
+numlock_toggle = true                           # Enable on connect; false preserves the current state
+track_layout = "global"                         # global, or window for per-surface layout memory
+
+[input.touchpad]
+tap = true                                      # Tap-to-click
+# natural_scroll = true                         # Omit to preserve the libinput default
+# accel_profile = "adaptive"                    # flat, adaptive, or custom <step> <points...>
+# sensitivity = 0.5                             # Pointer speed, -1.0 to 1.0
+# scroll_factor = 1.5                           # Two-finger scroll multiplier, 0.1-10.0
+# disable_while_typing = true                   # Omit to preserve the libinput default
+# disable_on_external_mouse = true              # Native sessions only
+
+[input.mouse]
+# natural_scroll = false                        # Omit to preserve the libinput default
+# accel_profile = "flat"                        # Omit to preserve the libinput default
+sensitivity = 0.0                               # Pointer speed, -1.0 to 1.0
+scroll_wheel_step = 60                          # Logical pixels per layout-scroll action, 1-1000
+
+[input.tablet]
+enabled = true                                  # False disables tablet tools and pads
+# map_to_output = "LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"
+# map_to_focused_output = false
+# map_to_focused_window = false                 # Focused-window mapping has highest priority
+# left_handed = false
+# calibration_matrix = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+
+[input.cursor]
+theme = ""                                      # Empty uses environment or default Xcursor theme
+size = 24                                       # Logical size, 1-512
+hardware_cursor = true                          # False forces cursor composition
+follows_focus = false                           # Warp to targets selected by focus navigation
+hide_when_typing = false                        # Keep visible while typing
+hide_timeout_ms = 0                             # Idle hide timeout, 0 disables; maximum is 3600000
+
+[input.focus]
+follows_mouse = false                           # Focus the pointer target after pointer motion
+# Refuse hover focus when revealing a window would scroll farther than this
+# many viewport widths. Omit the key for no limit.
+# follows_mouse_max_scroll = 0.5
+
+# Exact, case-sensitive per-device overrides inherit their device-kind table.
+# Find names with `libinput list-devices`. Uncomment each complete block needed.
+
+# [[input.device]]
+# name = "Acme Split Keyboard"
+# layout = "us"
+# variant = "colemak_dh"
+# repeat_rate = 40
+# repeat_delay = 250
+
+# [[input.device]]
+# name = "Acme Precision Touchpad"
+# tap = true
+# natural_scroll = false
+# accel_profile = "flat"
+# sensitivity = 0.0
+# disable_while_typing = false
+
+# [[input.device]]
+# name = "Acme Gaming Mouse"
+# accel_profile = "flat"
+# sensitivity = 0.0
