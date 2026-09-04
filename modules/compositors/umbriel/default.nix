@@ -53,7 +53,7 @@
     ../../themes/matugen/default.nix  # matugen color sync (Kvantum only — everything else is Noctalia-native)
     ./noctalia-bridge/default.nix  # remaps Noctalia's umbriel theme keys to Umbriel's real schema (upstream mismatch)
 
-    ({ config, ... }: {
+    ({ config, lib, ... }: {
       # =====================================================================
       # Umbriel's own config — real dotfiles, not a generated Nix attrset.
       #
@@ -68,7 +68,22 @@
       # No more automatic `umbriel validate` at build time (that came from
       # HM's programs.umbriel.settings, no longer used) — run it by hand
       # after editing: `umbriel validate -c ~/.config/umbriel/config.toml`.
+      #
+      # Pre-clear: the prior generation deployed ~/.config/umbriel as a
+      # real directory (programs.umbriel.settings' xdg.configFile, plus
+      # Noctalia/matugen writing noctalia.toml etc into it directly) —
+      # HM's checkLinkTargets refuses to replace an existing non-symlink
+      # path with a symlink ("would be clobbered"), which broke the first
+      # switch after this change. Remove it once if it's not already the
+      # symlink; a no-op on every activation after that.
       # =====================================================================
+      home.activation.clearUmbrielConfigDir = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+        _p="$HOME/.config/umbriel"
+        if [ -e "$_p" ] && [ ! -L "$_p" ]; then
+          rm -rf "$_p"
+        fi
+      '';
+
       home.file.".config/umbriel".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/umbriel";
     })
