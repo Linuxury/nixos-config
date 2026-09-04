@@ -3,7 +3,7 @@
 # scripts/powermenu.sh — Power / session menu via wofi
 #
 # Options:
-#   󰤄  Lock       — hyprlock
+#   󰤄  Lock       — noctalia msg session lock
 #   󰍃  Logout     — exit Hyprland (back to greetd)
 #   󰒲  Suspend    — systemctl suspend
 #   󰜉  Reboot     — systemctl reboot
@@ -31,9 +31,9 @@ CHOICE=$(printf '%s\n' "$LOCK" "$LOGOUT" "$SUSPEND" "$REBOOT" "$SHUTDOWN" \
         --insensitive)
 
 case "$CHOICE" in
-    "$LOCK")     hyprlock ;;
-    "$LOGOUT")   hyprctl dispatch exit ;;
-    "$SUSPEND")  systemctl suspend ;;
-    "$REBOOT")   systemctl reboot ;;
-    "$SHUTDOWN")  systemctl poweroff ;;
+    "$LOCK")     noctalia msg session lock ;;
+    "$LOGOUT")   noctalia msg session logout ;;
+    "$SUSPEND")  noctalia msg session suspend ;;
+    "$REBOOT")   noctalia msg session reboot ;;
+    "$SHUTDOWN")  noctalia msg session shutdown ;;
 esac

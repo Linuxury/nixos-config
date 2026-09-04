@@ -33,9 +33,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type text  --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 
-    -- ── Night light — auto warm colors at sunset (8 PM) ───────────────────────
-    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.sh on")
-
     -- ── Host-specific overrides ───────────────────────────────────────────────
     -- Sets per-display opacity (e.g. OLED needs lower opacity than LCD)
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/host-overrides.sh")

@@ -142,9 +142,6 @@ in
   # =========================================================================
   security.polkit.enable = true;
 
-  # PAM — hyprlock needs this to authenticate with user password
-  security.pam.services.hyprlock = {};
-
   # =========================================================================
   # Keyring — Secret storage for apps
   #
@@ -187,8 +184,7 @@ in
     wl-clipboard    # Wayland clipboard (wl-copy / wl-paste commands)
     cliphist        # Clipboard history manager
 
-    # Screen locking
-    hyprlock        # Hyprland-native screen locker
+    # Idle management — locking now goes through `noctalia msg session lock`
     hypridle        # Idle management (dim, lock, suspend)
 
     # Audio

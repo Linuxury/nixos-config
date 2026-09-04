@@ -117,26 +117,27 @@ hl.bind(mod .. " + ALT + R",         hl.dsp.exec_cmd("~/.config/hypr/scripts/scr
 hl.bind(mod .. " + ALT + SHIFT + R", hl.dsp.exec_cmd("~/.config/hypr/scripts/screen-record.sh fullscreen"))
 
 -- ── Screen lock ───────────────────────────────────────────────────────────────
-hl.bind(mod .. " + Escape",        hl.dsp.exec_cmd("hyprlock"))
+hl.bind(mod .. " + Escape",        hl.dsp.exec_cmd("noctalia msg session lock"))
 -- Force suspend — ignores idle inhibitors (e.g. Firefox holding sleep open via YouTube)
 hl.bind(mod .. " + CTRL + Escape", hl.dsp.exec_cmd("systemctl suspend -i"))
 
 -- ── Audio — volume with OSD ────────────────────────────────────────────────
 -- Output (speaker)
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("~/.config/hypr/scripts/volume-osd.sh up"),          { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("~/.config/hypr/scripts/volume-osd.sh down"),        { locked = true, repeating = true })
-hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("~/.config/hypr/scripts/volume-osd.sh mute"),        { locked = true })
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("noctalia msg volume-up"),          { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("noctalia msg volume-down"),        { locked = true, repeating = true })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("noctalia msg volume-mute"),        { locked = true })
 -- Input (mic) — Shift + volume knob
-hl.bind("SHIFT + XF86AudioRaiseVolume", hl.dsp.exec_cmd("~/.config/hypr/scripts/volume-osd.sh input-up"),   { locked = true, repeating = true })
-hl.bind("SHIFT + XF86AudioLowerVolume", hl.dsp.exec_cmd("~/.config/hypr/scripts/volume-osd.sh input-down"), { locked = true, repeating = true })
-hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("~/.config/hypr/scripts/volume-osd.sh input-mute"),  { locked = true })
+hl.bind("SHIFT + XF86AudioRaiseVolume", hl.dsp.exec_cmd("noctalia msg mic-volume-up"),   { locked = true, repeating = true })
+hl.bind("SHIFT + XF86AudioLowerVolume", hl.dsp.exec_cmd("noctalia msg mic-volume-down"), { locked = true, repeating = true })
+hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("noctalia msg mic-mute"),  { locked = true })
 -- Media keys
 hl.bind("XF86AudioPlay",        hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioNext",        hl.dsp.exec_cmd("playerctl next"),        { locked = true })
 hl.bind("XF86AudioPrev",        hl.dsp.exec_cmd("playerctl previous"),    { locked = true })
--- Audio device switching
-hl.bind(mod .. " + A",         hl.dsp.exec_cmd("~/.config/hypr/scripts/audio-switch.sh sink"))    -- Switch output
-hl.bind(mod .. " + SHIFT + A", hl.dsp.exec_cmd("~/.config/hypr/scripts/audio-switch.sh source"))  -- Switch input
+-- Audio device switching — Noctalia's control-center audio panel has both
+-- output and input pickers together, so both binds open the same panel
+hl.bind(mod .. " + A",         hl.dsp.exec_cmd("noctalia msg panel-open control-center audio"))  -- Switch output
+hl.bind(mod .. " + SHIFT + A", hl.dsp.exec_cmd("noctalia msg panel-open control-center audio"))  -- Switch input
 
 -- ── Brightness ────────────────────────────────────────────────────────────────
 hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl set +5%"), { repeating = true })
@@ -145,7 +146,7 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"), { rep
 -- ── Exit / reload ─────────────────────────────────────────────────────────────
 hl.bind(mod .. " + SHIFT + E", hl.dsp.exec_cmd("~/.config/hypr/scripts/powermenu.sh"))
 hl.bind(mod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
-hl.bind(mod .. " + SHIFT + N", hl.dsp.exec_cmd("~/.config/hypr/scripts/nightlight.sh"))  -- Night light toggle
+hl.bind(mod .. " + SHIFT + N", hl.dsp.exec_cmd("noctalia msg nightlight-toggle"))  -- Night light toggle
 -- Restart Noctalia — clears stale workspace window counts after Wine/Steam ghost windows
 hl.bind(mod .. " + CTRL + N",  hl.dsp.exec_cmd("systemctl --user restart noctalia.service"))
 
