@@ -73,19 +73,12 @@ gray      = '#434C5E'
 black     = '#2E3440'
 white     = '#D8DEE9'
 
-# Default noctalia palette — Noctalia overwrites this block on wallpaper change
-# with wallpaper-derived colors. These nord-based defaults prevent the
-# "Could not find color palette: noctalia" warning between HM switch and
-# first wallpaper change.
-[palettes.noctalia]
-dark_blue = '#5E81AC'
-blue      = '#81A1C1'
-teal      = '#88C0D0'
-red       = '#BF616A'
-orange    = '#D08770'
-green     = '#A3BE8C'
-yellow    = '#EBCB8B'
-purple    = '#B48EAD'
-gray      = '#434C5E'
-black     = '#2E3440'
-white     = '#D8DEE9'
+# No placeholder [palettes.noctalia] block here on purpose — Noctalia's own
+# starship theming appends a marked `>>> NOCTALIA STARSHIP PALETTE >>>`
+# block at the end of the file rather than replacing a block in place
+# (confirmed live: an earlier hand-written Nord-based placeholder here just
+# ended up duplicated alongside Noctalia's real one — invalid TOML with two
+# [palettes.noctalia] tables, though starship tolerated it and used the
+# last one). There's a brief "Could not find color palette: noctalia"
+# warning between a fresh HM switch and the first wallpaper change now,
+# but that's harmless and one-time — better than permanent duplicate keys.

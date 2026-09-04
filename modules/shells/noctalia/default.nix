@@ -15,15 +15,19 @@
 #     (replaces the v4 exec-once launch via shell-autostart.lua)
 #   - programs.noctalia.settings   — declarative config.toml
 #     wallpaper_changed hook writes ~/.local/share/current-wallpaper so
-#     the matugen path unit (hyprland/matugen/default.nix) fires as before
+#     the matugen path unit (<compositor>/matugen/default.nix) fires as before
 #   - notification daemon disabled — swaync handles notifications
 #   - greeters/noctalia — noctalia-greeter (greetd), bundled automatically
 #     so hosts don't need a separate greeter import. It matches the shell's
 #     look natively; unlike wayle it does NOT need greeters/sddm.
 #
-# matugen fires on every wallpaper change via the hook — it falls back to
-# ImageMagick dominant-color extraction. Re-enable noctalia→matugen accent
-# sync when v5's template output path is stable.
+# Theming split: Noctalia's own native app-theming (enabled via its
+# settings.json, not Nix — see the activation block below) owns kitty, gtk,
+# qt, starship, and umbriel's colors. matugen (still fired by the
+# wallpaper_changed hook above) only covers what Noctalia has no template
+# for: neovim, pywalfox, Kvantum. See this repo's theming docs / session
+# history for why — Noctalia's patching model needs genuinely writable
+# config files, which fought Nix's default immutable symlinks.
 #
 # Importing this module activates Noctalia (shell + greeter). No enable
 # flag needed. To switch shell: remove this import, add shells/wayle
@@ -102,20 +106,35 @@
       '';
 
       # Noctalia v5 injects a [palettes.noctalia] block into starship.toml on
-      # each wallpaper change (assets/templates/builtin.toml + apply.sh). Two
-      # problems: (1) HM deploys starship.toml read-only (444); sed -i renames
-      # around that, but the >> append still fails — chmod 644 after
-      # writeBoundary fixes it. (2) On the next switch HM refuses to overwrite
-      # a file noctalia already modified ("would be clobbered") — force = true
-      # makes HM always clobber it regardless of current content.
-      #
-      # Net effect per switch: HM force-writes its version, activation chmods
-      # it 644, noctalia re-applies its palette on the next wallpaper change.
-      home.file.".config/starship.toml".force = lib.mkForce true;
+      # each wallpaper change. This used to fight a Nix-store symlink here
+      # (chmod on a symlink target in /nix/store just fails silently) —
+      # starship.toml is now deployed copy-once instead of symlinked (see
+      # home.activation.starshipSeed in users/linuxury/home.nix), so it's a
+      # genuine regular file Noctalia can patch directly. Nothing left to do
+      # here.
+    })
 
-      home.activation.starshipWritableForNoctalia = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        _sf="''${STARSHIP_CONFIG:-''${XDG_CONFIG_HOME:-$HOME/.config}/starship.toml}"
-        [ -f "$_sf" ] && chmod 644 "$_sf" || true
+    # =========================================================================
+    # Enable Noctalia's native "umbriel" app-theming template.
+    #
+    # Noctalia's own app-theming (kitty/gtk/qt/starship/etc.) is controlled
+    # by ~/.config/noctalia/settings.json's templates.activeTemplates list —
+    # a file Noctalia owns entirely at runtime, never Nix-managed. It already
+    # had kitty/gtk/qt/starship enabled by hand well before Umbriel existed;
+    # this just adds "umbriel" to that same list idempotently, so Umbriel's
+    # own colors (border, accent) come from Noctalia instead of matugen too
+    # (see modules/compositors/umbriel/matugen/default.nix).
+    # =========================================================================
+    ({ pkgs, lib, ... }: {
+      home.activation.noctaliaEnableUmbrielTemplate = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _sf="$HOME/.config/noctalia/settings.json"
+        if [ -f "$_sf" ]; then
+          if ! ${pkgs.jq}/bin/jq -e '.templates.activeTemplates[]? | select(.id == "umbriel")' "$_sf" >/dev/null 2>&1; then
+            _tmp="$(mktemp)"
+            ${pkgs.jq}/bin/jq '.templates.activeTemplates += [{"enabled": true, "id": "umbriel"}]' "$_sf" > "$_tmp" \
+              && mv "$_tmp" "$_sf"
+          fi
+        fi
       '';
     })
 

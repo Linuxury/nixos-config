@@ -133,8 +133,9 @@
   # Dotfiles — symlinked from dotfiles/ in your repo
   # =========================================================================
   home.file = {
-    # Starship prompt
-    ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
+    # Starship prompt — deployed via home.activation.starshipSeed below
+    # (copy-once, not a symlink) so Noctalia's native app-theming can patch
+    # the live file. See modules/shells/noctalia/default.nix for why.
 
     # Fastfetch
     ".config/fastfetch".source = ../../dotfiles/fastfetch;
@@ -145,8 +146,10 @@
     # MangoHud — performance overlay for gaming
     ".config/MangoHud".source = ../../dotfiles/MangoHud;
 
-    # Kitty terminal — base config; colors written by matugen at runtime
-    ".config/kitty/kitty.conf".source = ../../dotfiles/kitty/kitty.conf;
+    # Kitty terminal — deployed via home.activation.kittyConfSeed below
+    # (copy-once, not a symlink) so Noctalia's native app-theming can patch
+    # the live file with its own color include. See
+    # modules/shells/noctalia/default.nix for why.
 
     # Hyprland — full config directory (entry point + all modules)
     # Live symlink so edits in the repo take effect immediately via hyprctl reload
@@ -575,6 +578,34 @@ ENDSSH
   home.activation.hypridleConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ln -sf "$HOME/nixos-config/dotfiles/hypr/hypridle-${hypridleProfile}.conf" \
            "$HOME/nixos-config/dotfiles/hypr/hypridle.conf"
+  '';
+
+  # Kitty + starship — copy-once instead of a symlink, so Noctalia's native
+  # app-theming (enabled in its own settings.json, see
+  # modules/shells/noctalia/default.nix) can patch the live file and reload
+  # the app. A Nix-store symlink blocks that write silently — see this
+  # session's investigation for the full story. Only seeds on first run;
+  # Nix never touches these files again afterward.
+  home.activation.kittyConfSeed = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _cfg="$HOME/.config/kitty/kitty.conf"
+    _template="$HOME/nixos-config/dotfiles/kitty/kitty.conf"
+    mkdir -p "$HOME/.config/kitty"
+    # First run after switching away from the old HM-managed symlink: remove
+    # the stale symlink so the [ ! -f ] check below actually re-seeds a real
+    # file instead of seeing the (still-resolving) old symlink and skipping.
+    [ -L "$_cfg" ] && rm -f "$_cfg"
+    if [ ! -f "$_cfg" ] && [ -f "$_template" ]; then
+      cp "$_template" "$_cfg"
+    fi
+  '';
+
+  home.activation.starshipSeed = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _cfg="$HOME/.config/starship.toml"
+    _template="$HOME/nixos-config/dotfiles/starship/starship.toml"
+    [ -L "$_cfg" ] && rm -f "$_cfg"
+    if [ ! -f "$_cfg" ] && [ -f "$_template" ]; then
+      cp "$_template" "$_cfg"
+    fi
   '';
 
   # Keep Proton-GE Latest in Steam's compat tools dir in sync with the Nix package.

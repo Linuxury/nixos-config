@@ -24,11 +24,15 @@
   #
   # Kvantum reads its active theme from kvantumrc. matugen writes the
   # kvantum-colors theme files to ~/.config/Kvantum/kvantum-colors/ on each
-  # wallpaper change, so the palette stays in sync automatically.
+  # wallpaper change, so the palette stays in sync automatically — Noctalia
+  # has no Kvantum template, so this part of the pipeline stays as-is.
   #
-  # qt6ct.conf tells qt6ct to use the Kvantum style and the matugen color
-  # scheme. Unlike Hyprland's module, QT_STYLE_OVERRIDE isn't set here yet —
-  # untested whether Umbriel needs the same override; add it once confirmed.
+  # qt6ct.conf itself stays fully Nix-managed (Noctalia's own "qt" theming
+  # is compiled-in, not a shell apply.sh like kitty/gtk — it only writes a
+  # separate color file at colors/noctalia.conf, confirmed by reading its
+  # undo.sh, which just removes that file). color_scheme_path points there
+  # instead of matugen's colors/matugen.conf — matugen no longer generates
+  # that file (see matugen/default.nix).
   # =========================================================================
   home.file.".config/Kvantum/kvantumrc".text = ''
     [General]
@@ -39,7 +43,7 @@
     force = true;
     text = ''
     [Appearance]
-    color_scheme_path=%h/.config/qt6ct/colors/matugen.conf
+    color_scheme_path=%h/.config/qt6ct/colors/noctalia.conf
     custom_palette=true
     icon_theme=Tela-dark
     style=kvantum

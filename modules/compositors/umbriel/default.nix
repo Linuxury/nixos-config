@@ -65,10 +65,17 @@
         settings = {
           general.autostart = [ "noctalia" ];
 
-          # matugen writes [colors]/[colors.border] here on wallpaper change
-          # (see matugen/default.nix) — Umbriel applies included files live,
-          # no reload command needed.
-          include.files = [ "matugen-colors.toml" ];
+          # [colors]/[colors.border] come from Noctalia's native umbriel
+          # theming now, not matugen (see modules/shells/noctalia/
+          # default.nix's noctaliaEnableUmbrielTemplate activation). Noctalia
+          # writes ~/.config/umbriel/noctalia.toml directly — that write
+          # isn't blocked by our config.toml being a Nix-managed symlink
+          # (same as kitty: its themes/noctalia.conf writes fine, only
+          # injecting the include *into* kitty.conf itself is blocked).
+          # Declaring the include ourselves here sidesteps needing Umbriel's
+          # config.toml to be writable at all — Noctalia's own apply.sh
+          # would have added this exact line if it could reach the file.
+          include.files = [ "noctalia.toml" ];
 
           keybinds = {
             # ── Core apps ──────────────────────────────────────────────────
