@@ -1,60 +1,133 @@
 # Keybinds. Included from config.toml.
-#
-# Umbriel built-ins (active without any config, not redeclared here):
-# Mod+H/J/K/L focus, Mod+Shift+Arrow move, Mod+F fullscreen,
-# Mod+Ctrl+F maximize, Mod+R cycle width, Mod+1-9 workspaces.
-# Everything below is NOT built-in and must be declared.
+# Base structure follows upstream's examples/config.toml verbatim (fetched
+# 2026-09-04, see dotfiles/umbriel/upstream-default.toml) — custom additions
+# are called out in their own sections below the upstream block.
+# Configured chords replace matching built-ins; built-in chords not
+# mentioned here remain active. Syntax: docs.noctalia.dev/umbriel/keybinds
+# Actions: docs.noctalia.dev/umbriel/actions
 
 [keybinds]
 
-# ── Core apps ────────────────────────────────────────────────────────────
-"Mod+Return"       = "spawn:kitty"
-"Mod+Shift+Return" = "spawn:kitty --class floating-term"
-"Mod"              = "spawn:noctalia msg panel-toggle launcher"
-"Mod+E"            = "spawn:nautilus"
+# ─────────────────────── Upstream defaults (unmodified) ────────────────────
+# Applications and session
+"Mod+Return" = "spawn:kitty"
+"Mod" = "spawn:noctalia msg panel-toggle launcher"
+"Mod+Q" = "window-close"
 
-# ── Window management ────────────────────────────────────────────────────
-"Mod+Q"       = "window-close"
-"Mod+F"       = "window-toggle-fullscreen"
-"Mod+T"       = "window-toggle-floating"
-"Mod+Shift+T" = "window-focus-switch-floating"
-"Mod+P"       = "window-toggle-pinned"
-"Mod+M"       = "window-toggle-maximize-to-edges"
-
-# ── Focus navigation (arrow keys; Mod+H/J/K/L are built-in) ─────────────
-"Mod+Left"  = "window-focus-left"
-"Mod+Down"  = "window-focus-down"
-"Mod+Up"    = "window-focus-up"
+# Focus navigation. In overview, Mod+Up/Down retain normal layout focus, so they
+# traverse stacks in the default horizontal layout. Bare Up/Down move between
+# workspace rows.
+"Mod+Left" = "window-focus-left"
+"Mod+Down" = "window-focus-down"
+"Mod+Up" = "window-focus-up"
 "Mod+Right" = "window-focus-right"
 
-# ── Overview ──────────────────────────────────────────────────────────────
+# Window state and layout
+"Mod+T" = "window-toggle-floating"
+"Mod+Shift+T" = "window-focus-switch-floating"
+"Mod+P" = "window-toggle-pinned"
+"Mod+M" = "window-toggle-maximize-to-edges"
+
+# Overview
 "Mod+O" = { action = "overview-toggle", repeat = false }
 
-# ── Screen lock — overrides the built-in Mod+Escape=session-quit (matches
-# Hyprland's own binding). Power menu (Mod+Shift+E) reaches the rest of
-# session control (logout/suspend/reboot/shutdown) via Noctalia's own panel.
-"Mod+Escape"      = "spawn:noctalia msg session lock"
-"Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
-"Mod+Shift+E"     = "spawn:noctalia msg panel-open control-center session"
+# These useful bindings are built in already. They stay commented here so an
+# included keybind file can override them without this main file winning again.
+# Uncomment a chord only when this file should own that override.
 
-# ── Night light ───────────────────────────────────────────────────────────
+# "Mod+Escape" = "session-quit"
+# "Mod+F1" = "window-focus-next"
+# "Mod+H" = "window-focus-left"
+# "Mod+J" = "window-focus-down"
+# "Mod+K" = "window-focus-up"
+# "Mod+L" = "window-focus-right"
+# "Mod+Shift+Left" = "column-move-left"
+# "Mod+Shift+Down" = "window-move-down"
+# "Mod+Shift+Up" = "window-move-up"
+# "Mod+Shift+Right" = "column-move-right"
+# "Mod+F" = "window-toggle-fullscreen"
+# "Mod+Ctrl+F" = "window-toggle-maximize"
+# "Mod+R" = "window-cycle-width"
+# "Mod+Shift+R" = "window-cycle-width-back"
+# "Mod+Comma" = "window-consume-left"
+# "Mod+Period" = "window-consume-right"
+# "Mod+WheelUp" = "window-focus-left"
+# "Mod+WheelDown" = "window-focus-right"
+# Mod+1 through Mod+9 switch workspaces. Adding Shift moves the focused window;
+# keypad digits provide the same built-in actions.
+
+# Scratchpads
+# Each output owns a separate scratchpad. Bare actions target the output under
+# the pointer; append `:DP-1` or a monitor Config name to target one explicitly.
+"Mod+Shift+Space" = "window-move-to-scratchpad"
+"Mod+Space" = "scratchpad-toggle"
+"Mod+Ctrl+Space" = "window-restore-from-scratchpad"
+"Mod+Tab" = "scratchpad-focus-next"
+
+# Optional navigation and sizing recipes. These chords do not replace active
+# bindings above when uncommented.
+# "Mod+Page_Up" = "workspace-previous"
+# "Mod+Page_Down" = "workspace-next"
+# "Mod+Shift+Page_Up" = "window-move-to-workspace-previous"
+# "Mod+Shift+Page_Down" = "window-move-to-workspace-next"
+# "Mod+Home" = "column-focus-first"
+# "Mod+End" = "column-focus-last"
+# "Mod+Shift+Home" = "column-move-to-first"
+# "Mod+Shift+End" = "column-move-to-last"
+# "Mod+Bracketright" = "window-focus-next"
+# "Mod+Bracketleft" = "window-focus-previous"
+# "Mod+Shift+Bracketright" = "window-swap-next"
+# "Mod+Shift+Bracketleft" = "window-swap-previous"
+# "Mod+Minus" = "window-modify-width:-0.1"
+# "Mod+Equal" = "window-modify-width:0.1"
+# "Mod+Alt+Minus" = "window-modify-height:-0.1"
+# "Mod+Alt+Equal" = "window-modify-height:0.1"
+# "Mod+Alt+R" = "window-cycle-height"
+# "Mod+Alt+Shift+R" = "window-cycle-height-back"
+# "Mod+Grave" = "window-focus-last"
+# "Mod+BackSpace" = "window-consume-or-expel-left"
+# "Mod+C" = "column-center"
+# "Mod+Shift+C" = "window-center"
+# "Mod+Ctrl+T" = "workspace-set-layout:toggle"
+# "Mod+MouseMiddle" = "layout-scroll-drag"
+# "Mod+Alt+K" = "keyboard-layout-next"
+
+# Submaps temporarily replace the active keybind layer and can nest. Entry
+# binds must not repeat. A table-form bind can run an action and then reset one
+# level, while a global reset provides an emergency exit from any layer.
+# "Mod+S" = { action = "submap:resize", repeat = false }
+# "submap[resize],1" = { action = "window-set-width:0.5", submap = "reset" }
+# "submap[resize],N" = { action = "submap:nudge", repeat = false }
+# "submap[resize],Escape" = "submap:reset"
+# "submap[nudge],Left" = "window-modify-width:-0.1"
+# "submap[nudge],Right" = "window-modify-width:0.1"
+# "submap[nudge],Escape" = "submap:reset"
+# "Escape" = "submap:reset"
+
+# ───────────────────────── Custom additions ─────────────────────────────────
+# Everything below is ours, not part of the upstream default. None of it
+# overrides a built-in or an upstream-active chord above.
+
+# Core apps
+"Mod+Shift+Return" = "spawn:kitty --class floating-term"
+"Mod+E"            = "spawn:nautilus"
+
+# Suspend — Mod+Escape stays the built-in session-quit (see commented block
+# above); this is a separate force-suspend chord, unrelated to that built-in.
+"Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
+
+# Power menu / session control via Noctalia's own panel
+"Mod+Shift+E" = "spawn:noctalia msg panel-open control-center session"
+
+# Night light
 "Mod+Shift+N" = "spawn:noctalia msg nightlight-toggle"
 
-# ── Audio device switching — opens Noctalia's audio panel (output+input
-# pickers together, so both binds open the same panel) ──────────────────
+# Audio device switching — opens Noctalia's audio panel (output+input pickers
+# together, so both binds open the same panel)
 "Mod+A"       = "spawn:noctalia msg panel-open control-center audio"
 "Mod+Shift+A" = "spawn:noctalia msg panel-open control-center audio"
 
-# ── Scratchpad — Mod+S/Shift+S matches Hyprland muscle memory (example
-# default is Mod+Space/Shift+Space, but those are taken by launcher and
-# kitty-float; scratchpad is per-output in Umbriel) ──────────────────────
-"Mod+S"          = "scratchpad-toggle"
-"Mod+Shift+S"    = "window-move-to-scratchpad"
-"Mod+Ctrl+Space" = "window-restore-from-scratchpad"
-"Mod+Tab"        = "scratchpad-focus-next"
-
-# ── Screenshots — save+notify, edit only if you click the notification
-# (matches Hyprland's screenshot.sh behavior, ported to scripts/screenshot.sh)
+# Screenshots — save+notify, edit only if you click the notification
 "Print"           = "spawn:~/.config/umbriel/scripts/screenshot.sh area save"
 "Mod+Print"       = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen save"
 "Mod+Z"           = "spawn:~/.config/umbriel/scripts/screenshot.sh area save"
@@ -62,7 +135,7 @@
 "Shift+Print"     = "spawn:~/.config/umbriel/scripts/screenshot.sh area copy"
 "Mod+Shift+Print" = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen copy"
 
-# ── Media keys ────────────────────────────────────────────────────────────
+# Media keys — noctalia msg instead of the upstream doc's raw wpctl recipe
 XF86AudioRaiseVolume = "spawn:noctalia msg volume-up"
 XF86AudioLowerVolume = "spawn:noctalia msg volume-down"
 XF86AudioMute        = "spawn:noctalia msg volume-mute"
@@ -71,6 +144,6 @@ XF86AudioPlay        = "spawn:playerctl play-pause"
 XF86AudioNext        = "spawn:playerctl next"
 XF86AudioPrev        = "spawn:playerctl previous"
 
-# ── Brightness (allow_when_locked = works on the lock screen) ────────────
+# Brightness (allow_when_locked = works on the lock screen)
 XF86MonBrightnessUp   = { action = "spawn:brightnessctl set +5%", allow_when_locked = true }
 XF86MonBrightnessDown = { action = "spawn:brightnessctl set 5%-", allow_when_locked = true }
