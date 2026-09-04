@@ -31,30 +31,52 @@
 # Overview
 "Mod+O" = { action = "overview-toggle", repeat = false }
 
-# These useful bindings are built in already. They stay commented here so an
-# included keybind file can override them without this main file winning again.
-# Uncomment a chord only when this file should own that override.
+# These are built in already, but explicitly declared anyway — pure
+# built-ins (no declaration anywhere in this file) were not firing
+# tonight even after the mod_key regression above was fixed; explicit
+# declarations were the only thing that reliably worked. Revisit once
+# that's root-caused upstream.
 
 "Mod+Escape" = "session-quit"
-# "Mod+F1" = "window-focus-next"
-# "Mod+H" = "window-focus-left"
-# "Mod+J" = "window-focus-down"
-# "Mod+K" = "window-focus-up"
-# "Mod+L" = "window-focus-right"
-# "Mod+Shift+Left" = "column-move-left"
-# "Mod+Shift+Down" = "window-move-down"
-# "Mod+Shift+Up" = "window-move-up"
-# "Mod+Shift+Right" = "column-move-right"
+"Mod+F1" = "window-focus-next"
+"Mod+H" = "window-focus-left"
+"Mod+J" = "window-focus-down"
+"Mod+K" = "window-focus-up"
+"Mod+L" = "window-focus-right"
+"Mod+Shift+Left" = "column-move-left"
+"Mod+Shift+Down" = "window-move-down"
+"Mod+Shift+Up" = "window-move-up"
+"Mod+Shift+Right" = "column-move-right"
 "Mod+F" = "window-toggle-fullscreen"
-# "Mod+Ctrl+F" = "window-toggle-maximize"
-# "Mod+R" = "window-cycle-width"
-# "Mod+Shift+R" = "window-cycle-width-back"
-# "Mod+Comma" = "window-consume-left"
-# "Mod+Period" = "window-consume-right"
-# "Mod+WheelUp" = "window-focus-left"
-# "Mod+WheelDown" = "window-focus-right"
-# Mod+1 through Mod+9 switch workspaces. Adding Shift moves the focused window;
-# keypad digits provide the same built-in actions.
+"Mod+Ctrl+F" = "window-toggle-maximize"
+"Mod+R" = "window-cycle-width"
+"Mod+Shift+R" = "window-cycle-width-back"
+"Mod+Comma" = "window-consume-left"
+"Mod+Period" = "window-consume-right"
+"Mod+WheelUp" = "window-focus-left"
+"Mod+WheelDown" = "window-focus-right"
+
+# Mod+1 through Mod+9 switch workspaces (Shift moves the focused window)
+# — no commented reference existed for these upstream, written from
+# scratch using the real actions.
+"Mod+1" = "workspace-switch:1"
+"Mod+2" = "workspace-switch:2"
+"Mod+3" = "workspace-switch:3"
+"Mod+4" = "workspace-switch:4"
+"Mod+5" = "workspace-switch:5"
+"Mod+6" = "workspace-switch:6"
+"Mod+7" = "workspace-switch:7"
+"Mod+8" = "workspace-switch:8"
+"Mod+9" = "workspace-switch:9"
+"Mod+Shift+1" = "window-move-to-workspace:1"
+"Mod+Shift+2" = "window-move-to-workspace:2"
+"Mod+Shift+3" = "window-move-to-workspace:3"
+"Mod+Shift+4" = "window-move-to-workspace:4"
+"Mod+Shift+5" = "window-move-to-workspace:5"
+"Mod+Shift+6" = "window-move-to-workspace:6"
+"Mod+Shift+7" = "window-move-to-workspace:7"
+"Mod+Shift+8" = "window-move-to-workspace:8"
+"Mod+Shift+9" = "window-move-to-workspace:9"
 
 # Scratchpads
 # Each output owns a separate scratchpad. Bare actions target the output under
@@ -78,8 +100,8 @@
 # "Mod+Bracketleft" = "window-focus-previous"
 # "Mod+Shift+Bracketright" = "window-swap-next"
 # "Mod+Shift+Bracketleft" = "window-swap-previous"
-# "Mod+Minus" = "window-modify-width:-0.1"
-# "Mod+Equal" = "window-modify-width:0.1"
+"Mod+Minus" = "window-modify-width:-0.1"
+"Mod+Equal" = "window-modify-width:0.1"
 # "Mod+Alt+Minus" = "window-modify-height:-0.1"
 # "Mod+Alt+Equal" = "window-modify-height:0.1"
 # "Mod+Alt+R" = "window-cycle-height"
@@ -88,7 +110,7 @@
 # "Mod+BackSpace" = "window-consume-or-expel-left"
 # "Mod+C" = "column-center"
 # "Mod+Shift+C" = "window-center"
-# "Mod+Ctrl+T" = "workspace-set-layout:toggle"
+"Mod+Ctrl+T" = "workspace-set-layout:toggle"
 # "Mod+MouseMiddle" = "layout-scroll-drag"
 # "Mod+Alt+K" = "keyboard-layout-next"
 
