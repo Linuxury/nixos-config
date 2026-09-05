@@ -33,13 +33,11 @@ hdr = "auto"
 # tearing = true                                # Permit eligible fullscreen asynchronous flips
 # direct_scanout = true                         # False forces composition on this output
 # sdr_white = 203                               # SDR reference white in cd/m2 during HDR
-workspaces = 5                                # Omit for dynamic workspaces
-
-# Replace the count with ["WEB", "CHAT", "MEDIA"] for named static workspaces,
-# or with "dynamic" to state the dynamic default explicitly. A dynamic output
-# can keep a minimum number of workspaces instead, so a bar always shows them:
-# [output."LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"]
-# min_workspaces = 3                            # Dynamic floor; rejected with a static inventory
+workspaces = 5                                # Static count — min_workspaces (dynamic floor) not
+                                                 # supported yet on the pinned umbriel commit (3d3217b,
+                                                 # 2026-09-03); confirmed added to docs/user/outputs.md
+                                                 # only after that pin. Revisit alongside a deliberate
+                                                 # flake input bump.
 
 # New scrolling columns on this output can use a different initial width. This
 # affects new columns only; existing columns keep their current size.
