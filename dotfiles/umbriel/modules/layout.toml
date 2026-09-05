@@ -7,7 +7,7 @@
 [layout]
 mode = "scrolling"                              # scrolling, dwindle, or master
 gap = 8                                         # Logical pixels between tiles, 0-500
-width_presets = [0.333, 0.5, 0.667, 1.0]        # Width and height cycling fractions
+width_presets = [0.25, 0.5, 0.75, 1.0]        # Width and height cycling fractions
 
 [layout.struts]
 # Signed logical pixels reserved after panel exclusive zones. Negative
