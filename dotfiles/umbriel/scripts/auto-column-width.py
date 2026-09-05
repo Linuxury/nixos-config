@@ -7,26 +7,24 @@
 #
 # window-set-width only targets the *focused* column (no resize-by-id
 # action exists), so multi-column enforcement sweeps focus across every
-# column, confirming by window ID which column is actually focused before
-# resizing it — a focus command returns once the client sends it, not once
-# the compositor has applied it, so resizing right after a focus change can
-# otherwise land on the wrong column.
+# column, confirming each focus change actually landed (by geometry/id,
+# not a fixed delay) before resizing.
 #
-# Subscribes to both "windows" and "workspaces" events — window count
-# alone isn't enough, since switching to a different workspace with no
-# window-count change needs re-enforcement too, same reason the old
-# Hyprland version hooked "workspace.active" as well as window open/close.
-# A window's own "active" field mirrors whether its workspace is the
-# current one. Umbriel tracks "focused" per workspace, not globally
-# (multiple windows across different workspaces can show focused:true at
-# once), so the active workspace/window is identified via "active".
-#
-# Each enforce() sweep costs several IPC round trips plus confirmation
-# polling — opening windows faster than that (a few in quick succession)
-# used to make this script fall behind and keep enforcing already-stale
-# window counts, producing visible thrashing as it chased outdated state.
-# Fixed by always draining to the newest buffered event before acting,
-# rather than processing every event strictly in arrival order.
+# Real usage (opening/closing windows faster than a sweep completes)
+# exposed a deeper problem than any single confirmation bug: a sweep
+# built for an earlier window count can end up trying to focus-right
+# onto a column that's already been closed by the time it gets there,
+# timing out for a real reason (nothing to focus), not a bug in the
+# check itself. Fixed by re-deriving the real (workspace, count) before
+# every single action in the sweep, not just between whole sweeps, and
+# aborting (Stale exception) the moment it no longer matches what the
+# sweep started with. A first version checked "is there unread data in
+# the subscribe pipe" instead — that fires on the sweep's *own* actions
+# (every focus change and resize emits its own "windows" event through
+# the same subscription), so it aborted on itself constantly and never
+# completed a sweep at all. Count doesn't change from our own actions
+# (only focus/width do), so comparing count is what actually
+# distinguishes "something external happened" from an echo.
 
 import json
 import subprocess
@@ -48,9 +46,37 @@ def log(*args):
         print(*args, file=sys.stderr, flush=True)
 
 
+class Stale(Exception):
+    """The real (workspace, count) has changed since this sweep started —
+    abandon it, the main loop will start a fresh sweep from current state
+    right after."""
+
+
+def check_fresh(target):
+    # Re-derives the actual current state and compares against what this
+    # sweep was called for — not "is there unread data in the subscribe
+    # pipe", which triggers on the sweep's *own* actions (every focus
+    # change and resize emits its own "windows" event through the same
+    # subscription), making that check fire constantly and never let a
+    # sweep complete. Window *count* doesn't change from our own actions
+    # (only focus/width do), so comparing count is a clean signal for
+    # "something external actually happened".
+    if compute_state(get_windows() or []) != target:
+        raise Stale()
+
+
+DISPATCH_DELAY = 0.05
+
+
 def run(action):
     log("  run:", action)
     subprocess.run(["umbriel", "msg", action], check=False)
+    # Testing whether Umbriel's own IPC/dispatch handling needs pacing
+    # between consecutive `umbriel msg` calls — confirmation timeouts kept
+    # happening even with count stable (no external change mid-sweep),
+    # succeeding roughly 1 in 5 tries, which points at something on
+    # Umbriel's side rather than a logic bug in this script.
+    time.sleep(DISPATCH_DELAY)
 
 
 def get_windows():
@@ -72,30 +98,15 @@ def focused_id(windows):
     return fw["id"] if fw else None
 
 
-def wait_focus_change(prev_id):
-    # Confirms a focus-changing action actually landed by waiting for the
-    # focused id to differ from what it was before the action — not by
-    # predicting which id comes next. An earlier version pre-sorted
-    # columns by x-position and waited for that specific predicted id,
-    # but a freshly-opened window can shift existing columns' x
-    # coordinates before the sweep runs, making the prediction wrong
-    # (confirmed live: the sweep's own log showed a window sorted first
-    # that was actually at a higher x than the other one). Reacting to
-    # "did focus actually move" sidesteps needing to know the real order
-    # in advance.
+def wait_focus_change(target, prev_id):
     deadline = time.monotonic() + POLL_TIMEOUT
     while time.monotonic() < deadline:
+        check_fresh(target)
         windows = get_windows()
         if windows is not None and focused_id(windows) != prev_id:
-            return True
+            return
         time.sleep(POLL_INTERVAL)
     log("  wait_focus_change timed out, still on", prev_id)
-    return False
-
-
-def active_workspace(windows):
-    w = next((w for w in windows if w.get("active")), None)
-    return w["workspace"] if w else None
 
 
 def on_first_column(workspace):
@@ -116,14 +127,19 @@ def on_first_column(workspace):
     return active is not None and active["x"] == min_x
 
 
-def wait_first_column(workspace):
+def wait_first_column(target, workspace):
     deadline = time.monotonic() + POLL_TIMEOUT
     while time.monotonic() < deadline:
+        check_fresh(target)
         if on_first_column(workspace):
-            return True
+            return
         time.sleep(POLL_INTERVAL)
     log("  wait_first_column timed out")
-    return False
+
+
+def active_workspace(windows):
+    w = next((w for w in windows if w.get("active")), None)
+    return w["workspace"] if w else None
 
 
 def compute_state(windows):
@@ -134,21 +150,25 @@ def compute_state(windows):
     return (workspace, len(tiled))
 
 
-def enforce(windows, workspace, count):
+def enforce(workspace, count):
     log(f"enforce: workspace={workspace} count={count}")
     if count == 0:
         return
     if count == 1:
         run(f"window-set-width:{SINGLE_WIDTH}")
         return
+    target = (workspace, count)
+    check_fresh(target)
     run("column-focus-first")
-    wait_first_column(workspace)
+    wait_first_column(target, workspace)
     for i in range(count):
+        check_fresh(target)
         run(f"window-set-width:{MULTI_WIDTH}")
         if i < count - 1:
+            check_fresh(target)
             cur = focused_id(get_windows() or [])
             run("window-focus-right")
-            wait_focus_change(cur)
+            wait_focus_change(target, cur)
 
 
 def read_latest_event(proc):
@@ -202,7 +222,11 @@ def main():
         if state is None or state == last_state:
             continue
         last_state = state
-        enforce(last_windows, state[0], state[1])
+        try:
+            enforce(state[0], state[1])
+        except Stale:
+            log("  sweep abandoned — state changed mid-sweep")
+            last_state = None
 
 
 if __name__ == "__main__":

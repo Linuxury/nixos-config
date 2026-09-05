@@ -8,6 +8,9 @@ result-*
 # nix-direnv
 .direnv/
 
+# Python bytecode cache
+__pycache__/
+
 # Age-decrypted secrets (NEVER commit these — only .age files belong here)
 secrets/*.conf
 secrets/*.key
