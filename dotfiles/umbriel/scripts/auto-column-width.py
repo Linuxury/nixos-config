@@ -98,6 +98,34 @@ def active_workspace(windows):
     return w["workspace"] if w else None
 
 
+def on_first_column(workspace):
+    # Verifies by geometry (leftmost x among this workspace's tiled
+    # windows) rather than assuming column-focus-first landed after a
+    # fixed delay — a freshly-opened window usually grabs focus
+    # automatically, so the sweep's first resize could silently land on
+    # that new window instead of column 1 if this isn't actually
+    # confirmed first.
+    windows = get_windows()
+    if not windows:
+        return False
+    tiled = [w for w in windows if w["workspace"] == workspace and not w["floating"]]
+    if not tiled:
+        return False
+    min_x = min(w["x"] for w in tiled)
+    active = next((w for w in windows if w.get("active")), None)
+    return active is not None and active["x"] == min_x
+
+
+def wait_first_column(workspace):
+    deadline = time.monotonic() + POLL_TIMEOUT
+    while time.monotonic() < deadline:
+        if on_first_column(workspace):
+            return True
+        time.sleep(POLL_INTERVAL)
+    log("  wait_first_column timed out")
+    return False
+
+
 def compute_state(windows):
     workspace = active_workspace(windows)
     if workspace is None:
@@ -113,11 +141,8 @@ def enforce(windows, workspace, count):
     if count == 1:
         run(f"window-set-width:{SINGLE_WIDTH}")
         return
-    # "column-focus-first" may be a no-op if the already-focused column
-    # happens to already be first — can't wait for a focus change that
-    # might not happen, so just give it a brief moment instead.
     run("column-focus-first")
-    time.sleep(POLL_INTERVAL * 2)
+    wait_first_column(workspace)
     for i in range(count):
         run(f"window-set-width:{MULTI_WIDTH}")
         if i < count - 1:
