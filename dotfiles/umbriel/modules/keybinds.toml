@@ -9,10 +9,15 @@
 [keybinds]
 
 # ─────────────────────── Upstream defaults (unmodified) ────────────────────
+
 # Applications and session
 "Mod+Return" = "spawn:kitty"
 "Mod" = "spawn:noctalia msg panel-toggle launcher"
 "Mod+Q" = "window-close"
+"Mod+Escape" = "session-quit"
+
+# Overview
+"Mod+O" = { action = "overview-toggle", repeat = false }
 
 # Focus navigation. In overview, Mod+Up/Down retain normal layout focus, so they
 # traverse stacks in the default horizontal layout. Bare Up/Down move between
@@ -22,42 +27,67 @@
 "Mod+Up" = "window-focus-up"
 "Mod+Right" = "window-focus-right"
 
+# Window move (Shift + the same focus-navigation direction)
+"Mod+Shift+Left" = "column-move-left"
+"Mod+Shift+Down" = "window-move-down"
+"Mod+Shift+Up" = "window-move-up"
+"Mod+Shift+Right" = "column-move-right"
+
 # Window state and layout
 "Mod+T" = "window-toggle-floating"
 "Mod+Shift+T" = "window-focus-switch-floating"
 "Mod+P" = "window-toggle-pinned"
 "Mod+M" = "window-toggle-maximize-to-edges"
-
-# Overview
-"Mod+O" = { action = "overview-toggle", repeat = false }
+"Mod+F" = "window-toggle-fullscreen"
+"Mod+Ctrl+F" = "window-toggle-maximize"
 
 # These are built in already, but explicitly declared anyway — pure
 # built-ins (no declaration anywhere in this file) were not firing
 # tonight even after the mod_key regression above was fixed; explicit
 # declarations were the only thing that reliably worked. Revisit once
 # that's root-caused upstream.
-
-"Mod+Escape" = "session-quit"
 "Mod+F1" = "window-focus-next"
-"Mod+Shift+Left" = "column-move-left"
-"Mod+Shift+Down" = "window-move-down"
-"Mod+Shift+Up" = "window-move-up"
-"Mod+Shift+Right" = "column-move-right"
-"Mod+F" = "window-toggle-fullscreen"
-"Mod+Ctrl+F" = "window-toggle-maximize"
-# Redundant with Mod+Comma/Period below (same actions)
-# "Mod+R" = "window-cycle-width"
-# "Mod+Shift+R" = "window-cycle-width-back"
-"Mod+Alt+Left" = "window-consume-left"
-"Mod+Alt+Right" = "window-consume-right"
-"Mod+Comma" = "window-cycle-width-back"
-"Mod+Period" = "window-cycle-width"
-"Mod+WheelUp" = "window-focus-left"
-"Mod+WheelDown" = "window-focus-right"
+"Mod+H" = "window-focus-left"
+"Mod+J" = "window-focus-down"
+"Mod+K" = "window-focus-up"
+"Mod+L" = "window-focus-right"
 
-# Mod+1 through Mod+9 switch workspaces (Shift moves the focused window)
-# — no commented reference existed for these upstream, written from
-# scratch using the real actions.
+# Width/height cycling and resizing
+"Mod+R" = "window-cycle-width"
+"Mod+Shift+R" = "window-cycle-width-back"
+"Mod+Minus" = "window-modify-width:-0.1"
+"Mod+Equal" = "window-modify-width:0.1"
+# "Mod+Alt+Minus" = "window-modify-height:-0.1"
+# "Mod+Alt+Equal" = "window-modify-height:0.1"
+# "Mod+Alt+R" = "window-cycle-height"
+# "Mod+Alt+Shift+R" = "window-cycle-height-back"
+
+# Columns
+"Mod+Home" = "column-focus-first"
+# "Mod+End" = "column-focus-last"
+# "Mod+Shift+Home" = "column-move-to-first"
+# "Mod+Shift+End" = "column-move-to-last"
+# "Mod+Bracketright" = "window-focus-next"
+# "Mod+Bracketleft" = "window-focus-previous"
+# "Mod+Shift+Bracketright" = "window-swap-next"
+# "Mod+Shift+Bracketleft" = "window-swap-previous"
+# "Mod+Grave" = "window-focus-last"
+# "Mod+BackSpace" = "window-consume-or-expel-left"
+# "Mod+C" = "column-center"
+# "Mod+Shift+C" = "window-center"
+# "Mod+Alt+Left" = "window-consume-left"
+# "Mod+Alt+Right" = "window-consume-right"
+"Mod+Ctrl+T" = "workspace-set-layout:toggle"
+
+# Mouse / wheel
+"Mod+MouseMiddle" = "layout-scroll-drag"
+# "Mod+WheelUp" = "window-focus-left"
+# "Mod+WheelDown" = "window-focus-right"
+# "Mod+Alt+K" = "keyboard-layout-next"
+
+# Workspaces — Mod+1 through Mod+9 switch, Shift moves the focused window
+# (no commented reference existed for these upstream, written from scratch
+# using the real actions)
 "Mod+1" = "workspace-switch:1"
 "Mod+2" = "workspace-switch:2"
 "Mod+3" = "workspace-switch:3"
@@ -76,42 +106,18 @@
 "Mod+Shift+7" = "window-move-to-workspace:7"
 "Mod+Shift+8" = "window-move-to-workspace:8"
 "Mod+Shift+9" = "window-move-to-workspace:9"
+"Mod+Page_Up" = "workspace-previous"
+"Mod+Page_Down" = "workspace-next"
+"Mod+Shift+Page_Up" = "window-move-to-workspace-previous"
+"Mod+Shift+Page_Down" = "window-move-to-workspace-next"
 
-# Scratchpads
-# Each output owns a separate scratchpad. Bare actions target the output under
-# the pointer; append `:DP-1` or a monitor Config name to target one explicitly.
+# Scratchpads — each output owns a separate scratchpad. Bare actions target
+# the output under the pointer; append `:DP-1` or a monitor Config name to
+# target one explicitly.
 "Mod+Shift+Space" = "window-move-to-scratchpad"
 "Mod+Space" = "scratchpad-toggle"
 "Mod+Ctrl+Space" = "window-restore-from-scratchpad"
 "Mod+Tab" = "scratchpad-focus-next"
-
-# Optional navigation and sizing recipes. These chords do not replace active
-# bindings above when uncommented.
-# "Mod+Page_Up" = "workspace-previous"
-# "Mod+Page_Down" = "workspace-next"
-# "Mod+Shift+Page_Up" = "window-move-to-workspace-previous"
-# "Mod+Shift+Page_Down" = "window-move-to-workspace-next"
-# "Mod+Home" = "column-focus-first"
-# "Mod+End" = "column-focus-last"
-# "Mod+Shift+Home" = "column-move-to-first"
-# "Mod+Shift+End" = "column-move-to-last"
-# "Mod+Bracketright" = "window-focus-next"
-# "Mod+Bracketleft" = "window-focus-previous"
-# "Mod+Shift+Bracketright" = "window-swap-next"
-# "Mod+Shift+Bracketleft" = "window-swap-previous"
-"Mod+Minus" = "window-modify-width:-0.1"
-"Mod+Equal" = "window-modify-width:0.1"
-# "Mod+Alt+Minus" = "window-modify-height:-0.1"
-# "Mod+Alt+Equal" = "window-modify-height:0.1"
-# "Mod+Alt+R" = "window-cycle-height"
-# "Mod+Alt+Shift+R" = "window-cycle-height-back"
-# "Mod+Grave" = "window-focus-last"
-# "Mod+BackSpace" = "window-consume-or-expel-left"
-# "Mod+C" = "column-center"
-# "Mod+Shift+C" = "window-center"
-"Mod+Ctrl+T" = "workspace-set-layout:toggle"
-# "Mod+MouseMiddle" = "layout-scroll-drag"
-# "Mod+Alt+K" = "keyboard-layout-next"
 
 # Submaps temporarily replace the active keybind layer and can nest. Entry
 # binds must not repeat. A table-form bind can run an action and then reset one
@@ -133,11 +139,10 @@
 "Mod+Shift+Return" = "spawn:kitty --class floating-term"
 "Mod+E"            = "spawn:nautilus"
 
-# Suspend — Mod+Escape stays the built-in session-quit (see commented block
-# above); this is a separate force-suspend chord, unrelated to that built-in.
+# Session control — Mod+Escape stays the built-in session-quit (see the
+# upstream defaults section above); these are separate additions, not
+# overrides of that built-in.
 "Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
-
-# Power menu / session control via Noctalia's own panel
 "Mod+Shift+E" = "spawn:noctalia msg panel-open control-center session"
 
 # Night light
