@@ -72,14 +72,24 @@ def focused_id(windows):
     return fw["id"] if fw else None
 
 
-def wait_focused(expected_id):
+def wait_focus_change(prev_id):
+    # Confirms a focus-changing action actually landed by waiting for the
+    # focused id to differ from what it was before the action — not by
+    # predicting which id comes next. An earlier version pre-sorted
+    # columns by x-position and waited for that specific predicted id,
+    # but a freshly-opened window can shift existing columns' x
+    # coordinates before the sweep runs, making the prediction wrong
+    # (confirmed live: the sweep's own log showed a window sorted first
+    # that was actually at a higher x than the other one). Reacting to
+    # "did focus actually move" sidesteps needing to know the real order
+    # in advance.
     deadline = time.monotonic() + POLL_TIMEOUT
     while time.monotonic() < deadline:
         windows = get_windows()
-        if windows is not None and focused_id(windows) == expected_id:
+        if windows is not None and focused_id(windows) != prev_id:
             return True
         time.sleep(POLL_INTERVAL)
-    log("  wait_focused timed out waiting for", expected_id)
+    log("  wait_focus_change timed out, still on", prev_id)
     return False
 
 
@@ -103,16 +113,17 @@ def enforce(windows, workspace, count):
     if count == 1:
         run(f"window-set-width:{SINGLE_WIDTH}")
         return
-    tiled = [w for w in windows if w["workspace"] == workspace and not w["floating"]]
-    ids = [w["id"] for w in sorted(tiled, key=lambda w: w["x"])]
-    log("  sweep order:", ids)
+    # "column-focus-first" may be a no-op if the already-focused column
+    # happens to already be first — can't wait for a focus change that
+    # might not happen, so just give it a brief moment instead.
     run("column-focus-first")
-    wait_focused(ids[0])
-    for i, wid in enumerate(ids):
+    time.sleep(POLL_INTERVAL * 2)
+    for i in range(count):
         run(f"window-set-width:{MULTI_WIDTH}")
-        if i < len(ids) - 1:
+        if i < count - 1:
+            cur = focused_id(get_windows() or [])
             run("window-focus-right")
-            wait_focused(ids[i + 1])
+            wait_focus_change(cur)
 
 
 def read_latest_event(proc):
