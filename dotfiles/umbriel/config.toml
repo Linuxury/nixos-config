@@ -2,15 +2,15 @@
 # configuration.md's [include] guidance. Later files override earlier
 # ones; values here in the main file override every include.
 #
-# noctalia-fixed.toml is gitignored — regenerated on every wallpaper
-# change by modules/compositors/umbriel/noctalia-bridge/default.nix,
-# which remaps Noctalia's own umbriel theming output into Umbriel's real
-# colors.border.*/colors.overview.* schema (upstream schema mismatch,
-# see that module's own comments for the full story).
+# noctalia.toml is gitignored — Noctalia's own theming output, regenerated
+# on every wallpaper change. Included directly: it already writes Umbriel's
+# real colors.border.*/colors.overview.* schema (the mismatch that used to
+# need modules/compositors/umbriel/noctalia-bridge/ to remap was fixed
+# upstream 2026-09-05 — that module is gone, this is the raw file again).
 #
 # This whole directory is deployed as a live symlink (mkOutOfStoreSymlink,
 # same pattern as dotfiles/hypr/) — edits here take effect immediately,
 # no rebuild needed. See modules/compositors/umbriel/default.nix.
 
 [include]
-files = ["modules/general.toml", "modules/keybinds.toml", "modules/outputs.toml", "modules/input.toml", "modules/layout.toml", "modules/animation.toml", "modules/overview.toml", "modules/window-rules.toml", "modules/layer-rules.toml", "modules/security.toml", "modules/appearance.toml", "noctalia-fixed.toml"]
+files = ["modules/general.toml", "modules/keybinds.toml", "modules/outputs.toml", "modules/input.toml", "modules/layout.toml", "modules/animation.toml", "modules/overview.toml", "modules/window-rules.toml", "modules/layer-rules.toml", "modules/security.toml", "modules/appearance.toml", "noctalia.toml"]

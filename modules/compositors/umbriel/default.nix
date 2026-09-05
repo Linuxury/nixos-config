@@ -45,7 +45,6 @@
   home-manager.sharedModules = [
     ./themes/default.nix    # BreezeX-Light cursor + Tela-dark icons + GTK + Kvantum/qt6ct
     ../../themes/matugen/default.nix  # matugen color sync (Kvantum only — everything else is Noctalia-native)
-    ./noctalia-bridge/default.nix  # remaps Noctalia's umbriel theme keys to Umbriel's real schema (upstream mismatch)
 
     ({ config, lib, ... }: {
       # =====================================================================

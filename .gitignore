@@ -44,9 +44,8 @@ dotfiles/hypr/hyprtoolkit.conf
 dotfiles/hypr/noctalia.lua
 dotfiles/nvim/lua/matugen.lua
 
-# Umbriel — Noctalia's own theming output (noctalia.toml, wrong schema)
-# and the remapped file modules/compositors/umbriel/noctalia-bridge
-# generates from it (noctalia-fixed.toml). Both regenerate on every
-# wallpaper change; ~/.config/umbriel is a live symlink into this dir.
+# Umbriel — Noctalia's own theming output, regenerates on every wallpaper
+# change; ~/.config/umbriel is a live symlink into this dir. Noctalia now
+# writes Umbriel's real colors.border/colors.overview schema directly
+# (schema mismatch fixed upstream 2026-09-05), no remap needed anymore.
 dotfiles/umbriel/noctalia.toml
-dotfiles/umbriel/noctalia-fixed.toml
