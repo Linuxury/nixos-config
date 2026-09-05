@@ -45,8 +45,9 @@
 "Mod+Shift+Right" = "column-move-right"
 "Mod+F" = "window-toggle-fullscreen"
 "Mod+Ctrl+F" = "window-toggle-maximize"
-"Mod+R" = "window-cycle-width"
-"Mod+Shift+R" = "window-cycle-width-back"
+# Redundant with Mod+Comma/Period below (same actions)
+# "Mod+R" = "window-cycle-width"
+# "Mod+Shift+R" = "window-cycle-width-back"
 "Mod+Alt+Left" = "window-consume-left"
 "Mod+Alt+Right" = "window-consume-right"
 "Mod+Comma" = "window-cycle-width-back"
