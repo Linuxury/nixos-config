@@ -42,10 +42,8 @@
 "Mod+Ctrl+F" = "window-toggle-maximize"
 
 # These are built in already, but explicitly declared anyway — pure
-# built-ins (no declaration anywhere in this file) were not firing
-# tonight even after the mod_key regression above was fixed; explicit
-# declarations were the only thing that reliably worked. Revisit once
-# that's root-caused upstream.
+# built-ins with no declaration here don't reliably fire on this Umbriel
+# version. See ~/.agents/memory/feedback_umbriel_builtin_keybinds_bug.md.
 "Mod+F1" = "window-focus-next"
 "Mod+H" = "window-focus-left"
 "Mod+J" = "window-focus-down"
@@ -85,9 +83,9 @@
 # "Mod+WheelDown" = "window-focus-right"
 # "Mod+Alt+K" = "keyboard-layout-next"
 
-# Workspaces — Mod+1 through Mod+9 switch, Shift moves the focused window
-# (no commented reference existed for these upstream, written from scratch
-# using the real actions)
+# Workspaces — Mod+1 through Mod+9 switch, Shift moves the focused window.
+# Upstream's example only describes these in prose, no TOML lines to
+# reference.
 "Mod+1" = "workspace-switch:1"
 "Mod+2" = "workspace-switch:2"
 "Mod+3" = "workspace-switch:3"
