@@ -51,8 +51,10 @@
 "Mod+Ctrl+F" = "window-toggle-maximize"
 "Mod+R" = "window-cycle-width"
 "Mod+Shift+R" = "window-cycle-width-back"
-"Mod+Comma" = "window-consume-left"
-"Mod+Period" = "window-consume-right"
+"Mod+Alt+Left" = "window-consume-left"
+"Mod+Alt+Right" = "window-consume-right"
+"Mod+Comma" = "window-cycle-width-back"
+"Mod+Period" = "window-cycle-width"
 "Mod+WheelUp" = "window-focus-left"
 "Mod+WheelDown" = "window-focus-right"
 
