@@ -137,8 +137,8 @@
 
 # Session control
 "Mod+L" = "spawn:noctalia msg session lock"
-"Mod+Escape" = "spawn:noctalia msg panel-open control-center session"
-"Mod+Shift+E" = "spawn:noctalia msg panel-open control-center session"
+"Mod+Escape" = "spawn:noctalia msg panel-open session"
+"Mod+Shift+E" = "spawn:noctalia msg panel-open session"
 "Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
 
 # Night light
