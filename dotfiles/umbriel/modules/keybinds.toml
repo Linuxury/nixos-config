@@ -39,10 +39,6 @@
 
 "Mod+Escape" = "session-quit"
 "Mod+F1" = "window-focus-next"
-"Mod+H" = "window-focus-left"
-"Mod+J" = "window-focus-down"
-"Mod+K" = "window-focus-up"
-"Mod+L" = "window-focus-right"
 "Mod+Shift+Left" = "column-move-left"
 "Mod+Shift+Down" = "window-move-down"
 "Mod+Shift+Up" = "window-move-up"
