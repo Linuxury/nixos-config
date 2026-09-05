@@ -14,20 +14,25 @@
 #
 # Subscribes to both "windows" and "workspaces" events — window count
 # alone isn't enough, since switching to a different workspace with no
-# window-count change (e.g. workspace 1 has 1 window, workspace 2 has 2)
-# needs re-enforcement too, same reason the old Hyprland version hooked
-# "workspace.active" as well as window open/close. A window's own "active"
-# field mirrors whether its workspace is the current one — no separate
-# active-workspace query needed. Umbriel also tracks "focused" per
-# workspace, not globally (multiple windows across different workspaces
-# can show focused:true at once), so the active workspace is identified
-# via "active", not "focused". Our own resize actions re-trigger the
-# "windows" subscription — the (workspace, tiled count) guard is what
-# stops that from looping.
+# window-count change needs re-enforcement too, same reason the old
+# Hyprland version hooked "workspace.active" as well as window open/close.
+# A window's own "active" field mirrors whether its workspace is the
+# current one. Umbriel tracks "focused" per workspace, not globally
+# (multiple windows across different workspaces can show focused:true at
+# once), so the active workspace/window is identified via "active".
+#
+# Each enforce() sweep costs several IPC round trips plus confirmation
+# polling — opening windows faster than that (a few in quick succession)
+# used to make this script fall behind and keep enforcing already-stale
+# window counts, producing visible thrashing as it chased outdated state.
+# Fixed by always draining to the newest buffered event before acting,
+# rather than processing every event strictly in arrival order.
 
 import json
 import subprocess
+import sys
 import time
+import select
 
 SINGLE_WIDTH = 0.75
 MULTI_WIDTH = 0.50
@@ -35,8 +40,16 @@ MULTI_WIDTH = 0.50
 POLL_INTERVAL = 0.01
 POLL_TIMEOUT = 0.3
 
+DEBUG = True
+
+
+def log(*args):
+    if DEBUG:
+        print(*args, file=sys.stderr, flush=True)
+
 
 def run(action):
+    log("  run:", action)
     subprocess.run(["umbriel", "msg", action], check=False)
 
 
@@ -64,8 +77,10 @@ def wait_focused(expected_id):
     while time.monotonic() < deadline:
         windows = get_windows()
         if windows is not None and focused_id(windows) == expected_id:
-            return
+            return True
         time.sleep(POLL_INTERVAL)
+    log("  wait_focused timed out waiting for", expected_id)
+    return False
 
 
 def active_workspace(windows):
@@ -82,6 +97,7 @@ def compute_state(windows):
 
 
 def enforce(windows, workspace, count):
+    log(f"enforce: workspace={workspace} count={count}")
     if count == 0:
         return
     if count == 1:
@@ -89,6 +105,7 @@ def enforce(windows, workspace, count):
         return
     tiled = [w for w in windows if w["workspace"] == workspace and not w["floating"]]
     ids = [w["id"] for w in sorted(tiled, key=lambda w: w["x"])]
+    log("  sweep order:", ids)
     run("column-focus-first")
     wait_focused(ids[0])
     for i, wid in enumerate(ids):
@@ -96,6 +113,28 @@ def enforce(windows, workspace, count):
         if i < len(ids) - 1:
             run("window-focus-right")
             wait_focused(ids[i + 1])
+
+
+def read_latest_event(proc):
+    """Block until at least one line is available, then drain any lines
+    that arrived while we were busy and return only the newest — avoids
+    working through a backlog of already-stale window-count snapshots."""
+    line = proc.stdout.readline()
+    if not line:
+        return None
+    drained = 0
+    while True:
+        ready, _, _ = select.select([proc.stdout], [], [], 0)
+        if not ready:
+            break
+        nxt = proc.stdout.readline()
+        if not nxt:
+            break
+        line = nxt
+        drained += 1
+    if drained:
+        log(f"  drained {drained} stale event(s)")
+    return line
 
 
 def main():
@@ -106,7 +145,10 @@ def main():
     )
     last_windows = get_windows() or []
     last_state = None
-    for line in proc.stdout:
+    while True:
+        line = read_latest_event(proc)
+        if line is None:
+            break
         line = line.strip()
         if not line:
             continue
@@ -116,9 +158,6 @@ def main():
             continue
         if event.get("event") == "windows":
             last_windows = event.get("data") or []
-        # "workspaces" events carry workspace metadata, not windows — just
-        # re-fetch to get "active" reflected onto the window list, cheaper
-        # than cross-referencing the two event shapes.
         elif event.get("event") == "workspaces":
             last_windows = get_windows() or last_windows
         else:

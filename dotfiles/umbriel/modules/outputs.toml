@@ -33,7 +33,7 @@ hdr = "auto"
 # tearing = true                                # Permit eligible fullscreen asynchronous flips
 # direct_scanout = true                         # False forces composition on this output
 # sdr_white = 203                               # SDR reference white in cd/m2 during HDR
-# workspaces = 5                                # Omit for dynamic workspaces
+workspaces = 5                                # Omit for dynamic workspaces
 
 # Replace the count with ["WEB", "CHAT", "MEDIA"] for named static workspaces,
 # or with "dynamic" to state the dynamic default explicitly. A dynamic output
