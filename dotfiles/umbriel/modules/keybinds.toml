@@ -14,7 +14,6 @@
 "Mod+Return" = "spawn:kitty"
 "Mod" = "spawn:noctalia msg panel-toggle launcher"
 "Mod+Q" = "window-close"
-"Mod+Escape" = "session-quit"
 
 # Overview
 "Mod+O" = { action = "overview-toggle", repeat = false }
@@ -44,11 +43,10 @@
 # These are built in already, but explicitly declared anyway — pure
 # built-ins with no declaration here don't reliably fire on this Umbriel
 # version. See ~/.agents/memory/feedback_umbriel_builtin_keybinds_bug.md.
-"Mod+F1" = "window-focus-next"
-"Mod+H" = "window-focus-left"
-"Mod+J" = "window-focus-down"
-"Mod+K" = "window-focus-up"
-"Mod+L" = "window-focus-right"
+# "Mod+F1" = "window-focus-next"
+# "Mod+H" = "window-focus-left"
+# "Mod+J" = "window-focus-down"
+# "Mod+K" = "window-focus-up"
 
 # Width/height cycling and resizing
 "Mod+R" = "window-cycle-width"
@@ -137,11 +135,11 @@
 "Mod+Shift+Return" = "spawn:kitty --class floating-term"
 "Mod+E"            = "spawn:nautilus"
 
-# Session control — Mod+Escape stays the built-in session-quit (see the
-# upstream defaults section above); these are separate additions, not
-# overrides of that built-in.
-"Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
+# Session control
+"Mod+L" = "spawn:noctalia msg session lock"
+"Mod+Escape" = "spawn:noctalia msg panel-open control-center session"
 "Mod+Shift+E" = "spawn:noctalia msg panel-open control-center session"
+"Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
 
 # Night light
 "Mod+Shift+N" = "spawn:noctalia msg nightlight-toggle"
