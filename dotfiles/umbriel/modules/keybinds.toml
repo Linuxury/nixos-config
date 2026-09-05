@@ -49,8 +49,11 @@
 # "Mod+K" = "window-focus-up"
 
 # Width/height cycling and resizing
-"Mod+R" = "window-cycle-width"
-"Mod+Shift+R" = "window-cycle-width-back"
+# Redundant with Mod+Comma/Period below (same actions)
+# "Mod+R" = "window-cycle-width"
+# "Mod+Shift+R" = "window-cycle-width-back"
+"Mod+Comma" = "window-cycle-width-back"
+"Mod+Period" = "window-cycle-width"
 "Mod+Minus" = "window-modify-width:-0.1"
 "Mod+Equal" = "window-modify-width:0.1"
 # "Mod+Alt+Minus" = "window-modify-height:-0.1"
