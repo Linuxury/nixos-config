@@ -8,7 +8,7 @@
 autostart = ["noctalia", "hypridle"]   # ours — auto-column-width.py pulled back out, still thrashing on some window combos, needs more debugging before it's safe unattended
 # mod_key = "Super"                    # Force Super instead of nested-session Alt
 xwayland = true                        # Requires xwayland-satellite; restart to change
-show_cheatsheet = true                 # Show the keybind overlay on startup
+show_cheatsheet = false                 # Show the keybind overlay on startup
 focus_on_activate = false              # Do not let unsolicited requests steal focus
 honor_restored_maximize = false        # Honor restored maximized state
 
