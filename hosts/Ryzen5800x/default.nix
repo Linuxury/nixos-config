@@ -333,6 +333,8 @@
     "amdgpu.ppfeaturemask=0xffffffff"
   ];
 
+  programs.affinity.enable = true;
+
   # ==============================================================
   # Stability focused extras
   #
@@ -360,7 +362,7 @@
     # video editors, image editors, etc. go here so each host can
     # enable/disable them independently.
     # ==============================================================
-    # affinity-v3  # re-enable when vc_redist.x64.exe CDN recovers (Microsoft 503s as of 2026-07-04)
+    # affinity-v3 is installed via programs.affinity.enable above
   ];
 
   # ==============================================================
