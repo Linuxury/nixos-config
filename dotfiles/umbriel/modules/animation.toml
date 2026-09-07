@@ -3,52 +3,58 @@
 # transition instant. Included from config.toml. Base structure follows
 # upstream's examples/config.toml (fetched 2026-09-04, see
 # dotfiles/umbriel/upstream-default.toml).
+#
+# Curves below are ported from dotfiles/hypr/modules/appearance.lua's
+# hl.curve() beziers, which were tuned there and liked — easeOutBack in
+# particular is a *single controlled overshoot* bezier (peaks at 1.56,
+# then settles), not the same shape as the built-in bounce/elastic curves
+# or a mass-spring simulation.
 
 [animation]
 enabled = true                                  # Master animation switch
-duration_ms = 250                               # Shared duration, 1-10000 ms
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic —
+duration_ms = 500                               # Shared duration, 1-10000 ms
+curve = "easeOutQuint"                          # linear, ease, easeout, snappy, bounce, elastic —
                                                  # or a bezier "x1,y1,x2,y2" / spring "spring: damping,stiffness"
                                                  # string, or a name registered below in [animation.beziers]/[animation.springs]
 
 # Window opening
 [animation.windows_in]
 enabled = true
-duration_ms = 150
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 300
+curve = "easeOutBack"                           # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 style = "popin"                                 # popin, zoom, slide, fade, or none
 scale = 0.85                                    # Popin start scale, 0.1-1.0
 
 # Window closing
 [animation.windows_out]
 enabled = true
-duration_ms = 150
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 300
+curve = "easeInOutSine"                         # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 style = "fade"                                  # fade or slide
 
 # Window movement, resizing, and floating maximize
 [animation.windows_move]
 enabled = true
-duration_ms = 250
-curve = "snappy"                                # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 500
+curve = "easeOutQuint"                          # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 
 # Workspace switching
 [animation.workspaces]
 enabled = true
-duration_ms = 250
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 500
+curve = "easeOutBack"                           # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 
 # Overview opening, closing, and row settling
 [animation.overview]
 enabled = true
-duration_ms = 250
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 500
+curve = "easeOutQuint"                          # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 
 # Scratchpad show, hide, and backdrop
 [animation.scratchpad]
 enabled = false
-duration_ms = 250
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 500
+curve = "easeOutBack"                           # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 dim = 0.5                                       # Backdrop dim amount, 0.0-1.0
 blur = false                                    # Requires appearance.blur.enabled
 scale = 0.0                                     # 0 keeps geometry; 0.1-1.0 centers and scales
@@ -58,25 +64,29 @@ fullscreen = false                              # Make the scratchpad window ful
 # Focus border color
 [animation.border]
 enabled = false
-duration_ms = 250
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 500
+curve = "ease"                                  # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 
 # Unfocused window opacity
 [animation.dim_unfocused]
 enabled = false
-duration_ms = 250
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 500
+curve = "easeInOutSine"                         # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 dim = 0.0                                       # 0 disables dimming; maximum is 1.0
 
 # Layer-shell surface mapping and unmapping
 [animation.layers]
 enabled = false
-duration_ms = 250
-curve = "easeout"                               # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
+duration_ms = 500
+curve = "easeOutQuint"                          # linear, ease, easeout, snappy, bounce, elastic, bezier/spring string, or registered name
 
 # Register reusable curves by adding or uncommenting entries below.
 
 [animation.beziers]
+easeOutQuint  = [0.23, 1,    0.32, 1]
+easeInOutSine = [0.37, 0,    0.63, 1]
+easeOutBack   = [0.34, 1.56, 0.64, 1]      # Slight overshoot
+easeInBack    = [0.36, 0,    0.66, -0.56]  # Pulls inward before closing
 # myBezier = [0.05, 0.9, 0.1, 1.0]
 
 [animation.springs]
