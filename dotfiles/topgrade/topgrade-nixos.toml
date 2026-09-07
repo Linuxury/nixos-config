@@ -15,6 +15,11 @@ disable = [
   # Update these via nru instead.
   "claude_code",
   "poetry",
+  # Handled by nru (_nru_flatpak_bar) and the weekly flatpak-auto-update systemd
+  # timer instead — both know to ignore Hytale's permanent dangling-remote
+  # failure (com.hypixel.HytaleLauncher), which topgrade's own flatpak step
+  # has no way to replicate and would otherwise report as a fresh error here.
+  "flatpak",
 ]
 
 [commands]
