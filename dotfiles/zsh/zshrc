@@ -808,7 +808,15 @@ _nru_flatpak_bar() {
   # left behind after `flatpak remote-delete`, as hytale/default.nix does
   # post-install) — so a per-app failure line in the log overrides the exit
   # code rather than being silently reported as success.
-  if [[ $code -ne 0 ]] || printf '%s' "$upd_out" | grep -qi "Unable to update"; then
+  #
+  # com.hypixel.HytaleLauncher is a known, permanent exception: hytale/default.nix
+  # deletes its origin remote right after install, so it can never resolve
+  # updates until Hytale ships on Flathub. Ignored so it doesn't flag every
+  # run as a false failure — any other app's failure still reports normally.
+  local real_failures
+  real_failures=$(printf '%s' "$upd_out" | grep -i "Unable to update" | grep -v "com.hypixel.HytaleLauncher")
+
+  if [[ $code -ne 0 ]] || [[ -n "$real_failures" ]]; then
     printf "\r  %s  %-12s  ✗ update failed\033[K\n" "$icon" "Flatpak" >/dev/tty
     printf '%s\n' "$upd_out"
     return 1

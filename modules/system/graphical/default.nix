@@ -99,7 +99,12 @@
         # remote left behind by `flatpak remote-delete`) — check the log too
         # so a real per-app failure marks this unit Failed instead of
         # silently succeeding.
-        if echo "$out" | grep -qi "Unable to update"; then
+        #
+        # com.hypixel.HytaleLauncher is a known, permanent exception: this
+        # module deletes its origin remote right after install (see the
+        # hytale module), so it can never resolve updates until Hytale ships
+        # on Flathub. Ignored so this unit doesn't flag every week as failed.
+        if echo "$out" | grep -i "Unable to update" | grep -qv "com.hypixel.HytaleLauncher"; then
           exit 1
         fi
       '';
