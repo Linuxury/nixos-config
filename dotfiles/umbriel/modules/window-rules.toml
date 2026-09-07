@@ -29,6 +29,15 @@ default_workspace = 2
 match.xdg_tag = "^proton-game$"
 default_workspace = 2
 
+# Minecraft (PrismLauncher) -> workspace 2, same as other games. LWJGL/GLFW's
+# window class is literally "Minecraft* <version>" (asterisk included, a
+# long-standing quirk), reported via XWayland since it has no native Wayland
+# backend. Matched on the "Minecraft*" prefix so the rule survives version
+# bumps. Confirmed with `umbriel windows`.
+[[window_rule]]
+match.app_id = '^Minecraft\*.*$'
+default_workspace = 2
+
 # Noctalia settings
 [[window_rule]]
 match.app_id = "^dev.noctalia.Noctalia$"
