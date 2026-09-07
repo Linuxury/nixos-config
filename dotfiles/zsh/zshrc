@@ -659,6 +659,7 @@ _nru_rebuild() {
 # ---------------------------------------------------------------------------
 _NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
 _NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
+_NRU_FP="󰏖"    # U+F03D6 nf-md-package_variant — same glyph fastfetch uses for flatpak count
 _NRU_DONE="[■■■■■■■■■■■■■■■■■■■■]"
 
 # ---------------------------------------------------------------------------
@@ -762,6 +763,64 @@ _nru_nixpkgs_bar() {
   else
     printf "\r  %s  %-12s  %s  up to date  ✓\033[K\n" \
       "$icon" "NixPkgs" "$_NRU_DONE" >/dev/tty
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# _nru_flatpak_bar — updates Flatpak apps (--user scope) with a progress bar.
+# Skips silently if Flathub isn't available (e.g. Alex's machines, where the
+# system remote is deliberately removed for child safety).
+# ---------------------------------------------------------------------------
+_nru_flatpak_bar() {
+  flatpak remote-list --system 2>/dev/null | grep -q flathub || return 0
+
+  local bw=20 bar i filled pct step=0
+  local icon="$_NRU_FP"
+
+  local _xf="/tmp/nru_flatpak_$$.exit"
+  local _lf="/tmp/nru_flatpak_$$.log"
+  rm -f "$_xf"
+  { flatpak update --user --noninteractive -y >"$_lf" 2>&1; echo $? >"$_xf" } &|
+  local pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    pct=$(( step < 18 ? step * 5 : 90 ))
+    filled=$(( pct * bw / 100 ))
+    bar=""
+    for (( i=0; i<filled; i++ )); do bar+="■"; done
+    for (( i=filled; i<bw; i++ )); do bar+="□"; done
+    printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
+      "$icon" "Flatpak" "$bar" "$pct" >/dev/tty
+    sleep 0.1
+    step=$(( step < 18 ? step + 1 : 18 ))
+  done
+
+  local _r=0
+  while [[ ! -f "$_xf" ]] && (( _r++ < 50 )); do sleep 0.01; done
+  local code=1
+  [[ -f "$_xf" ]] && code=$(< "$_xf")
+  rm -f "$_xf"
+  local upd_out
+  upd_out=$(cat "$_lf" 2>/dev/null)
+  rm -f "$_lf"
+
+  # flatpak exits 0 even when individual refs fail (e.g. a dangling remote
+  # left behind after `flatpak remote-delete`, as hytale/default.nix does
+  # post-install) — so a per-app failure line in the log overrides the exit
+  # code rather than being silently reported as success.
+  if [[ $code -ne 0 ]] || printf '%s' "$upd_out" | grep -qi "Unable to update"; then
+    printf "\r  %s  %-12s  ✗ update failed\033[K\n" "$icon" "Flatpak" >/dev/tty
+    printf '%s\n' "$upd_out"
+    return 1
+  fi
+
+  if printf '%s' "$upd_out" | grep -qi "Nothing to update"; then
+    printf "\r  %s  %-12s  %s  up to date  ✓\033[K\n" \
+      "$icon" "Flatpak" "$_NRU_DONE" >/dev/tty
+  else
+    bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
+    printf "\r  %s  %-12s  [%s]  updated  ✓\033[K\n" \
+      "$icon" "Flatpak" "$bar" >/dev/tty
   fi
 }
 
@@ -933,6 +992,9 @@ nru() {
   # ── GitHub packages (gaming hosts only) ─────────────────────────────────────
   command -v steam &>/dev/null && { _nru_update_proton_ge      || true }
   command -v steam &>/dev/null && { _nru_update_proton_cachyos || true }
+
+  # ── Flatpak apps (graphical hosts only) ─────────────────────────────────────
+  command -v flatpak &>/dev/null && { _nru_flatpak_bar || true }
 
   # ── Rebuild ───────────────────────────────────────────────────────────────────
   echo ""

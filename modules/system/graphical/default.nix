@@ -72,6 +72,49 @@
     deps = [ "specialfs" ];
   };
 
+  # Weekly unattended update for all --user-scope Flatpak apps (fluxer,
+  # libreoffice, hytale, ...). Skips gracefully where Flathub is absent
+  # (e.g. Alex's machines). This is the "nobody ran nru in a while" backstop —
+  # nru itself also updates Flatpaks on demand (see _nru_flatpak_bar in
+  # dotfiles/zsh/zshrc).
+  systemd.user.services.flatpak-auto-update = {
+    description = "Update installed Flatpak apps";
+    after       = [ "network-online.target" ];
+    wants       = [ "network-online.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "flatpak-auto-update" ''
+        FLATPAK="${pkgs.flatpak}/bin/flatpak"
+
+        if ! $FLATPAK remote-list --system 2>/dev/null | grep -q flathub; then
+          echo "Flathub remote not available, skipping Flatpak auto-update."
+          exit 0
+        fi
+
+        echo "Updating Flatpak apps..."
+        out=$($FLATPAK update --user --noninteractive -y 2>&1)
+        echo "$out"
+
+        # flatpak exits 0 even when individual refs fail (e.g. a dangling
+        # remote left behind by `flatpak remote-delete`) — check the log too
+        # so a real per-app failure marks this unit Failed instead of
+        # silently succeeding.
+        if echo "$out" | grep -qi "Unable to update"; then
+          exit 1
+        fi
+      '';
+    };
+  };
+
+  systemd.user.timers.flatpak-auto-update = {
+    description = "Weekly Flatpak app update";
+    wantedBy    = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "Sun 04:00";
+      Persistent = true;
+    };
+  };
+
   # Qt theming — makes Qt apps follow the active GTK theme automatically.
   # qt6gtk2 reads GTK3 settings at runtime, so Qt apps blend with the desktop
   # without requiring a separate Qt configurator tool.
