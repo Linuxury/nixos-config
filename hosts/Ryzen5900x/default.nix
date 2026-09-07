@@ -451,14 +451,11 @@
   ];
 
   # ==============================================================
-  # Kernel — Zen
-  #
-  # Zen patches mainline with lower-latency preemption, scheduler tweaks,
-  # and throughput optimizations — ideal for a gaming desktop.
+  # Kernel
   # ==============================================================
-  # boot.kernelPackages = pkgs.linuxPackages_latest;         # Vanilla
+  boot.kernelPackages = pkgs.linuxPackages_latest;          # Vanilla
   # boot.kernelPackages = pkgs.linuxPackages_xanmod_latest;  # XanMod
-  boot.kernelPackages = pkgs.linuxPackages_zen;             # Zen
+  # boot.kernelPackages = pkgs.linuxPackages_zen;            # Zen
 
   # ==============================================================
   # AMD Radeon RX 7900 XTX specific settings
