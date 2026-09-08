@@ -105,11 +105,6 @@ in
     }
   ];
 
-  # nautilus-bookmarks hardcodes /home/linuxury/ paths — scope to linuxury only.
-  home-manager.users.linuxury = {
-    imports = [ ../../system/graphical/nautilus/default.nix ];
-  };
-
   # =========================================================================
   # Hyprland — the compositor itself
   #
