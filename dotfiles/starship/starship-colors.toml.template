@@ -1,0 +1,74 @@
+format = """
+$directory\
+$git_branch\
+$git_status\
+$fill\
+$python\
+$rust\
+$jobs\
+$cmd_duration\
+$line_break\
+$character"""
+
+add_newline = true
+palette = 'colors'
+
+[directory]
+style = 'bold fg:dark_blue'
+format = '[$path ]($style)'
+truncation_length = 3
+truncation_symbol = '…/'
+truncate_to_repo = false
+
+[directory.substitutions]
+'Documents' = '󰈙'
+'Downloads' = ' '
+'Music' = ' '
+'Pictures' = ' '
+
+[git_branch]
+style = 'fg:green'
+symbol = ' '
+format = '[on](white) [$symbol$branch ]($style)'
+
+[git_status]
+style = 'fg:green'
+format = '([$all_status$ahead_behind]($style) )'
+
+[fill]
+symbol = ' '
+
+[python]
+style = 'teal'
+symbol = ' '
+format = '[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+pyenv_version_name = true
+pyenv_prefix = ''
+
+[rust]
+style = 'orange'
+symbol = ' '
+
+[jobs]
+symbol = ' '
+style = 'red'
+number_threshold = 1
+format = '[$symbol]($style)'
+
+[cmd_duration]
+min_time = 500
+style = 'fg:gray'
+format = '[$duration]($style)'
+
+[palettes.colors]
+dark_blue = '{{colors.primary.default.hex}}'
+blue      = '{{colors.secondary_fixed_dim.default.hex}}'
+teal      = '{{colors.tertiary.default.hex}}'
+red       = '{{colors.error.default.hex}}'
+orange    = '{{colors.primary_fixed_dim.default.hex}}'
+green     = '{{colors.secondary.default.hex}}'
+yellow    = '{{colors.tertiary_fixed_dim.default.hex}}'
+purple    = '{{colors.on_secondary_fixed_variant.default.hex}}'
+gray      = '{{colors.on_surface_variant.default.hex}}'
+black     = '{{colors.surface.default.hex}}'
+white     = '{{colors.on_surface.default.hex}}'

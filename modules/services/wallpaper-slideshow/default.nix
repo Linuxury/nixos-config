@@ -71,8 +71,12 @@
       mode = "dark"
       reload_apps = true
 
+      # Repo-tracked (not the InioX clone above) — mirrors this repo's own
+      # hand-written starship layout (directory/git/fill/python/rust/jobs/
+      # cmd_duration), just with matugen's dynamic colors slotted into the
+      # palette instead of static Nord hexes. Same pattern as pywalfox below.
       [templates.starship]
-      input_path  = "~/.config/matugen/templates/templates/starship-colors.toml"
+      input_path  = "~/nixos-config/dotfiles/starship/starship-colors.toml.template"
       output_path = "~/.config/starship-colors.toml"
       post_hook   = "cp ~/.config/starship-colors.toml ~/.config/starship.toml"
 
