@@ -23,13 +23,16 @@
 #
 # Theming split: Noctalia's own native app-theming (enabled via its
 # settings.json, not Nix — see the activation block below) owns kitty, gtk,
-# qt, starship, umbriel's colors, pywalfox, and neovim (the last two via
-# Noctalia's community-template catalog, same mechanism as the built-in
-# ones). matugen (still fired by the wallpaper_changed hook above) only
-# covers what Noctalia has no template for at all: Kvantum. See this
-# repo's theming docs / session history for why — Noctalia's patching
-# model needs genuinely writable config files, which fought Nix's default
-# immutable symlinks.
+# qt, umbriel's colors, pywalfox, and neovim (the last two via Noctalia's
+# community-template catalog, same mechanism as the built-in ones).
+# matugen (still fired by the wallpaper_changed hook above) covers what
+# Noctalia has no template for (Kvantum) plus starship — starship used to
+# be Noctalia-owned too, but that only worked on Hyprland/Umbriel; moved
+# to matugen so it works identically on every compositor/DE (COSMIC
+# included). See noctaliaDisableStarshipTemplate below and this repo's
+# theming docs / session history for why — Noctalia's patching model needs
+# genuinely writable config files, which fought Nix's default immutable
+# symlinks.
 #
 # Importing this module activates Noctalia (shell + greeter). No enable
 # flag needed. To switch shell: remove this import, add shells/wayle
@@ -107,13 +110,27 @@
         done
       '';
 
-      # Noctalia v5 injects a [palettes.noctalia] block into starship.toml on
-      # each wallpaper change. This used to fight a Nix-store symlink here
-      # (chmod on a symlink target in /nix/store just fails silently) —
-      # starship.toml is now deployed copy-once instead of symlinked (see
-      # home.activation.starshipSeed in users/linuxury/home.nix), so it's a
-      # genuine regular file Noctalia can patch directly. Nothing left to do
-      # here.
+    })
+
+    # =========================================================================
+    # Disable Noctalia's own starship template — matugen now owns
+    # ~/.config/starship.toml on every compositor/DE (see
+    # modules/services/wallpaper-slideshow/default.nix). Without this,
+    # Noctalia's live-patcher and matugen's post_hook would both overwrite
+    # the same file on each wallpaper change and race unpredictably.
+    # Idempotent: only edits settings.json if a "starship" entry is present.
+    # =========================================================================
+    ({ pkgs, lib, ... }: {
+      home.activation.noctaliaDisableStarshipTemplate = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _sf="$HOME/.config/noctalia/settings.json"
+        if [ -f "$_sf" ] && ${pkgs.jq}/bin/jq -e \
+            '.templates.activeTemplates[]? | select(.id == "starship")' "$_sf" >/dev/null 2>&1; then
+          _tmp="$(mktemp)"
+          ${pkgs.jq}/bin/jq \
+            '.templates.activeTemplates |= map(select(.id != "starship"))' "$_sf" > "$_tmp" \
+            && mv "$_tmp" "$_sf"
+        fi
+      '';
     })
 
     # =========================================================================

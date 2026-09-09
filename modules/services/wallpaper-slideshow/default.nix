@@ -74,6 +74,7 @@
       [templates.starship]
       input_path  = "~/.config/matugen/templates/templates/starship-colors.toml"
       output_path = "~/.config/starship-colors.toml"
+      post_hook   = "cp ~/.config/starship-colors.toml ~/.config/starship.toml"
 
       [templates.gtk]
       input_path  = "~/.config/matugen/templates/templates/gtk-colors.css"

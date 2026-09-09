@@ -11,7 +11,7 @@ $line_break\
 $character"""
 
 add_newline = true
-palette = 'noctalia'
+palette = 'nord'
 
 [directory]
 style = 'bold fg:dark_blue'
@@ -73,12 +73,10 @@ gray      = '#434C5E'
 black     = '#2E3440'
 white     = '#D8DEE9'
 
-# No placeholder [palettes.noctalia] block here on purpose — Noctalia's own
-# starship theming appends a marked `>>> NOCTALIA STARSHIP PALETTE >>>`
-# block at the end of the file rather than replacing a block in place
-# (confirmed live: an earlier hand-written Nord-based placeholder here just
-# ended up duplicated alongside Noctalia's real one — invalid TOML with two
-# [palettes.noctalia] tables, though starship tolerated it and used the
-# last one). There's a brief "Could not find color palette: noctalia"
-# warning between a fresh HM switch and the first wallpaper change now,
-# but that's harmless and one-time — better than permanent duplicate keys.
+# This file is only a bootstrap seed (home.activation.starshipSeed in
+# users/linuxury/home.nix copies it to ~/.config/starship.toml once, on
+# first run before any wallpaper has ever been processed). From the first
+# wallpaper-color-sync onward, matugen's own [templates.starship] post_hook
+# overwrites ~/.config/starship.toml entirely with its own generated
+# format/palette — same mechanism on every compositor/DE, no Noctalia
+# dependency. See modules/services/wallpaper-slideshow/default.nix.
