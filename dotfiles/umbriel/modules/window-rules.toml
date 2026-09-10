@@ -12,6 +12,15 @@
 blur = true
 blur_optimized = false
 
+# Single tiled window fills more of the screen; shrinks back to the base
+# 0.5 fraction (layout.scrolling.default_width_fraction) the instant a
+# second column opens. Replaces the parked auto-column-width.py script —
+# see ~/Jarvis/.Projects/Umbriel-Auto-Column-Width.md for why the script
+# never worked reliably.
+[[window_rule]]
+match.is_alone = true
+default_width = 0.75
+
 # Steam client -> workspace 3. Games -> workspace 2. Ported from
 # dotfiles/hypr/modules/windowrules.lua's precedent: Steam (XWayland-only,
 # no native Wayland client) reports app_id "steam" for the client itself;

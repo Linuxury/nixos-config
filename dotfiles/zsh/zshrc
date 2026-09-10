@@ -724,7 +724,7 @@ _nru_nixpkgs_bar() {
 
   local _xf="/tmp/nru_nixpkgs_$$.exit"
   rm -f "$_xf"
-  { nix flake update nixpkgs --flake "$NIXOS_CONFIG" >/tmp/nru_nixpkgs.log 2>&1; echo $? >"$_xf" } &|
+  { nix flake update nixpkgs umbriel --flake "$NIXOS_CONFIG" >/tmp/nru_nixpkgs.log 2>&1; echo $? >"$_xf" } &|
   local pid=$!
 
   while kill -0 "$pid" 2>/dev/null; do
@@ -755,7 +755,7 @@ _nru_nixpkgs_bar() {
 
   bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
 
-  if printf '%s' "$upd_out" | grep -q "Updated input 'nixpkgs'"; then
+  if printf '%s' "$upd_out" | grep -qE "Updated input '(nixpkgs|umbriel)'"; then
     local info
     info=$(printf '%s' "$upd_out" | grep -oP '(?<=\()\d{4}-\d{2}-\d{2}(?=\))' | tail -1)
     printf "\r  %s  %-12s  [%s]  %s  ✓\033[K\n" \

@@ -19,7 +19,7 @@ bottom = 0
 
 [layout.scrolling]
 # direction = "horizontal"                      # horizontal or vertical strip axis
-default_width_fraction = 0.75                   # Initial width for new columns, 0.1-1.0
+default_width_fraction = 0.5                    # Base width for new/companion columns, 0.1-1.0
 center_underfull_strip = true                   # Center a strip narrower than the viewport
 center_focused = false                          # Always center the focused column
 expand_single_column = false                    # Keep a lone column at its own width instead of filling
