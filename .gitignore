@@ -47,6 +47,10 @@ dotfiles/hypr/hyprtoolkit.conf
 dotfiles/hypr/noctalia.lua
 dotfiles/nvim/lua/matugen.lua
 
+# lazy.nvim's own lockfile — left unpinned on purpose, always take the
+# latest commit of every plugin instead of tracking exact versions.
+dotfiles/nvim/lazy-lock.json
+
 # Umbriel — Noctalia's own theming output, regenerates on every wallpaper
 # change; ~/.config/umbriel is a live symlink into this dir. Noctalia now
 # writes Umbriel's real colors.border/colors.overview schema directly

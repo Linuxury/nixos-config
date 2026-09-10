@@ -90,7 +90,7 @@ nixos-config/
 │   ├── zsh/                     # Shared zsh init and completions
 │   ├── starship/                # Prompt config
 │   ├── MangoHud/                # Performance overlay config
-│   ├── nvim-extra/              # Neovim extras
+│   ├── nvim/                    # Neovim config (own lazy.nvim setup)
 │   └── ...                      # rofi, wofi, vscodium, opencode, swappy, topgrade
 ├── secrets/                     # age-encrypted secrets (safe to commit)
 │   ├── secrets.nix              # Access control — who can read what
