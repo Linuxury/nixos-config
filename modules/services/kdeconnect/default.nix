@@ -11,8 +11,12 @@
 #   ../../modules/services/kdeconnect/default.nix
 # ===========================================================================
 
-{ ... }:
+{ pkgs, ... }:
 
 {
   programs.kdeconnect.enable = true;
+
+  # sshfs — declared dependency of Noctalia's community phone-connect plugin
+  # (browsing/mounting the phone's filesystem over KDE Connect's sftp backend).
+  environment.systemPackages = [ pkgs.sshfs ];
 }
