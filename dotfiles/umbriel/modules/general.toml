@@ -5,7 +5,11 @@
 # 2026-09-04, see dotfiles/umbriel/upstream-default.toml).
 
 [general]
-autostart = ["noctalia", "hypridle"]
+# noctalia is NOT autostarted here — programs.noctalia.systemd.enable already
+# launches it via graphical-session.target. Autostarting it here too races
+# both launches for the same Wayland lock; the loser exits with "noctalia is
+# already running" and systemd crash-loops it into start-limit-hit.
+autostart = ["hypridle"]
 # mod_key = "Super"                    # Force Super instead of nested-session Alt
 xwayland = true                        # Requires xwayland-satellite; restart to change
 show_cheatsheet = false                 # Show the keybind overlay on startup
