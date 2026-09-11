@@ -209,20 +209,17 @@
         "https://cache.nixos.org"           # Official NixOS cache
         "https://nix-community.cachix.org"  # Community packages
         "https://cosmic.cachix.org"         # Pre-built COSMIC packages
-        # cache.garnix.io is in modules/system/graphical/affinity/default.nix
-        # (graphical hosts only — servers don't need it)
       ];
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "nix-community.cachix.org-1:L/J5ArMSr0xyNkTPoaFNiYmUoYMfdXZAo2MnGpvgDyU="
         "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85d/E="
-        # cache.garnix.io key is in modules/system/graphical/affinity/default.nix
       ];
 
-      # If a substituter (cache.nixos.org, garnix, etc.) is down or a narinfo
-      # lookup fails, build locally instead of hard-erroring the whole rebuild.
-      # Without this, a cache outage (e.g. garnix 502s) fails `nru` on every
-      # host, even ones that don't need the missing derivation from that cache.
+      # If a substituter is down or a narinfo lookup fails, build locally
+      # instead of hard-erroring the whole rebuild. Without this, a cache
+      # outage fails `nru` on every host, even ones that don't need the
+      # missing derivation from that cache.
       fallback = true;
 
       # Allow your user to manage the Nix store without sudo for some operations

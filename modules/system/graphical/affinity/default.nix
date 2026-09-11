@@ -29,13 +29,6 @@ let cfg = config.programs.affinity; in
     # prev.callPackage, so it inherits our nixpkgs config.
     nixpkgs.overlays = [ inputs.affinity-nix.overlays.default ];
 
-    # garnix binary cache — provides pre-built Wine for affinity-nix so we
-    # never have to compile Wine from source (which takes many hours).
-    nix.settings = {
-      substituters      = [ "https://cache.garnix.io" ];
-      trusted-public-keys = [ "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=" ];
-    };
-
     environment.systemPackages = [ pkgs.affinity-v3 ];
   };
 }

@@ -67,8 +67,8 @@
     #
     # Affinity has no native Linux build. This flake wraps the free Windows
     # app in ElementalWarrior's patched Wine fork so it runs on NixOS.
-    # The overlay and garnix cache are scoped to modules/system/graphical/affinity/
-    # so headless servers never evaluate it.
+    # The overlay is scoped to modules/system/graphical/affinity/ so
+    # headless servers never evaluate it.
     #
     # Do NOT add nixpkgs.follows here — the flake pins its own nixpkgs commit
     # for Wine build stability. Overriding it breaks the Wine build.

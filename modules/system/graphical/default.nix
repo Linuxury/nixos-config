@@ -37,7 +37,7 @@
     # /home/linuxury/Pictures/Avatar/ so they appear in the greeter.
     ./user-avatars/default.nix
 
-    # Affinity v3 overlay + garnix cache — graphical hosts only.
+    # Affinity v3 overlay — graphical hosts only.
     # Makes pkgs.affinity-v3 available; nothing is installed unless explicitly added.
     ./affinity/default.nix
   ];
