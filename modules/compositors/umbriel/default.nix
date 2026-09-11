@@ -91,12 +91,6 @@
     # Cursor theme — installed system-wide so the greeter picks it up
     breezex-cursors
 
-    # Screenshots
-    grim
-    slurp
-    satty
-    hyprpicker  # freeze-overlay during area selection — protocol-based, not Hyprland-only
-
     # Idle management — locking now goes through `noctalia msg session lock`
     hypridle
 

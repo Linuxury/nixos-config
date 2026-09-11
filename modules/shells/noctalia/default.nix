@@ -87,6 +87,12 @@
           # built-in daemon to avoid duplicate toasts.
           notification.enable_daemon = false;
 
+          # ── Screenshots ────────────────────────────────────────────────────
+          # Native capture replaces the old grim/slurp/satty script. Every
+          # other field (save_to_file, copy_to_clipboard, freeze_screen, ...)
+          # already defaults to what that script did by hand.
+          shell.screenshot.directory = "~/Pictures/Screenshots";
+
           # ── Hooks ──────────────────────────────────────────────────────────
           # wallpaper_changed: write the new wallpaper path to the handoff
           # file that the matugen path unit (hyprland/matugen) watches.

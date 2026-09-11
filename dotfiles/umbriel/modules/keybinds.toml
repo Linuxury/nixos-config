@@ -152,13 +152,15 @@
 "Mod+A"       = "spawn:noctalia msg panel-open control-center audio"
 "Mod+Shift+A" = "spawn:noctalia msg panel-open control-center audio"
 
-# Screenshots — save+notify, edit only if you click the notification
-"Print"           = "spawn:~/.config/umbriel/scripts/screenshot.sh area save"
-"Mod+Print"       = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen save"
-"Mod+Z"           = "spawn:~/.config/umbriel/scripts/screenshot.sh area save"
-"Mod+X"           = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen save"
-"Shift+Print"     = "spawn:~/.config/umbriel/scripts/screenshot.sh area copy"
-"Mod+Shift+Print" = "spawn:~/.config/umbriel/scripts/screenshot.sh fullscreen copy"
+# Screenshots — Noctalia's native capture (save+clipboard, per
+# shell.screenshot settings). Print and Mod+Z/X bound the same: no Print
+# key on a 65% board, so Mod+Z/X are the daily-driver equivalents.
+"Print"           = "spawn:noctalia msg screenshot-region"
+"Mod+Print"       = "spawn:noctalia msg screenshot-fullscreen"
+"Mod+Z"           = "spawn:noctalia msg screenshot-region"
+"Mod+X"           = "spawn:noctalia msg screenshot-fullscreen"
+"Shift+Print"     = "spawn:noctalia msg screenshot-region"
+"Mod+Shift+Print" = "spawn:noctalia msg screenshot-fullscreen"
 
 # Media keys — noctalia msg instead of the upstream doc's raw wpctl recipe
 XF86AudioRaiseVolume = "spawn:noctalia msg volume-up"
