@@ -56,3 +56,8 @@ dotfiles/nvim/lazy-lock.json
 # writes Umbriel's real colors.border/colors.overview schema directly
 # (schema mismatch fixed upstream 2026-09-05), no remap needed anymore.
 dotfiles/umbriel/noctalia.toml
+
+# Live monitor state dumped by the umbriel-displays plugin, rewritten on
+# every output change. The real per-output config lives in modules/outputs.toml
+# (included by config.toml); this top-level file isn't in the include list.
+dotfiles/umbriel/outputs.toml
