@@ -18,5 +18,12 @@
 
   # sshfs — declared dependency of Noctalia's community phone-connect plugin
   # (browsing/mounting the phone's filesystem over KDE Connect's sftp backend).
-  environment.systemPackages = [ pkgs.sshfs ];
+  #
+  # glib.bin (gdbus) — the plugin's entire DBus layer shells out to the bare
+  # `gdbus` command for every call to kdeconnectd. glib itself is always
+  # present as a library dependency of other packages, but its `bin` output
+  # (gdbus/gio/gsettings) isn't pulled onto PATH unless installed explicitly
+  # — without it every gdbus call silently fails as "command not found" and
+  # the plugin sees no devices, even though kdeconnectd is paired and working.
+  environment.systemPackages = [ pkgs.sshfs pkgs.glib.bin ];
 }
