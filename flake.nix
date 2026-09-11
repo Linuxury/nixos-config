@@ -98,6 +98,28 @@
     };
 
     # -------------------------------------------------------------------------
+    # noctalia — Noctalia Shell itself, tracked directly instead of via nixpkgs
+    #
+    # nixpkgs packages pkgs.noctalia by pinning a specific release tag, so it
+    # always trails upstream by however long nixpkgs' own update cycle takes
+    # (e.g. v5.1.0 released 2026-09-10, still v5.0.1 in nixpkgs the next day).
+    # Tracking the default branch directly avoids that lag, same as umbriel
+    # and noctalia-greeter below.
+    #
+    # Provides homeModules.default, which disables home-manager's own bundled
+    # programs/noctalia.nix module (disabledModules) and re-points its package
+    # option at this input's own build — no option conflicts, config schema
+    # always matches the binary it's paired with.
+    #
+    # nixpkgs.follows ensures the binary links against the same glibc/wayland
+    # as the rest of the system.
+    # -------------------------------------------------------------------------
+    noctalia = {
+      url = "github:noctalia-dev/noctalia";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # -------------------------------------------------------------------------
     # noctalia-greeter — first-party greetd-based login greeter for Noctalia v5
     #
     # Built for greetd: ships its own wlroots compositor
