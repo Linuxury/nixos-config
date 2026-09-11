@@ -127,14 +127,16 @@
     tinysparql
     localsearch
 
-    # File managers — Nemo and Thunar, trialed alongside Nautilus. Nautilus
-    # draws its own hardcoded folder graphic instead of reading the icon
-    # theme, so Papirus's dynamic recolor never reaches it; both of these
-    # read icon themes normally and should show it. Nemo pulls in ~170MB of
-    # MATE stack as a transitive dependency (mate-panel, marco, etc.) that
-    # Thunar doesn't need — keep whichever wins the trial, drop the other.
-    nemo
+    # File manager — Thunar. Nautilus draws its own hardcoded folder graphic
+    # instead of reading the icon theme, so Papirus's dynamic recolor never
+    # reaches it; Thunar reads icon themes normally and does. Won the trial
+    # against Nemo (which pulled in ~170MB of MATE stack as a dependency).
+    #
+    # xfconf is xfconfd, the settings daemon Thunar needs to persist any
+    # preference change at all — not installed by pkgs.thunar itself, so
+    # without this every settings-dialog change was silently lost on restart.
     thunar
+    xfconf
 
     # Media keys
     playerctl
