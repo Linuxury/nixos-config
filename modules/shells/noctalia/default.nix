@@ -142,9 +142,9 @@
 
     # =========================================================================
     # Enable Noctalia's native app-theming templates: umbriel (built-in),
-    # pywalfox and neovim (community-catalog templates — already fetched
-    # into ~/.local/state/noctalia/community-templates/ via Settings ->
-    # Templates -> Browse Templates; this just flips them on).
+    # pywalfox, neovim, and papirus-icons (community-catalog templates —
+    # already fetched into ~/.local/state/noctalia/community-templates/ via
+    # Settings -> Templates -> Browse Templates; this just flips them on).
     #
     # Noctalia's own app-theming is controlled by ~/.config/noctalia/
     # settings.json's templates.activeTemplates list — a file Noctalia owns
@@ -156,7 +156,7 @@
       home.activation.noctaliaEnableTemplates = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         _sf="$HOME/.config/noctalia/settings.json"
         if [ -f "$_sf" ]; then
-          for _id in umbriel pywalfox neovim; do
+          for _id in umbriel pywalfox neovim papirus-icons; do
             if ! ${pkgs.jq}/bin/jq -e --arg id "$_id" \
                 '.templates.activeTemplates[]? | select(.id == $id)' "$_sf" >/dev/null 2>&1; then
               _tmp="$(mktemp)"
@@ -166,6 +166,23 @@
             fi
           done
         fi
+      '';
+    })
+
+    # =========================================================================
+    # papirus-icons template's apply.sh assumes an FHS-style
+    # /usr/share/icons/$variant install (to copy from before recoloring in a
+    # writable dir, since Nix store paths are read-only) — that path doesn't
+    # exist on NixOS, so it silently skips every variant. Point it at where
+    # home-manager's icon theme package actually lands instead. Naturally
+    # idempotent: after the first patch the old path string is gone, so
+    # re-running this is a no-op.
+    # =========================================================================
+    ({ pkgs, lib, ... }: {
+      home.activation.noctaliaPapirusIconsNixPath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _af="$HOME/.local/state/noctalia/community-templates/papirus-icons/apply.sh"
+        [ -f "$_af" ] && ${pkgs.gnused}/bin/sed -i \
+          "s#/usr/share/icons#/etc/profiles/per-user/linuxury/share/icons#g" "$_af"
       '';
     })
 

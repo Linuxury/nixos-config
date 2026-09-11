@@ -84,8 +84,8 @@ in
       package = pkgs.adw-gtk3;
     };
     iconTheme = {
-      name    = "Tela-dark";
-      package = pkgs.tela-icon-theme;
+      name    = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
     };
     cursorTheme = {
       name    = "BreezeX-Light";
