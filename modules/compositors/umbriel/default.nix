@@ -127,6 +127,15 @@
     tinysparql
     localsearch
 
+    # File managers — Nemo and Thunar, trialed alongside Nautilus. Nautilus
+    # draws its own hardcoded folder graphic instead of reading the icon
+    # theme, so Papirus's dynamic recolor never reaches it; both of these
+    # read icon themes normally and should show it. Nemo pulls in ~170MB of
+    # MATE stack as a transitive dependency (mate-panel, marco, etc.) that
+    # Thunar doesn't need — keep whichever wins the trial, drop the other.
+    nemo
+    thunar
+
     # Media keys
     playerctl
 
