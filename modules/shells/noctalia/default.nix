@@ -208,5 +208,67 @@
       '';
     })
 
+    # =========================================================================
+    # Modern libadwaita apps (Nautilus 50.x included) no longer render
+    # colorful icon-theme folder icons at all — they draw a single symbolic
+    # shape tinted by org.gnome.desktop.interface accent-color, a fixed
+    # 9-value enum (blue/teal/green/yellow/orange/red/pink/purple/slate)
+    # completely separate from icon themes. Papirus's recolor above never
+    # reaches those apps, so this appends a second nearest-match (same
+    # HSV-weighted algorithm apply.sh already uses for papirus-folders,
+    # reusing the same $TR/$TG/$TB it already computed) against libadwaita's
+    # palette, hex values extracted from the installed libadwaita-1.so
+    # itself rather than guessed. Idempotent: gated on its own marker.
+    # =========================================================================
+    ({ pkgs, lib, ... }: {
+      home.activation.noctaliaPapirusAccentColor = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        _af="$HOME/.local/state/noctalia/community-templates/papirus-icons/apply.sh"
+        if [ -f "$_af" ] && ! grep -q "nixosAccentColorSync" "$_af"; then
+          _tmp="$(mktemp)"
+          head -n -1 "$_af" > "$_tmp"
+          cat >> "$_tmp" <<'ACCENTEOF'
+
+  # nixosAccentColorSync — see modules/shells/noctalia/default.nix
+  ACCENT=$(awk -v r="$TR" -v g="$TG" -v b="$TB" '
+    function rgb2hsv(r,g,b, mx,mn,d,h,s,v,t) {
+      r/=255; g/=255; b/=255
+      mx = (r>g)?(r>b?r:b):(g>b?g:b)
+      mn = (r<g)?(r<b?r:b):(g<b?g:b)
+      v = mx
+      d = mx - mn
+      if (d == 0) { s = 0; h = 0 }
+      else {
+        s = d / mx
+        if (mx == r) { t = (g - b) / d; if (t < 0) t += 6; h = 60 * t }
+        else if (mx == g) { h = 60 * (((b - r) / d) + 2) }
+        else { h = 60 * (((r - g) / d) + 4) }
+      }
+      return h SUBSEP s SUBSEP v
+    }
+    BEGIN {
+      WH = 10; WS = 1; WV = 0.3
+      split(rgb2hsv(r,g,b), tgt, SUBSEP)
+      th = tgt[1]; ts = tgt[2]; tv = tgt[3]
+      n = split("blue:3584e4 teal:2190a4 green:3a944a yellow:c88800 orange:ed5b00 red:e62d42 pink:d56199 purple:9141ac slate:6f8396", arr)
+      for (i = 1; i <= n; i++) {
+        split(arr[i], p, ":")
+        cr = strtonum("0x" substr(p[2],1,2)); cg = strtonum("0x" substr(p[2],3,2)); cb = strtonum("0x" substr(p[2],5,2))
+        split(rgb2hsv(cr,cg,cb), c, SUBSEP); ch = c[1]; cs = c[2]; cv = c[3]
+        dh = th - ch; if (dh < 0) dh = -dh; if (dh > 180) dh = 360 - dh; dh /= 180
+        ds = ts - cs; dv = tv - cv
+        d = WH * (ts*cs) * dh*dh + WS * ds*ds + WV * dv*dv
+        if (min == "" || d < min) { min = d; name = p[1] }
+      }
+      print name
+    }')
+  [[ -n "$ACCENT" ]] && command -v gsettings >/dev/null 2>&1 \
+    && gsettings set org.gnome.desktop.interface accent-color "$ACCENT"
+}
+ACCENTEOF
+          mv "$_tmp" "$_af"
+        fi
+      '';
+    })
+
   ];
 }
