@@ -170,19 +170,41 @@
     })
 
     # =========================================================================
-    # papirus-icons template's apply.sh assumes an FHS-style
-    # /usr/share/icons/$variant install (to copy from before recoloring in a
-    # writable dir, since Nix store paths are read-only) — that path doesn't
-    # exist on NixOS, so it silently skips every variant. Point it at where
-    # home-manager's icon theme package actually lands instead. Naturally
-    # idempotent: after the first patch the old path string is gone, so
-    # re-running this is a no-op.
+    # papirus-icons template's apply.sh needs three NixOS-specific fixes:
+    #
+    # 1. It assumes an FHS-style /usr/share/icons/$variant install to copy
+    #    from before recoloring in a writable dir (Nix store paths are
+    #    read-only) — that path doesn't exist here. Point it at where
+    #    home-manager's icon theme package actually lands instead.
+    #
+    # 2. Its `cp -r` preserves symlinks as-is instead of copying their
+    #    target's content. Nix profile icon-theme directories are a single
+    #    top-level symlink straight into the store, so `cp -r` just recreates
+    #    that same symlink — the "copy" ends up pointing right back at the
+    #    read-only store. Needs `cp -rL` to dereference for a real copy.
+    #
+    # 3. Nix store files carry read-only permission bits (444/555), which
+    #    `cp` preserves by default — so even a real, dereferenced copy is
+    #    still non-writable, and papirus-folders' internal `ln -sf` swaps
+    #    fail. Needs an explicit `chmod -R u+w` after copying.
+    #
+    # Fix 1 is naturally idempotent (the old path string is gone after the
+    # first patch). Fixes 2+3 are gated behind the chmod-line check so they
+    # don't get inserted twice.
     # =========================================================================
     ({ pkgs, lib, ... }: {
       home.activation.noctaliaPapirusIconsNixPath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         _af="$HOME/.local/state/noctalia/community-templates/papirus-icons/apply.sh"
-        [ -f "$_af" ] && ${pkgs.gnused}/bin/sed -i \
-          "s#/usr/share/icons#/etc/profiles/per-user/linuxury/share/icons#g" "$_af"
+        if [ -f "$_af" ]; then
+          ${pkgs.gnused}/bin/sed -i \
+            "s#/usr/share/icons#/etc/profiles/per-user/linuxury/share/icons#g" "$_af"
+          if ! grep -q "chmod -R u+w" "$_af"; then
+            ${pkgs.gnused}/bin/sed -i \
+              -e 's#cp -r "#cp -rL "#' \
+              -e '/cp -rL /a\      chmod -R u+w "$HOME/.local/share/icons/$variant"' \
+              "$_af"
+          fi
+        fi
       '';
     })
 

@@ -99,6 +99,11 @@ in
     };
   };
 
+  # gtk-update-icon-cache — not on PATH by default. Needed by any tool that
+  # edits an icon theme in place (e.g. Noctalia's papirus-icons community
+  # template, which recolors folder icons and refreshes the cache after).
+  home.packages = [ pkgs.gtk3 ];
+
   # =========================================================================
   # dconf — dark mode, cursor, and window button layout
   #
