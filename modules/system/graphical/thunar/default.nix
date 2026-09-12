@@ -23,7 +23,9 @@
 {
   xdg.mimeApps.defaultApplications."inode/directory" = lib.mkForce "thunar.desktop";
 
-  home.file.".config/Thunar/uca.xml".text = ''
+  home.file.".config/Thunar/uca.xml" = {
+    force = true; # Thunar creates a default uca.xml on first launch; override it
+    text = ''
     <?xml version="1.0" encoding="UTF-8"?>
     <actions>
       <action>
@@ -73,5 +75,6 @@
         <directories/>
       </action>
     </actions>
-  '';
+    '';
+  };
 }
