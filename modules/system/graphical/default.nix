@@ -57,6 +57,22 @@
   services.gvfs.enable = true;
 
   # =========================================================================
+  # Avahi — mDNS client, required for "Browse Network" in the above
+  #
+  # gvfs's network:// backend (gvfsd-dnssd) discovers SMB/FTP/etc. hosts
+  # over mDNS by querying a local avahi-daemon via D-Bus — without one
+  # running on this machine, the Network pane stays empty no matter how
+  # correctly gvfs/Samba are configured otherwise. Universal here so every
+  # DE/WM gets working network browsing the same way, instead of each
+  # compositor/desktop module needing its own copy.
+  # =========================================================================
+  services.avahi = {
+    enable       = true;
+    nssmdns4     = true; # resolve .local hostnames once a share is found
+    openFirewall = true; # let mDNS multicast (UDP 5353) through
+  };
+
+  # =========================================================================
   # Flatpak — App distribution for packages not in nixpkgs
   #
   # Required by user-level services like hytale-flatpak-install.

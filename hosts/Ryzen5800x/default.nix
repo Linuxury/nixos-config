@@ -369,8 +369,9 @@
   # Printing support
   #
   # CUPS handles printer management on Linux. Most modern printers
-  # are detected automatically once this is enabled.
-  # avahi enables network printer discovery.
+  # are detected automatically once this is enabled. Network printer
+  # discovery (avahi) is enabled universally in
+  # system/graphical/default.nix, not duplicated here.
   # ==============================================================
   services.printing = {
     enable = true;
@@ -378,12 +379,6 @@
       gutenprint      # Supports a wide range of printers
       hplip           # HP printers specifically
     ];
-  };
-
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;  # Enables .local hostname resolution
-    openFirewall = true;
   };
 
   # ==============================================================

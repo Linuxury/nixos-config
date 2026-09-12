@@ -157,19 +157,4 @@
   # =========================================================================
   services.gnome.tinysparql.enable = true;
   services.gnome.localsearch.enable = true;
-
-  # =========================================================================
-  # Avahi — mDNS client, required for Thunar/Nautilus "Browse Network"
-  #
-  # gvfs's network:// backend (gvfsd-dnssd) discovers SMB/AFP hosts over
-  # mDNS by querying a local avahi-daemon via D-Bus. Without it running on
-  # this machine, the Network pane stays empty even though gvfs itself has
-  # Samba support (system/graphical/default.nix). The Samba hosts on the
-  # LAN already broadcast themselves (services/samba/default.nix) — this is
-  # the missing client-side half.
-  # =========================================================================
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true; # resolve .local hostnames once a share is found
-  };
 }
