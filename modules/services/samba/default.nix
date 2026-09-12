@@ -132,6 +132,24 @@
       addresses   = true;  # Publish IP address
       workstation = true;  # Show up as a workstation in network browsers
     };
+
+    # "workstation" above only announces "this host exists" (_workstation._tcp,
+    # not even SMB-specific) — gvfs's dnssd backend (Thunar/Nautilus "Browse
+    # Network") specifically browses for _smb._tcp records to build smb://
+    # entries. Without this file, the client-side avahi fix alone still shows
+    # nothing: confirmed via `avahi-browse -r _smb._tcp` returning empty
+    # while `_workstation._tcp` listed the host fine.
+    extraServiceFiles.smb = ''
+      <?xml version="1.0" standalone='no'?>
+      <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+      <service-group>
+        <name replace-wildcards="yes">%h</name>
+        <service>
+          <type>_smb._tcp</type>
+          <port>445</port>
+        </service>
+      </service-group>
+    '';
   };
 
   # services.samba.enable already adds the samba package (incl. smbclient,
