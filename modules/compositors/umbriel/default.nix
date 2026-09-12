@@ -135,8 +135,15 @@
     # xfconf is xfconfd, the settings daemon Thunar needs to persist any
     # preference change at all — not installed by pkgs.thunar itself, so
     # without this every settings-dialog change was silently lost on restart.
+    #
+    # thunar-archive-plugin — right-click create/extract archives (Nautilus
+    # gets this for free via gnome-autoar, Thunar needs it explicit).
+    # thunar-volman — auto-mount removable media (USB drives, etc.) on
+    # insert, same role gvfs-udisks2 plays for Nautilus/GNOME automount.
     thunar
     xfconf
+    thunar-archive-plugin
+    thunar-volman
 
     # Media keys
     playerctl

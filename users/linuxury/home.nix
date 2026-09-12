@@ -25,6 +25,7 @@
   imports = [
     ../../modules/system/graphical/hytale/default.nix
     ../../modules/system/graphical/nautilus/default.nix
+    ../../modules/system/graphical/thunar/default.nix
   ];
 
   # =========================================================================

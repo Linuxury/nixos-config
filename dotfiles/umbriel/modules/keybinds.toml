@@ -136,7 +136,7 @@
 
 # Core apps
 "Mod+Shift+Return" = "spawn:kitty --class floating-term"
-"Mod+E"            = "spawn:nautilus"
+"Mod+E"            = "spawn:thunar"
 
 # Session control
 "Mod+L" = "spawn:noctalia msg session lock"
