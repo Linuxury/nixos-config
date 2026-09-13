@@ -401,11 +401,19 @@
   '';
 
   # ==============================================================
-  # Login time restrictions — same schedule as desktop
+  # Login time restrictions — TEMPORARILY DISABLED 2026-09-13
+  #
+  # See the matching disabled block + full explanation in
+  # hosts/Alex-Desktop/default.nix — same underlying pam_setcred
+  # failure against greetd's cosmic-greeter account, unrelated to
+  # alex or time-of-day. Disabled here too for consistency, even
+  # though this host wasn't switched at the time.
   # ==============================================================
-  security.pam.services.login.text = lib.mkAfter ''
-    account required pam_time.so
-  '';
+  # security.pam.services.login.text = lib.mkAfter ''
+  #   account [success=1 default=ignore] pam_succeed_if.so user != alex
+  #   account required pam_time.so
+  #   account required pam_permit.so
+  # '';
 
   environment.etc."security/time.conf".text = ''
     login;*;alex;Mo-Fr0800-2100|Sa-Su0800-2200

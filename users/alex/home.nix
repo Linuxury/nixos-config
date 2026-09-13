@@ -93,12 +93,34 @@
     fi
   '';
 
+  # Starship prompt — copy-once seed (not a symlink) so matugen's post-hook
+  # can overwrite the live file after each wallpaper change. [ -L ] cleanup
+  # handles migrating off the old home.file symlink this replaces.
+  home.activation.starshipSeed = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _cfg="$HOME/.config/starship.toml"
+    _template="${../../dotfiles/starship/starship.toml}"
+    [ -L "$_cfg" ] && rm -f "$_cfg"
+    if [ ! -f "$_cfg" ]; then
+      cp "$_template" "$_cfg"
+    fi
+    # $_template is a Nix store path (read-only, unlike linuxury's live
+    # checkout path) — cp preserves that, so matugen's own post-hook cp
+    # can't overwrite it without this.
+    chmod u+w "$_cfg"
+  '';
+
   # =========================================================================
   # Dotfiles — shared terminal setup with the rest of the family
   # =========================================================================
   home.file = {
-    # Starship prompt — shared config
-    ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
+    # Starship prompt — deployed via home.activation.starshipSeed below
+    # (copy-once, not a symlink) so matugen can overwrite the live file
+    # after each wallpaper change. See users/linuxury/home.nix for the
+    # same pattern (this one uses a store path instead, since alex has no
+    # personal ~/nixos-config checkout to seed from).
+
+    # Kitty terminal — shared config
+    ".config/kitty/kitty.conf".source = ../../dotfiles/kitty/kitty.conf;
 
     # Fastfetch — shared config
     ".config/fastfetch".source = ../../dotfiles/fastfetch;

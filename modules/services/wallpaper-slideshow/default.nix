@@ -76,7 +76,7 @@
       # cmd_duration), just with matugen's dynamic colors slotted into the
       # palette instead of static Nord hexes. Same pattern as pywalfox below.
       [templates.starship]
-      input_path  = "~/nixos-config/dotfiles/starship/starship-colors.toml.template"
+      input_path  = "${../../../dotfiles/starship/starship-colors.toml.template}"
       output_path = "~/.config/starship-colors.toml"
       post_hook   = "cp ~/.config/starship-colors.toml ~/.config/starship.toml"
 
@@ -107,7 +107,7 @@
       # source, merged with the wallpaper path into ~/.cache/wal/colors.json
       # by the jq step below. Reuses kitty's own color0-15 mapping.
       [templates.pywalfox]
-      input_path  = "~/nixos-config/dotfiles/hypr/pywalfox-colors.json.template"
+      input_path  = "${../../../dotfiles/hypr/pywalfox-colors.json.template}"
       output_path = "~/.cache/matugen/pywal-colors-raw.json"
 
     '';
