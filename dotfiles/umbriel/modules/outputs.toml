@@ -19,19 +19,25 @@
 # be automatic once HDR is active (per the docs' PQ encoding section).
 
 [output."LG Electronics LG ULTRAGEAR+ 410NTDVAJ338"]
-mode = "3440x1440@240"
-scale = 1.0
-vrr = "always"
-hdr = "auto"
+mode = "3440x1440@240"                        # WIDTHxHEIGHT or WIDTHxHEIGHT@HZ
+scale = 1.0                                   # Logical size is mode size divided by scale
+vrr = "always"                                # disabled, always, or fullscreen
+hdr = "off"                                  # off, on, auto, or fullscreen
 
 # Reference — every other available per-output key, upstream's own
 # generic example (still commented; ours above already sets the ones
 # that matter for this monitor).
+
+# [output.DP-1]
 # enabled = true                                # False removes the output but preserves its state
+# mode = "2560x1440@144"                        # WIDTHxHEIGHT or WIDTHxHEIGHT@HZ
 # position = [0, 0]                             # Logical top-left; omit for automatic placement
+# scale = 1.25                                  # Logical size is mode size divided by scale
 # transform = "normal"                          # normal, 90, 180, 270, or a flipped variant
+# vrr = "fullscreen"                            # disabled, always, or fullscreen
 # tearing = true                                # Permit eligible fullscreen asynchronous flips
 # direct_scanout = true                         # False forces composition on this output
+# hdr = "auto"                                  # off, on, auto, or fullscreen
 # sdr_white = 203                               # SDR reference white in cd/m2 during HDR
 # workspaces = 5                                # Omit for dynamic workspaces
 
