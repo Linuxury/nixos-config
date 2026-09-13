@@ -213,6 +213,12 @@
       options = [ "subvol=@snapshots" "compress=zstd:1" "noatime" ];
     };
 
+    "/home/.snapshots" = {
+      device = "/dev/disk/by-label/nixos";
+      fsType = "btrfs";
+      options = [ "subvol=@home_snapshots" "compress=zstd:1" "noatime" ];
+    };
+
     "/swap" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";

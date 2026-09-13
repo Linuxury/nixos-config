@@ -216,6 +216,7 @@ BTRFS subvolumes are lightweight independent partitions that all live inside the
 | `@log` | `/var/log` | System logs — excluded from root snapshots |
 | `@cache` | `/var/cache` | Package and app caches — excluded from root snapshots |
 | `@snapshots` | `/.snapshots` | Where Snapper stores snapshot data |
+| `@home_snapshots` | `/home/.snapshots` | Where Snapper stores home-directory snapshot data |
 | `@swap` | `/swap` | Swapfile — must live on a non-compressed subvolume |
 
 Mount the BTRFS filesystem inside the open LUKS container temporarily, create all subvolumes, then unmount:
@@ -229,6 +230,7 @@ btrfs subvolume create /mnt/@nix         # Nix store
 btrfs subvolume create /mnt/@log         # system logs
 btrfs subvolume create /mnt/@cache       # app and package caches
 btrfs subvolume create /mnt/@snapshots   # Snapper snapshot storage
+btrfs subvolume create /mnt/@home_snapshots # Snapper home-snapshot storage
 btrfs subvolume create /mnt/@swap        # swapfile container
 
 umount /mnt   # unmount before the proper per-subvolume mounts in the next step
@@ -253,10 +255,12 @@ mount -o subvol=@,compress=zstd:1,noatime           /dev/mapper/cryptroot /mnt  
 mkdir -p /mnt/{home,nix,var/log,var/cache,.snapshots,swap}   # no /boot — GRUB does not need a mounted boot partition
 
 mount -o subvol=@home,compress=zstd:1,noatime        /dev/mapper/cryptroot /mnt/home
+mkdir -p /mnt/home/.snapshots   # mount point inside the now-mounted @home subvolume
 mount -o subvol=@nix,compress=zstd:1,noatime         /dev/mapper/cryptroot /mnt/nix
 mount -o subvol=@log,compress=zstd:1,noatime         /dev/mapper/cryptroot /mnt/var/log
 mount -o subvol=@cache,compress=zstd:1,noatime       /dev/mapper/cryptroot /mnt/var/cache
 mount -o subvol=@snapshots,compress=zstd:1,noatime   /dev/mapper/cryptroot /mnt/.snapshots
+mount -o subvol=@home_snapshots,compress=zstd:1,noatime /dev/mapper/cryptroot /mnt/home/.snapshots
 mount -o subvol=@swap,noatime                        /dev/mapper/cryptroot /mnt/swap
 ```
 

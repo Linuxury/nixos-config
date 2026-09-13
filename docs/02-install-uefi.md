@@ -205,6 +205,7 @@ If you ever need to roll back the system after a bad update, you can restore the
 | `@log` | `/var/log` | System logs — excluded from root snapshots |
 | `@cache` | `/var/cache` | Package and app caches — excluded from root snapshots |
 | `@snapshots` | `/.snapshots` | Where Snapper stores snapshot data |
+| `@home_snapshots` | `/home/.snapshots` | Where Snapper stores home-directory snapshot data |
 | `@swap` | `/swap` | Swapfile — must live on a non-compressed subvolume |
 
 Mount the raw BTRFS filesystem temporarily to create the subvolumes, then unmount:
@@ -218,6 +219,7 @@ btrfs subvolume create /mnt/@nix         # Nix store
 btrfs subvolume create /mnt/@log         # system logs
 btrfs subvolume create /mnt/@cache       # app and package caches
 btrfs subvolume create /mnt/@snapshots   # Snapper snapshot storage
+btrfs subvolume create /mnt/@home_snapshots # Snapper home-snapshot storage
 btrfs subvolume create /mnt/@swap        # swapfile container
 
 umount /mnt   # unmount before the proper per-subvolume mounts in the next step
@@ -240,10 +242,12 @@ mount -o subvol=@,compress=zstd:1,noatime           /dev/disk/by-label/nixos /mn
 mkdir -p /mnt/{boot,home,nix,var/log,var/cache,.snapshots,swap}                      # all mount point dirs in one shot
 
 mount -o subvol=@home,compress=zstd:1,noatime        /dev/disk/by-label/nixos /mnt/home
+mkdir -p /mnt/home/.snapshots   # mount point inside the now-mounted @home subvolume
 mount -o subvol=@nix,compress=zstd:1,noatime         /dev/disk/by-label/nixos /mnt/nix
 mount -o subvol=@log,compress=zstd:1,noatime         /dev/disk/by-label/nixos /mnt/var/log
 mount -o subvol=@cache,compress=zstd:1,noatime       /dev/disk/by-label/nixos /mnt/var/cache
 mount -o subvol=@snapshots,compress=zstd:1,noatime   /dev/disk/by-label/nixos /mnt/.snapshots
+mount -o subvol=@home_snapshots,compress=zstd:1,noatime /dev/disk/by-label/nixos /mnt/home/.snapshots
 mount -o subvol=@swap,noatime                        /dev/disk/by-label/nixos /mnt/swap   # no compression — swapfile requires this
 
 mount /dev/disk/by-label/EFI /mnt/boot   # EFI partition — always at /boot
