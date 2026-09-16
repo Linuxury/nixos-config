@@ -132,7 +132,12 @@
     #   syncthing-babylinux — vault + nixos-config sync (babylinux pair)
     #   snapper             — BTRFS automatic snapshots
     # ==============================================================
-    ../../modules/services/auto-update/default.nix
+    # DISABLED 2026-09-16: this host still needs the @steam btrfs
+    # subvolume created before it's safe to switch (see PENDING.md) —
+    # auto-update would crash-loop the boot the moment it fires, same as
+    # it did on Ryzen5900x. Re-enable (uncomment this + the primaryUser
+    # line below) once @steam has been created+populated here.
+    # ../../modules/services/auto-update/default.nix
     ../../modules/services/syncthing-babylinux/default.nix
     #../../modules/services/snapper/default.nix
     #../../modules/services/wallpaper-slideshow/default.nix
@@ -195,7 +200,7 @@
   # };
   # TODO: fill in PCI bus IDs from: lspci | grep -E "VGA|3D"
 
-  services.nixos-auto-update.primaryUser = "babylinux";
+  # services.nixos-auto-update.primaryUser = "babylinux"; # see DISABLED note above
 
   services.displayManager.defaultSession = "plasma";
 
