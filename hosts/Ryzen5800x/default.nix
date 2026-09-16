@@ -219,6 +219,16 @@
       options = [ "subvol=@home_snapshots" "compress=zstd:1" "noatime" ];
     };
 
+    # Steam's own subvolume — kept out of @home so /home btrfs snapshots
+    # never pin the 100s of GB a game library churns through. Snapper has
+    # no per-path exclude; a sibling subvolume boundary is the only real
+    # mechanism (same trick as @cache above).
+    "/home/babylinux/.local/share/Steam" = {
+      device = "/dev/disk/by-label/nixos";
+      fsType = "btrfs";
+      options = [ "subvol=@steam" "compress=zstd:1" "noatime" ];
+    };
+
     "/swap" = {
       device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
