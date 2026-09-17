@@ -22,7 +22,7 @@
 mode = "3440x1440@240"                        # WIDTHxHEIGHT or WIDTHxHEIGHT@HZ
 scale = 1.0                                   # Logical size is mode size divided by scale
 vrr = "always"                                # disabled, always, or fullscreen
-hdr = "off"                                  # off, on, auto, or fullscreen
+hdr = "auto"                                  # off, on, auto, or fullscreen
 
 # Reference — every other available per-output key, upstream's own
 # generic example (still commented; ours above already sets the ones
