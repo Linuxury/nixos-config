@@ -115,7 +115,7 @@ in
   #   - proton-cachyos 11.0-20260703-slr (pinned here): _config_envvars
   #     only maps wow64/dlss/xess/fsr3/fsr4/ffx3/ffx4/optiscaler. "hdr" and
   #     "wayland" are NOT recognized on this build.
-  #   - proton-ge-custom GE-Proton11-6 (pinned here): wider key set
+  #   - proton-ge-custom GE-Proton11-7 (pinned here): wider key set
   #     including hdr, wayland, fsr4, fsr4rdna3, wow64, optiscaler,
   #     sdlinput. "hdr" only sets DXVK_HDR=1 — it does NOT imply
   #     PROTON_ENABLE_WAYLAND, a separate "wayland" key.
@@ -139,8 +139,8 @@ in
     {
       proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
         proton-ge-src = pkgs.fetchzip {
-          url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-6/GE-Proton11-6-x86_64.tar.gz"; # proton-ge-nru
-          hash = "sha256-rX27DUrrrHtR1cgyr/424m9JPjrdASIisVGv2vWzMAs="; # proton-ge-hash
+          url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-7/GE-Proton11-7-x86_64.tar.gz"; # proton-ge-nru
+          hash = "sha256-ftW0vE45v2JsbaYqo/So0ZFfvdtakHX0XEXEE4TdxLk="; # proton-ge-hash
         };
       };
 
