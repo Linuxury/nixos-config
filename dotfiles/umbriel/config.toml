@@ -13,4 +13,7 @@
 # no rebuild needed. See modules/compositors/umbriel/default.nix.
 
 [include]
-files = ["modules/general.toml", "modules/keybinds.toml", "modules/outputs.toml", "modules/input.toml", "modules/layout.toml", "modules/animation.toml", "modules/overview.toml", "modules/window-rules.toml", "modules/layer-rules.toml", "modules/security.toml", "modules/appearance.toml", "noctalia.toml"]
+files = ["modules/general.toml", "modules/keybinds.toml", "modules/outputs.toml", "modules/input.toml", "modules/layout.toml", "modules/animation.toml", "modules/overview.toml", "modules/window-rules.toml", "modules/layer-rules.toml", "modules/security.toml", "modules/appearance.toml"]
+
+[include.optional]
+files = ["noctalia.toml"]
