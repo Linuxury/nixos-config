@@ -616,16 +616,25 @@ ENDSSH
   # Without this, the Steam-managed copy can drift (e.g. a ProtonPlus download replaces
   # it with the wrong architecture). This activation overwrites it on every HM rebuild,
   # keeping Faugus and other non-Steam launchers pointed at the correct x86_64 build.
+  #
+  # Compares the Nix store path itself, not the package's own "version" file — two
+  # proton-ge-custom builds can share the same upstream version string (e.g. a
+  # version bump landing on top of an already-modified working tree) while their
+  # actual binaries differ. The store path changes with any content change, so it's
+  # the only comparison that can't silently miss a real update. Confirmed live
+  # 2026-09-18: a stale deploy with an identical "version" file broke every Proton-GE
+  # game launch (wine aborting on missing win32u/user32/shell32 functions).
   home.activation.protonGeCompatTool = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     _dest="$HOME/.local/share/Steam/compatibilitytools.d/Proton-GE Latest"
     _src="${pkgs.proton-ge-custom}"
-    _src_ver="$(cat "$_src/version" 2>/dev/null)"
-    _dst_ver="$(cat "$_dest/version" 2>/dev/null || true)"
-    if [ "$_src_ver" != "$_dst_ver" ]; then
+    _dst_marker="$_dest/.nix-src-path"
+    _dst_src="$(cat "$_dst_marker" 2>/dev/null || true)"
+    if [ "$_src" != "$_dst_src" ]; then
       chmod -R u+w "$_dest" 2>/dev/null || true
       rm -rf "$_dest"
       cp -r "$_src" "$_dest"
       chmod -R u+w "$_dest"
+      echo "$_src" > "$_dst_marker"
     fi
   '';
 
