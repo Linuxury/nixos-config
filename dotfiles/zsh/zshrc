@@ -998,7 +998,12 @@ nru() {
   _nru_nixpkgs_bar || { unfunction TRAPINT 2>/dev/null; return 1 }
 
   # ── GitHub packages (gaming hosts only) ─────────────────────────────────────
-  command -v steam &>/dev/null && { _nru_update_proton_ge      || true }
+  # 2026-09-18: GE-Proton disabled — now comes straight from nixpkgs
+  # (pkgs.proton-ge-bin, see modules/gaming/default.nix) instead of this
+  # custom fetchzip+hash-check tracker. Function left defined above in case
+  # that ever needs reverting. CachyOS stays on the custom tracker — nixpkgs
+  # has no CachyOS-Proton package under any name (checked).
+  # command -v steam &>/dev/null && { _nru_update_proton_ge      || true }
   command -v steam &>/dev/null && { _nru_update_proton_cachyos || true }
 
   # ── Flatpak apps (graphical hosts only) ─────────────────────────────────────

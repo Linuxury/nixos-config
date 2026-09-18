@@ -96,6 +96,14 @@ in
   # Gaming-only overlays — scoped here so headless hosts never fetch these
   # source tarballs during evaluation.
   #
+  # 2026-09-18: replaced by nixpkgs' own pkgs.proton-ge-bin / pkgs.proton-cachyos
+  # below — nixpkgs.proton-cachyos already tracked the exact same release
+  # this custom overlay had pinned, so it was pure redundant maintenance.
+  # proton-ge-bin trails upstream by roughly one release compared to this
+  # overlay's on-demand nru-driven bump, a tradeoff accepted to drop the
+  # custom fetchzip + hash-check script entirely. Left commented, not
+  # deleted, in case that lag ever matters enough to revert.
+  #
   # proton-ge-custom uses inline pkgs.fetchzip (not a flake input)
   # so headless servers never resolve this tarball when building from GitHub.
   # nru updates the URL, version, and hash in this file directly.
@@ -131,18 +139,23 @@ in
   #     internal HDR tone-mapping, but the monitor isn't switched into true
   #     HDR. Chose controller support over verified compositor HDR.
   # =========================================================================
+  # proton-ge-custom overlay retired 2026-09-18 in favor of nixpkgs'
+  # pkgs.proton-ge-bin (see extraCompatPackages below). proton-cachyos stays
+  # custom — nixpkgs has no CachyOS-Proton package under any name (checked
+  # proton-cachyos, proton-cachyos-bin, cachyos-proton, protoncachyos; none
+  # exist in the pinned nixpkgs).
   nixpkgs.overlays = [
     (final: prev:
     let
       protonCachyosTag = "cachyos-11.0-20260703-slr"; # proton-cachyos-nru
     in
     {
-      proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
-        proton-ge-src = pkgs.fetchzip {
-          url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-7/GE-Proton11-7-x86_64.tar.gz"; # proton-ge-nru
-          hash = "sha256-ftW0vE45v2JsbaYqo/So0ZFfvdtakHX0XEXEE4TdxLk="; # proton-ge-hash
-        };
-      };
+      # proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
+      #   proton-ge-src = pkgs.fetchzip {
+      #     url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-7/GE-Proton11-7-x86_64.tar.gz"; # proton-ge-nru
+      #     hash = "sha256-ftW0vE45v2JsbaYqo/So0ZFfvdtakHX0XEXEE4TdxLk="; # proton-ge-hash
+      #   };
+      # };
 
       proton-cachyos = prev.callPackage ../../pkgs/proton-cachyos/package.nix {
         tag = protonCachyosTag;
@@ -171,8 +184,10 @@ in
     # Opens firewall ports for Steam's game server browser
     dedicatedServer.openFirewall = true;
 
-    # Proton-GE and Proton-CachyOS — prebuilt release tarballs, updated automatically via nru
-    extraCompatPackages = [ pkgs.proton-ge-custom pkgs.proton-cachyos ];
+    # Proton-GE and Proton-CachyOS, both straight from nixpkgs (see the
+    # commented-out custom overlay above for why) — updated whenever
+    # nixpkgs itself bumps them, no separate tracking needed.
+    extraCompatPackages = [ pkgs.proton-ge-bin pkgs.proton-cachyos ];
 
     # Adds a compatibility layer so Steam's own runtime libraries
     # work correctly on NixOS's non-standard filesystem layout
