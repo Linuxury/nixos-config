@@ -1015,6 +1015,25 @@ nru() {
   unfunction TRAPINT 2>/dev/null
 }
 
+# ---------------------------------------------------------------------------
+# nrf — nix rebuild fix. Discards local modifications blocking nru's git
+# pull (e.g. a host with stray uncommitted changes), then runs nru.
+# ---------------------------------------------------------------------------
+nrf() {
+  local diff
+  diff=$(git -C "$NIXOS_CONFIG" diff --stat)
+
+  if [[ -n "$diff" ]]; then
+    git -C "$NIXOS_CONFIG" status
+    printf '%s\n' "$diff"
+    _nru_prompt "⚠" "Local Changes Detected :: Discard & Pull?" || return 1
+    git -C "$NIXOS_CONFIG" checkout -- .
+  fi
+
+  git -C "$NIXOS_CONFIG" pull || return 1
+  nru
+}
+
 # NixOS aliases — available to all users on all hosts
 alias nrr='sudo nixos-rebuild switch --rollback'
 alias ngc='sudo nix-collect-garbage --delete-older-than 30d'
