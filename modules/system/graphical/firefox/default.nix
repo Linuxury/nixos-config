@@ -67,18 +67,13 @@ in
           # profile already exists, and automatically once Firefox creates
           # it on first launch, so no second rebuild is ever needed.
           systemd.user.services.firefoxUserChrome = {
-            Unit = {
-              Description = "Symlink userChrome.css into the Firefox profile";
-              # PathExistsGlob (below) re-fires as long as the glob keeps
-              # matching, not just once on the transition — which it will,
-              # forever, once a profile exists. Each run is a cheap no-op
-              # mkdir+ln, but without this it hits systemd's default
-              # start-rate-limit within seconds and the unit ends up
-              # "failed" even though the actual work already succeeded.
-              StartLimitIntervalSec = 0;
-            };
+            Unit.Description = "Symlink userChrome.css into the Firefox profile";
             Service = {
               Type = "oneshot";
+              # PathExistsGlob (below) re-triggers whenever this unit goes
+              # inactive while the glob still matches — i.e. forever once a
+              # profile exists. Staying "active" after the one run stops that.
+              RemainAfterExit = true;
               Environment = [
                 "SHELL=/bin/sh"
                 "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/%u/bin:/usr/bin:/bin"
