@@ -93,6 +93,12 @@
           # already defaults to what that script did by hand.
           shell.screenshot.directory = "~/Pictures/Screenshots";
 
+          # ── App launching ──────────────────────────────────────────────────
+          # Run launcher/dock apps as their own app-*.service units instead of
+          # children of noctalia.service — otherwise every home-manager restart
+          # of noctalia (most nru runs) kills every app launched through it.
+          shell.launch_apps_as_systemd_services = true;
+
           # ── Hooks ──────────────────────────────────────────────────────────
           # wallpaper_changed: write the new wallpaper path to the handoff
           # file that the matugen path unit (hyprland/matugen) watches.
