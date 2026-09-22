@@ -9,7 +9,7 @@
 # import this directly if you want the greeter without the Noctalia shell.
 #
 # What this module owns:
-#   - services.greetd + programs.noctalia-greeter (enabled via the upstream
+#   - services.greetd + services.displayManager.noctalia-greeter (enabled via the upstream
 #     NixOS module — see inputs.noctalia-greeter.nixosModules.default)
 #   - Default session — "Umbriel" (Name= from Umbriel's own session .desktop
 #     entry, registered automatically by modules/compositors/umbriel).
@@ -38,7 +38,7 @@
 {
   imports = [ inputs.noctalia-greeter.nixosModules.default ];
 
-  programs.noctalia-greeter = {
+  services.displayManager.noctalia-greeter = {
     enable = true;
     package = inputs.noctalia-greeter.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
