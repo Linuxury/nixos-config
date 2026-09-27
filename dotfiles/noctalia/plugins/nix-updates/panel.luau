@@ -86,7 +86,7 @@ local function render()
     ui.row({ align = "center", gap = 8 }, {
       ui.glyph({ name = "package", size = 20, color = "primary" }),
       ui.label({ text = title, fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
-      ui.button({ glyph = "settings", variant = "ghost", tooltip = tr("settings"), onClick = function() noctalia.openSettings() end }),
+      ui.button({ glyph = "settings", variant = "ghost", tooltip = tr("open_settings"), onClick = function() noctalia.openSettings() end }),
       ui.button({ glyph = "close", variant = "ghost", tooltip = tr("close"), onClick = function() panel.close() end }),
     }),
     ui.scroll({ flexGrow = 1, gap = 8, align = "stretch" }, body(s)),

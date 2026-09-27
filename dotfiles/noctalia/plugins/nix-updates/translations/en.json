@@ -46,7 +46,7 @@
   "check_failed": "Update check failed",
   "check_now": "Check now",
   "update_now": "Update now",
-  "settings": "Settings",
+  "open_settings": "Settings",
   "close": "Close",
   "more": "…and {count} more"
 }
