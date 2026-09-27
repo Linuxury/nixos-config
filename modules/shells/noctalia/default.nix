@@ -104,14 +104,17 @@
           # hot-reload without a rebuild). nix-updates: bar badge + panel for
           # pending package updates. Its settings (flake dir, update command,
           # interval) are set once via Settings → Plugins → ⚙.
+          # Declaring any source replaces Noctalia's built-in list, so official
+          # and community must be listed here too. Don't add/remove sources via
+          # IPC or the GUI: that saves a full source list to the app-owned
+          # settings.toml, which then overrides this one.
           plugins = {
             enabled = [ "linuxury/nix-updates" ];
-            source  = [{
-              name     = "nixos-config";
-              kind     = "path";
-              location = "~/nixos-config/dotfiles/noctalia/plugins";
-              enabled  = true;
-            }];
+            source  = [
+              { name = "official";  kind = "git"; location = "https://github.com/noctalia-dev/official-plugins";  enabled = true; }
+              { name = "community"; kind = "git"; location = "https://github.com/noctalia-dev/community-plugins"; enabled = true; }
+              { name = "nixos-config"; kind = "path"; location = "~/nixos-config/dotfiles/noctalia/plugins"; enabled = true; }
+            ];
           };
 
           # ── Hooks ──────────────────────────────────────────────────────────
