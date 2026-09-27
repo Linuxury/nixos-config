@@ -59,6 +59,12 @@ match.app_id = "^dev.noctalia.UmbrielSharePicker$"
 default_floating = true
 default_floating_size_px = { width = 800, height = 600 }
 
+# Terminal opened by the nix-updates Noctalia plugin's "Update now"
+[[window_rule]]
+match.app_id = "^nix-updates$"
+default_floating = true
+default_floating_size_px = { width = 1100, height = 750 }
+
 # Browsers expose no semantic PiP role or global position control.
 [[window_rule]]
 match.title = "^(Picture-in-Picture|Picture in picture)$"

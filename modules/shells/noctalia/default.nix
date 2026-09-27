@@ -99,6 +99,21 @@
           # of noctalia (most nru runs) kills every app launched through it.
           shell.launch_apps_as_systemd_services = true;
 
+          # ── Plugins ────────────────────────────────────────────────────────
+          # Our own plugins, loaded straight from the repo (live path, so edits
+          # hot-reload without a rebuild). nix-updates: bar badge + panel for
+          # pending package updates. Its settings (flake dir, update command,
+          # interval) are set once via Settings → Plugins → ⚙.
+          plugins = {
+            enabled = [ "linuxury/nix-updates" ];
+            source  = [{
+              name     = "nixos-config";
+              kind     = "path";
+              location = "~/nixos-config/dotfiles/noctalia/plugins";
+              enabled  = true;
+            }];
+          };
+
           # ── Hooks ──────────────────────────────────────────────────────────
           # wallpaper_changed: write the new wallpaper path to the handoff
           # file that the matugen path unit (hyprland/matugen) watches.

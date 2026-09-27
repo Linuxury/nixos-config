@@ -1,0 +1,52 @@
+{
+  "settings": {
+    "flake_dir": {
+      "label": "Flake directory",
+      "description": "Directory containing your system flake.nix. Its flake.lock is only read, never modified."
+    },
+    "host": {
+      "label": "NixOS configuration",
+      "description": "nixosConfigurations attribute to check. Leave empty to use this machine's hostname."
+    },
+    "update_method": {
+      "label": "Update method",
+      "description": "What \"Update now\" runs. The default updates the flake inputs and switches with plain nixos-rebuild.",
+      "options": {
+        "nixos_rebuild": "nix flake update + nixos-rebuild switch (default)",
+        "custom": "Custom command"
+      }
+    },
+    "custom_command": {
+      "label": "Custom command",
+      "description": "Shell command run in the terminal, e.g. topgrade, or zsh -ic nru for a shell function."
+    },
+    "terminal": {
+      "label": "Terminal command",
+      "description": "Prefix that runs a command in a terminal, e.g. kitty --class nix-updates -e. Leave empty to use $TERMINAL."
+    },
+    "check_interval": {
+      "label": "Check every",
+      "description": "How often to look for updates in the background.",
+      "options": {
+        "h1": "1 hour",
+        "h3": "3 hours",
+        "h6": "6 hours",
+        "h12": "12 hours",
+        "h24": "24 hours",
+        "manual": "Manually only"
+      }
+    }
+  },
+  "title": "Nix Updates",
+  "count": "{count} updates available",
+  "up_to_date": "Everything is up to date",
+  "never_checked": "Not checked yet",
+  "checking": "Checking…",
+  "last_check": "Last check {time}",
+  "check_failed": "Update check failed",
+  "check_now": "Check now",
+  "update_now": "Update now",
+  "settings": "Settings",
+  "close": "Close",
+  "more": "…and {count} more"
+}

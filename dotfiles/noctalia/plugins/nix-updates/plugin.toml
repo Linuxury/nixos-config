@@ -1,0 +1,81 @@
+id = "linuxury/nix-updates"
+name = "Nix Updates"
+version = "0.1.0"
+plugin_api = 24
+author = "linuxury"
+license = "MIT"
+icon = "package"
+description = "Shows which NixOS/Home Manager packages would change on the next flake update, and runs the rebuild on demand."
+tags = ["bar", "panel", "service", "nixos", "system"]
+dependencies = ["nix", "flock", "join", "awk", "sort", "mktemp", "hostname"]
+
+[[setting]]
+key = "flake_dir"
+type = "folder"
+label_key = "settings.flake_dir.label"
+description_key = "settings.flake_dir.description"
+default = "/etc/nixos"
+
+[[setting]]
+key = "host"
+type = "string"
+label_key = "settings.host.label"
+description_key = "settings.host.description"
+default = ""
+
+[[setting]]
+key = "update_method"
+type = "select"
+label_key = "settings.update_method.label"
+description_key = "settings.update_method.description"
+default = "nixos-rebuild"
+options = [
+  { value = "nixos-rebuild", label_key = "settings.update_method.options.nixos_rebuild" },
+  { value = "custom", label_key = "settings.update_method.options.custom" },
+]
+
+[[setting]]
+key = "custom_command"
+type = "string"
+label_key = "settings.custom_command.label"
+description_key = "settings.custom_command.description"
+default = ""
+visible_when = { key = "update_method", values = ["custom"] }
+
+[[setting]]
+key = "terminal"
+type = "string"
+label_key = "settings.terminal.label"
+description_key = "settings.terminal.description"
+default = ""
+
+[[setting]]
+key = "check_interval"
+type = "select"
+label_key = "settings.check_interval.label"
+description_key = "settings.check_interval.description"
+default = "6"
+options = [
+  { value = "1", label_key = "settings.check_interval.options.h1" },
+  { value = "3", label_key = "settings.check_interval.options.h3" },
+  { value = "6", label_key = "settings.check_interval.options.h6" },
+  { value = "12", label_key = "settings.check_interval.options.h12" },
+  { value = "24", label_key = "settings.check_interval.options.h24" },
+  { value = "0", label_key = "settings.check_interval.options.manual" },
+]
+
+[[service]]
+id = "service"
+entry = "service.luau"
+
+[[widget]]
+id = "widget"
+entry = "widget.luau"
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 440
+height = 480
+placement = "floating"
+position = "center"

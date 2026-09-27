@@ -5,7 +5,9 @@
 #
 #   ┌─────────────────────────────────────────────────────────────────────┐
 #   │ PRIMARY HOST (isPrimary = true — Ryzen5900x)                        │
-#   │   Session start (once per 20h):                                     │
+#   │   On demand only — nru, or "Update now" in the nix-updates Noctalia │
+#   │   plugin (which checks for new package versions in the background). │
+#   │   nixos-auto-update [--force] does the same unattended:             │
 #   │     1. git pull --autostash (sync any remote config changes)        │
 #   │     2. nix flake update → advances nixpkgs pin in flake.lock        │
 #   │     3. nixos-rebuild switch --flake /local/nixos-config#hostname    │
@@ -140,9 +142,9 @@ in
   # Scheduled weekly update — safety net for always-on machines
   #
   # Rebuilds from GitHub every Saturday 3am, picking up whatever flake.lock
-  # the primary pushed that week. Non-primary hosts use system.autoUpgrade
-  # directly; the primary uses its own timer below instead, so the 20h
-  # cooldown is respected when nru is run manually.
+  # the primary pushed that week. Non-primary hosts only — the primary never
+  # updates unattended; its user decides when, via the nix-updates Noctalia
+  # plugin (dotfiles/noctalia/plugins/nix-updates) or nru.
   #
   # Persistent = true: a missed 3am slot (machine off) fires on next boot.
   # =========================================================================
@@ -153,33 +155,6 @@ in
     allowReboot        = false;
     randomizedDelaySec = "45min";
     persistent         = true;
-  };
-
-  # Primary host: custom system timer that calls nixos-auto-update (which has
-  # the 20h cooldown). If nru was run within 20h the script exits early —
-  # system.autoUpgrade has no such logic, so we replace it here.
-  systemd.services.nixos-auto-update-scheduled = lib.mkIf cfg.isPrimary {
-    description = "NixOS scheduled auto-update (primary host)";
-    serviceConfig = {
-      Type            = "oneshot";
-      User            = cfg.primaryUser;
-      TimeoutStartSec = "1h";
-      ExecStart       = "${pkgs.bash}/bin/bash -c 'nixos-auto-update; OUTCOME=$?; if [ $OUTCOME -eq 0 ]; then sudo systemctl start notify-vault@success.service; elif [ $OUTCOME -eq 1 ]; then sudo systemctl start notify-vault@failure.service; fi'";
-      Environment     = [
-        "PATH=/run/wrappers/bin:/run/current-system/sw/bin"
-        "HOME=/home/${cfg.primaryUser}"
-      ];
-    };
-  };
-
-  systemd.timers.nixos-auto-update-scheduled = lib.mkIf cfg.isPrimary {
-    wantedBy    = [ "timers.target" ];
-    description = "NixOS auto-update timer (primary host)";
-    timerConfig = {
-      OnCalendar         = cfg.schedule;
-      Persistent         = true;   # fires on next boot if the machine was off at 3am
-      RandomizedDelaySec = "15min";
-    };
   };
 
   # =========================================================================
