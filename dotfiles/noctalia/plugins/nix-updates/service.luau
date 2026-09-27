@@ -12,6 +12,13 @@ local STATE_KEY = "nix_updates"
 local REQUEST_KEY = "nix_updates_request"
 local POLL_MS = 15000
 local STALE_S = 15 * 60 -- give up on a check that never wrote a result
+local STARTUP_S = 15 -- first scheduling decision after the shell starts
+local STARTUP_FRESH_S = 30 * 60 -- at startup, skip if the last check is this recent
+local BACKOFF = { 60, 5 * 60, 15 * 60 } -- retry delays after consecutive failures
+
+local loadedAt = os.time()
+local startupChecked = false
+local failures = 0
 
 local dataDir = noctalia.pluginDataDir()
 local resultPath = dataDir .. "/result"
@@ -56,6 +63,7 @@ local function load(notify)
       if name then table.insert(rows, { name = name, old = old, new = new }) end
     end
     state.phase, state.rows, state.error = "idle", rows, nil
+    failures = 0
     if notify and #rows > 0 and #rows > prevCount then
       local body = {}
       for i = 1, math.min(#rows, 8) do
@@ -68,6 +76,7 @@ local function load(notify)
     -- Keep the previous rows so a network blip doesn't hide known updates.
     state.phase = "error"
     state.error = table.concat(lines, "\n", 2)
+    failures += 1
   end
   return true
 end
@@ -90,17 +99,39 @@ function update()
     startedAt = nil
   end
 
+  -- Schedule (interval 0 = manual only): STARTUP_S after the shell starts,
+  -- check unless the last check is under STARTUP_FRESH_S old; then every
+  -- interval; after failures, back off 1 → 5 → 15 min.
   local interval = intervalS()
-  if interval > 0 and (state.checkedAt == nil or os.time() - state.checkedAt >= interval) then
-    launch()
+  local now = os.time()
+  if interval > 0 and now - loadedAt >= STARTUP_S then
+    local age = state.checkedAt and now - state.checkedAt or math.huge
+    local due
+    if state.phase == "error" then
+      due = math.min(BACKOFF[math.clamp(failures, 1, #BACKOFF)], interval)
+    elseif not startupChecked then
+      due = STARTUP_FRESH_S
+    else
+      due = interval
+    end
+    startupChecked = true
+    if age >= due then launch() end
   end
   publish()
 end
 
+-- Only a different flake or host invalidates the result; other settings don't.
+local function target()
+  return noctalia.getConfig("flake_dir") .. "|" .. noctalia.getConfig("host")
+end
+local lastTarget = target()
+
 function onConfigChanged()
-  -- A different flake or host makes the cached result meaningless.
-  state.checkedAt = nil
-  launch()
+  if target() ~= lastTarget then
+    lastTarget = target()
+    state.checkedAt = nil
+    launch()
+  end
 end
 
 noctalia.state.watch(REQUEST_KEY, function()

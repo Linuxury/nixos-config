@@ -26,7 +26,7 @@
     },
     "check_interval": {
       "label": "Check every",
-      "description": "How often to look for updates in the background.",
+      "description": "How often to look for updates in the background. The first check runs 15 seconds after login unless one ran in the last 30 minutes; failed checks retry after 1, 5, then 15 minutes.",
       "options": {
         "h1": "1 hour",
         "h3": "3 hours",
