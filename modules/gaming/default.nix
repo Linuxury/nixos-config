@@ -13,6 +13,7 @@
 # Servers never need this.
 # ===========================================================================
 {
+  inputs,
   config,
   pkgs,
   lib,
@@ -90,6 +91,7 @@ in
   imports = [
     ./dmemcg-booster/default.nix
     ./controller.nix
+    { options.programs.steam.millennium.enable = lib.mkEnableOption "Millennium Steam client mod (theme injection)"; }
   ];
 
   # =========================================================================
@@ -191,7 +193,17 @@ in
 
     # Adds a compatibility layer so Steam's own runtime libraries
     # work correctly on NixOS's non-standard filesystem layout
-    package = pkgs.steam.override {
+    #
+    # Millennium: upstream's steam.nix wraps steam with its loader libs.
+    # callPackage'd with OUR pkgs so the FHS env tracks our nixpkgs; only the
+    # millennium lib comes from its pin. Disabling it leaves dangling
+    # ubuntu12_{32,64}/libXtst.so.6 symlinks in ~/.local/share/Steam — delete
+    # them and Steam restores its own.
+    package = (if config.programs.steam.millennium.enable
+      then pkgs.callPackage "${inputs.millennium}/steam.nix" {
+        inherit (inputs.millennium.packages.${pkgs.stdenv.hostPlatform.system}) millennium;
+      }
+      else pkgs.steam).override {
       extraPkgs = steamPkgs:
         with steamPkgs; [
           alsa-lib

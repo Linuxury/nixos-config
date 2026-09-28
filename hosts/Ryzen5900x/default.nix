@@ -515,6 +515,7 @@
   # ==============================================================
   programs.corectrl.enable = true;
   programs.affinity.enable = true;
+  programs.steam.millennium.enable = true;
   hardware.amdgpu.overdrive.enable = true;
 
   # ==============================================================

@@ -75,6 +75,16 @@
     # -------------------------------------------------------------------------
     affinity-nix.url = "github:mrshmllow/affinity-nix";
 
+    # -------------------------------------------------------------------------
+    # millennium — Steam client mod that injects themes (Material-Theme reads
+    # noctalia's matugen.css). Flake lives in a subdir. Only fetched on hosts
+    # with programs.steam.millennium.enable (modules/gaming/default.nix).
+    #
+    # Do NOT add nixpkgs.follows — it pins its own nixpkgs; the Bun FOD hash
+    # breaks on any other version.
+    # -------------------------------------------------------------------------
+    millennium.url = "github:SteamClientHomebrew/Millennium?dir=packages/nix";
+
 
     # -------------------------------------------------------------------------
     # helium-browser — Nix flake for the Helium browser
