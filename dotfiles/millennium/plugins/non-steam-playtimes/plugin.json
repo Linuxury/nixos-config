@@ -1,0 +1,8 @@
+{
+  "$schema": "https://raw.githubusercontent.com/SteamClientHomebrew/Millennium/main/src/sys/plugin-schema.json",
+  "name": "non-steam-playtimes",
+  "common_name": "Non-Steam Playtimes",
+  "description": "Track playtime for non-Steam games.",
+  "version": "2.0.3",
+  "backendType": "lua"
+}

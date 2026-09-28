@@ -1,0 +1,8 @@
+{
+  "$schema": "https://raw.githubusercontent.com/SteamClientHomebrew/Millennium/main/src/sys/plugin-schema.json",
+  "name": "hltb-for-millennium",
+  "common_name": "HLTB for Steam",
+  "description": "Displays How Long To Beat completion times on game pages",
+  "version": "2.2.0",
+  "backendType": "lua"
+}

@@ -1,0 +1,106 @@
+{
+  "general": {
+    "accentColor": "DEFAULT_ACCENT_COLOR",
+    "checkForMillenniumUpdates": true,
+    "checkForPluginAndThemeUpdates": true,
+    "injectCSS": true,
+    "injectJavascript": true,
+    "millenniumUpdateChannel": "stable",
+    "onMillenniumUpdate": 1,
+    "shouldShowThemePluginUpdateNotifications": true
+  },
+  "misc": {
+    "hasShownWelcomeModal": true
+  },
+  "network": {
+    "proxy": "",
+    "proxyPassword": "",
+    "proxyUsername": ""
+  },
+  "notifications": {
+    "showNotifications": true,
+    "showPluginNotifications": true,
+    "showUpdateNotifications": true
+  },
+  "plugins": {
+    "enabledPlugins": [
+      "global_launch_options",
+      "protondb-status",
+      "hltb-for-millennium",
+      "non-steam-playtimes"
+    ]
+  },
+  "themes": {
+    "activeTheme": "Material-Theme",
+    "allowedScripts": true,
+    "allowedStyles": true,
+    "conditions": {
+      "Material-Theme": {
+        " - Show Balance in menu after Hover?": "yes",
+        " - Show Balance near name after hover?": "yes",
+        " - Show Name in account change after Hover?": "yes",
+        " - Show Name in menu after Hover?": "yes",
+        "Account Balance in Menu": "Blur",
+        "Account Balance near Account Name": "Blur",
+        "Account Name in Account Change": "Blur",
+        "Account Name in Menu": "Blur",
+        "Achievements Icons Shape": "Rounded Square",
+        "Animations": "Enabled",
+        "Appearance": "Dark",
+        "Background Opacity Slider": "100",
+        "Background Opacity Toggle": "no",
+        "Badges for Contributors": "yes",
+        "Big Game Card Hover Animation": "Default",
+        "Big Picture Mode Bottom Bar Style": "Default",
+        "Blur": "Disabled",
+        "Blur Matured Content": "yes",
+        "Bottom Bar Style": "Default",
+        "Chat Animations": "no",
+        "Color": "Matugen",
+        "Custom/Dynamic Color Generation Style": "Fidelity",
+        "Disable Max Hero Image Size": "no",
+        "Font": "Default",
+        "Game Card Hover Animation": "Default",
+        "Game Icons Shape": "Rounded Square",
+        "Groups/Curators Picture Shape": "Rounded Square",
+        "Hide Activity Posting": "yes",
+        "Hide Add Shelf": "yes",
+        "Hide Big Picture Mode Button": "yes",
+        "Hide Broadcasting Containers": "no",
+        "Hide Left Sidebar": "no",
+        "Hide News Button": "no",
+        "Hide Notifications Button": "no",
+        "Hide Scrollbar": "yes",
+        "Hide URL Bar": "no",
+        "Hide Window Control Buttons": "no",
+        "Icons": "Default",
+        "Library Slide In Animation": "no",
+        "Loading Style": "Color Scheme",
+        "Menu Style": "Expressive",
+        "Online Indicator": "Alternative",
+        "Online Status Color": "50",
+        "Profile Force Default Theme": "no",
+        "Profile Picture Shape": "Rounded Square",
+        "Profile VAC-Ban Visibility": "Show",
+        "Rare Achievements based on Source Color": "yes",
+        "Remove Shiny Effect": "no",
+        "Ripple Effect": "no",
+        "Store Cash Related based on Source Color": "yes",
+        "Store Header Always Visible": "yes",
+        "Swap Dialog Buttons": "yes",
+        "Toolbar Account": "Default",
+        "Toolbar Icon": "Material Design",
+        "Toolbar Title": "Default",
+        "Toolbar Title Based on Icon": "yes",
+        "Use Experimental Features": "no",
+        "Use Modifications File": "no",
+        "What's New": "Hide"
+      }
+    },
+    "themeColors": {
+      "Material-Theme": {
+        "--custom-accent-color": "#4CB4FF"
+      }
+    }
+  }
+}

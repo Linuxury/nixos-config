@@ -610,6 +610,43 @@ ENDSSH
     fi
   '';
 
+  # Millennium (programs.steam.millennium.enable) — seed-once, same reason as
+  # kitty above: Millennium rewrites config.json and noctalia writes
+  # matugen.css into the theme dir, so these must be real writable files.
+  # Refresh the snapshot after changing settings in Steam:
+  #   cp ~/.config/millennium/{config.json,quick.css} ~/nixos-config/dotfiles/millennium/
+  # steam-easygrid is deliberately absent — it crashed the UI (React #130).
+  home.activation.millenniumSeed = lib.hm.dag.entryAfter [ "writeBoundary" ] (let
+    materialTheme = pkgs.fetchFromGitHub {
+      owner = "kuska1";
+      repo = "Material-Theme";
+      rev = "f91b4e9cbc5436f149e6b293391a9a96ab47fbe9";
+      hash = "sha256-qPzo59NyKsmKkhupOf3n9X29p/Wbv7jaKDGaM23HTJo=";
+    };
+  in ''
+    _src="$HOME/nixos-config/dotfiles/millennium"
+    if [ -d "$_src" ]; then
+      mkdir -p "$HOME/.config/millennium" "$HOME/.local/share/millennium/plugins"
+      [ -f "$HOME/.config/millennium/config.json" ] || cp "$_src/config.json" "$HOME/.config/millennium/"
+      for _p in "$_src"/plugins/*; do
+        [ -d "$HOME/.local/share/millennium/plugins/$(basename "$_p")" ] || cp -r "$_p" "$HOME/.local/share/millennium/plugins/"
+      done
+    fi
+    _skin="$HOME/.local/share/Steam/steamui/skins/Material-Theme"
+    if [ ! -f "$_skin/skin.json" ]; then
+      mkdir -p "$_skin"
+      cp -rn --no-preserve=mode ${materialTheme}/. "$_skin/"
+    fi
+    # JetBrainsMono font via Millennium's Quick CSS — Material-Theme's own
+    # "Font: Custom" (customFont.css) never applied. Millennium creates a
+    # comment-only quick.css on first run, so seed unless ours is already in.
+    # ponytail: clobbers other hand-added quick.css rules lacking "JetBrains"; keep them in dotfiles copy.
+    if [ -f "$_src/quick.css" ] && ! grep -q JetBrains "$HOME/.config/millennium/quick.css" 2>/dev/null; then
+      mkdir -p "$HOME/.config/millennium"
+      cp "$_src/quick.css" "$HOME/.config/millennium/"
+    fi
+  '');
+
   # Keep Proton-GE Latest in Steam's compat tools dir in sync with the Nix package.
   # programs.steam.extraCompatPackages adds the package to STEAM_EXTRA_COMPAT_TOOLS_PATH
   # but Steam also maintains its own copy in ~/.local/share/Steam/compatibilitytools.d/.
