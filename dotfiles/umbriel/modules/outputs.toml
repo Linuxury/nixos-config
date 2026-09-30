@@ -1,7 +1,8 @@
 # Per-output monitor config. Included from config.toml.
 #
-# Ryzen5900x's LG 34" ultrawide. vrr = "always" keeps variable refresh
-# active outside fullscreen too, not just for fullscreen surfaces.
+# Ryzen5900x's LG 34" ultrawide. VRR fullscreen-only, same as Hyprland.
+# direct_scanout off (also Hyprland precedent): leaving a fullscreen game
+# swaps the scanout plane mid-flip → "Atomic commit failed: busy" freezes.
 # Named by monitor identity, not connector (DP-3), per Umbriel's own docs
 # recommendation — survives a port change.
 #
@@ -22,7 +23,8 @@
 mode = "3440x1440@240"                        # WIDTHxHEIGHT or WIDTHxHEIGHT@HZ
 scale = 1.0                                   # Logical size is mode size divided by scale
 vrr = "fullscreen"                                # disabled, always, or fullscreen
-hdr = "off"                                  # off, on, auto, or fullscreen
+direct_scanout = false                        # False forces composition on this output
+hdr = "off"                                 # off, on, auto, or fullscreen
 
 # Reference — every other available per-output key, upstream's own
 # generic example (still commented; ours above already sets the ones
