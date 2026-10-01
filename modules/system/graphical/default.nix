@@ -137,9 +137,12 @@
   };
 
   # Qt theming — makes Qt apps follow the active GTK theme automatically.
-  # qt6gtk2 reads GTK3 settings at runtime, so Qt apps blend with the desktop
-  # without requiring a separate Qt configurator tool.
-  environment.sessionVariables.QT_QPA_PLATFORMTHEME = "gtk2";
+  # qtbase ships the gtk3 platform theme plugin itself (qt6gtk2 was removed
+  # from nixpkgs), so no extra package or Qt configurator tool is needed.
+  # mkDefault: DE modules win (upstream COSMIC sets qt5ct, KDE sets "kde").
+  # Set on environment.variables, not sessionVariables — sessionVariables is
+  # copied into variables at normal priority, which drops the mkDefault.
+  environment.variables.QT_QPA_PLATFORMTHEME = lib.mkDefault "gtk3";
 
   # =========================================================================
   # NumLock — enable before the greeter on every graphical host
@@ -241,7 +244,6 @@
     # -----------------------------------------------------------------------
     wl-clipboard           # wl-copy / wl-paste — Wayland clipboard access from scripts
     xdg-utils              # xdg-open — opens files with the correct default app
-    qt6Packages.qt6gtk2    # Qt6 GTK platform theme — makes Qt apps follow the active GTK theme
 
     # GSettings schemas for GNOME/GTK desktop preferences.
     # COSMIC does not ship these, but GTK apps like Firefox read
