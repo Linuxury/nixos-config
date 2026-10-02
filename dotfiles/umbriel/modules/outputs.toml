@@ -52,7 +52,7 @@ min_workspaces = 4                            # Dynamic floor; rejected with a s
 # affects new columns only; existing columns keep their current size.
 # Documentation: https://docs.noctalia.dev/umbriel/outputs/#initial-scrolling-width
 # [output."LG Electronics LG ULTRAGEAR+ 410NTDVAJ338".layout.scrolling]
-# default_width_fraction = 0.4
+# default_extent_fraction = 0.4
 
 # ─────────────────────────────── Workspaces ──────────────────────────────────
 # Global workspace behavior. Each output uses dynamic workspaces unless its

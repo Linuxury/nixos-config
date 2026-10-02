@@ -1,0 +1,31 @@
+# Shader effects — every slot is off until a preset is selected below.
+# Included from config.toml. Docs: https://docs.noctalia.dev/umbriel/effects/
+#
+# Presets ship with the umbriel package; modules/compositors/umbriel/default.nix
+# links them to a stable path via environment.pathsToLink. Including a preset
+# only defines it — nothing renders until it's selected. Optional, so a preset
+# upstream renames or drops won't invalidate the whole config (the selection
+# below would then warn "unknown effect" instead).
+
+[include.optional]
+files = [
+  "/run/current-system/sw/share/umbriel/effects/border/pulse/effect.toml",
+  "/run/current-system/sw/share/umbriel/effects/cursor/glow/effect.toml",
+  "/run/current-system/sw/share/umbriel/effects/screen/vignette/effect.toml",
+  "/run/current-system/sw/share/umbriel/effects/window/scanlines/effect.toml",
+  "/run/current-system/sw/share/umbriel/effects/animation/reveal/effect.toml",
+  "/run/current-system/sw/share/umbriel/effects/animation/squash/effect.toml",
+]
+
+[effects]
+border = "pulse"                                # Breathing glow in Noctalia's palette colors
+# cursor = "glow"                               # Soft light around the pointer
+# screen = "vignette"                           # Darkened screen edges (per output: [output."…"] screen_effect)
+# window = "scanlines"                          # CRT lines over windows (per window: window_effect rule)
+
+# Animation presets select per event, not under [effects]. These merge into
+# the [animation.*] tables in animation.toml.
+# [animation.windows_in]
+# effect = "reveal"                             # Wipe in from the left on open/close
+# [animation.windows_move]
+# effect = "squash"                             # Squash-and-settle on move/resize

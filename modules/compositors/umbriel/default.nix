@@ -27,6 +27,12 @@
   # package self-defaults via the flake's withDefaultPackage wrapper —
   # no override needed.
 
+  # Expose the bundled effect presets at a stable path
+  # (/run/current-system/sw/share/umbriel/effects) for
+  # dotfiles/umbriel/modules/effects.toml to include — the package's own
+  # store path changes on every umbriel bump.
+  environment.pathsToLink = [ "/share/umbriel" ];
+
   # =========================================================================
   # Polkit — Authentication agent
   # =========================================================================

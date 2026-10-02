@@ -11,7 +11,7 @@
 # already running" and systemd crash-loops it into start-limit-hit.
 autostart = ["hypridle"]
 # mod_key = "Super"                    # Force Super instead of nested-session Alt
-xwayland = true                        # Requires xwayland-satellite; restart to change
+xwayland = true                        # Native wlroots Xwayland (no satellite since 2026-09-29); restart to change
 show_cheatsheet = false                 # Show the keybind overlay on startup
 focus_on_activate = false              # Do not let unsolicited requests steal focus
 honor_restored_maximize = false        # Honor restored maximized state

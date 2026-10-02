@@ -11,9 +11,9 @@
 # ─────────────────────── Upstream defaults (unmodified) ────────────────────
 
 # Applications and session
-"Mod+Return" = "spawn:kitty"
+"Mod+Return" = { action = "spawn:kitty", repeat = false }
 "Mod" = "spawn:noctalia msg panel-toggle launcher"
-"Mod+Q" = "window-close"
+"Mod+Q" = { action = "window-close", repeat = false }
 
 # Overview
 "Mod+O" = { action = "overview-toggle", repeat = false }
@@ -33,12 +33,12 @@
 "Mod+Shift+Right" = "column-move-right"
 
 # Window state and layout
-"Mod+T" = "window-toggle-floating"
-"Mod+Shift+T" = "window-focus-switch-floating"
-"Mod+P" = "window-toggle-pinned"
-"Mod+M" = "window-toggle-maximize-to-edges"
-"Mod+F" = "window-toggle-fullscreen"
-"Mod+Ctrl+F" = "window-toggle-maximize"
+"Mod+T" = { action = "window-toggle-floating", repeat = false }
+"Mod+Shift+T" = { action = "window-focus-switch-floating", repeat = false }
+"Mod+P" = { action = "window-toggle-pinned", repeat = false }
+"Mod+M" = { action = "window-toggle-maximize-to-edges", repeat = false }
+"Mod+F" = { action = "window-toggle-fullscreen", repeat = false }
+"Mod+Ctrl+F" = { action = "window-toggle-maximize", repeat = false }
 
 # These are built in already, but explicitly declared anyway — pure
 # built-ins with no declaration here don't reliably fire on this Umbriel
@@ -74,9 +74,14 @@
 # "Mod+BackSpace" = "window-consume-or-expel-left"
 # "Mod+C" = "column-center"
 # "Mod+Shift+C" = "window-center"
-# "Mod+Alt+Left" = "window-consume-left"
-# "Mod+Alt+Right" = "window-consume-right"
-"Mod+Ctrl+T" = "workspace-set-layout:toggle"
+"Mod+Ctrl+T" = { action = "workspace-set-layout:toggle", repeat = false }
+
+# Tabs — Mod+W tabs the windows stacked in the focused column (or stacks
+# them back). Mod+Shift+Up/Down above moves a window into/out of a group;
+# click, scroll, or drag a title on the tab bar to switch or reorder.
+"Mod+W" = { action = "column-toggle-tabbed", repeat = false }
+"Mod+Alt+Right" = "column-focus-tab-next"
+"Mod+Alt+Left" = "column-focus-tab-previous"
 
 # Mouse / wheel
 "Mod+MouseMiddle" = "layout-scroll-drag"
@@ -113,9 +118,9 @@
 # Scratchpads — each output owns a separate scratchpad. Bare actions target
 # the output under the pointer; append `:DP-1` or a monitor Config name to
 # target one explicitly.
-"Mod+Shift+Space" = "window-move-to-scratchpad"
+"Mod+Shift+Space" = { action = "window-move-to-scratchpad", repeat = false }
 "Mod+Space" = "scratchpad-toggle"
-"Mod+Ctrl+Space" = "window-restore-from-scratchpad"
+"Mod+Ctrl+Space" = { action = "window-restore-from-scratchpad", repeat = false }
 "Mod+Tab" = "scratchpad-focus-next"
 
 # Submaps temporarily replace the active keybind layer and can nest. Entry
@@ -135,7 +140,7 @@
 # overrides a built-in or an upstream-active chord above.
 
 # Core apps
-"Mod+Shift+Return" = "spawn:kitty --class floating-term"
+"Mod+Shift+Return" = { action = "spawn:kitty --class floating-term", repeat = false }
 "Mod+E"            = "spawn:thunar"
 
 # Session control
