@@ -10,7 +10,6 @@
 [include.optional]
 files = [
   "/run/current-system/sw/share/umbriel/effects/border/pulse/effect.toml",
-  "/run/current-system/sw/share/umbriel/effects/cursor/glow/effect.toml",
   "/run/current-system/sw/share/umbriel/effects/screen/vignette/effect.toml",
   "/run/current-system/sw/share/umbriel/effects/window/scanlines/effect.toml",
   "/run/current-system/sw/share/umbriel/effects/animation/reveal/effect.toml",
@@ -19,9 +18,18 @@ files = [
 
 [effects]
 border = "pulse"                                # Breathing glow in Noctalia's palette colors
-# cursor = "glow"                               # Soft light around the pointer
+cursor = "glow"                               # Soft light around the pointer
 # screen = "vignette"                           # Darkened screen edges (per output: [output."…"] screen_effect)
 # window = "scanlines"                          # CRT lines over windows (per window: window_effect rule)
+
+# Cursor glow — defined here instead of included, so radius can be tuned
+# (presets can't be redefined across files). Same shader and settings as the
+# bundled cursor/glow preset, except the radius.
+[effects.preset.glow]
+kind = "cursor"
+shader = "/run/current-system/sw/share/umbriel/effects/cursor/glow/shader.glsl"
+palette = true
+radius = 24                                     # Logical px; bundled preset uses 96
 
 # Animation presets select per event, not under [effects]. These merge into
 # the [animation.*] tables in animation.toml.
