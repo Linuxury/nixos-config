@@ -362,7 +362,7 @@
     ntfs3g
 
     # Remote support
-    rustdesk  # Open source remote desktop — lets you help her remotely
+    rustdesk-flutter  # Open source remote desktop — lets you help her remotely
 
     # Media
     vlc       # Reliable video player that plays anything
