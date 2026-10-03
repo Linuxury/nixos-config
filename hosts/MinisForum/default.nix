@@ -346,10 +346,11 @@
   virtualisation.oci-containers = {
     backend = "docker";
     containers.crafty = {
-      # Floating tag + pull="newer": every container start checks the registry
-      # and pulls only if :latest moved. The weekly restart below triggers that.
+      # Floating tag + pull="always": every container start checks the registry
+      # digest and only downloads changed layers. ("newer" is podman-only.)
+      # The weekly restart below triggers that.
       image     = "registry.gitlab.com/crafty-controller/crafty-4:latest";
-      pull      = "newer";
+      pull      = "always";
       autoStart = true;
       ports = [
         "8443:8443"       # Web UI
