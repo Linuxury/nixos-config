@@ -289,12 +289,6 @@ in
         gpu_device = 0; # Primary GPU (change to 1 for secondary)
         amd_performance_level = "high"; # AMD GPU performance mode during gaming
       };
-      custom = {
-        # Commands to run when GameMode starts and stops
-        # Useful for disabling notifications while gaming
-        start = "${pkgs.libnotify}/bin/notify-send 'GameMode' 'Optimizations applied'";
-        end = "${pkgs.libnotify}/bin/notify-send 'GameMode' 'Optimizations removed'";
-      };
     };
   };
 
