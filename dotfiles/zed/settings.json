@@ -40,7 +40,7 @@
     "dock": "left",
     "auto_reveal_entries": true,
     "auto_fold_dirs": false,
-    "folder_icons": true,
+    "folder_indicator": "icon",
     "file_icons": true
   },
   "terminal": {
@@ -51,7 +51,9 @@
     "show_turn_stats": true,
     "use_modifier_to_send": false,
     "notify_when_agent_waiting": "primary_screen",
-    "sidebar_side": "right",
+    "threads_sidebar": {
+      "position": "right"
+    },
     "dock": "right",
     "favorite_models": [],
     "model_parameters": [],
