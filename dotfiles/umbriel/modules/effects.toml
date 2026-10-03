@@ -18,7 +18,7 @@ files = [
 
 [effects]
 border = "pulse"                                # Breathing glow in Noctalia's palette colors
-cursor = "glow"                               # Soft light around the pointer
+# cursor = "glow"                               # Soft light around the pointer
 # screen = "vignette"                           # Darkened screen edges (per output: [output."…"] screen_effect)
 # window = "scanlines"                          # CRT lines over windows (per window: window_effect rule)
 
