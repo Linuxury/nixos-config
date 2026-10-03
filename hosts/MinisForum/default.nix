@@ -346,7 +346,10 @@
   virtualisation.oci-containers = {
     backend = "docker";
     containers.crafty = {
-      image     = "registry.gitlab.com/crafty-controller/crafty-4:4.10.8";
+      # Floating tag + pull="newer": every container start checks the registry
+      # and pulls only if :latest moved. The weekly restart below triggers that.
+      image     = "registry.gitlab.com/crafty-controller/crafty-4:latest";
+      pull      = "newer";
       autoStart = true;
       ports = [
         "8443:8443"       # Web UI
@@ -361,6 +364,18 @@
         "/data/gameservers/crafty/import:/crafty/import"
       ];
     };
+  };
+
+  # Weekly restart so the container re-checks :latest (see pull above).
+  # Monday 04:00 — least likely time for anyone to be on a server.
+  systemd.services.crafty-update = {
+    description = "Restart Crafty to pull a newer :latest image";
+    serviceConfig.Type = "oneshot";
+    script = "systemctl restart docker-crafty.service";
+  };
+  systemd.timers.crafty-update = {
+    wantedBy = [ "timers.target" ];
+    timerConfig.OnCalendar = "Mon 04:00";
   };
 
   # ==============================================================
