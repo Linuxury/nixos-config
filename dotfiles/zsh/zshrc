@@ -279,7 +279,7 @@ _nix_fetch_filter() {
   /^Skipping "\//                                       { next }
   /^this path will be fetched/                          { next }
   /^unpacking \47.*\47 into the Git cache/               { next }
-  /^NOT restarting the following changed units:/         { next }
+  /^NOT restarting the following (changed|user) units:/  { next }
   # systemd-run chatter from switch-to-configuration — the wall-clock time is
   # pulled from the raw log by _nixos_run and shown on the nru success line.
   # Only the success lines; "Failed with result" etc. still pass through.
