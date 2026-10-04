@@ -280,6 +280,12 @@ _nix_fetch_filter() {
   /^this path will be fetched/                          { next }
   /^unpacking \47.*\47 into the Git cache/               { next }
   /^NOT restarting the following changed units:/         { next }
+  # systemd-run chatter from switch-to-configuration — the wall-clock time is
+  # pulled from the raw log by _nixos_run and shown on the nru success line.
+  # Only the success lines; "Failed with result" etc. still pass through.
+  /^Start(ing|ed) \[systemd-run\] /                        { next }
+  /^(switching|finished switching) to system configuration / { next }
+  /^nixos-rebuild-switch-to-configuration\.service: (Deactivated|Consumed) / { next }
 
   /^these [0-9]+ derivations will be built:/ {
     killspinner()
@@ -542,6 +548,18 @@ ANIMEOF
     [[ -n "$log_out" ]] && printf '%s\n' "$log_out" | grep -v '^nixos-log-rebuild:'
   fi
 
+  # Switch duration from systemd's "Consumed … over 1.924s wall clock time"
+  # line (hidden by _nix_fetch_filter) — nru folds it into its success line.
+  _NIXOS_SWITCH_TIME=""
+  local _wall
+  _wall=$(grep -oE 'over [0-9.]+(min|ms|s)( [0-9.]+s)? wall clock' "$tmplog" | tail -1)
+  _wall=${${_wall#over }% wall clock}
+  case $_wall in
+    *min*) _NIXOS_SWITCH_TIME=$(printf '%dm %.0fs' ${_wall%%min*} ${${_wall##* }%s}) ;;
+    *ms)   _NIXOS_SWITCH_TIME=$(printf '%.1fs' $(( ${_wall%ms} / 1000.0 ))) ;;
+    *s)    _NIXOS_SWITCH_TIME=$(printf '%.1fs' ${_wall%s}) ;;
+  esac
+
   kill "$(cat "$_anim_pid" 2>/dev/null)" 2>/dev/null || true
   rm -f "$tmplog" "$_anim_script" "$_anim_pid" "$_anim_state"
   return $exit_code
@@ -590,7 +608,10 @@ _nru_rebuild() {
     echo "⚠ Rebuild succeeded with unit warnings (exit $exit_code)"
   fi
 
-  echo "✓ Rebuild successful${_NIXOS_LAST_GEN:+  (generation ${_NIXOS_LAST_GEN})}"
+  local -a _info
+  [[ -n $_NIXOS_LAST_GEN ]]    && _info+=("generation $_NIXOS_LAST_GEN")
+  [[ -n $_NIXOS_SWITCH_TIME ]] && _info+=("switched in $_NIXOS_SWITCH_TIME")
+  echo "✓ Rebuild successful${_info:+  (${(j: · :)_info})}"
 
   # Record timestamp so the scheduled auto-update service skips its 3am run
   # if nru was used within the last 20h.
