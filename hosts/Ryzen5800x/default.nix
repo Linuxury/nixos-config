@@ -48,6 +48,7 @@
     ../../modules/system/graphical/zennotes/default.nix
     ../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
+    ../../modules/system/graphical/craft-apps/default.nix
     ../../modules/services/kdeconnect/default.nix
     #../../modules/system/graphical/zen-browser/default.nix
 

@@ -51,6 +51,7 @@
     #../../modules/services/kdeconnect/default.nix
     #../../modules/system/graphical/zen-browser/default.nix
     #../../modules/system/graphical/helium/default.nix
+    #../../modules/system/graphical/craft-apps/default.nix
 
     # ==============================================================
     # Desktop Environment — enable ONE (includes shell + greeter)

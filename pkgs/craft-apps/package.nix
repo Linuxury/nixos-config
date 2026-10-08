@@ -3,7 +3,12 @@
   stdenv,
   fetchurl,
   autoPatchelfHook,
+  alsa-lib,
   libGL,
+  libx11,
+  libxcursor,
+  libxi,
+  libxrandr,
   libxkbcommon,
   vulkan-loader,
   wayland,
@@ -40,10 +45,11 @@ let
     };
 
     nativeBuildInputs = [ autoPatchelfHook ];
-    buildInputs = [ stdenv.cc.cc.lib ];
+    buildInputs = [ stdenv.cc.cc.lib alsa-lib ];
 
-    # dlopen'd at runtime, invisible to autoPatchelf's link scan.
-    runtimeDependencies = [ libGL libxkbcommon vulkan-loader wayland ];
+    # dlopen'd at runtime, invisible to autoPatchelf's link scan. X11 libs: DesignCraft
+    # forces winit's X11 backend (file drag-and-drop), so it runs under XWayland.
+    runtimeDependencies = [ libGL libxkbcommon vulkan-loader wayland libx11 libxcursor libxi libxrandr ];
 
     installPhase = ''
       runHook preInstall

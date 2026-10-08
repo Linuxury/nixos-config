@@ -9,7 +9,7 @@
 # Overlay is scoped here, so only hosts importing this module fetch them.
 # ===========================================================================
 
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   nixpkgs.overlays = [
@@ -18,5 +18,6 @@
     })
   ];
 
-  environment.systemPackages = builtins.attrValues pkgs.craft-apps;
+  # filter: callPackage adds override/overrideDerivation functions to the attrset.
+  environment.systemPackages = builtins.filter lib.isDerivation (builtins.attrValues pkgs.craft-apps);
 }
