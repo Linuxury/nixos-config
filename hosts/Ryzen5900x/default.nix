@@ -515,7 +515,7 @@
   # to enter your password every time it applies settings.
   # ==============================================================
   programs.corectrl.enable = true;
-  programs.affinity.enable = true;
+  # programs.affinity.enable = true;  # disabled 2026-10-08 — replaced by craft-apps
   programs.steam.millennium.enable = true;
   hardware.amdgpu.overdrive.enable = true;
 
@@ -553,7 +553,7 @@
     # video editors, image editors, etc. go here so each host can
     # enable/disable them independently.
     # ==============================================================
-    # affinity-v3 is installed via programs.affinity.enable above
+    # affinity-v3 disabled above (replaced by craft-apps)
   ];
 
   # ==============================================================
