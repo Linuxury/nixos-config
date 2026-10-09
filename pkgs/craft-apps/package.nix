@@ -15,7 +15,7 @@
 }:
 # storytold Craft apps (https://getartcraft.com/apps) — prebuilt Linux release tarballs.
 #
-# Returns an attrset of 7 derivations (pkgs.craft-apps.photocraft, …).
+# Returns an attrset of derivations (pkgs.craft-apps.photocraft, …).
 # Each tarball is a plain FHS tree (bin/, share/{applications,icons,mime,metainfo}),
 # so copying it to $out gives the menu entry, icons and file associations.
 #
@@ -33,6 +33,11 @@ let
     filmcraft   = { version = "0.4.0"; hash = "sha256-hBeQ/2ZJ8NSdqkqK3hyxjZSOXKQ9AHcQRmY+BsjYzoM="; description = "Video editor"; };
     effectcraft = { version = "0.6.0"; hash = "sha256-cYEHGZAzeM2rMqH+Mo8jyHTTjNPYM6uxnGJj3SutIYw="; description = "Motion graphics and VFX"; };
     designcraft = { version = "0.4.0"; hash = "sha256-TAtowNxiCB5FW/jWDdVPAi/xYkNZ1eENBsorGNc9S7M="; description = "Page layout and publishing"; };
+    wordcraft   = { version = "0.3.0"; hash = "sha256-wLOkthr+DoiRsThvc9yUrfUo2NhzYPP7cal7oDOBrsI="; description = "Word processor"; };
+    gridcraft   = { version = "0.3.0"; hash = "sha256-5RWuiK4kgKBKS10klUDugqxSHQvouGu8qPVlR7yBVP8="; description = "Spreadsheet"; };
+    deckcraft   = { version = "0.3.0"; hash = "sha256-F51s5HQBujfCM8P8ChgDQSau2BrDaknE327NrKm1q38="; description = "Presentations"; };
+    soundcraft  = { version = "0.3.0"; hash = "sha256-MdSj5O/oiqRykbK1qoXkVnn9c5iOuVEBXdsk6yu6kyI="; description = "Digital audio workstation"; };
+    cadcraft    = { version = "0.3.0"; hash = "sha256-QjmwVFwABsE/ZBn+m8IEYtcnCWkSzzyx6yUjk0ECvXg="; description = "CAD and drafting"; };
   };
 
   mk = pname: app: stdenv.mkDerivation {

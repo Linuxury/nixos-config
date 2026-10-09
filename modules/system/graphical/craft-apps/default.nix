@@ -2,7 +2,8 @@
 # modules/system/graphical/craft-apps/default.nix — storytold Craft apps
 #
 # PhotoCraft, PdfCraft, LightCraft, VectorCraft, FilmCraft, EffectCraft,
-# DesignCraft (https://getartcraft.com/apps). Not in nixpkgs yet; packaged
+# DesignCraft, WordCraft, GridCraft, DeckCraft, SoundCraft, CADCraft
+# (https://getartcraft.com/apps). Not in nixpkgs yet; packaged
 # from upstream's prebuilt release tarballs in pkgs/craft-apps/package.nix
 # (versions + hashes live there).
 #
