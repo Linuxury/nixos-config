@@ -395,6 +395,10 @@
       noto-fonts               # Wide unicode coverage, clean and readable
       noto-fonts-cjk-sans      # Chinese, Japanese, Korean support
       liberation_ttf           # Free replacements for Arial, Times New Roman etc
+      corefonts                # Real Arial, Times New Roman, Verdana, Georgia… (unfree)
+      vista-fonts              # Real Calibri, Cambria, Consolas… — Office doc defaults (unfree; viewer-only licence)
+      carlito                  # Free Calibri metric clone — use for commercial work
+      caladea                  # Free Cambria metric clone — use for commercial work
       # noto-fonts-color-emoji intentionally omitted — it steals the
       # private-use-area codepoints that Nerd Fonts uses for icons,
       # breaking fastfetch and terminal icon rendering.
