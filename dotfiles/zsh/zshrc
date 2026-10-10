@@ -624,13 +624,15 @@ _nru_rebuild() {
   touch /run/user/$UID/nixos-update-done 2>/dev/null || true
 
   # Push the updated flake.lock so other hosts get the same nixpkgs pin.
-  # Only linuxury@Ryzen5900x/ThinkPad push — every other host (including
-  # headless servers, which lack GitHub push credentials) just pulls; their
-  # local flake.lock bump is transient and gets discarded by _nru_git_bar's
-  # `git restore flake.lock` on the next run.
+  # Only linuxury@Ryzen5900x pushes — it's the single flake.lock writer.
+  # Every other host (ThinkPad included) just pulls; their local flake.lock
+  # bump is transient and gets discarded by _nru_git_bar's
+  # `git restore flake.lock` on the next run. Two pushers = guaranteed
+  # lock conflicts (ThinkPad stranded a lock commit 2026-09-27 that broke
+  # nru on 2026-10-10).
   # Git output is captured and hidden on success; shown in full on failure
   # so auth/divergence errors are never silently swallowed.
-  if [[ "$(whoami)" == "linuxury" && "$(hostname)" == (Ryzen5900x|ThinkPad) ]] \
+  if [[ "$(whoami)" == "linuxury" && "$(hostname)" == Ryzen5900x ]] \
      && ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
     echo "→ Pushing updated flake.lock..."
     local git_out
