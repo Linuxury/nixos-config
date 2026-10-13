@@ -322,19 +322,28 @@ _nru_ticker() {
 _nix_fetch_filter() {
   awk -v statef="$1" -v cachedir="$2" '
   BEGIN { bw=20; ft=0; fd=0; bt=0; bd=0; kind=""; label=""; active=0; err=0
+          cur="eval"   # what the ticker is drawing right now ("" = nothing)
           fetched=0; built=0; dl_mib=0
           n_stopped=0; n_restarted=0; n_reloaded=0; n_started=0; n_new=0; n_failed=0 }
 
   function state() {
-    if (kind == "fetch") printf "fetch|%d|%d|%s\n", fd, ft, label > statef
-    else                 printf "build|%d|%d|%s\n", bd, bt, label > statef
-    close(statef)
+    cur = (kind == "fetch") ? sprintf("fetch|%d|%d|%s", fd, ft, label) : sprintf("build|%d|%d|%s", bd, bt, label)
+    printf "%s\n", cur > statef; close(statef)
   }
-  # Stop the ticker drawing and clear its line before printing a normal line.
+  # Pause the ticker and clear its line (it waits 0.15s so a frame in flight lands first).
   function quiet() {
     printf "" > statef; close(statef)
     system("sleep 0.15")
     printf "\r\033[K" > "/dev/tty"; fflush("/dev/tty")
+  }
+  # Stop the ticker for good (bars done, error, or activation started).
+  function stop() { if (cur == "") return; quiet(); cur = "" }
+  # Print a normal line without colliding with the ticker, then let it resume
+  # (e.g. a warning during "Evaluating…").
+  function say(line) {
+    if (cur != "") quiet()
+    print line; fflush()
+    if (cur != "") { printf "%s\n", cur > statef; close(statef) }
   }
   function bar(d, t,   f, s, i) {
     f = int(d * bw / (t > 0 ? t : 1)); s = ""
@@ -345,8 +354,8 @@ _nix_fetch_filter() {
   function size(m) { return m >= 1024 ? sprintf("%.1f GiB", m / 1024) : sprintf("%.0f MiB", m) }
   # Print the final ⬇ / ⚒ lines once; later rounds (rare) start fresh bars.
   function finals() {
+    stop()
     if (!active) return
-    quiet()
     if (ft) printf "  ⬇  %-12s  [%s]  %3d%%  %s\n", fd "/" ft, bar(fd, ft), int(fd * 100 / ft), size(dl_mib) > "/dev/tty"
     if (bt) {
       if (err) printf "  ⚒  %-12s  [%s]  %3d%%  stopped\n", bd "/" bt, bar(bd, bt), int(bd * 100 / bt) > "/dev/tty"
@@ -457,7 +466,7 @@ _nix_fetch_filter() {
     next
   }
 
-  { finals(); print }
+  { if (active) finals(); say($0) }
 
   END {
     finals()
@@ -960,14 +969,27 @@ _nru_inputs_bar() {
   local -A old_rev old_ts
   local -a moved rows
 
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$_NRU_NIX" "$name" "⏭ skipped (offline)"; return 0; fi
-
   while read -r k r t; do old_rev[$k]=$r; old_ts[$k]=$t; done < <(_nru_lock_inputs)
+
+  # Only the lock writer updates inputs; every other host builds exactly the
+  # lock it just pulled. Same versions everywhere, and no GitHub API calls
+  # from them (60/hour per IP, shared by every machine behind the home IP —
+  # Media-Server hit it on 2026-10-13 once nru updated all 11 inputs).
+  if ! _nru_is_lock_writer; then
+    _nru_ok "$_NRU_NIX" "$name" "nixpkgs $(date -d @${old_ts[nixpkgs]} +%m-%d) · lock from Ryzen5900x"
+    return 0
+  fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$_NRU_NIX" "$name" "⏭ skipped (offline)"; return 0; fi
 
   if ! _nru_spin "$_NRU_NIX" "$name" "updating ${#old_rev} inputs" "$log" nix flake update --flake "$NIXOS_CONFIG"; then
     git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null
-    _nru_row "$_NRU_NIX" "$name" "⚠ update failed · keeping current lock (nixpkgs $(date -d @${old_ts[nixpkgs]} +%F))"
-    grep -m1 'error:' "$log" | sed -E 's/^\s*/       /'
+    if grep -q 'rate limit exceeded' "$log"; then
+      _nru_row "$_NRU_NIX" "$name" "⚠ GitHub rate limit · keeping current lock (nixpkgs $(date -d @${old_ts[nixpkgs]} +%F))"
+    else
+      # nix's first "error:" line is often bare; the real message is the last one
+      _nru_row "$_NRU_NIX" "$name" "⚠ update failed · keeping current lock (nixpkgs $(date -d @${old_ts[nixpkgs]} +%F))"
+      grep -E '^\s*error: \S' "$log" | tail -1 | sed -E 's/^\s*/       /'
+    fi
     return 0
   fi
 
@@ -980,8 +1002,11 @@ _nru_inputs_bar() {
   if (( ! $#moved )); then _nru_ok "$_NRU_NIX" "$name" "up to date"; return 0; fi
   for m in $moved; do
     IFS='|' read -r k od t <<< "$m"
-    [[ -n $od ]] && od=$(date -d @$od +%m-%d) || od=new
-    rows+=("$(printf "%-${w}s  %s → %s" "$k" "$od" "$(date -d @$t +%m-%d)")")
+    # Same day on both sides says nothing — show the times instead.
+    if [[ -z $od ]]; then od=new; t=$(date -d @$t +%m-%d)
+    elif [[ $(date -d @$od +%F) == $(date -d @$t +%F) ]]; then od=$(date -d @$od +%H:%M); t=$(date -d @$t +%H:%M)
+    else od=$(date -d @$od +%m-%d); t=$(date -d @$t +%m-%d); fi
+    rows+=("$(printf "%-${w}s  %s → %s" "$k" "$od" "$t")")
   done
   _nru_ok "$_NRU_NIX" "$name" "$#moved of ${#old_rev} updated"
   _nru_tree "${rows[@]}"
