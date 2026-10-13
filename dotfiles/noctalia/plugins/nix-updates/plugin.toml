@@ -5,9 +5,9 @@ plugin_api = 24
 author = "linuxury"
 license = "MIT"
 icon = "package"
-description = "Shows which NixOS/Home Manager packages would change on the next flake update, and runs the rebuild on demand."
+description = "Shows which NixOS/Home Manager packages and Flatpaks would change on the next update, and runs the rebuild on demand."
 tags = ["bar", "panel", "service", "nixos", "system"]
-dependencies = ["nix", "flock", "join", "awk", "sort", "mktemp", "hostname"]
+dependencies = ["nix", "flock", "join", "awk", "sort", "mktemp", "hostname", "git", "cmp"]
 
 [[setting]]
 key = "flake_dir"
@@ -22,6 +22,24 @@ type = "string"
 label_key = "settings.host.label"
 description_key = "settings.host.description"
 default = ""
+
+[[setting]]
+key = "compare"
+type = "select"
+label_key = "settings.compare.label"
+description_key = "settings.compare.description"
+default = "upstream"
+options = [
+  { value = "upstream", label_key = "settings.compare.options.upstream" },
+  { value = "remote", label_key = "settings.compare.options.remote" },
+]
+
+[[setting]]
+key = "include_flatpak"
+type = "bool"
+label_key = "settings.include_flatpak.label"
+description_key = "settings.include_flatpak.description"
+default = true
 
 [[setting]]
 key = "update_method"

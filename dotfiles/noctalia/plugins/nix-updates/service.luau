@@ -1,6 +1,7 @@
 --!nonstrict
 -- nix-updates service: the only entry that runs checks. Publishes
--- { phase, rows, checkedAt, error } as "nix_updates" for the widget and panel,
+-- { phase, rows, checkedAt, error } as "nix_updates" for the widget and panel
+-- (each row: { kind = "nix" | "flatpak", name, old, new }),
 -- and listens for "nix_updates_request" (a nonce) to check on demand.
 --
 -- check.sh runs detached because runAsync with a callback is capped at 60s and
@@ -40,10 +41,19 @@ end
 local function launch()
   if startedAt then return end
   local dir = noctalia.expandPath(noctalia.getConfig("flake_dir"))
-  if noctalia.runAsync({ "sh", script, dir, noctalia.getConfig("host"), resultPath }) then
+  -- Settings added later read nil until the shell reloads plugin.toml.
+  local flatpak = noctalia.getConfig("include_flatpak") ~= false and "1" or "0"
+  if noctalia.runAsync({ "sh", script, dir, noctalia.getConfig("host"), resultPath,
+                         noctalia.getConfig("compare") or "upstream", flatpak }) then
     startedAt = os.time()
     publish()
   end
+end
+
+local function countKind(rows, kind)
+  local n = 0
+  for _, r in rows do if r.kind == kind then n += 1 end end
+  return n
 end
 
 -- Parse "ok|error <epoch>" + body lines. Returns false if the file is unreadable.
@@ -59,8 +69,13 @@ local function load(notify)
   if status == "ok" then
     local rows = {}
     for i = 2, #lines do
-      local name, old, new = string.match(lines[i], "^(%S+) (%S+) (%S+)$")
-      if name then table.insert(rows, { name = name, old = old, new = new }) end
+      local f = string.split(lines[i], "\t")
+      if #f == 4 then
+        table.insert(rows, { kind = f[1], name = f[2], old = f[3], new = f[4] })
+      else -- result written before Flatpak support: "name old new"
+        local name, old, new = string.match(lines[i], "^(%S+) (%S+) (%S+)$")
+        if name then table.insert(rows, { kind = "nix", name = name, old = old, new = new }) end
+      end
     end
     state.phase, state.rows, state.error = "idle", rows, nil
     failures = 0
@@ -70,7 +85,8 @@ local function load(notify)
         table.insert(body, `{rows[i].name}  {rows[i].old} → {rows[i].new}`)
       end
       if #rows > 8 then table.insert(body, noctalia.tr("more", { count = #rows - 8 })) end
-      noctalia.notify(noctalia.tr("count", { count = #rows }), table.concat(body, "\n"))
+      noctalia.notify(noctalia.tr("count_split", { nix = countKind(rows, "nix"), flatpak = countKind(rows, "flatpak") }),
+        table.concat(body, "\n"))
     end
   else
     -- Keep the previous rows so a network blip doesn't hide known updates.
@@ -120,9 +136,10 @@ function update()
   publish()
 end
 
--- Only a different flake or host invalidates the result; other settings don't.
+-- Only settings that change what gets compared invalidate the result.
 local function target()
-  return noctalia.getConfig("flake_dir") .. "|" .. noctalia.getConfig("host")
+  return `{noctalia.getConfig("flake_dir")}|{noctalia.getConfig("host")}|`
+    .. `{noctalia.getConfig("compare")}|{noctalia.getConfig("include_flatpak")}`
 end
 local lastTarget = target()
 

@@ -38,7 +38,7 @@
 # (+ greeters/sddm).
 # ===========================================================================
 
-{ inputs, pkgs, ... }:
+{ config, inputs, pkgs, ... }:
 
 {
   imports = [ ../../greeters/noctalia/default.nix ];
@@ -108,6 +108,13 @@
           # and community must be listed here too. Don't add/remove sources via
           # IPC or the GUI: that saves a full source list to the app-owned
           # settings.toml, which then overrides this one.
+          # nix-updates "Compare against": only Ryzen5900x updates flake inputs
+          # (nru's lock-writer rule); every other host builds the lock it pulls,
+          # so the plugin there compares against the remote lock — what the
+          # next nru will really bring, with no GitHub API calls.
+          plugin_settings."linuxury/nix-updates".compare =
+            if config.networking.hostName == "Ryzen5900x" then "upstream" else "remote";
+
           plugins = {
             enabled = [ "linuxury/nix-updates" ];
             source  = [

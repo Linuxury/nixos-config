@@ -54,33 +54,45 @@ local function statusText(s)
   return text
 end
 
+-- One section per kind: header with icon, count and (for NixOS) what the
+-- comparison is against, then its rows or a muted "up to date".
+local function section(items, rows, kind, icon, label, note)
+  local mine = {}
+  for _, r in rows do if r.kind == kind then table.insert(mine, r) end end
+  table.insert(items, ui.row({ gap = 8, align = "center" }, {
+    ui.label({ text = `{icon}  {label} · {#mine}`, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
+    ui.label({ text = note or "", color = "on_surface_variant" }),
+  }))
+  if #mine == 0 then
+    table.insert(items, ui.label({ text = "   " .. tr("up_to_date"), color = "on_surface_variant" }))
+  end
+  for _, r in mine do
+    table.insert(items, ui.row({ gap = 8, align = "center" }, {
+      ui.label({ text = "   " .. r.name, color = "on_surface", flexGrow = 1 }),
+      ui.label({ text = r.old, color = "on_surface_variant" }),
+      ui.glyph({ name = "arrow-right", size = 14, color = "on_surface_variant" }),
+      ui.label({ text = r.new, color = "primary", fontWeight = "medium" }),
+    }))
+  end
+end
+
 local function body(s)
   local items = {}
   if s and s.phase == "error" then
     table.insert(items, ui.label({ text = tr("check_failed"), fontWeight = "bold", color = "error" }))
     table.insert(items, ui.label({ text = s.error or "", color = "on_surface_variant", maxLines = 6 }))
   end
-  if s == nil or #s.rows == 0 then
-    if not (s and s.phase == "error") then
-      table.insert(items, ui.label({ text = tr("up_to_date"), color = "on_surface_variant" }))
-    end
-    return items
-  end
-  for _, r in s.rows do
-    table.insert(items, ui.row({ gap = 8, align = "center" }, {
-      ui.label({ text = r.name, color = "on_surface", flexGrow = 1 }),
-      ui.label({ text = r.old, color = "on_surface_variant" }),
-      ui.glyph({ name = "arrow-right", size = 14, color = "on_surface_variant" }),
-      ui.label({ text = r.new, color = "primary", fontWeight = "medium" }),
-    }))
+  local rows = s and s.rows or {}
+  section(items, rows, "nix", "❄", "NixOS", tr(cfg("compare") == "remote" and "from_remote" or "from_upstream"))
+  if cfg("include_flatpak") ~= false then
+    section(items, rows, "flatpak", "󰏖", "Flatpak")
   end
   return items
 end
 
 local function render()
   local s = noctalia.state.get(STATE_KEY)
-  local count = s and #s.rows or 0
-  local title = count > 0 and `{tr("title")} · {count}` or tr("title")
+  local title = tr("title")
 
   panel.render(ui.column({ flexGrow = 1, gap = 12 }, {
     ui.row({ align = "center", gap = 8 }, {
