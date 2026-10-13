@@ -85,6 +85,7 @@ _fmt_nvd() {
         pkg="${pkg%%  *}"
         [[ "$pkg" == "source" || "$pkg" == "home-manager-"* || "$pkg" == "hm_"* || "$pkg" == "activation-script" || "$pkg" == "unit-"* ]] && continue
         ver=$(printf '%s' "$ver" | sed 's/, .*//')
+        [[ "$ver" == "<none>" ]] && ver=$section   # unversioned (scripts): say added/removed
         names+=("$pkg")
         actions+=("$section")
         if [[ "$section" == "added" ]]; then
@@ -800,8 +801,10 @@ _nru_rebuild() {
   # ── Run summary ────────────────────────────────────────────────────────────
   if [[ -n $_NRU_START ]]; then
     local t=$(( EPOCHSECONDS - _NRU_START )) dl=${st[dl_mib]:-0}
-    (( dl >= 1024 )) && dl=$(printf '%.1f GiB' $(( dl / 1024.0 ))) || dl=$(printf '%.0f MiB' $dl)
-    printf "  ⏱  %dm %02ds total · %s downloaded · %s built\n" $(( t / 60 )) $(( t % 60 )) "$dl" "${st[built]:-0}"
+    if (( dl == 0 ));      then dl="nothing downloaded"
+    elif (( dl >= 1024 )); then dl=$(printf '%.1f GiB downloaded' $(( dl / 1024.0 )))
+    else                        dl=$(printf '%.0f MiB downloaded' $dl); fi
+    printf "  ⏱  %dm %02ds total · %s · %s built\n" $(( t / 60 )) $(( t % 60 )) "$dl" "${st[built]:-0}"
   fi
 
   # ── Disk check ─────────────────────────────────────────────────────────────
@@ -980,7 +983,7 @@ _nru_inputs_bar() {
     [[ -n $od ]] && od=$(date -d @$od +%m-%d) || od=new
     rows+=("$(printf "%-${w}s  %s → %s" "$k" "$od" "$(date -d @$t +%m-%d)")")
   done
-  _nru_ok "$_NRU_NIX" "$name" "$#moved updated"
+  _nru_ok "$_NRU_NIX" "$name" "$#moved of ${#old_rev} updated"
   _nru_tree "${rows[@]}"
 }
 
@@ -1061,7 +1064,7 @@ _nru_flatpak_bar() {
   if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
 
   _nru_spin "$icon" "$name" "updating" "$log" zsh -c \
-    'nixos-flatpak-update --user; sudo -n /run/current-system/sw/bin/nixos-flatpak-update --system'
+    'nixos-flatpak-update --user; /run/wrappers/bin/sudo -n /run/current-system/sw/bin/nixos-flatpak-update --system'
 
   while IFS= read -r line; do
     if [[ $line == sudo:* ]]; then failed+=("system scope|$line"); continue; fi
