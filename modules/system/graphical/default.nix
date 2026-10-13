@@ -26,6 +26,49 @@
 
 { config, lib, pkgs, ... }:
 
+let
+  # Shared Flatpak updater — used by nru (_nru_flatpak_bar in dotfiles/zsh/zshrc)
+  # and by the weekly timers below, so the update + failure logic lives in one place.
+  # Prints one machine-readable line per result, prefixed with the scope:
+  #   <scope> skipped <reason> | <scope> uptodate
+  #   <scope> updated <app-id> <name> | <scope> failed <app-id> <first error line>
+  # Exits 1 if any app failed to update.
+  flatpakUpdate = pkgs.writeShellApplication {
+    name = "nixos-flatpak-update";
+    runtimeInputs = with pkgs; [ flatpak gnugrep coreutils ];
+    text = ''
+      case "''${1:-}" in
+        --user|--system) flag="$1"; scope="''${1#--}" ;;
+        *) echo "usage: nixos-flatpak-update --user|--system" >&2; exit 2 ;;
+      esac
+
+      if ! flatpak remote-list --system 2>/dev/null | grep -q flathub; then
+        echo "$scope skipped no-flathub"; exit 0
+      fi
+
+      # com.hypixel.HytaleLauncher is a permanent exception: the hytale module
+      # deletes its origin remote right after install, so it can never resolve
+      # updates until Hytale ships on Flathub.
+      if ! list=$(flatpak remote-ls --updates "$flag" --columns=application,name 2>&1); then
+        echo "$scope failed - $(head -1 <<<"$list")"; exit 1
+      fi
+      list=$(grep -v '^com\.hypixel\.HytaleLauncher' <<<"$list" || true)
+      if [[ -z "$list" ]]; then echo "$scope uptodate"; exit 0; fi
+
+      out=$(flatpak update "$flag" --noninteractive -y 2>&1) || true
+      rc=0
+      while IFS=$'	' read -r app name; do
+        err=$(grep -iE "(unable to update|failed|error).*$app" <<<"$out" | head -1 || true)
+        if [[ -n "$err" ]]; then
+          echo "$scope failed $app $err"; rc=1
+        else
+          echo "$scope updated $app $name"
+        fi
+      done <<<"$list"
+      exit "$rc"
+    '';
+  };
+in
 {
   imports = [
     # Fast-fail pre-check for the Torrents CIFS automount.
@@ -88,53 +131,58 @@
     deps = [ "specialfs" ];
   };
 
-  # Weekly unattended update for all --user-scope Flatpak apps (fluxer,
-  # libreoffice, hytale, ...). Skips gracefully where Flathub is absent
-  # (e.g. Alex's machines). This is the "nobody ran nru in a while" backstop —
-  # nru itself also updates Flatpaks on demand (see _nru_flatpak_bar in
-  # dotfiles/zsh/zshrc).
+  # Weekly unattended Flatpak updates — the "nobody ran nru in a while"
+  # backstop. Same script nru uses; skips gracefully where Flathub is absent
+  # (e.g. Alex's machines).
+
+  # nru runs the system-scope update unattended — passwordless for exactly
+  # this command (both paths: sudo may see either the store or the profile one).
+  security.sudo.extraRules = [{
+    users    = [ "linuxury" "babylinux" "alex" ];
+    commands = [
+      { command = "${flatpakUpdate}/bin/nixos-flatpak-update --system";            options = [ "NOPASSWD" ]; }
+      { command = "/run/current-system/sw/bin/nixos-flatpak-update --system";      options = [ "NOPASSWD" ]; }
+    ];
+  }];
+
   systemd.user.services.flatpak-auto-update = {
-    description = "Update installed Flatpak apps";
+    description = "Update installed Flatpak apps (user scope)";
     after       = [ "network-online.target" ];
     wants       = [ "network-online.target" ];
     serviceConfig = {
-      Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "flatpak-auto-update" ''
-        FLATPAK="${pkgs.flatpak}/bin/flatpak"
-
-        if ! $FLATPAK remote-list --system 2>/dev/null | grep -q flathub; then
-          echo "Flathub remote not available, skipping Flatpak auto-update."
-          exit 0
-        fi
-
-        echo "Updating Flatpak apps..."
-        out=$($FLATPAK update --user --noninteractive -y 2>&1)
-        echo "$out"
-
-        # flatpak exits 0 even when individual refs fail (e.g. a dangling
-        # remote left behind by `flatpak remote-delete`) — check the log too
-        # so a real per-app failure marks this unit Failed instead of
-        # silently succeeding.
-        #
-        # com.hypixel.HytaleLauncher is a known, permanent exception: this
-        # module deletes its origin remote right after install (see the
-        # hytale module), so it can never resolve updates until Hytale ships
-        # on Flathub. Ignored so this unit doesn't flag every week as failed.
-        if echo "$out" | grep -i "Unable to update" | grep -qv "com.hypixel.HytaleLauncher"; then
-          exit 1
-        fi
-      '';
+      Type      = "oneshot";
+      ExecStart = "${flatpakUpdate}/bin/nixos-flatpak-update --user";
     };
   };
 
   systemd.user.timers.flatpak-auto-update = {
-    description = "Weekly Flatpak app update";
+    description = "Weekly Flatpak app update (user scope)";
     wantedBy    = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "Sun 04:00";
       Persistent = true;
     };
   };
+
+  systemd.services.flatpak-auto-update-system = {
+    description = "Update installed Flatpak apps and runtimes (system scope)";
+    after       = [ "network-online.target" ];
+    wants       = [ "network-online.target" ];
+    serviceConfig = {
+      Type      = "oneshot";
+      ExecStart = "${flatpakUpdate}/bin/nixos-flatpak-update --system";
+    };
+  };
+
+  systemd.timers.flatpak-auto-update-system = {
+    description = "Weekly Flatpak update (system scope)";
+    wantedBy    = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "Sun 04:00";
+      Persistent = true;
+    };
+  };
+
 
   # Qt theming — makes Qt apps follow the active GTK theme automatically.
   # qtbase ships the gtk3 platform theme plugin itself (qt6gtk2 was removed
@@ -215,6 +263,7 @@
   # Servers never get these — they have no graphical session to use them.
   # =========================================================================
   environment.systemPackages = with pkgs; [
+    flatpakUpdate  # nixos-flatpak-update — see the let block above
 
     # -----------------------------------------------------------------------
     # Terminals

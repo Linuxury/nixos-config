@@ -154,7 +154,16 @@ _fmt_nvd() {
   echo ""
   printf "  %-${col_name}s  %-${col_from}s  %s\n" "Package" "From" "To"
   printf "  %s\n" "$sep"
+  # Notable packages first (kernel, browsers, graphics, init), then nvd's order.
+  local -a order rest
   for (( i=1; i<=n_total; i++ )); do
+    if [[ ${names[$i]} == (linux|linux-*|firefox*|zen*|helium*|chromium*|mesa*|systemd|nvidia*|steam*) ]]; then
+      order+=($i)
+    else
+      rest+=($i)
+    fi
+  done
+  for i in $order $rest; do
     printf "  %-${col_name}s  %-${col_from}s  %s\n" "${names[$i]}" "${old_vers[$i]}" "${new_vers[$i]}"
   done
   echo ""
@@ -167,104 +176,209 @@ _fmt_nvd() {
 }
 
 # ---------------------------------------------------------------------------
+# nru shared state + helpers
+#
+# Rows for each update step go to /dev/tty so \r can redraw the same line;
+# trees, raw dumps and summaries go to stdout.
+# ---------------------------------------------------------------------------
+zmodload zsh/datetime   # EPOCHSECONDS for timers
+_NRU_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/nru"   # last-failure.log, last-units.txt, last-packages.txt
+_NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
+_NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
+_NRU_FP="󰏖"    # U+F03D6 nf-md-package_variant — same glyph fastfetch uses for flatpak count
+_NRU_DONE="[■■■■■■■■■■■■■■■■■■■■]"
+_NRU_SPIN=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
+
+# Only linuxury@Ryzen5900x writes shared state (flake.lock, proton bump, hash
+# fixes) and pushes it — every other host just pulls. Two writers = guaranteed
+# lock conflicts (ThinkPad stranded a lock commit 2026-09-27 that broke nru
+# on 2026-10-10).
+_nru_is_lock_writer() { [[ "$(whoami)" == linuxury && "$(hostname)" == Ryzen5900x ]] }
+
+# Final row for a step:              _nru_row ICON NAME TEXT
+_nru_row() { printf "\r  %s  %-12s  %s\033[K\n" "$1" "$2" "$3" >/dev/tty }
+# Completed row with a full bar:     _nru_ok ICON NAME INFO [SUFFIX]
+_nru_ok()  { printf "\r  %s  %-12s  %s  %s  ✓%s\033[K\n" "$1" "$2" "$_NRU_DONE" "$3" "${4:+  $4}" >/dev/tty }
+# Tree under a row, one arg per item
+_nru_tree() {
+  local i b
+  for (( i = 1; i <= $#; i++ )); do
+    b="├─"; (( i == $# )) && b="└─"
+    printf "       %s %s\n" "$b" "${@[i]}"
+  done
+}
+
+# _nru_wait_exit FILE — waits briefly for a background job's exit-code file,
+# prints the code (1 if it never appeared) and removes the file.
+_nru_wait_exit() {
+  local r=0 code=1
+  while [[ ! -f "$1" ]] && (( r++ < 50 )); do sleep 0.01; done
+  [[ -f "$1" ]] && code=$(<"$1")
+  rm -f "$1"
+  print -r -- "$code"
+}
+
+# ---------------------------------------------------------------------------
+# _nru_spin — runs a command in the background behind a spinner, for steps
+# with no measurable progress (no fake bar). Elapsed time shows after 3s.
+# Output goes to LOG; returns the command's exit code. Leaves the spinner on
+# the line so the caller can overwrite it with its own final row (\r).
+#
+# Usage: _nru_spin ICON NAME TEXT LOG cmd [args...]
+#   →  "  󰊤  Nixos-Config  ⠹ pulling…  4s"
+# ---------------------------------------------------------------------------
+_nru_spin() {
+  local icon=$1 name=$2 text=$3 log=$4; shift 4
+  local xf="$_NRU_CACHE/.exit.$$" t0=$EPOCHSECONDS el i=1
+  mkdir -p "$_NRU_CACHE"; rm -f "$xf"
+
+  # &| disowns immediately (no job notifications); exit code goes to a file
+  # because wait cannot track a disowned pid in zsh.
+  { "$@" >"$log" 2>&1; echo $? >"$xf" } &|
+  local pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    el=$(( EPOCHSECONDS - t0 ))
+    printf "\r  %s  %-12s  %s %s…%s\033[K" "$icon" "$name" "$_NRU_SPIN[i]" "$text" \
+      "${${el:#[012]}:+  ${el}s}" >/dev/tty
+    sleep 0.1
+    i=$(( i % 10 + 1 ))
+  done
+
+  return $(_nru_wait_exit "$xf")
+}
+
+# ---------------------------------------------------------------------------
+# _nru_menu — one-line menu on /dev/tty; prints the chosen key (lowercase).
+# The uppercase key is the default, picked by Enter.
+#
+# Usage: choice=$(_nru_menu "⚠" "Title" "S:Stash & pull" "d:discard & pull" "q:quit")
+#   → "  ⚠  Title  ·   [S]tash & pull   [d]iscard & pull   [q]uit  › "
+# ---------------------------------------------------------------------------
+_nru_menu() {
+  local sym=$1 title=$2 opt k l keys="" def="" line="" reply; shift 2
+  for opt in "$@"; do
+    k=${opt%%:*}; l=${opt#*:}
+    [[ $k == [[:upper:]] ]] && def=${k:l}
+    keys+=${k:l}
+    if [[ ${l[1]:l} == ${k:l} ]]; then line+="   [$k]${l[2,-1]}"; else line+="   [$k] $l"; fi
+  done
+  while true; do
+    printf "\n  %s  %s  ·%s  › " "$sym" "$title" "$line" >/dev/tty
+    read -r reply </dev/tty
+    reply=${${reply:l}[1]}
+    [[ -z $reply ]] && reply=$def
+    [[ -n $reply && $keys == *$reply* ]] && { print -r -- "$reply"; return 0 }
+  done
+}
+
+# ---------------------------------------------------------------------------
+# _nru_ticker — draws the live rebuild line at 10 Hz until killed.
+#
+# The awk filter never draws progress itself — it writes the current state
+# ("eval" or "fetch|done|total|label" / "build|…") to a state file and this
+# single background loop renders it with a spinner, plus elapsed time once one
+# item has taken 10s+. An empty state file means "don't draw" (awk clears it
+# and waits 0.15s before printing a normal line, so the two never collide).
+# ---------------------------------------------------------------------------
+_nru_ticker() {
+  local statef=$1 st kind cnt tot lbl last="" since=$EPOCHSECONDS el f pct sfx icon e="" i=1
+  while true; do
+    st=$(<"$statef") 2>/dev/null
+    if [[ $st == eval ]]; then
+      printf "\r  %s  Evaluating…\033[K" "$_NRU_SPIN[i]" >/dev/tty
+    elif [[ -n $st ]]; then
+      IFS='|' read -r kind cnt tot lbl <<< "$st"
+      [[ $lbl != "$last" ]] && { last=$lbl; since=$EPOCHSECONDS }
+      el=$(( EPOCHSECONDS - since )); sfx=""
+      (( el >= 10 )) && sfx=$(printf '  %dm%02ds' $(( el / 60 )) $(( el % 60 )))
+      (( tot > 0 )) || tot=1
+      pct=$(( cnt * 100 / tot )); f=$(( cnt * 20 / tot ))
+      [[ $kind == fetch ]] && icon="⬇" || icon="⚒"
+      printf "\r  %s  %-12s  [%s%s]  %3d%%  %-30s %s%s\033[K" "$icon" "$cnt/$tot" \
+        "${(l:f::■:)e}" "${(l:20-f::□:)e}" "$pct" "$lbl" "$_NRU_SPIN[i]" "$sfx" >/dev/tty
+    fi
+    sleep 0.1
+    i=$(( i % 10 + 1 ))
+  done
+}
+
+# ---------------------------------------------------------------------------
 # _nix_fetch_filter — stdin filter used by _nixos_run.
 #
-# Accepts an optional spin_pid argument: the PID of a background spinner
-# started by _nixos_run. The spinner is killed the moment awk takes over
-# /dev/tty for a build or fetch progress bar.
+#   - Build noise (agenix, store paths, systemd-run chatter): dropped
+#   - "these N derivations will be built" / "building …":    ⚒ progress
+#   - "these N paths will be fetched" / "copying path …":    ⬇ progress
+#     Repeated rounds add to the same bar instead of starting a new one;
+#     the final ⬇/⚒ lines print once, before the first normal line or at the end.
+#   - Unit start/stop/restart lines: counted, summarised at the end
+#   - Everything from the first "error:" on: hidden — _nixos_run prints a
+#     summary and saves the full log instead
+#   - Everything else (activation, warnings): passed through
 #
-# Four behaviors per line type:
-#   - Build noise (agenix, store paths):       silently dropped
-#   - "these N derivations will be built:":    starts a ⚙ build bar on /dev/tty
-#   - "building /nix/store/...":               updates the build bar in-place
-#   - "these N paths will be fetched":         starts a ↓ fetch bar on /dev/tty
-#   - "copying path '...":                     updates the fetch bar in-place
-#   - Everything else (activation, warnings):  passed through to stdout as-is
-#
-# Progress bar writes go to /dev/tty so \r can overwrite the same line
-# without interfering with the normal pass-through output stream.
+# Args: STATE_FILE (read by _nru_ticker), CACHE_DIR (stats + unit list)
 # ---------------------------------------------------------------------------
 _nix_fetch_filter() {
-  local spin_pid="${1:-0}"
-  local animscript="${2:-}"
-  local animpid="${3:-}"
-  local statef="${4:-}"
-  awk -v spin_pid="$spin_pid" -v animscript="$animscript" -v animpid="$animpid" -v statef="$statef" '
-  BEGIN { total=0; done=0; in_progress=0; bw=20; build_total=0; build_done=0; in_build=0; build_label=""; fetch_label=""; n_stopped=0; n_restarted=0; n_reloaded=0; n_started=0; n_new=0 }
+  awk -v statef="$1" -v cachedir="$2" '
+  BEGIN { bw=20; ft=0; fd=0; bt=0; bd=0; kind=""; label=""; active=0; err=0
+          fetched=0; built=0; dl_mib=0
+          n_stopped=0; n_restarted=0; n_reloaded=0; n_started=0; n_new=0; n_failed=0 }
 
-  function killspinner() {
-    if (spin_pid) {
-      system("kill " spin_pid " 2>/dev/null")
-      spin_pid = 0
-      printf "\r\033[K" > "/dev/tty"
-      fflush("/dev/tty")
+  function state() {
+    if (kind == "fetch") printf "fetch|%d|%d|%s\n", fd, ft, label > statef
+    else                 printf "build|%d|%d|%s\n", bd, bt, label > statef
+    close(statef)
+  }
+  # Stop the ticker drawing and clear its line before printing a normal line.
+  function quiet() {
+    printf "" > statef; close(statef)
+    system("sleep 0.15")
+    printf "\r\033[K" > "/dev/tty"; fflush("/dev/tty")
+  }
+  function bar(d, t,   f, s, i) {
+    f = int(d * bw / (t > 0 ? t : 1)); s = ""
+    for (i = 0; i < f; i++) s = s "■"
+    for (; i < bw; i++) s = s "□"
+    return s
+  }
+  function size(m) { return m >= 1024 ? sprintf("%.1f GiB", m / 1024) : sprintf("%.0f MiB", m) }
+  # Print the final ⬇ / ⚒ lines once; later rounds (rare) start fresh bars.
+  function finals() {
+    if (!active) return
+    quiet()
+    if (ft) printf "  ⬇  %-12s  [%s]  %3d%%  %s\n", fd "/" ft, bar(fd, ft), int(fd * 100 / ft), size(dl_mib) > "/dev/tty"
+    if (bt) {
+      if (err) printf "  ⚒  %-12s  [%s]  %3d%%  stopped\n", bd "/" bt, bar(bd, bt), int(bd * 100 / bt) > "/dev/tty"
+      else     printf "  ⚒  %-12s  [%s]  100%%  %s\n", bt "/" bt, bar(1, 1), (bd < bt ? "cached" : "built") > "/dev/tty"
     }
-  }
-
-  function spawn_anim(    cmd) {
-    if (animscript == "") return
-    system("kill $(cat " animpid " 2>/dev/null) 2>/dev/null; true")
-    system("sh " animscript " " statef " " animpid " &")
-  }
-
-  function kill_anim() {
-    if (animpid == "") return
-    system("kill $(cat " animpid " 2>/dev/null) 2>/dev/null; true")
-  }
-
-  # Close the build bar. Two-line zone: cursor is at end of secondary bar (line 2).
-  # If items were cached (bar never reached 100%), rewrite line 1 as cached.
-  # blank=1 adds an extra blank line after; blank=0 skips it.
-  function close_build(blank,    bar, i, count_str) {
-    if (!in_build) return
-    kill_anim()
-    bar = ""
-    for (i = 0; i < bw; i++) bar = bar "■"
-    if (build_done < build_total) {
-      count_str = sprintf("%d/%d", build_total, build_total)
-      printf "\r\033[1A  ⚒  %-12s  [%s]  100%%  cached\033[K\r\n\r\033[K", count_str, bar > "/dev/tty"
-    } else {
-      printf "\r\033[K" > "/dev/tty"
-    }
-    if (blank) printf "\n" > "/dev/tty"
     fflush("/dev/tty")
-    in_build = 0
-    build_label = ""
+    active = 0; ft = 0; fd = 0; bt = 0; bd = 0
   }
-
-  # Buffer a unit into its action group with deduplication (insertion order preserved).
+  # "these 98 derivations …" → 98; singular "this path …" → 1 (its first number is the size)
+  function count(l) { return (l ~ /^these [0-9]+/ && match(l, /[0-9]+/)) ? substr(l, RSTART, RLENGTH) + 0 : 1 }
   function add_unit(action, unit) {
     if (action == "stopped")   { if (!stopped_seen[unit])   { stopped_seen[unit]=1;   stopped_ord[++n_stopped]=unit   } }
     if (action == "restarted") { if (!restarted_seen[unit]) { restarted_seen[unit]=1; restarted_ord[++n_restarted]=unit } }
     if (action == "reloaded")  { if (!reloaded_seen[unit])  { reloaded_seen[unit]=1;  reloaded_ord[++n_reloaded]=unit  } }
     if (action == "started")   { if (!started_seen[unit])   { started_seen[unit]=1;   started_ord[++n_started]=unit   } }
     if (action == "new")       { if (!new_seen[unit])       { new_seen[unit]=1;       new_ord[++n_new]=unit           } }
+    if (action == "failed")    { if (!failed_seen[unit])    { failed_seen[unit]=1;    failed_ord[++n_failed]=unit     } }
   }
-
-  # Print one action group as a labeled tree block
-  function print_group(label, arr, n,   i) {
+  function list_group(label, arr, n,   i) {
     if (n == 0) return
-    printf "  %s\n", label
-    for (i = 1; i <= n; i++)
-      printf "  %s %s\n", (i == n ? "└─" : "├─"), arr[i]
+    printf "%s\n", label > unitsf
+    for (i = 1; i <= n; i++) printf "  %s\n", arr[i] > unitsf
   }
 
-  # Close the fetch bar. Two-line zone: cursor is at end of secondary bar (line 2).
-  function close_fetch(blank) {
-    if (!in_progress) return
-    kill_anim()
-    printf "\r\033[K" > "/dev/tty"
-    if (blank) printf "\n" > "/dev/tty"
-    fflush("/dev/tty")
-    in_progress = 0
-    fetch_label = ""
-  }
+  { l = tolower($0) }
+
+  # After the first error, nothing more goes to the screen.
+  err                                                   { next }
+  /^[[:space:]]*error:/                                 { finals(); err = 1; next }
 
   /^\[agenix\]/ || /^decrypting /                      { next }
-  # Eval-time warnings (renamed/deprecated options, etc.) already get parsed
-  # from the log by nixos-log-rebuild and shown in the tidy "Flagged" block
-  # after the build — hiding them here avoids showing the same warning twice
-  # and keeps the live progress bars from getting interrupted mid-render.
+  # Eval-time warnings already get parsed from the log by nixos-log-rebuild
+  # and shown in the "Flagged" block after the build.
   /^evaluation warning:/                                { next }
   /^warning: Git tree .* is dirty/                      { next }
   /^warning: ignoring substitute for /                  { next }
@@ -277,95 +391,50 @@ _nix_fetch_filter() {
   /^setting up \/etc/                                   { next }
   /^reloading user units for /                          { next }
   /^Skipping "\//                                       { next }
-  /^this path will be fetched/                          { next }
   /^unpacking \47.*\47 into the Git cache/               { next }
   /^NOT restarting the following (changed|user) units:/  { next }
   # systemd-run chatter from switch-to-configuration — the wall-clock time is
-  # pulled from the raw log by _nixos_run and shown on the nru success line.
-  # Only the success lines; "Failed with result" etc. still pass through.
+  # pulled from the raw log by _nixos_run and shown on the success line.
   /^Start(ing|ed) \[systemd-run\] /                        { next }
   /^(switching|finished switching) to system configuration / { next }
   /^nixos-rebuild-switch-to-configuration\.service: (Deactivated|Consumed) / { next }
 
-  /^these [0-9]+ derivations will be built:/ {
-    killspinner()
-    close_fetch(0)
-    match($0, /[0-9]+/)
-    build_total = substr($0, RSTART, RLENGTH) + 0
-    build_done = 0
-    build_label = ""
-    bar = sprintf("%*s", bw, ""); gsub(/ /, "□", bar)
-    sec_bar = sprintf("%*s", bw, ""); gsub(/ /, "╌", sec_bar)
-    printf "  ⚒  %-12s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-12s  [%s]    0%%  \033[K", \
-      "0/" build_total, bar, "building", sec_bar > "/dev/tty"
-    fflush("/dev/tty")
-    in_build = 1
-    next
+  # nix prints the singular form ("This derivation will be built:") for one item
+  l ~ /^(these [0-9]+ derivations|this derivation) will be built/ {
+    bt += count(l); kind = "build"; label = "starting…"; active = 1; state(); next
   }
-
   /^building .*\/nix\/store\// {
-    if (!in_build) { next }
-    build_done++
+    if (!bt) next
+    bd++; built++
     path = $0
-    sub(/^building \/nix\/store\/[a-z0-9]+-/, "", path)
+    sub(/^building \47?\/nix\/store\/[a-z0-9]+-/, "", path)
     sub(/\.drv.*$/, "", path)
-    if (length(path) > 35) path = substr(path, 1, 35)
-    build_label = path
-    pct    = int(build_done * 100 / (build_total > 0 ? build_total : 1))
-    filled = int(build_done * bw  / (build_total > 0 ? build_total : 1))
-    bar = ""; sec_bar = ""
-    for (i=0; i<filled;    i++) bar = bar "■"
-    for (i=0; i<bw-filled; i++) bar = bar "□"
-    for (i=0; i<bw;        i++) sec_bar = sec_bar "╌"
-    count_str = sprintf("%d/%d", build_done, build_total)
-    print "building|" path > statef; close(statef)
-    spawn_anim()
-    printf "\r\033[1A  ⚒  %-12s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-12s  [%s]    0%%\033[K", \
-      count_str, bar, pct, build_label, "building", sec_bar > "/dev/tty"
-    fflush("/dev/tty")
-    next
+    label = substr(path, 1, 30); kind = "build"; state(); next
   }
-
-  /^these [0-9]+ paths will be fetched/ {
-    killspinner()
-    close_build(0)
-    close_fetch(0)
-    match($0, /[0-9]+/)
-    total = substr($0, RSTART, RLENGTH) + 0
-    done = 0
-    fetch_label = ""
-    bar = sprintf("%*s", bw, ""); gsub(/ /, "□", bar)
-    sec_bar = sprintf("%*s", bw, ""); gsub(/ /, "╌", sec_bar)
-    printf "  ⬇  %-12s  [%s]    0%%  starting...\033[K\r\n  ⠙  %-12s  [%s]    0%%  \033[K", \
-      "0/" total, bar, "fetching", sec_bar > "/dev/tty"
-    fflush("/dev/tty")
-    in_progress = 1
-    next
+  l ~ /^(these [0-9]+ paths|this path) will be fetched/ {
+    ft += count(l)
+    if (match(l, /[0-9.]+ [kmg]ib download/)) {
+      split(substr(l, RSTART, RLENGTH), a, " ")
+      dl_mib += (a[2] == "kib" ? a[1] / 1024 : a[2] == "gib" ? a[1] * 1024 : a[1])
+    }
+    kind = "fetch"; label = "starting…"; active = 1; state(); next
   }
-
   /^copying path / {
-    if (!in_progress) { next }
-    done++
+    if (!ft) next
+    fd++; fetched++
     path = $0
     sub(/^copying path \47\/nix\/store\/[a-z0-9]+-/, "", path)
     sub(/\47.*$/, "", path)
-    if (length(path) > 35) path = substr(path, 1, 35)
-    fetch_label = path
-    pct    = int(done * 100 / (total > 0 ? total : 1))
-    filled = int(done * bw  / (total > 0 ? total : 1))
-    bar = ""; sec_bar = ""
-    for (i=0; i<filled;    i++) bar = bar "■"
-    for (i=0; i<bw-filled; i++) bar = bar "□"
-    for (i=0; i<bw;        i++) sec_bar = sec_bar "╌"
-    count_str = sprintf("%d/%d", done, total)
-    print "fetching|" path > statef; close(statef)
-    spawn_anim()
-    printf "\r\033[1A  ⬇  %-12s  [%s]  %3d%%  %s\033[K\r\n\r  ⠙  %-12s  [%s]    0%%\033[K", \
-      count_str, bar, pct, path, "fetching", sec_bar > "/dev/tty"
-    fflush("/dev/tty")
-    next
+    label = substr(path, 1, 30); kind = "fetch"; state(); next
   }
 
+  # Units that failed to start during the switch
+  /^warning: the following units failed: / {
+    rest = $0; sub(/^.*units failed: /, "", rest)
+    n_u = split(rest, us, ", ")
+    for (i = 1; i <= n_u; i++) add_unit("failed", us[i])
+    next
+  }
   # Single-unit action lines (e.g. "restarting sysinit-reactivation.target")
   /^(stopping|starting|restarting|reloading) / && !/the following/ {
     if      (/^stopping/)   add_unit("stopped",   $2)
@@ -374,16 +443,11 @@ _nix_fetch_filter() {
     else if (/^reloading/)  add_unit("reloaded",  $2)
     next
   }
-
-  # Multi-unit action lines — buffer all units, print summary in END
+  # Multi-unit action lines
   /^(stopping|starting|restarting|reloading) the following .*units?: / ||
   /^the following new units were started: / {
-    killspinner()
-    close_build(0)
-    close_fetch(0)
-    idx  = index($0, ": ")
-    rest = substr($0, idx + 2)
-    n_u  = split(rest, us, ", ")
+    finals()
+    n_u = split(substr($0, index($0, ": ") + 2), us, ", ")
     if      (/^stopping/)          for (i=1; i<=n_u; i++) add_unit("stopped",   us[i])
     else if (/^starting/)          for (i=1; i<=n_u; i++) add_unit("started",   us[i])
     else if (/^restarting/)        for (i=1; i<=n_u; i++) add_unit("restarted", us[i])
@@ -392,50 +456,152 @@ _nix_fetch_filter() {
     next
   }
 
-  {
-    killspinner()
-    close_build(1)
-    close_fetch(1)
-    print
-  }
+  { finals(); print }
 
   END {
-    close_build(0)
-    close_fetch(0)
-    if (n_stopped + n_restarted + n_reloaded + n_started + n_new > 0) {
-      htitle = "─── Units Status "
-      hfill  = ""; hlen = 58 - length(htitle)
-      for (j = 0; j < hlen; j++) hfill = hfill "─"
-      close_line = ""
-      for (j = 0; j < 58; j++) close_line = close_line "─"
-      printf "\n%s%s\n", htitle, hfill
-      print_group("Stopped",   stopped_ord,   n_stopped)
-      print_group("Restarted", restarted_ord, n_restarted)
-      print_group("Reloaded",  reloaded_ord,  n_reloaded)
-      print_group("Started",   started_ord,   n_started)
-      print_group("New",       new_ord,       n_new)
-      printf "%s\n", close_line
-    }
+    finals()
+    printf "" > statef; close(statef)
+    printf "fetched=%d\ndl_mib=%.1f\nbuilt=%d\nfailed_units=%d\n", fetched, dl_mib, built, n_failed > (cachedir "/last-run.stats")
+
+    total = n_stopped + n_restarted + n_reloaded + n_started + n_new + n_failed
+    if (total == 0) exit
+    unitsf = cachedir "/last-units.txt"
+    printf "" > unitsf
+    list_group("Failed", failed_ord, n_failed)
+    list_group("Stopped", stopped_ord, n_stopped)
+    list_group("Restarted", restarted_ord, n_restarted)
+    list_group("Reloaded", reloaded_ord, n_reloaded)
+    list_group("Started", started_ord, n_started)
+    list_group("New", new_ord, n_new)
+
+    line = ""; for (j = 0; j < 58; j++) line = line "─"
+    printf "\n─── Units %s\n", substr(line, 1, 48)
+    s = ""
+    if (n_stopped)   s = s n_stopped " stopped · "
+    if (n_restarted) s = s n_restarted " restarted · "
+    if (n_reloaded)  s = s n_reloaded " reloaded · "
+    if (n_started)   s = s n_started " started · "
+    if (n_new)       s = s n_new " new · "
+    printf "  %s%d failed\n", s, n_failed
+    for (i = 1; i <= n_failed; i++) printf "  ✗ %s failed\n", failed_ord[i]
+    printf "%s\n", line
   }
   '
 }
 
 # ---------------------------------------------------------------------------
-# _nixos_run — core rebuild helper used by nr / nru / nrb / nrt
+# _nru_fail_summary — turns a failed rebuild log into a short explanation.
 #
-# - Shows a clean build header with hostname
+# Sets _NRU_FAIL_KIND (hash | hash-stale | hash-manual | build | config |
+# download | disk | unknown) and, for hash kinds, _NRU_FIX_PKG/_ATTR/_HASH,
+# which _nru_rebuild uses to pick sensible menu options.
+# ---------------------------------------------------------------------------
+_nru_fail_summary() {
+  local log=$1 drv spec got dep pkg="" attr="" msg loc nixlog
+  _NRU_FAIL_KIND=unknown; _NRU_FIX_PKG=""; _NRU_FIX_ATTR=""; _NRU_FIX_HASH=""
+  echo ""
+
+  if grep -q 'hash mismatch in fixed-output derivation' "$log"; then
+    drv=$(grep -m1 -oP "fixed-output derivation '/nix/store/[a-z0-9]{32}-\K[^']+(?=\.drv')" "$log")
+    spec=$(grep -m1 -oP 'specified:\s+\Ksha256-\S+' "$log")
+    got=$(grep -m1 -oP 'got:\s+\Ksha256-\S+' "$log")
+    dep=$(( $(grep -c 'error: Cannot build' "$log") - 1 ))
+    case $drv in
+      *-pnpm-deps)           attr=pnpmDeps;  pkg=${drv%-pnpm-deps} ;;
+      *-npm-deps)            attr=npmDeps;   pkg=${drv%-npm-deps} ;;
+      *-cargo-deps|*-vendor) attr=cargoDeps; pkg=${${drv%-cargo-deps}%-vendor} ;;
+      *-go-modules)          attr=goModules; pkg=${drv%-go-modules} ;;
+    esac
+    pkg=${pkg%%-[0-9]*}   # "foo-1.2.3" → "foo"
+    _NRU_FIX_PKG=$pkg; _NRU_FIX_ATTR=$attr; _NRU_FIX_HASH=$got
+
+    if [[ -n $pkg ]] && grep -qF "$spec" "$NIXOS_CONFIG/overlays/hash-fixes.nix" 2>/dev/null; then
+      _NRU_FAIL_KIND=hash-stale
+      printf "  ✗  %s · our hash fix is now stale (nixpkgs fixed it upstream)\n" "$pkg"
+    else
+      # Only offer [F]ix when the attribute really exists and carries the
+      # hash nix complained about — otherwise the override would miss.
+      if [[ -n $attr ]] && [[ "$(nix eval --raw "$NIXOS_CONFIG#nixosConfigurations.$(hostname).pkgs.$pkg.$attr.outputHash" 2>/dev/null)" == "$spec" ]]; then
+        _NRU_FAIL_KIND=hash
+      else
+        _NRU_FAIL_KIND=hash-manual
+      fi
+      printf "  ✗  %s · dependency hash mismatch (nixpkgs bug, not your config)\n" "${pkg:-$drv}"
+      printf "       got %s\n" "$got"
+      if [[ $_NRU_FAIL_KIND == hash ]]; then
+        printf "       fix: [F] adds an override to overlays/hash-fixes.nix\n"
+      else
+        printf "       fix: override the package's outputHash in an overlay\n"
+      fi
+    fi
+    (( dep > 0 )) && printf "       + %d packages that depend on it also failed\n" "$dep"
+
+  elif grep -q 'No space left on device' "$log"; then
+    _NRU_FAIL_KIND=disk
+    printf "  ✗  disk full · /nix has %s free · GC frees old generations\n" "$(df -h --output=avail /nix | tail -1 | tr -d ' ')"
+
+  elif grep -qE 'unable to download|Could not resolve host|Couldn.t resolve host|Connection timed out|Failed to connect' "$log"; then
+    _NRU_FAIL_KIND=download
+    printf "  ✗  download failed · %s\n" "$(grep -m1 -oE "unable to download '[^']+'|Could(n.t| not) resolve host[^;]*" "$log")"
+    printf "       retry usually fixes this\n"
+
+  elif drv=$(grep -m1 -oP "builder for '/nix/store/[a-z0-9]{32}-\K[^']+(?=\.drv')" "$log"); then
+    _NRU_FAIL_KIND=build
+    nixlog=$(grep -m1 -oP "nix log \K/nix/store/\S+\.drv" "$log")
+    printf "  ✗  build failed · %s\n" "$drv"
+    grep -E '^\s+> ' "$log" | tail -5 | sed 's/^\s*>/       │/'
+    [[ -n $nixlog ]] && printf "       full log: nix log %s\n" "$nixlog"
+
+  elif ! grep -q 'error: Cannot build' "$log" && grep -qE '^\s*error:' "$log"; then
+    _NRU_FAIL_KIND=config
+    msg=$(grep -E '^\s*error: \S' "$log" | tail -1 | sed -E 's/^\s*error: //; s/ Definition values:$//')
+    loc=$(grep -oP "(at |In \`)/nix/store/[a-z0-9]{32}-source/\K[^:']+(:\d+)?" "$log" | tail -1)
+    printf "  ✗  config error · %s\n" "$msg"
+    [[ -n $loc ]] && printf "       at %s\n" "$loc"
+
+  else
+    printf "  ✗  rebuild failed\n"
+    grep -E '^\s*error:' "$log" | grep -vE 'Cannot build|Build failed due to failed dependency' \
+      | head -5 | sed -E 's/^\s*/       /'
+  fi
+
+  printf "  full output: %s\n" "${log/#$HOME/~}"
+}
+
+# ---------------------------------------------------------------------------
+# _nru_hash_fix — adds (kind hash) or removes (kind hash-stale) the entry for
+# _NRU_FIX_PKG in overlays/hash-fixes.nix. One entry per line, file ends "}".
+# ---------------------------------------------------------------------------
+_nru_hash_fix() {
+  local f="$NIXOS_CONFIG/overlays/hash-fixes.nix"
+  sed -i "/^  ${_NRU_FIX_PKG} = /d" "$f"
+  if [[ $_NRU_FAIL_KIND == hash ]]; then
+    sed -i "\$i\\  ${_NRU_FIX_PKG} = { attr = \"${_NRU_FIX_ATTR}\"; hash = \"${_NRU_FIX_HASH}\"; added = \"$(date +%F)\"; };" "$f"
+    printf "  ✎  added %s → overlays/hash-fixes.nix · rebuilding…\n\n" "$_NRU_FIX_PKG"
+  else
+    printf "  ✎  removed %s from overlays/hash-fixes.nix · rebuilding…\n\n" "$_NRU_FIX_PKG"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# _nixos_run — core rebuild helper used by nr / nru / nrt
+#
+# - Shows a build header with hostname (unless called from nru)
 # - Holds a systemd sleep/idle inhibit lock for the full build duration
-# - Tees all output (stdout + stderr) to a temp log alongside nom
-# - Pipes through _nix_fetch_filter: suppresses noise, shows fetch progress
-# - After the build: shows a package diff via nvd and calls nixos-log-rebuild
-#   to write warnings and a timestamped entry to ~/Obsidian/09 🔄 Updates/
+# - Tees all output to a temp log, pipes it through _nix_fetch_filter
+# - On success: package diff via nvd; on failure: short summary + saved log
+# - Calls nixos-log-rebuild to write warnings and an entry to the vault
+#
+# Leaves for callers: _NIXOS_LAST_GEN, _NIXOS_SWITCH_TIME, _NIXOS_CHANGED,
+# and _NRU_FAIL_KIND (on failure).
 # ---------------------------------------------------------------------------
 _nixos_run() {
-  local tmplog exit_code old_system _spin_pid
+  local tmplog exit_code old_system new_system statef ok=0
+  mkdir -p "$_NRU_CACHE"
   tmplog=$(mktemp /tmp/nixos-rebuild-XXXXXX.log)
+  statef="$_NRU_CACHE/.ticker.$$"
   old_system=$(readlink -f /run/current-system 2>/dev/null)
 
-  # Build header — suppressed when called from nru (which draws its own header)
   if [[ -z "$_NRU_NO_HEADER" ]]; then
     echo ""
     echo "══════════════════════════════════════════════════════════"
@@ -444,112 +610,55 @@ _nixos_run() {
     echo ""
   fi
 
-  # Secondary-bar animator — sh script written to a temp file, spawned by
-  # _nix_fetch_filter when a slow build/fetch package is in progress.
-  local _anim_script="/tmp/nru_anim_script_$$"
-  local _anim_pid="/tmp/nru_anim_pid_$$"
-  local _anim_state="/tmp/nru_anim_state_$$"
-  printf '' > "$_anim_pid"
-  printf '' > "$_anim_state"
-  cat > "$_anim_script" << 'ANIMEOF'
-#!/bin/sh
-statef="$1"; animpid="$2"
-printf '%d\n' "$$" > "$animpid"
-sp="⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏"
-si=1; step=0; bw=20
-while true; do
-  schar=$(printf '%s' "$sp" | cut -d' ' -f"$si")
-  pct=$(( step < 18 ? step * 5 : 90 ))
-  filled=$(( pct * bw / 100 ))
-  bar=''; i=0
-  while [ "$i" -lt "$filled" ]; do bar="${bar}━"; i=$((i+1)); done
-  while [ "$i" -lt "$bw" ]; do bar="${bar}╌"; i=$((i+1)); done
-  state=$(cat "$statef" 2>/dev/null)
-  act=$(printf '%s' "$state" | cut -d'|' -f1)
-  pkg=$(printf '%s' "$state" | cut -d'|' -f2-)
-  [ -z "$act" ] && act="fetching"
-  printf '\r  %s  %-12s  [%s]  %3d%%\033[K' "$schar" "$act" "$bar" "$pct" > /dev/tty
-  sleep 0.1
-  si=$(( si % 10 + 1 ))
-  step=$(( step < 18 ? step + 1 : 18 ))
-done
-ANIMEOF
-  chmod +x "$_anim_script"
+  # One background ticker draws all live progress (see _nru_ticker);
+  # &| starts it disowned so zsh never prints job notifications.
+  print eval > "$statef"
+  _nru_ticker "$statef" &|
+  _NRU_TICKER_PID=$!
 
-  # Spinner shown during the silent evaluation phase (nix evaluates the flake
-  # with no output). &| starts it disowned so zsh never prints "[N] PID" or
-  # "[N] Terminated" notifications. _nix_fetch_filter kills it the moment awk
-  # first writes any output (build bar, fetch bar, or a pass-through line).
-  {
-    local -a _sp=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
-    local _si=1
-    while true; do
-      printf "\r  %s  Evaluating…" "${_sp[$_si]}" > /dev/tty
-      (( _si = _si % 10 + 1 ))
-      sleep 0.1
-    done
-  } &|
-  _spin_pid=$!
-
-  # Run rebuild under a sleep/idle inhibit lock so the machine won't suspend
-  # mid-build. systemd-inhibit wraps the command directly — no background job,
-  # no "[N] PID" job notification. The lock releases automatically when the
-  # command exits, regardless of exit code.
-  #
-  # _nix_fetch_filter receives the spinner PID so it can kill the spinner
-  # before writing its own progress bars to /dev/tty.
-  # The log (tee) captures raw output before the filter, so nothing is lost.
-  # { } always { } is zsh's "finally" block — cleanup runs even on Ctrl+C.
-  # Without this, the animation script (orphaned grandchild of awk) keeps
-  # writing to /dev/tty after the pipeline is killed, leaving stale bars.
+  # systemd-inhibit keeps the machine awake mid-build; the lock releases when
+  # the command exits. The log (tee) captures raw output before the filter.
+  # { } always { } is zsh's "finally" — the ticker is stopped even on errors.
   {
     systemd-inhibit --what=sleep:idle --who=nixos-rebuild \
       --why="NixOS rebuild in progress" \
-      "$@" 2>&1 | tee "$tmplog" | _nix_fetch_filter "$_spin_pid" "$_anim_script" "$_anim_pid" "$_anim_state"
-    exit_code=$pipestatus[1]  # zsh: pipestatus[1] = exit code of "$@"
+      "$@" 2>&1 | tee "$tmplog" | _nix_fetch_filter "$statef" "$_NRU_CACHE"
+    exit_code=$pipestatus[1]
   } always {
-    kill "$_spin_pid" 2>/dev/null || true
-    local _anim_cleanup_pid
-    _anim_cleanup_pid=$(cat "$_anim_pid" 2>/dev/null)
-    # Only clear two-line display if animation is still running (not already
-    # cleaned up by awk on normal exit — avoids eating a real output line).
-    if [[ -n "$_anim_cleanup_pid" ]] && kill -0 "$_anim_cleanup_pid" 2>/dev/null; then
-      kill "$_anim_cleanup_pid" 2>/dev/null || true
-      printf "\r\033[K\033[1A\r\033[K\n" > /dev/tty
-    else
-      printf "\r\033[K" > /dev/tty
-    fi
+    kill "$_NRU_TICKER_PID" 2>/dev/null
+    printf "\r\033[K" > /dev/tty
   }
 
-  # Package diff — only shown on successful switch with real package changes.
-  # _fmt_nvd outputs the complete formatted block (header + table + footer +
-  # divider), or nothing at all for config-only rebuilds with no package changes.
-  if [[ $exit_code -eq 0 ]] && command -v nvd &>/dev/null; then
-    local new_system fmt_output
-    new_system=$(readlink -f /run/current-system 2>/dev/null)
-    if [[ -n "$old_system" && "$old_system" != "$new_system" ]]; then
-      fmt_output=$(nvd diff "$old_system" "$new_system" | _fmt_nvd)
-      [[ -n "$fmt_output" ]] && printf '%s\n' "$fmt_output"
+  # Exit 4 = switch done but some units failed to start — still a success.
+  (( exit_code == 0 || exit_code == 4 )) && ok=1
+  new_system=$(readlink -f /run/current-system 2>/dev/null)
+  _NIXOS_CHANGED=0
+  [[ -n "$old_system" && "$old_system" != "$new_system" ]] && _NIXOS_CHANGED=1
+
+  # Package diff — only when the system actually changed.
+  if (( ok && _NIXOS_CHANGED )) && command -v nvd &>/dev/null; then
+    local fmt_output
+    fmt_output=$(nvd diff "$old_system" "$new_system" | _fmt_nvd)
+    if [[ -n "$fmt_output" ]]; then
+      printf '%s\n' "$fmt_output"
+      printf '%s\n' "$fmt_output" > "$_NRU_CACHE/last-packages.txt"
     fi
   fi
 
-  # Write warnings + update log to vault (non-blocking, never fails the shell).
-  # The generation number is extracted into _NIXOS_LAST_GEN so callers (nru)
-  # can fold it into their success line. Everything else in log_out is the
-  # "─── Flagged ───" summary block (if any warnings/unit failures were
-  # found) — printed here instead of discarded, so it's visible at rebuild
-  # time and not just buried in PENDING.md until someone reads it later.
+  # Warnings + update log to the vault (never fails the shell). The
+  # generation number goes to _NIXOS_LAST_GEN; the rest of the output is the
+  # "─── Flagged ───" block, printed so it's visible at rebuild time.
   _NIXOS_LAST_GEN=""
   if command -v nixos-log-rebuild &>/dev/null; then
     local outcome="success" log_out
-    [[ $exit_code -eq 1 ]] && outcome="failure"
+    (( ok )) || outcome="failure"
     log_out=$(nixos-log-rebuild --outcome "$outcome" --log "$tmplog" 2>&1) || true
     _NIXOS_LAST_GEN=$(printf '%s' "$log_out" | grep -oE 'gen [0-9]+' | grep -oE '[0-9]+' | head -1)
     [[ -n "$log_out" ]] && printf '%s\n' "$log_out" | grep -v '^nixos-log-rebuild:'
   fi
 
   # Switch duration from systemd's "Consumed … over 1.924s wall clock time"
-  # line (hidden by _nix_fetch_filter) — nru folds it into its success line.
+  # line (hidden by _nix_fetch_filter).
   _NIXOS_SWITCH_TIME=""
   local _wall
   _wall=$(grep -oE 'over [0-9.]+(min|ms|s)( [0-9.]+s)? wall clock' "$tmplog" | tail -1)
@@ -560,8 +669,12 @@ ANIMEOF
     *s)    _NIXOS_SWITCH_TIME=$(printf '%.1fs' ${_wall%s}) ;;
   esac
 
-  kill "$(cat "$_anim_pid" 2>/dev/null)" 2>/dev/null || true
-  rm -f "$tmplog" "$_anim_script" "$_anim_pid" "$_anim_state"
+  if (( ! ok )); then
+    cp "$tmplog" "$_NRU_CACHE/last-failure.log"
+    _nru_fail_summary "$_NRU_CACHE/last-failure.log"
+  fi
+
+  rm -f "$tmplog" "$statef"
   return $exit_code
 }
 
@@ -576,485 +689,442 @@ nrt() {
 }
 
 # ---------------------------------------------------------------------------
-# _nru_prompt — displays a formatted (y/n) prompt, returns 0 for yes.
-# Usage: _nru_prompt "✓" "message" && do_something
-# ---------------------------------------------------------------------------
-_nru_prompt() {
-  local symbol="$1" msg="$2" reply
-  # Read from /dev/tty explicitly — nom alters terminal state and a plain
-  # 'read' after the pipeline may have no tty to read from.
-  printf "\n  %s  %s  (Y/n)  " "$symbol" "$msg" > /dev/tty
-  read -r reply < /dev/tty
-  [[ -z "$reply" || "${reply:l}" == y ]]
-}
-
-# ---------------------------------------------------------------------------
-# _nru_rebuild — runs the rebuild and shows the post-result interactive prompt.
-# Kept separate from nru so that a retry skips the git pull / flake update.
+# _nru_rebuild — runs the rebuild; on failure offers only the options that
+# can fix that kind of failure (Enter = the first, most likely fix). After a
+# success: verdict, push (lock writer only), run summary, disk + reboot checks.
+# Kept separate from nru so retries skip the git pull / input updates.
 # ---------------------------------------------------------------------------
 _nru_rebuild() {
-  _nixos_run sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)"
-  local exit_code=$?
+  local cfg=$NIXOS_CONFIG code choice moved key
+  local -a keys opts
+  _NRU_ON_PREV=""
 
-  if [[ $exit_code -eq 1 ]]; then
-    # Exit code 1 = build failure — worth retrying (e.g. network blip fetching a tarball)
-    if _nru_prompt "✗" "Rebuild Failed :: Retry Rebuild?"; then
-      _nru_rebuild
-    fi
-    return $exit_code
-  elif [[ $exit_code -ne 0 ]]; then
-    # Exit code 4 = unit activation warnings (e.g. fwupd-refresh timeout) — build succeeded,
-    # retrying won't help. Continue to post-rebuild prompts.
-    echo "⚠ Rebuild succeeded with unit warnings (exit $exit_code)"
+  while true; do
+    _nixos_run sudo nixos-rebuild switch --no-link --flake "$cfg#$(hostname)"
+    code=$?
+    (( code == 0 || code == 4 )) && break
+    (( code == 130 )) && _NRU_FAIL_KIND=interrupted
+
+    # [p]revious lock only makes sense if this run changed the inputs.
+    moved=""
+    git -C "$cfg" diff --quiet HEAD -- flake.lock modules/gaming/default.nix 2>/dev/null || moved=p
+    case $_NRU_FAIL_KIND in
+      hash)        keys=(f $moved l q) ;;
+      hash-stale)  keys=(f l q) ;;
+      hash-manual) keys=($moved l q) ;;
+      build)       keys=($moved r l q) ;;
+      config)      keys=($moved r l q) ;;
+      download)    keys=(r q) ;;
+      disk)        keys=(g q) ;;
+      interrupted) keys=(r q) ;;
+      *)           keys=(r $moved l q) ;;
+    esac
+    opts=()
+    for key in $keys; do
+      case $key in
+        f) [[ $_NRU_FAIL_KIND == hash-stale ]] && opts+=("f:fix (remove override)") || opts+=("f:fix hash") ;;
+        p) opts+=("p:previous lock") ;;
+        r) opts+=("r:retry") ;;
+        l) opts+=("l:log") ;;
+        g) opts+=("g:GC + retry") ;;
+        q) opts+=("q:quit") ;;
+      esac
+    done
+    opts[1]="${(U)opts[1][1]}:${(C)opts[1][3]}${opts[1][4,-1]}"   # first option = default
+
+    while true; do
+      choice=$(_nru_menu "✗" "Rebuild Failed" "${opts[@]}")
+      [[ $choice == l ]] || break
+      less -R "$_NRU_CACHE/last-failure.log" </dev/tty >/dev/tty
+    done
+
+    case $choice in
+      f) _nru_hash_fix ;;
+      p) git -C "$cfg" restore flake.lock modules/gaming/default.nix 2>/dev/null
+         _NRU_ON_PREV=1
+         printf "  ↺  restored flake.lock (nixpkgs %s) · rebuilding…\n\n" \
+           "$(date -d @"$(jq -r '.nodes[.nodes.root.inputs.nixpkgs].locked.lastModified' "$cfg/flake.lock")" +%F)" ;;
+      g) sudo nix-collect-garbage --delete-older-than 30d ;;
+      r) ;;
+      q) return 1 ;;
+    esac
+  done
+
+  # ── Verdict ────────────────────────────────────────────────────────────────
+  local -A st
+  local kv
+  for kv in ${(f)"$(<"$_NRU_CACHE/last-run.stats")"}; do st[${kv%%=*}]=${kv#*=}; done 2>/dev/null
+  local -a info
+  [[ -n $_NIXOS_LAST_GEN ]]    && info+=("generation $_NIXOS_LAST_GEN")
+  [[ -n $_NIXOS_SWITCH_TIME ]] && info+=("switched in $_NIXOS_SWITCH_TIME")
+  local extra="${info:+  (${(j: · :)info})}${_NRU_ON_PREV:+  · on previous lock}"
+  echo ""
+  if (( ! _NIXOS_CHANGED )); then
+    printf "  ✓  No changes · still on generation %s\n" "${_NIXOS_LAST_GEN:-?}"
+  elif (( code == 4 )); then
+    printf "  ⚠  Rebuild done with %s unit failure%s%s\n" "${st[failed_units]:-?}" \
+      "${${st[failed_units]:#1}:+s}" "$extra"
+  else
+    printf "  ✓  Rebuild successful%s\n" "$extra"
   fi
 
-  local -a _info
-  [[ -n $_NIXOS_LAST_GEN ]]    && _info+=("generation $_NIXOS_LAST_GEN")
-  [[ -n $_NIXOS_SWITCH_TIME ]] && _info+=("switched in $_NIXOS_SWITCH_TIME")
-  echo "✓ Rebuild successful${_info:+  (${(j: · :)_info})}"
-
-  # Record timestamp so the scheduled auto-update service skips its 3am run
-  # if nru was used within the last 20h.
+  # The scheduled auto-update skips its 3am run if nru ran within 20h, and the
+  # session-start auto-update must not fire again right after nru.
   date +%s > /etc/nixos-last-update-time 2>/dev/null || true
-
-  # Prevent the session-start auto-update service from firing after nru.
-  # Without this, the service runs 2 min after login, finds no done file,
-  # rebuilds again, and sends a spurious failure notification if there are
-  # unit activation warnings (exit 4).
   touch /run/user/$UID/nixos-update-done 2>/dev/null || true
 
-  # Push the updated flake.lock so other hosts get the same nixpkgs pin.
-  # Only linuxury@Ryzen5900x pushes — it's the single flake.lock writer.
-  # Every other host (ThinkPad included) just pulls; their local flake.lock
-  # bump is transient and gets discarded by _nru_git_bar's
-  # `git restore flake.lock` on the next run. Two pushers = guaranteed
-  # lock conflicts (ThinkPad stranded a lock commit 2026-09-27 that broke
-  # nru on 2026-10-10).
-  # Git output is captured and hidden on success; shown in full on failure
-  # so auth/divergence errors are never silently swallowed.
-  if [[ "$(whoami)" == "linuxury" && "$(hostname)" == Ryzen5900x ]] \
-     && ! git -C "$NIXOS_CONFIG" diff --quiet flake.lock; then
-    echo "→ Pushing updated flake.lock..."
-    local git_out
-    git -C "$NIXOS_CONFIG" add flake.lock
-    if ! git_out=$(git -C "$NIXOS_CONFIG" commit -m "flake: update nixpkgs ($(date +%Y-%m-%d))" 2>&1); then
-      printf '%s\n' "$git_out"
-    fi
-    if git_out=$(git -C "$NIXOS_CONFIG" push 2>&1); then
-      printf "  ✓ pushed %s to %s\n" \
-        "$(git -C "$NIXOS_CONFIG" rev-parse --short HEAD)" \
-        "$(git -C "$NIXOS_CONFIG" branch --show-current)"
-    else
-      printf '%s\n' "$git_out"
-      echo "  ✗ push failed — flake.lock is committed locally, push manually"
+  # ── Push shared state (lock writer only) ───────────────────────────────────
+  # Git output is hidden on success, shown in full on failure.
+  if _nru_is_lock_writer; then
+    local git_out f
+    local -a changed names
+    changed=(${(f)"$(git -C "$cfg" status --porcelain -- flake.lock modules/gaming/default.nix overlays/hash-fixes.nix | cut -c4-)"})
+    if (( $#changed )); then
+      for f in $changed; do
+        case $f in modules/gaming/default.nix) names+=("gaming module") ;; *) names+=("${f:t}") ;; esac
+      done
+      git -C "$cfg" add -- $changed
+      if ! git_out=$(git -C "$cfg" commit -m "flake: update inputs ($(date +%Y-%m-%d))" 2>&1); then
+        printf '%s\n' "$git_out"
+      fi
+      if git_out=$(git -C "$cfg" push 2>&1); then
+        printf "  →  pushed %s to %s  (%s)\n" "$(git -C "$cfg" rev-parse --short HEAD)" \
+          "$(git -C "$cfg" branch --show-current)" "${(j:, :)names}"
+      else
+        printf '%s\n' "$git_out"
+        echo "  ✗  push failed — committed locally, push manually"
+      fi
     fi
   fi
 
-  # Check if a kernel update requires a reboot
-  local current_kernel installed_kernel
-  current_kernel=$(uname -r)
-  installed_kernel=$(ls /run/current-system/kernel-modules/lib/modules/ 2>/dev/null | head -1)
+  # ── Run summary ────────────────────────────────────────────────────────────
+  if [[ -n $_NRU_START ]]; then
+    local t=$(( EPOCHSECONDS - _NRU_START )) dl=${st[dl_mib]:-0}
+    (( dl >= 1024 )) && dl=$(printf '%.1f GiB' $(( dl / 1024.0 ))) || dl=$(printf '%.0f MiB' $dl)
+    printf "  ⏱  %dm %02ds total · %s downloaded · %s built\n" $(( t / 60 )) $(( t % 60 )) "$dl" "${st[built]:-0}"
+  fi
 
-  if [[ -n "$installed_kernel" && "$current_kernel" != "$installed_kernel" ]]; then
-    echo "⚠ Kernel updated: $current_kernel → $installed_kernel"
+  # ── Disk check ─────────────────────────────────────────────────────────────
+  local pcent avail
+  read -r pcent avail <<< "$(df -h --output=pcent,avail /nix | tail -1)"
+  if (( ${pcent%\%} > 90 )); then
+    [[ $(_nru_menu "⚠" "/nix ${pcent} full ($avail free)" "G:GC now" "s:skip") == g ]] \
+      && sudo nix-collect-garbage --delete-older-than 30d
+  fi
+
+  # ── Reboot check ───────────────────────────────────────────────────────────
+  # Booted vs current system: a new kernel, initrd or systemd only fully takes
+  # effect after a reboot.
+  local -a why
+  local b c
+  if [[ "$(readlink -f /run/booted-system/kernel)" != "$(readlink -f /run/current-system/kernel)" ]]; then
+    why+=("kernel $(uname -r) → $(ls /run/current-system/kernel-modules/lib/modules/ 2>/dev/null | head -1)")
+  elif [[ "$(readlink -f /run/booted-system/initrd)" != "$(readlink -f /run/current-system/initrd)" ]]; then
+    why+=("initrd")
+  fi
+  b=$(readlink -f /run/booted-system/systemd); c=$(readlink -f /run/current-system/systemd)
+  [[ "$b" != "$c" ]] && why+=("systemd ${${b:t}#*-systemd-} → ${${c:t}#*-systemd-}")
+
+  if (( $#why )); then
     curl -s -o /dev/null --max-time 10 \
       -H "Title: Reboot Required — $(hostname)" \
       -H "Priority: high" \
       -H "Tags: warning,arrows_counterclockwise" \
-      -d "Kernel updated (${installed_kernel}). Reboot when convenient." \
+      -d "Reboot needed: ${(j:, :)why}. Reboot when convenient." \
       "http://media-server:2586/nixos-updates" 2>/dev/null || true
-    if _nru_prompt "⚠" "Rebuild Clean :: Requires Reboot :: Do it now?"; then
-      sudo reboot
-    fi
+    [[ $(_nru_menu "⚠" "Reboot needed · ${(j:, :)why}" "R:reboot now" "l:later") == r ]] && sudo reboot
   else
-    if _nru_prompt "✓" "Rebuild Clean :: Close Terminal?"; then
-      exit 0
-    fi
+    [[ $(_nru_menu "✓" "Rebuild Clean · close terminal?" "Y:yes" "n:no") == y ]] && exit 0
   fi
+  return 0
 }
 
 # ---------------------------------------------------------------------------
-# nru display constants — Nerd Font icons and full bar used across all
-# update progress lines. Defined once so every function stays consistent.
-#   _NRU_GH   = U+F09B  GitHub logo (Font Awesome via Nerd Fonts)
-#   _NRU_NIX  = U+F1105 Nix snowflake (Nerd Fonts)
-#   _NRU_DONE = pre-filled 20-char bar — used for "already up to date" lines
-# ---------------------------------------------------------------------------
-_NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
-_NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
-_NRU_FP="󰏖"    # U+F03D6 nf-md-package_variant — same glyph fastfetch uses for flatpak count
-_NRU_DONE="[■■■■■■■■■■■■■■■■■■■■]"
-
-# ---------------------------------------------------------------------------
-# _nru_pkg_bar — animated fake-progress bar for a single update step.
-# Runs cmd in background; shows  ICON  NAME      [bar]  pct%  while running.
-# On success: fills bar to 100% and appends INFO  ✓
-# On failure: shows ✗ and dumps the captured log.
-#
-# Usage: _nru_pkg_bar ICON NAME INFO cmd [args...]
-# ---------------------------------------------------------------------------
-_nru_pkg_bar() {
-  local icon="$1" name="$2" info="$3"
-  shift 3
-
-  local bw=20 bar i filled pct step=0
-  local _xf="/tmp/nru_pkg_bar_$$.exit"
-  rm -f "$_xf"
-
-  # &| disowns immediately (no job notifications); exit code written to file
-  # because wait cannot track a disowned pid in zsh.
-  { "$@" >/tmp/nru_pkg_bar.log 2>&1; echo $? >"$_xf" } &|
-  local pid=$!
-
-  while kill -0 "$pid" 2>/dev/null; do
-    pct=$(( step < 18 ? step * 5 : 90 ))
-    filled=$(( pct * bw / 100 ))
-    bar=""
-    for (( i=0; i<filled; i++ )); do bar+="■"; done
-    for (( i=filled; i<bw; i++ )); do bar+="□"; done
-    printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
-      "$icon" "$name" "$bar" "$pct" >/dev/tty
-    sleep 0.1
-    step=$(( step < 18 ? step + 1 : 18 ))
-  done
-
-  # Brief spin waiting for the exit file to be flushed after the process exits
-  local _r=0
-  while [[ ! -f "$_xf" ]] && (( _r++ < 50 )); do sleep 0.01; done
-  local code=1
-  [[ -f "$_xf" ]] && code=$(< "$_xf")
-  rm -f "$_xf"
-
-  if [[ $code -eq 0 ]]; then
-    bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
-    printf "\r  %s  %-12s  [%s]  %s  ✓\033[K\n" \
-      "$icon" "$name" "$bar" "$info" >/dev/tty
-  else
-    printf "\r  %s  %-12s  ✗ update failed\033[K\n" "$icon" "$name" >/dev/tty
-    [[ -s /tmp/nru_pkg_bar.log ]] && cat /tmp/nru_pkg_bar.log
-  fi
-
-  return $code
-}
-
-# ---------------------------------------------------------------------------
-# _nru_nixpkgs_bar — updates nixpkgs in background with a progress bar,
-# then shows the old→new date on the completed bar line.
-# ---------------------------------------------------------------------------
-_nru_nixpkgs_bar() {
-  local bw=20 bar i filled pct step=0
-  local icon="$_NRU_NIX"
-
-  local _xf="/tmp/nru_nixpkgs_$$.exit"
-  rm -f "$_xf"
-  { nix flake update nixpkgs umbriel noctalia-greeter noctalia --flake "$NIXOS_CONFIG" >/tmp/nru_nixpkgs.log 2>&1; echo $? >"$_xf" } &|
-  local pid=$!
-
-  while kill -0 "$pid" 2>/dev/null; do
-    pct=$(( step < 18 ? step * 5 : 90 ))
-    filled=$(( pct * bw / 100 ))
-    bar=""
-    for (( i=0; i<filled; i++ )); do bar+="■"; done
-    for (( i=filled; i<bw; i++ )); do bar+="□"; done
-    printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
-      "$icon" "NixPkgs" "$bar" "$pct" >/dev/tty
-    sleep 0.1
-    step=$(( step < 18 ? step + 1 : 18 ))
-  done
-
-  local _r=0
-  while [[ ! -f "$_xf" ]] && (( _r++ < 50 )); do sleep 0.01; done
-  local code=1
-  [[ -f "$_xf" ]] && code=$(< "$_xf")
-  rm -f "$_xf"
-  local upd_out
-  upd_out=$(cat /tmp/nru_nixpkgs.log)
-
-  if [[ $code -ne 0 ]]; then
-    printf "\r  %s  %-12s  ✗ update failed\033[K\n" "$icon" "NixPkgs" >/dev/tty
-    printf '%s\n' "$upd_out"
-    return $code
-  fi
-
-  bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
-
-  if printf '%s' "$upd_out" | grep -qE "Updated input '(nixpkgs|umbriel|noctalia-greeter|noctalia)'"; then
-    local info
-    info=$(printf '%s' "$upd_out" | grep -oP '(?<=\()\d{4}-\d{2}-\d{2}(?=\))' | tail -1)
-    printf "\r  %s  %-12s  [%s]  %s  ✓\033[K\n" \
-      "$icon" "NixPkgs" "$bar" "$info" >/dev/tty
-  else
-    printf "\r  %s  %-12s  %s  up to date  ✓\033[K\n" \
-      "$icon" "NixPkgs" "$_NRU_DONE" >/dev/tty
-  fi
-}
-
-# ---------------------------------------------------------------------------
-# _nru_flatpak_bar — updates Flatpak apps (--user scope) with a progress bar.
-# Skips silently if Flathub isn't available (e.g. Alex's machines, where the
-# system remote is deliberately removed for child safety).
-# ---------------------------------------------------------------------------
-_nru_flatpak_bar() {
-  flatpak remote-list --system 2>/dev/null | grep -q flathub || return 0
-
-  local bw=20 bar i filled pct step=0
-  local icon="$_NRU_FP"
-
-  local _xf="/tmp/nru_flatpak_$$.exit"
-  local _lf="/tmp/nru_flatpak_$$.log"
-  rm -f "$_xf"
-  { flatpak update --user --noninteractive -y >"$_lf" 2>&1; echo $? >"$_xf" } &|
-  local pid=$!
-
-  while kill -0 "$pid" 2>/dev/null; do
-    pct=$(( step < 18 ? step * 5 : 90 ))
-    filled=$(( pct * bw / 100 ))
-    bar=""
-    for (( i=0; i<filled; i++ )); do bar+="■"; done
-    for (( i=filled; i<bw; i++ )); do bar+="□"; done
-    printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
-      "$icon" "Flatpak" "$bar" "$pct" >/dev/tty
-    sleep 0.1
-    step=$(( step < 18 ? step + 1 : 18 ))
-  done
-
-  local _r=0
-  while [[ ! -f "$_xf" ]] && (( _r++ < 50 )); do sleep 0.01; done
-  local code=1
-  [[ -f "$_xf" ]] && code=$(< "$_xf")
-  rm -f "$_xf"
-  local upd_out
-  upd_out=$(cat "$_lf" 2>/dev/null)
-  rm -f "$_lf"
-
-  # flatpak exits 0 even when individual refs fail (e.g. a dangling remote
-  # left behind after `flatpak remote-delete`, as hytale/default.nix does
-  # post-install) — so a per-app failure line in the log overrides the exit
-  # code rather than being silently reported as success.
-  #
-  # com.hypixel.HytaleLauncher is a known, permanent exception: hytale/default.nix
-  # deletes its origin remote right after install, so it can never resolve
-  # updates until Hytale ships on Flathub. Ignored so it doesn't flag every
-  # run as a false failure — any other app's failure still reports normally.
-  local real_failures
-  real_failures=$(printf '%s' "$upd_out" | grep -i "Unable to update" | grep -v "com.hypixel.HytaleLauncher")
-
-  if [[ $code -ne 0 ]] || [[ -n "$real_failures" ]]; then
-    printf "\r  %s  %-12s  ✗ update failed\033[K\n" "$icon" "Flatpak" >/dev/tty
-    printf '%s\n' "$upd_out"
-    return 1
-  fi
-
-  if printf '%s' "$upd_out" | grep -qi "Nothing to update"; then
-    printf "\r  %s  %-12s  %s  up to date  ✓\033[K\n" \
-      "$icon" "Flatpak" "$_NRU_DONE" >/dev/tty
-  else
-    bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
-    printf "\r  %s  %-12s  [%s]  updated  ✓\033[K\n" \
-      "$icon" "Flatpak" "$bar" >/dev/tty
-  fi
-}
-
-# ---------------------------------------------------------------------------
-# _nru_update_proton_ge — checks GitHub for a new GE-Proton release and
-# updates the inline fetchzip in modules/gaming/default.nix.
-# (proton-ge-custom is no longer a flake input — moved inline so headless
-# servers never resolve this tarball during nix flake evaluation.)
-# ---------------------------------------------------------------------------
-_nru_update_proton_ge() {
-  local latest current gaming_module
-
-  gaming_module="${NIXOS_CONFIG}/modules/gaming/default.nix"
-
-  latest=$(curl -fsSL "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest" \
-    | jq -r '.tag_name' 2>/dev/null) || {
-    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "GE-Proton" "$_NRU_DONE"
-    return 0
-  }
-
-  current=$(grep -oE 'GE-Proton[0-9]+-[0-9]+' "$gaming_module" | head -1)
-
-  if [[ "$latest" == "$current" ]]; then
-    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "GE-Proton" "$_NRU_DONE" "$current"
-    return 0
-  fi
-
-  local _cur="$current" _lat="$latest" _gm="$gaming_module"
-  _nru_pkg_bar "$_NRU_GH" "GE-Proton" "$_lat" \
-    zsh -c "
-      local new_url=\"https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${_lat}/${_lat}-x86_64.tar.gz\"
-      local new_hash=\$(nix store prefetch-file --hash-type sha256 --unpack \"\$new_url\" 2>&1 | grep -oP 'sha256-[A-Za-z0-9+/=]+')
-      if [[ -z \"\$new_hash\" ]]; then
-        echo \"  ⚠ prefetch failed for \$new_url — leaving \${_gm} untouched\" >&2
-        exit 1
-      fi
-      sed -i \"s|GE-Proton[0-9]*-[0-9]*|${_lat}|g\" \"${_gm}\"
-      sed -i \"s|hash = \\\"sha256-[A-Za-z0-9+/=]*\\\"; # proton-ge-hash|hash = \\\"\$new_hash\\\"; # proton-ge-hash|\" \"${_gm}\"
-    "
-}
-
-# ---------------------------------------------------------------------------
-# _nru_update_proton_cachyos — checks GitHub for a new Proton-CachyOS release
-# and updates the inline fetchzip in modules/gaming/default.nix.
-# ---------------------------------------------------------------------------
-_nru_update_proton_cachyos() {
-  local latest current gaming_module
-
-  gaming_module="${NIXOS_CONFIG}/modules/gaming/default.nix"
-
-  latest=$(curl -fsSL "https://api.github.com/repos/CachyOS/proton-cachyos/releases/latest" \
-    | jq -r '.tag_name' 2>/dev/null) || {
-    printf "  %s  %-12s  %s  ⚠ GitHub unreachable\n" "$_NRU_GH" "Proton-Cachy" "$_NRU_DONE"
-    return 0
-  }
-
-  current=$(grep 'protonCachyosTag = ' "$gaming_module" | grep -oP '"[^"]+"' | tr -d '"')
-
-  if [[ "$latest" == "$current" ]]; then
-    printf "  %s  %-12s  %s  %s  ✓\n" "$_NRU_GH" "Proton-Cachy" "$_NRU_DONE" "$current"
-    return 0
-  fi
-
-  local _cur="$current" _lat="$latest" _gm="$gaming_module"
-  _nru_pkg_bar "$_NRU_GH" "Proton-Cachy" "$_lat" \
-    zsh -c "
-      local new_url=\"https://github.com/CachyOS/proton-cachyos/releases/download/${_lat}/proton-${_lat}-x86_64.tar.xz\"
-      local new_hash=\$(nix store prefetch-file --hash-type sha256 --unpack \"\$new_url\" 2>&1 | grep -oP 'sha256-[A-Za-z0-9+/=]+')
-      sed -i \"s|protonCachyosTag = \\\"[^\\\"]*\\\"; # proton-cachyos-nru|protonCachyosTag = \\\"${_lat}\\\"; # proton-cachyos-nru|\" \"${_gm}\"
-      sed -i \"s|hash = \\\"sha256-[A-Za-z0-9+/=]*\\\"; # proton-cachyos-hash|hash = \\\"\$new_hash\\\"; # proton-cachyos-hash|\" \"${_gm}\"
-    "
-}
-
-
-# ---------------------------------------------------------------------------
-# _nru_git_bar — pulls latest nixos-config with animated progress bar.
-# Restores flake.lock first to avoid merge conflicts with local nix updates.
+# _nru_git_bar — pulls latest nixos-config (fast-forward only).
+# Failures are named, and the fixable ones get a menu:
+#   local changes → stash / discard / keep · diverged → rebase / keep
+#   offline → rebuild the local config anyway (sets _NRU_OFFLINE)
 # ---------------------------------------------------------------------------
 _nru_git_bar() {
-  local bw=20 bar i filled pct step=0
-  local _xf="/tmp/nru_git_$$.exit"
-  rm -f "$_xf"
+  local cfg=$NIXOS_CONFIG log="$_NRU_CACHE/git.log" before after n out
+  _NRU_OFFLINE=""
 
-  # --staged too: a prior nru's push block may have `git add`ed flake.lock
-  # and then failed before/after commit (e.g. no git identity configured,
-  # or the host isn't allowed to push), leaving it staged and blocking pull.
-  git -C "$NIXOS_CONFIG" restore --staged --worktree flake.lock 2>/dev/null || true
+  # nru regenerates flake.lock every run; a leftover local bump (or one staged
+  # by a failed push) would block the pull. Say so when something is discarded.
+  if ! git -C "$cfg" diff --quiet HEAD -- flake.lock 2>/dev/null; then
+    printf "  \e[2m↺  discarded local flake.lock changes (nru regenerates it)\e[0m\n" >/dev/tty
+    git -C "$cfg" restore --staged --worktree flake.lock 2>/dev/null
+  fi
 
-  { git -C "$NIXOS_CONFIG" pull >/tmp/nru_git_$$.log 2>&1; echo $? >"$_xf" } &|
-  local pid=$!
+  before=$(git -C "$cfg" rev-parse --short HEAD)
+  if _nru_spin "$_NRU_GH" "Nixos-Config" "pulling" "$log" git -C "$cfg" pull --ff-only; then
+    after=$(git -C "$cfg" rev-parse --short HEAD)
+    if [[ $before == "$after" ]]; then
+      _nru_ok "$_NRU_GH" "Nixos-Config" "up to date"
+    else
+      n=$(git -C "$cfg" rev-list --count "$before..$after")
+      _nru_ok "$_NRU_GH" "Nixos-Config" "$n commit${${n:#1}:+s}  $before → $after"
+    fi
+    return 0
+  fi
 
-  while kill -0 "$pid" 2>/dev/null; do
-    pct=$(( step < 18 ? step * 5 : 90 ))
-    filled=$(( pct * bw / 100 ))
-    bar=""
-    for (( i=0; i<filled; i++ )); do bar+="■"; done
-    for (( i=filled; i<bw; i++ )); do bar+="□"; done
-    printf "\r  %s  %-12s  [%s]  %d%%\033[K" \
-      "$_NRU_GH" "Nixos-Config" "$bar" "$pct" >/dev/tty
-    sleep 0.1
-    step=$(( step < 18 ? step + 1 : 18 ))
+  out=$(<"$log")
+  case $out in
+    *"would be overwritten by"*)
+      _nru_git_local_changes; return ;;
+    *"Not possible to fast-forward"*|*"diverging branches"*)
+      _nru_git_diverged; return ;;
+    *"Permission denied (publickey)"*|*"Host key verification failed"*)
+      _nru_row "$_NRU_GH" "Nixos-Config" "✗ SSH auth failed · check your ~/.ssh key is added to GitHub"
+      _nru_git_skip_or_quit; return ;;
+    *"Could not resolve"*|*"Network is unreachable"*|*"Connection timed out"*|*"Connection refused"*|*"Temporary failure in name resolution"*)
+      _nru_row "$_NRU_GH" "Nixos-Config" "⚠ offline"
+      [[ $(_nru_menu "⚠" "Offline · rebuild local config anyway?" "Y:yes" "n:no") == y ]] || return 1
+      _NRU_OFFLINE=1; echo ""; return 0 ;;
+  esac
+
+  _nru_row "$_NRU_GH" "Nixos-Config" "✗ pull failed"
+  printf '%s\n' "$out"
+  return 1
+}
+
+_nru_git_local_changes() {
+  local cfg=$NIXOS_CONFIG f add del
+  local -a files items
+  # git lists the blocking files tab-indented under the "would be overwritten" line
+  files=(${(f)"$(awk '/would be overwritten by/ {f=1; next} f && /^\t/ {sub(/^\t/, ""); print; next} {f=0}' "$_NRU_CACHE/git.log")"})
+  for f in $files; do
+    read -r add del _ <<< "$(git -C "$cfg" diff --numstat HEAD -- "$f")"
+    items+=("$f${add:+   (+$add −$del)}")
   done
+  _nru_row "$_NRU_GH" "Nixos-Config" "✗ local changes block the pull"
+  _nru_tree "${items[@]}"
 
-  local _r=0
-  while [[ ! -f "$_xf" ]] && (( _r++ < 50 )); do sleep 0.01; done
-  local code=1
-  [[ -f "$_xf" ]] && code=$(< "$_xf")
-  rm -f "$_xf"
-  local git_out
-  git_out=$(cat /tmp/nru_git_$$.log 2>/dev/null)
-  rm -f "/tmp/nru_git_$$.log"
+  case $(_nru_menu "⚠" "Local Changes" "S:Stash & pull" "d:discard & pull" "k:keep, skip pull" "q:quit") in
+    s) git -C "$cfg" stash push -u -q -m "nru $(date '+%F %H:%M')" || return 1
+       printf "  ↓  stashed as \"nru %s\" (git stash pop to restore)\n" "$(date '+%F %H:%M')"
+       _nru_git_bar; return ;;
+    d) for f in $files; do
+         if git -C "$cfg" ls-files --error-unmatch -- "$f" &>/dev/null; then
+           git -C "$cfg" checkout -q HEAD -- "$f"
+         else
+           rm -f -- "$cfg/$f"
+         fi
+       done
+       _nru_git_bar; return ;;
+    k) _nru_row "$_NRU_GH" "Nixos-Config" "⏭ kept local changes, skipped pull"; return 0 ;;
+    q) return 1 ;;
+  esac
+}
 
-  bar=""; for (( i=0; i<bw; i++ )); do bar+="■"; done
+_nru_git_diverged() {
+  local cfg=$NIXOS_CONFIG ahead behind
+  git -C "$cfg" fetch -q 2>/dev/null
+  read -r ahead behind <<< "$(git -C "$cfg" rev-list --left-right --count 'HEAD...@{u}')"
+  _nru_row "$_NRU_GH" "Nixos-Config" "✗ diverged · $ahead local / $behind remote commits"
 
-  if [[ $code -ne 0 ]]; then
-    printf "\r  %s  %-12s  ✗ pull failed\033[K\n" "$_NRU_GH" "Nixos-Config" >/dev/tty
-    printf '%s\n' "$git_out"
-    return 1
-  fi
+  case $(_nru_menu "⚠" "Diverged" "R:Rebase local onto remote" "k:keep, skip pull" "q:quit") in
+    r) if _nru_spin "$_NRU_GH" "Nixos-Config" "rebasing" "$_NRU_CACHE/git.log" git -C "$cfg" pull --rebase; then
+         _nru_ok "$_NRU_GH" "Nixos-Config" "rebased $ahead local onto $behind remote"
+         return 0
+       fi
+       git -C "$cfg" rebase --abort 2>/dev/null
+       _nru_row "$_NRU_GH" "Nixos-Config" "✗ rebase conflict · rebase aborted, repo unchanged"
+       _nru_git_skip_or_quit; return ;;
+    k) _nru_row "$_NRU_GH" "Nixos-Config" "⏭ skipped pull · rebuilding local config"; return 0 ;;
+    q) return 1 ;;
+  esac
+}
 
-  if printf '%s' "$git_out" | grep -q "Already up to date"; then
-    printf "\r  %s  %-12s  %s  up to date  ✓\033[K\n" "$_NRU_GH" "Nixos-Config" "$_NRU_DONE" >/dev/tty
-  else
-    printf "\r  %s  %-12s  [%s]  updated  ✓\033[K\n" "$_NRU_GH" "Nixos-Config" "$bar" >/dev/tty
-  fi
+_nru_git_skip_or_quit() {
+  [[ $(_nru_menu "⚠" "Pull Failed" "k:keep, skip pull" "Q:quit") == k ]] || return 1
+  _nru_row "$_NRU_GH" "Nixos-Config" "⏭ skipped pull · rebuilding local config"
 }
 
 # ---------------------------------------------------------------------------
-# Rebuild + pull latest nixpkgs before switching.
-# Pulls latest git changes, bumps nixpkgs + GitHub packages in flake.lock,
-# rebuilds, commits the updated flake.lock, then prompts based on result:
-#   clean        → offer to close terminal
-#   needs reboot → offer to reboot now
-#   failed       → offer to retry (without re-pulling or re-updating)
+# _nru_inputs_bar — updates every flake input; shows which ones moved.
+# Dates/revs come from flake.lock itself (before vs after), never parsed from
+# nix's output. A failed update keeps the current lock and carries on.
+# ---------------------------------------------------------------------------
+_nru_lock_inputs() {   # "<input> <rev> <lastModified>" per root input
+  jq -r '.nodes as $n | $n.root.inputs | to_entries[]
+         | ($n[.value].locked) as $l | "\(.key) \($l.rev // $l.narHash) \($l.lastModified)"' \
+    "$NIXOS_CONFIG/flake.lock"
+}
+
+_nru_inputs_bar() {
+  local name="Flake Inputs" log="$_NRU_CACHE/inputs.log" k r t m w=0 od
+  local -A old_rev old_ts
+  local -a moved rows
+
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$_NRU_NIX" "$name" "⏭ skipped (offline)"; return 0; fi
+
+  while read -r k r t; do old_rev[$k]=$r; old_ts[$k]=$t; done < <(_nru_lock_inputs)
+
+  if ! _nru_spin "$_NRU_NIX" "$name" "updating ${#old_rev} inputs" "$log" nix flake update --flake "$NIXOS_CONFIG"; then
+    git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null
+    _nru_row "$_NRU_NIX" "$name" "⚠ update failed · keeping current lock (nixpkgs $(date -d @${old_ts[nixpkgs]} +%F))"
+    grep -m1 'error:' "$log" | sed -E 's/^\s*/       /'
+    return 0
+  fi
+
+  while read -r k r t; do
+    [[ ${old_rev[$k]} == "$r" ]] && continue
+    moved+=("$k|${old_ts[$k]}|$t")
+    (( ${#k} > w )) && w=${#k}
+  done < <(_nru_lock_inputs)
+
+  if (( ! $#moved )); then _nru_ok "$_NRU_NIX" "$name" "up to date"; return 0; fi
+  for m in $moved; do
+    IFS='|' read -r k od t <<< "$m"
+    [[ -n $od ]] && od=$(date -d @$od +%m-%d) || od=new
+    rows+=("$(printf "%-${w}s  %s → %s" "$k" "$od" "$(date -d @$t +%m-%d)")")
+  done
+  _nru_ok "$_NRU_NIX" "$name" "$#moved updated"
+  _nru_tree "${rows[@]}"
+}
+
+# ---------------------------------------------------------------------------
+# _nru_update_proton_cachyos — checks GitHub for a new Proton-CachyOS release.
+# Only the lock writer bumps the inline fetchzip in modules/gaming/default.nix
+# (committed with flake.lock); other hosts just report it and get it on pull.
+# nixpkgs has no CachyOS-Proton package under any name (checked), so this
+# tracker stays; GE-Proton comes from nixpkgs (pkgs.proton-ge-bin).
+# ---------------------------------------------------------------------------
+_nru_update_proton_cachyos() {
+  local gm="$NIXOS_CONFIG/modules/gaming/default.nix" name="Proton-Cachy" icon=$_NRU_GH
+  local current latest cur_s new_s url tmp size total got xf pid hash i=1
+
+  current=$(grep -oP 'protonCachyosTag = "\K[^"]+' "$gm")
+  cur_s=${${current#cachyos-*-}%-slr}   # cachyos-11.0-20261005-slr → 20261005
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+
+  # Pipe status is jq's, not curl's — offline or rate-limited curl hands jq
+  # empty input and jq still exits 0, so test the result, not the exit code.
+  latest=$(curl -fsSL --max-time 15 "https://api.github.com/repos/CachyOS/proton-cachyos/releases/latest" 2>/dev/null \
+    | jq -r '.tag_name // empty' 2>/dev/null)
+  if [[ -z $latest ]]; then _nru_row "$icon" "$name" "⚠ GitHub unreachable · keeping $cur_s"; return 0; fi
+  new_s=${${latest#cachyos-*-}%-slr}
+
+  if [[ $latest == "$current" ]]; then _nru_ok "$icon" "$name" "$cur_s"; return 0; fi
+  if ! _nru_is_lock_writer; then
+    _nru_ok "$icon" "$name" "$cur_s" "· $new_s available (Ryzen5900x will bump it)"; return 0
+  fi
+
+  # Download with real progress, then hash the local file.
+  url="https://github.com/CachyOS/proton-cachyos/releases/download/${latest}/proton-${latest}-x86_64.tar.xz"
+  tmp="$_NRU_CACHE/proton-${latest}.tar.xz"; xf="$_NRU_CACHE/.exit.$$"
+  size=$(curl -fsSIL --max-time 15 "$url" 2>/dev/null | grep -i '^content-length:' | tail -1 | tr -dc '0-9')
+  total=${size:+$(( size / 1048576 ))}
+  rm -f "$xf" "$tmp"
+  { curl -fsSL -o "$tmp" "$url"; echo $? >"$xf" } &|
+  pid=$!
+  while kill -0 "$pid" 2>/dev/null; do
+    got=$(( $(stat -c %s "$tmp" 2>/dev/null || echo 0) / 1048576 ))
+    printf "\r  %s  %-12s  ⬇ downloading %s · %d/%s MiB  %s\033[K" \
+      "$icon" "$name" "$new_s" "$got" "${total:-?}" "$_NRU_SPIN[i]" >/dev/tty
+    sleep 0.2
+    i=$(( i % 10 + 1 ))
+  done
+  if (( $(_nru_wait_exit "$xf") == 0 )); then
+    _nru_spin "$icon" "$name" "hashing $new_s" "$_NRU_CACHE/proton.log" \
+      nix store prefetch-file --hash-type sha256 --unpack "file://$tmp"
+    hash=$(grep -m1 -oP 'sha256-[A-Za-z0-9+/=]+' "$_NRU_CACHE/proton.log")
+  fi
+  rm -f "$tmp"
+  if [[ -z $hash ]]; then
+    _nru_row "$icon" "$name" "⚠ download failed · keeping $cur_s, module untouched"; return 0
+  fi
+
+  # Tag and hash are written together, only once the hash is known.
+  sed -i \
+    -e "s|protonCachyosTag = \"[^\"]*\"; # proton-cachyos-nru|protonCachyosTag = \"${latest}\"; # proton-cachyos-nru|" \
+    -e "s|hash = \"sha256-[A-Za-z0-9+/=]*\"; # proton-cachyos-hash|hash = \"${hash}\"; # proton-cachyos-hash|" \
+    "$gm"
+  _nru_ok "$icon" "$name" "$cur_s → $new_s"
+}
+
+# ---------------------------------------------------------------------------
+# _nru_flatpak_bar — updates Flatpak apps in user AND system scope through the
+# shared nixos-flatpak-update script (modules/system/graphical/default.nix;
+# the weekly timers use the same one). System scope runs via a passwordless
+# sudo rule for exactly that command. Silent where Flathub is absent (Alex's
+# machines, where the remote is deliberately removed for child safety).
+# ---------------------------------------------------------------------------
+_nru_flatpak_bar() {
+  local icon=$_NRU_FP name="Flatpak" log="$_NRU_CACHE/flatpak.log" line scope kind app rest f
+  local -a updated failed
+
+  if ! command -v nixos-flatpak-update &>/dev/null; then
+    _nru_row "$icon" "$name" "⏭ skipped (updater installs with this rebuild)"; return 0
+  fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+
+  _nru_spin "$icon" "$name" "updating" "$log" zsh -c \
+    'nixos-flatpak-update --user; sudo -n /run/current-system/sw/bin/nixos-flatpak-update --system'
+
+  while IFS= read -r line; do
+    if [[ $line == sudo:* ]]; then failed+=("system scope|$line"); continue; fi
+    read -r scope kind app rest <<< "$line"
+    case $kind in
+      skipped) [[ $app == no-flathub ]] && { printf "\r\033[K" >/dev/tty; return 0 } ;;
+      updated) updated+=("$rest  ($scope)") ;;
+      failed)  failed+=("${app##*.}|$rest") ;;
+    esac
+  done < "$log"
+
+  if (( $#failed )); then
+    _nru_row "$icon" "$name" "✗ ${(j:, :)${failed%%|*}} failed${updated:+ · others updated}"
+    for f in ${failed[1,3]}; do printf "       %s\n" "${f#*|}"; done
+    (( $#updated )) && _nru_tree "${updated[@]}"
+  elif (( $#updated )); then
+    _nru_ok "$icon" "$name" "$#updated updated"
+    _nru_tree "${updated[@]}"
+  else
+    _nru_ok "$icon" "$name" "up to date"
+  fi
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# nru — update everything, then rebuild.
+# Pulls nixos-config, updates all flake inputs, Proton-CachyOS (gaming hosts)
+# and Flatpaks (graphical hosts), rebuilds, then summarises. Failures at each
+# step offer only the options that make sense for that failure.
 # ---------------------------------------------------------------------------
 nru() {
+  _NRU_START=$EPOCHSECONDS
+  mkdir -p "$_NRU_CACHE"
+
   # TRAPINT fires on Ctrl+C even in interactive zsh (unlike `always` blocks).
-  # Kills the orphaned animation script and clears the two-line bar display.
-  # Self-removes so subsequent Ctrl+C in the shell behaves normally.
+  # Stops the ticker and offers a retry. Self-removes so later Ctrl+C in the
+  # shell behaves normally.
   TRAPINT() {
     unfunction TRAPINT 2>/dev/null
-    local _ap
-    _ap=$(cat "/tmp/nru_anim_pid_${$}" 2>/dev/null)
-    if [[ -n "$_ap" ]] && kill -0 "$_ap" 2>/dev/null; then
-      kill "$_ap" 2>/dev/null
-      printf "\r\033[K\033[1A\r\033[K\n" >/dev/tty
-    else
-      printf "\r\033[K\n" >/dev/tty
-    fi
-    if _nru_prompt "✗" "Rebuild Interrupted :: Retry Rebuild?"; then
+    kill "$_NRU_TICKER_PID" 2>/dev/null
+    printf "\r\033[K\n" >/dev/tty
+    if [[ $(_nru_menu "✗" "Rebuild Interrupted" "R:retry" "q:quit") == r ]]; then
       _NRU_NO_HEADER=1 _nru_rebuild
     fi
     return 130
   }
 
-  # ── Header ──────────────────────────────────────────────────────────────────
   echo ""
   echo "══════════════════════════════════════════════════════════"
   printf "  ↻  Update & Rebuild  ·  %s\n" "$(hostname)"
   echo "══════════════════════════════════════════════════════════"
   echo ""
 
-  # ── Git pull ─────────────────────────────────────────────────────────────────
   _nru_git_bar || { unfunction TRAPINT 2>/dev/null; return 1 }
+  _nru_inputs_bar
+  command -v steam   &>/dev/null && _nru_update_proton_cachyos
+  command -v flatpak &>/dev/null && _nru_flatpak_bar
 
-  # ── nixpkgs ──────────────────────────────────────────────────────────────────
-  _nru_nixpkgs_bar || { unfunction TRAPINT 2>/dev/null; return 1 }
-
-  # ── GitHub packages (gaming hosts only) ─────────────────────────────────────
-  # 2026-09-18: GE-Proton disabled — now comes straight from nixpkgs
-  # (pkgs.proton-ge-bin, see modules/gaming/default.nix) instead of this
-  # custom fetchzip+hash-check tracker. Function left defined above in case
-  # that ever needs reverting. CachyOS stays on the custom tracker — nixpkgs
-  # has no CachyOS-Proton package under any name (checked).
-  # command -v steam &>/dev/null && { _nru_update_proton_ge      || true }
-  command -v steam &>/dev/null && { _nru_update_proton_cachyos || true }
-
-  # ── Flatpak apps (graphical hosts only) ─────────────────────────────────────
-  command -v flatpak &>/dev/null && { _nru_flatpak_bar || true }
-
-  # ── Rebuild ───────────────────────────────────────────────────────────────────
   echo ""
   _NRU_NO_HEADER=1 _nru_rebuild
+  local rc=$?
   unfunction TRAPINT 2>/dev/null
-}
-
-# ---------------------------------------------------------------------------
-# nrf — nix rebuild fix. Discards local modifications blocking nru's git
-# pull (e.g. a host with stray uncommitted changes), then runs nru.
-# ---------------------------------------------------------------------------
-nrf() {
-  local diff
-  diff=$(git -C "$NIXOS_CONFIG" diff --stat)
-
-  if [[ -n "$diff" ]]; then
-    git -C "$NIXOS_CONFIG" status
-    printf '%s\n' "$diff"
-    _nru_prompt "⚠" "Local Changes Detected :: Discard & Pull?" || return 1
-    git -C "$NIXOS_CONFIG" checkout -- .
-  fi
-
-  git -C "$NIXOS_CONFIG" pull || return 1
-  nru
+  return $rc
 }
 
 # NixOS aliases — available to all users on all hosts

@@ -258,13 +258,6 @@
                   # openldap 2.6.13 test017-syncreplication-refresh is flaky
                   # (timing-sensitive); skip tests to unblock the build.
                   openldap    = prev.openldap.overrideAttrs (_: { doCheck = false; });
-                  # typescript-language-server 6.0.2: upstream pnpmDeps hash is stale
-                  # (2026-10-13). Remove once nixpkgs fixes the hash.
-                  typescript-language-server = prev.typescript-language-server.overrideAttrs (old: {
-                    pnpmDeps = old.pnpmDeps.overrideAttrs (_: {
-                      outputHash = "sha256-xR/EF60lVBsITKgH7wCM2wHM46PFQevD51KfCENSUH4=";
-                    });
-                  });
                   # poetry 2.4.1 install-check tests fail on python 3.14 — upstream
                   # string-formatting assertions don't account for py3.14 output changes.
                   # pkgs.poetry/package.nix uses a self-contained private python3 scope;
@@ -293,6 +286,13 @@
                   };
                 })
 
+                # Stale upstream dependency hashes (pnpmDeps/npmDeps/cargoDeps/…).
+                # Entries are added and removed by nru's [F]ix option — see
+                # _nru_hash_fix in dotfiles/zsh/zshrc.
+                (final: prev: prev.lib.mapAttrs (name: fix:
+                  prev.${name}.overrideAttrs (old: {
+                    ${fix.attr} = old.${fix.attr}.overrideAttrs (_: { outputHash = fix.hash; });
+                  })) (import ./overlays/hash-fixes.nix))
               ];
             }
 
