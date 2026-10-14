@@ -31,11 +31,11 @@ let
   # and by the weekly timers below, so the update + failure logic lives in one place.
   # Prints one machine-readable line per result, prefixed with the scope:
   #   <scope> skipped <reason> | <scope> uptodate
-  #   <scope> updated <app-id> <name> | <scope> failed <app-id> <first error line>
+  #   <scope> updated <app-id> <name> | <scope> failed <app-id> <error message>
   # Exits 1 if any app failed to update.
   flatpakUpdate = pkgs.writeShellApplication {
     name = "nixos-flatpak-update";
-    runtimeInputs = with pkgs; [ flatpak gnugrep coreutils ];
+    runtimeInputs = with pkgs; [ flatpak gnugrep gnused coreutils ];
     text = ''
       case "''${1:-}" in
         --user|--system) flag="$1"; scope="''${1#--}" ;;
@@ -50,7 +50,10 @@ let
       # deletes its origin remote right after install, so it can never resolve
       # updates until Hytale ships on Flathub.
       if ! list=$(flatpak remote-ls --updates "$flag" --columns=application,name 2>&1); then
-        echo "$scope failed - $(head -1 <<<"$list")"; exit 1
+        # Errors can span lines (GPG's "Signature made …" comes before the
+        # actual reason), so keep the whole message from "error:" on.
+        msg=$(sed -n '/^error:/,$p' <<<"$list" | paste -sd' ')
+        echo "$scope failed - ''${msg:-$(head -1 <<<"$list")}"; exit 1
       fi
       list=$(grep -v '^com\.hypixel\.HytaleLauncher' <<<"$list" || true)
       if [[ -z "$list" ]]; then echo "$scope uptodate"; exit 0; fi

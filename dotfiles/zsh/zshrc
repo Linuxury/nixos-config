@@ -1097,7 +1097,8 @@ _nru_flatpak_bar() {
     case $kind in
       skipped) [[ $app == no-flathub ]] && { printf "\r\033[K" >/dev/tty; return 0 } ;;
       updated) updated+=("$rest  ($scope)") ;;
-      failed)  failed+=("${app##*.}|$rest") ;;
+      failed)  [[ $app == - ]] && app="$scope scope"   # listing failed, no app
+               failed+=("${app##*.}|$rest") ;;
     esac
   done < "$log"
 
