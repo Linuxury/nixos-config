@@ -126,10 +126,22 @@ in
   # The activation script adds Flathub at system scope on first boot.
   # =========================================================================
   services.flatpak.enable = true;
-  system.activationScripts.flatpak-flathub = {
+  system.activationScripts.flatpak-flathub = let
+    # ponytail: pinned key expires 2027-06-14; refresh the hash when Flathub re-publishes it.
+    flathubKey = pkgs.fetchurl {
+      url = "https://dl.flathub.org/repo/flathub.gpg";
+      hash = "sha256-i9wgq8ThnAeWRgvrW/4OeqQThxaZnhnG8tvdeMxBrqo=";
+    };
+  in {
     text = ''
       ${pkgs.flatpak}/bin/flatpak remote-add --system --if-not-exists flathub \
         https://dl.flathub.org/repo/flathub.flatpakrepo || true
+      # --if-not-exists keeps a pre-existing flathub remote that lacks the
+      # signing key ("public key not found", Ryzen5800x 2026-10). Repair it.
+      if ${pkgs.flatpak}/bin/flatpak remote-list --system --columns=name | ${pkgs.gnugrep}/bin/grep -qx flathub \
+         && [ ! -s /var/lib/flatpak/repo/flathub.trustedkeys.gpg ]; then
+        ${pkgs.flatpak}/bin/flatpak remote-modify --system --gpg-import=${flathubKey} flathub || true
+      fi
     '';
     deps = [ "specialfs" ];
   };
