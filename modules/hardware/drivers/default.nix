@@ -59,6 +59,7 @@
           # This offloads video playback to the GPU instead of the CPU
           extraPackages = with pkgs; [
             rocmPackages.clr # OpenCL support for GPU compute
+            rocmPackages.clr.icd # registers clr with the OpenCL loader (/etc/OpenCL/vendors); without it: CL error -1001
           ];
           # 32-bit support for Steam — RADV is included in mesa32 automatically
         };
