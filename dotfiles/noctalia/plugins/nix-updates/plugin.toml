@@ -74,6 +74,8 @@ label_key = "settings.check_interval.label"
 description_key = "settings.check_interval.description"
 default = "6"
 options = [
+  { value = "0.25", label_key = "settings.check_interval.options.m15" },
+  { value = "0.5", label_key = "settings.check_interval.options.m30" },
   { value = "1", label_key = "settings.check_interval.options.h1" },
   { value = "3", label_key = "settings.check_interval.options.h3" },
   { value = "6", label_key = "settings.check_interval.options.h6" },

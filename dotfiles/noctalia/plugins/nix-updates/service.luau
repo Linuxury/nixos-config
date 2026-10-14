@@ -126,7 +126,7 @@ function update()
     if state.phase == "error" then
       due = math.min(BACKOFF[math.clamp(failures, 1, #BACKOFF)], interval)
     elseif not startupChecked then
-      due = STARTUP_FRESH_S
+      due = math.min(STARTUP_FRESH_S, interval)
     else
       due = interval
     end
