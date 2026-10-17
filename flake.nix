@@ -170,6 +170,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # horizon-files — Horizon File Manager source (no tags upstream, so the
+    # default branch is tracked like noctalia/umbriel; nru bumps it). Built by
+    # pkgs/horizon-files; only fetched on hosts importing that module.
+    # submodules=1: vendored nanosvg/stb/toml++/material-color-utilities.
+    horizon-files = {
+      url = "git+https://github.com/Event-Horizon-desktop-environment/Horizon-File-Manager?submodules=1";
+      flake = false;
+    };
+
   };
 
   # ===========================================================================
