@@ -884,10 +884,6 @@ _nru_git_bar() {
     else
       n=$(git -C "$cfg" rev-list --count "$before..$after")
       _nru_ok "$_NRU_GH" "Nixos-Config" "$n commit${${n:#1}:+s}  $before → $after"
-      # Pulled a new nru? Load it silently so the remaining steps run the new
-      # code (functions resolve at call time; only nru()'s own step list stays old).
-      git -C "$cfg" diff --quiet "$before" "$after" -- dotfiles/zsh/zshrc ||
-        _NRU_QUIET=1 source "$cfg/dotfiles/zsh/zshrc"
     fi
     return 0
   fi
@@ -1223,6 +1219,10 @@ nru() {
   echo ""
 
   _nru_git_bar || { unfunction TRAPINT 2>/dev/null; return 1 }
+  # New shells load HM's copy of this file (last rebuild), not the repo. Re-source
+  # the repo copy silently so the remaining steps run the latest nru code
+  # (functions resolve at call time; only this function's step list stays old).
+  _NRU_QUIET=1 source "$NIXOS_CONFIG/dotfiles/zsh/zshrc"
   _nru_inputs_bar
   command -v steam   &>/dev/null && _nru_update_proton_cachyos
   command -v photocraft &>/dev/null && _nru_update_craft_apps
