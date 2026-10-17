@@ -19,7 +19,8 @@
 # Each tarball is a plain FHS tree (bin/, share/{applications,icons,mime,metainfo}),
 # so copying it to $out gives the menu entry, icons and file associations.
 #
-# Bumping: edit version + hash below. Hashes come from upstream's SHA256SUMS.txt:
+# nru bumps these on Ryzen5900x (_nru_update_craft_apps in dotfiles/zsh/zshrc).
+# Manual bump: edit version + hash below. Hashes come from upstream's SHA256SUMS.txt:
 #   curl -sL https://github.com/storytold/<app>/releases/download/v<ver>/SHA256SUMS.txt \
 #     | grep linux-x86_64.tar.gz   # then: nix hash convert --hash-algo sha256 --to sri <hex>
 #
