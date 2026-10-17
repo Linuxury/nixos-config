@@ -53,7 +53,7 @@
     #../../modules/system/graphical/zen-browser/default.nix
     ../../modules/system/graphical/thunderbird/default.nix
     ../../modules/system/graphical/zennotes/default.nix
-    ../../modules/system/graphical/libreoffice/default.nix
+    #../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/system/graphical/craft-apps/default.nix
     #../../modules/system/graphical/horizon-files/default.nix

@@ -47,7 +47,7 @@
     ../../modules/system/graphical/firefox/default.nix
     ../../modules/system/graphical/helium/default.nix
     ../../modules/system/graphical/zennotes/default.nix
-    ../../modules/system/graphical/libreoffice/default.nix
+    #../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/system/graphical/craft-apps/default.nix
     #../../modules/system/graphical/horizon-files/default.nix

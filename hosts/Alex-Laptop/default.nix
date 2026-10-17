@@ -45,9 +45,9 @@
     # ==============================================================
     ../../modules/system/graphical/firefox/default.nix
     #../../modules/system/graphical/helium/default.nix
-    ../../modules/system/graphical/libreoffice/default.nix
+    #../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
-    #../../modules/system/graphical/craft-apps/default.nix
+    ../../modules/system/graphical/craft-apps/default.nix
     #../../modules/system/graphical/horizon-files/default.nix
     #../../modules/services/kdeconnect/default.nix
 
@@ -440,13 +440,13 @@
   # ==============================================================
   # Packages
   #
-  # Alex's personal apps (freetube, krita, kdenlive, gcompris-qt,
-  # libreoffice, hunspell) are declared in users/alex/home.nix.
+  # Office apps come from the Craft office suite (below).
   # Gaming packages (prismlauncher, jdk17) are in
   # modules/gaming/default.nix (imported above).
   # Graphical tools (kitty, showtime, etc.) are in modules/system/graphical/default.nix.
   # Shell tools (fastfetch, btop) are in modules/system/core/default.nix.
   # ==============================================================
+  craftApps.suites = [ "office" ];
 
   # ==============================================================
   # User account — no wheel, same restrictions as desktop

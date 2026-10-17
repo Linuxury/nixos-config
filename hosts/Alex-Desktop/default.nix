@@ -417,8 +417,6 @@
   # ==============================================================
   # Kid-friendly packages
   #
-  # Alex's personal apps (freetube, krita, kdenlive, gcompris-qt,
-  # libreoffice, hunspell) are declared in users/alex/home.nix.
   # Gaming packages (prismlauncher, jdk17) are in
   # modules/gaming/default.nix (imported above).
   # Graphical tools (kitty, showtime, etc.) are in modules/system/graphical/default.nix.
