@@ -1,5 +1,5 @@
 # Ensure NixOS setuid wrappers always take priority — nix shells can displace them
-typeset -U path
+typeset -gU path
 path=(/run/wrappers/bin $path)
 
 # Default editor — Neovim for both terminal and "visual" contexts.
@@ -11,7 +11,8 @@ export VISUAL=nvim
 export NIXOS_CONFIG=$HOME/nixos-config
 
 # System info on startup — random image from ~/Pictures/Fastfetch/
-() {
+# (skipped when nru re-sources this file after pulling a new version)
+(( _NRU_QUIET )) || () {
   local imgs=( ~/Pictures/Fastfetch/*.{png,jpg,jpeg,webp}(N) )
   (( ${#imgs} )) && fastfetch --logo-type kitty-direct --logo "${imgs[$RANDOM % $#imgs + 1]}" || fastfetch
 }
@@ -883,6 +884,10 @@ _nru_git_bar() {
     else
       n=$(git -C "$cfg" rev-list --count "$before..$after")
       _nru_ok "$_NRU_GH" "Nixos-Config" "$n commit${${n:#1}:+s}  $before → $after"
+      # Pulled a new nru? Load it silently so the remaining steps run the new
+      # code (functions resolve at call time; only nru()'s own step list stays old).
+      git -C "$cfg" diff --quiet "$before" "$after" -- dotfiles/zsh/zshrc ||
+        _NRU_QUIET=1 source "$cfg/dotfiles/zsh/zshrc"
     fi
     return 0
   fi
