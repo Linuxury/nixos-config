@@ -38,7 +38,9 @@ local function updateNow()
 
   local term = cfg("terminal")
   if term ~= "" then
-    noctalia.runAsync(term .. " sh -c " .. q(full))
+    -- Own scope, not a child of noctalia.service: the rebuild restarts
+    -- noctalia, and systemd would kill the terminal (and the update) with it.
+    noctalia.runAsync("systemd-run --user --scope --collect --quiet " .. term .. " sh -c " .. q(full))
   else
     noctalia.runInTerminal(full)
   end
