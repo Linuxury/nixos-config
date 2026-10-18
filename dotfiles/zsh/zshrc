@@ -1087,6 +1087,21 @@ _nru_update_craft_apps() {
   _nru_tree "${rows[@]}"
 }
 
+# _nru_craft_unpackaged — reports storytold *craft repos missing from
+# package.nix (a new app needs a suite + a build check, so never auto-added).
+# Lock writer only: one GitHub API call, shared 60/h budget. Silent on failure.
+_nru_craft_unpackaged() {
+  _nru_is_lock_writer && [[ -z $_NRU_OFFLINE ]] || return 0
+  local -a have new
+  have=($(sed -nE 's/^\s+([a-z]+craft)\s+= \{.*/\1/p' "$NIXOS_CONFIG/pkgs/craft-apps/package.nix"))
+  # artcraft = the engine itself, not a Craft app
+  new=($(curl -fsSL --max-time 15 "https://api.github.com/orgs/storytold/repos?per_page=100" 2>/dev/null \
+    | jq -r '.[] | select(.archived | not) | .name | select(test("^[a-z]+craft$") and . != "artcraft")' 2>/dev/null))
+  new=(${new:|have})
+  (( $#new )) || return 0
+  _nru_row "$_NRU_GH" "Craft (new)" "🆕 ${(j:, :)new} · not packaged — add to pkgs/craft-apps/package.nix"
+}
+
 # _nru_update_proton_cachyos — checks GitHub for a new Proton-CachyOS release.
 # Only the lock writer bumps the inline fetchzip in modules/gaming/default.nix
 # (committed with flake.lock); other hosts just report it and get it on pull.
@@ -1225,7 +1240,7 @@ nru() {
   _NRU_QUIET=1 source "$NIXOS_CONFIG/dotfiles/zsh/zshrc"
   _nru_inputs_bar
   command -v steam   &>/dev/null && _nru_update_proton_cachyos
-  command -v photocraft &>/dev/null && _nru_update_craft_apps
+  command -v photocraft &>/dev/null && { _nru_update_craft_apps; _nru_craft_unpackaged }
   command -v flatpak &>/dev/null && _nru_flatpak_bar
 
   echo ""

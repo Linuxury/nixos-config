@@ -9,8 +9,8 @@
 #   craftApps.suites = [ "office" ];   # default: all suites
 #
 #   office — WordCraft, GridCraft, DeckCraft, PdfCraft   (Word/Excel/PowerPoint/Acrobat)
-#   design — PhotoCraft, LightCraft, VectorCraft, DesignCraft
-#            (Photoshop/Lightroom/Illustrator/InDesign)
+#   design — PhotoCraft, LightCraft, VectorCraft, DesignCraft, FigCraft
+#            (Photoshop/Lightroom/Illustrator/InDesign/Figma)
 #   video  — FilmCraft, EffectCraft                      (Premiere/After Effects)
 #   audio  — SoundCraft                                  (Audition)
 #   cad    — CADCraft                                    (AutoCAD)
@@ -23,7 +23,7 @@
 let
   suites = with pkgs.craft-apps; {
     office = [ wordcraft gridcraft deckcraft pdfcraft ];
-    design = [ photocraft lightcraft vectorcraft designcraft ];
+    design = [ photocraft lightcraft vectorcraft designcraft figcraft ];
     video  = [ filmcraft effectcraft ];
     audio  = [ soundcraft ];
     cad    = [ cadcraft ];
