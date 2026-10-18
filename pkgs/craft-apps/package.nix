@@ -35,10 +35,11 @@ let
     effectcraft = { version = "0.11.1"; hash = "sha256-ucss5o3WZFjMFkQ35DE3bpTjjjPjtlKfqP1F+M+WiTQ="; description = "Motion graphics and VFX"; };
     designcraft = { version = "0.8.0"; hash = "sha256-lqg1/Ynr9pcLfeyTZS4bLwgRI6aceOGZmMpshMoyLXc="; description = "Page layout and publishing"; };
     wordcraft   = { version = "0.7.0"; hash = "sha256-YwCfiOPbrqcKwTePq8hVWuFHddMoKRdcXaJVGr4Dky8="; description = "Word processor"; };
-    gridcraft   = { version = "0.7.0"; hash = "sha256-wBvC3EKVVW9TgQ3+1KhaP1g4hVLBV6ED4QYmwGmznhw="; description = "Spreadsheet"; };
+    gridcraft   = { version = "0.8.0"; hash = "sha256-SgKeINqGutRnBjOc5FFqIERcExwNgvahFHciCMXYMbM="; description = "Spreadsheet"; };
     deckcraft   = { version = "0.7.0"; hash = "sha256-Mwovsu+IkNre2RCE5b/SnfpBHjOisnwBrDueUg/5jZ8="; description = "Presentations"; };
     soundcraft  = { version = "0.8.0"; hash = "sha256-V6K4d21RiAzuaRGFaKOWwJ+sppSdy/UPGYedcdWW9cw="; description = "Digital audio workstation"; };
     cadcraft    = { version = "0.8.0"; hash = "sha256-3zwuZoQ58EEFZLH6nSGCe7Zj6z0BcDkCxB8CucUnYZM="; description = "CAD and drafting"; };
+    figcraft    = { version = "0.6.0"; hash = "sha256-tm36aPpe5U4nX5JwFol01Uzb6LH0Mciw6WLLe2uqBmA="; description = "Interface design and prototyping"; };
   };
 
   mk = pname: app: stdenv.mkDerivation {
