@@ -93,7 +93,8 @@
     ant-dark-kde                  # Ant-Dark KDE theme (Aurorae, Plasma, color scheme, Kvantum)
     breeze-chameleon-dark-icons   # Breeze Chameleon Dark icon theme (adaptive folder colors)
     darkly                    # Window decoration + application style (fork of Lightly)
-    kara                      # Desktop/workspace pager widget
+    # kara: broken on Plasma 6.8 (libtaskmanager dropped xwindowtasksmodel.h) — re-enable when nixpkgs/upstream fixes it
+    # kara                      # Desktop/workspace pager widget
     plasmusic-toolbar         # Now-playing + playback controls widget (Claudio Catterina)
     # shutdown_or_switch: not yet in nixpkgs — install via KDE Store (Kai Uwe Broulik / Davide Sandona)
   ];
