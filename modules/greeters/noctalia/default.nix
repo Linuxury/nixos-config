@@ -33,7 +33,7 @@
 #     native concept of "the shell's current theme").
 # ===========================================================================
 
-{ inputs, pkgs, ... }:
+{ config, inputs, lib, pkgs, ... }:
 
 {
   imports = [ inputs.noctalia-greeter.nixosModules.default ];
@@ -41,6 +41,10 @@
   services.displayManager.noctalia-greeter = {
     enable = true;
     package = inputs.noctalia-greeter.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+    # Polkit rule: appearance-only sync from the shell skips the password prompt
+    # for every normal user on the host (whoever is logged in can sync).
+    passwordless-sync-users = lib.attrNames (lib.filterAttrs (_: u: u.isNormalUser) config.users.users);
 
     settings = {
       session.default = "Umbriel";
