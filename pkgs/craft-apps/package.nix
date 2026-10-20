@@ -33,13 +33,13 @@ let
     vectorcraft = { version = "0.13.1"; hash = "sha256-NcD89tP56/9vM9JX/3Du9BQpbzfw2B8oTm+XDiD9ssg="; description = "Vector illustration"; };
     filmcraft   = { version = "0.9.0"; hash = "sha256-6meVPMdUv9gnLg5fqUBRjhYGiulva3Ki3OVm7WmmFjI="; description = "Video editor"; };
     effectcraft = { version = "0.11.1"; hash = "sha256-ucss5o3WZFjMFkQ35DE3bpTjjjPjtlKfqP1F+M+WiTQ="; description = "Motion graphics and VFX"; };
-    designcraft = { version = "0.9.0"; hash = "sha256-nFeICInWtcOZxFC1Mhumw3yeVOWKwIFh14V6ERXYl1U="; description = "Page layout and publishing"; };
+    designcraft = { version = "0.10.0"; hash = "sha256-SjcI+oeNr1GIqiumb9fNGGvzhpCmwVJG7IPYU+De65Q="; description = "Page layout and publishing"; };
     wordcraft   = { version = "0.8.0"; hash = "sha256-Ds4Hzz2RuSPf2A+QMQ4EmDveZvAnnGtg3c6JWW3eDd8="; description = "Word processor"; };
-    gridcraft   = { version = "0.8.0"; hash = "sha256-SgKeINqGutRnBjOc5FFqIERcExwNgvahFHciCMXYMbM="; description = "Spreadsheet"; };
+    gridcraft   = { version = "0.9.0"; hash = "sha256-gRSC8uS7ZvjDXVm3nlMuHQgS02K6wk5j/W3cCETWa8k="; description = "Spreadsheet"; };
     deckcraft   = { version = "0.8.0"; hash = "sha256-InuMnN0sBreGaAf5lf5dLQZ1UjphII+bwmzydg/dy48="; description = "Presentations"; };
-    soundcraft  = { version = "0.8.0"; hash = "sha256-V6K4d21RiAzuaRGFaKOWwJ+sppSdy/UPGYedcdWW9cw="; description = "Digital audio workstation"; };
+    soundcraft  = { version = "0.10.0"; hash = "sha256-RkGNVv782s0obmppb7Uj9X9UXV8UHEb8crpzc4trbHA="; description = "Digital audio workstation"; };
     cadcraft    = { version = "0.8.0"; hash = "sha256-3zwuZoQ58EEFZLH6nSGCe7Zj6z0BcDkCxB8CucUnYZM="; description = "CAD and drafting"; };
-    figcraft    = { version = "0.7.0"; hash = "sha256-8932GU0rvVI80xld+Q+izVeC05Rvx4M7f2v4j9o3kI0="; description = "Interface design and prototyping"; };
+    figcraft    = { version = "0.8.0"; hash = "sha256-w1DcWufjDIWgY1epTP32BPKybzpOtje0Tw94v/fDSYU="; description = "Interface design and prototyping"; };
   };
 
   mk = pname: app: stdenv.mkDerivation {
