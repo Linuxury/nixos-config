@@ -383,15 +383,18 @@ sudo chown -R linuxury:users ~/nixos-config
 
 ---
 
-### MinisForum: files owned by wrong user after rebuild
+### Files owned by the wrong user / UIDs differ between machines
 
-If UIDs shift between rebuilds (e.g. after adding or removing a user), files that were written under the old UID are no longer owned by the expected user. UIDs are now pinned in `hosts/MinisForum/default.nix` (linuxury=1000, babylinux=1001, alex=1002) to prevent this. If it happens again:
+UIDs are the same on every host: linuxury=1000, babylinux=1001, alex=1002 (`modules/users/uids.nix`, applied by `modules/users/uid-pin`). Hosts installed before the pin got them alphabetically (alex=1000 …); `uid-migrate.service` fixes that once, early at the next boot, and logs to `/var/log/uid-migrate.log`.
 
 ```bash
-id linuxury          # check current UID
-ls -ln /data         # check numeric ownership of files
-sudo chown -R 1000:users /data/relevant-dir   # fix ownership using pinned UID
+id linuxury                          # should be 1000 on every host
+journalctl -b -u uid-migrate         # what the boot-time migration did (or why it postponed)
+ls -ln /data                         # numeric ownership
+sudo chown -R linuxury:users /data/relevant-dir   # fix by name, never by number
 ```
+
+Files restored from a snapper snapshot taken **before** the migration still carry the old UID — chown them after restoring.
 
 ---
 

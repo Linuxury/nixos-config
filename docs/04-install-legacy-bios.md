@@ -135,6 +135,7 @@ Set the three variables that drive every command from here forward. Set them onc
 export DISK=/dev/sda   # your actual disk — replace this value
 export HOST=Alex-Desktop
 export NIXUSER=alex
+export NIXUID=1002       # linuxury 1000 · babylinux 1001 · alex 1002 (modules/users/uids.nix)
 ```
 
 Set the partition suffix — this detects whether your disk needs a `p` between the name and the partition number:
@@ -296,7 +297,7 @@ mkdir -p /mnt/home/$NIXUSER
 
 git clone git@github.com:linuxury/nixos-config.git /mnt/home/$NIXUSER/nixos-config
 
-chown -R 1000:100 /mnt/home/$NIXUSER/nixos-config   # git ran as root; hand ownership to UID 1000 / GID 100
+chown -R $NIXUID:100 /mnt/home/$NIXUSER/nixos-config   # git ran as root; hand ownership to the user (GID 100 = users)
 
 mkdir -p /mnt/etc
 ln -sf /home/$NIXUSER/nixos-config /mnt/etc/nixos

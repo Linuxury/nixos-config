@@ -77,8 +77,8 @@
         "/data/config/zennotes:/data:z"
       ];
       environmentFiles = [ config.age.secrets.zennotes-auth-token.path ];
-      # Run as linuxury (UID 1000) so Syncthing can also write to ~/Jarvis/
-      extraOptions     = [ "--user=1000:1000" ];
+      # Run as linuxury so Syncthing can also write to ~/Jarvis/
+      extraOptions     = [ "--user=${toString config.users.users.linuxury.uid}:1000" ];
     };
   };
 
@@ -86,4 +86,7 @@
   # Firewall — 7879 is the host-side port for ZenNotes
   # ===========================================================================
   networking.firewall.allowedTCPPorts = [ 7879 ];
+
+  # Written under a raw UID — hand back to linuxury if UIDs ever migrate
+  users.uidMigrate.ownedBy."/data/config/zennotes" = "linuxury";
 }

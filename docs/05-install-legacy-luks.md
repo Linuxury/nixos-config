@@ -132,6 +132,7 @@ Set the three variables that drive every command from here forward:
 export DISK=/dev/sda   # your actual disk — replace this value
 export HOST=YourHost   # your host name — capitalization must match flake.nix exactly
 export NIXUSER=user    # the primary user for this host
+export NIXUID=1000       # linuxury 1000 · babylinux 1001 · alex 1002 (modules/users/uids.nix)
 ```
 
 Set the partition suffix:
@@ -292,7 +293,7 @@ mkdir -p /mnt/home/$NIXUSER
 
 git clone git@github.com:linuxury/nixos-config.git /mnt/home/$NIXUSER/nixos-config
 
-chown -R 1000:100 /mnt/home/$NIXUSER/nixos-config
+chown -R $NIXUID:100 /mnt/home/$NIXUSER/nixos-config   # git ran as root; hand ownership to the user (GID 100 = users)
 
 mkdir -p /mnt/etc
 ln -sf /home/$NIXUSER/nixos-config /mnt/etc/nixos

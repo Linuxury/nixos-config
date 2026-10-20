@@ -25,7 +25,7 @@
 # SearXNG secret is generated once at first boot and stored there.
 # ===========================================================================
 
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   # ===========================================================================
@@ -119,7 +119,7 @@ EOF
         LOCALHOST_BYPASS = "false";
         SECURE_COOKIES   = "false";
         ALLOWED_ORIGINS  = "http://Media-Server:7000,http://localhost:7000";
-        PUID             = "1000";
+        PUID             = toString config.users.users.linuxury.uid;
         PGID             = "1000";
       };
       extraOptions = [
@@ -196,4 +196,10 @@ EOF
   #   8091 — Odysseus ntfy (push notifications)
   # ===========================================================================
   networking.firewall.allowedTCPPorts = [ 7000 8091 ];
+
+  # Written under linuxury's raw UID (PUID) — hand back to linuxury if UIDs ever migrate.
+  # chromadb runs as its own container user, so it is left alone.
+  users.uidMigrate.ownedBy = lib.genAttrs
+    (map (d: "/data/config/odysseus/${d}") [ "data" "logs" "ssh" "huggingface" "local" ])
+    (_: "linuxury");
 }

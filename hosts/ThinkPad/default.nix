@@ -15,6 +15,7 @@
 # ===========================================================================
 
 {
+  config,
   pkgs,
   inputs,
   lib,
@@ -335,7 +336,7 @@
       fsType = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
-        "uid=1000"
+        "uid=${toString config.users.users.linuxury.uid}"
         "gid=100"
         "nofail"
         "_netdev"
@@ -357,7 +358,7 @@
       fsType = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
-        "uid=1000"
+        "uid=${toString config.users.users.linuxury.uid}"
         "gid=100"
         "nofail"
         "_netdev"
@@ -373,7 +374,7 @@
       fsType = "cifs";
       options = [
         "credentials=/run/agenix/smb-credentials"
-        "uid=1000"
+        "uid=${toString config.users.users.linuxury.uid}"
         "gid=100"
         "nofail"
         "_netdev"

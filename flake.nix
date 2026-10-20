@@ -246,6 +246,9 @@
             ./modules/hardware/openrgb/default.nix
             ./modules/hardware/peripherals/lemokey-keychron/default.nix
 
+            # Same UID per person on every host (+ one-time boot migration)
+            ./modules/users/uid-pin/default.nix
+
             # Home Manager as a NixOS module — this means Home Manager
             # runs as part of nixos-rebuild, keeping everything in sync
             home-manager.nixosModules.home-manager
@@ -329,6 +332,9 @@
         };
 
     in {
+
+      # VM tests — nix build -L .#checks.x86_64-linux.<name>
+      checks.${system}.uid-migrate = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/uid-migrate.nix;
 
       # =======================================================================
       # nixosConfigurations — Your actual host definitions

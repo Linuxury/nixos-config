@@ -168,8 +168,7 @@ in
   # Called via: systemctl start notify-vault@success.service
   #             systemctl start notify-vault@failure.service
   #
-  # XDG_RUNTIME_DIR uses UID 1000 — the primary user is always the first
-  # normal user created on each machine (babylinux=1000, linuxury=1000, etc).
+  # XDG_RUNTIME_DIR uses the primary user's pinned UID (modules/users/uids.nix).
   # =========================================================================
   systemd.services."notify-vault@" = {
     description = "Write update notification to Obsidian vault (%i)";
@@ -183,8 +182,8 @@ in
       # notify-send needs XDG_RUNTIME_DIR + D-Bus session socket
       # msmtp needs HOME to find its config
       Environment = [
-        "XDG_RUNTIME_DIR=/run/user/1000"
-        "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
+        "XDG_RUNTIME_DIR=/run/user/${toString config.users.users.${cfg.primaryUser}.uid}"
+        "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/${toString config.users.users.${cfg.primaryUser}.uid}/bus"
         "HOME=/home/${cfg.primaryUser}"
       ];
     };

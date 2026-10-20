@@ -15,7 +15,7 @@
 # No development tools — kept clean and simple.
 # ===========================================================================
 
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   imports = [
@@ -294,7 +294,7 @@
       device  = "/dev/disk/by-label/Warehouse";
       fsType  = "ntfs3";
       options = [
-        "uid=1000" "gid=100"
+        "uid=${toString config.users.users.babylinux.uid}" "gid=100"
         "umask=007"
         "nofail" "noauto"
         "x-systemd.automount" "x-systemd.idle-timeout=60"

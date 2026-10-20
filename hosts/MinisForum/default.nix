@@ -30,7 +30,7 @@
 #   - services/samba/default.nix
 # ===========================================================================
 
-{ pkgs, lib, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [
@@ -282,7 +282,7 @@
     fsType = "cifs";
     options = [
       "credentials=/run/agenix/smb-credentials"
-      "uid=1000"
+      "uid=${toString config.users.users.linuxury.uid}"
       "gid=100"
       "nofail"
       "_netdev"
@@ -537,15 +537,12 @@
   users.users = {
     linuxury = {
       isNormalUser = true;
-      uid          = 1002;  # Pinned to actual UID on disk — users were created
-                            # alphabetically before pins existed (alex got 1000 first)
       extraGroups  = [ "wheel" "networkmanager" "docker" ];
       shell        = pkgs.zsh;
     };
 
     babylinux = {
       isNormalUser  = true;
-      uid           = 1001;  # Pinned to actual UID on disk
       # No wheel — wife doesn't need server admin access
       extraGroups   = [ "networkmanager" "docker" ];
       shell         = pkgs.zsh;
@@ -553,7 +550,6 @@
 
     alex = {
       isNormalUser  = true;
-      uid           = 1000;  # Pinned to actual UID on disk — got 1000 (first alphabetically)
       # No wheel — kid definitely doesn't need server access
       extraGroups   = [];
       shell         = pkgs.zsh;
