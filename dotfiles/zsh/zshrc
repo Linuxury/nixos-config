@@ -802,7 +802,8 @@ _nru_rebuild() {
         case $f in modules/gaming/default.nix) names+=("gaming module") ;; pkgs/craft-apps/package.nix) names+=("craft apps") ;; *) names+=("${f:t}") ;; esac
       done
       git -C "$cfg" add -- $changed
-      if ! git_out=$(git -C "$cfg" commit -m "flake: update inputs ($(date +%Y-%m-%d))" 2>&1); then
+      # Commit only these paths — anything else the user has staged stays staged
+      if ! git_out=$(git -C "$cfg" commit -m "flake: update inputs ($(date +%Y-%m-%d))" -- $changed 2>&1); then
         printf '%s\n' "$git_out"
       fi
       if git_out=$(git -C "$cfg" push 2>&1); then
