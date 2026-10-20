@@ -21,9 +21,12 @@
 #   sudo snapper -c root undochange 5..0 /etc/someconfig       # restore a file
 # ===========================================================================
 
-{ ... }:
+{ config, lib, ... }:
 
+# Snapshots and scrub only make sense on btrfs — a host installed on ext4,
+# xfs or zfs (see the installer) simply gets none of this.
 {
+  config = lib.mkIf (config.fileSystems."/".fsType == "btrfs") {
   services.snapper = {
     # How often to run the cleanup daemon (not the snapshot creation)
     # 1h keeps snapshots pruned right after each hourly creation cycle
@@ -88,5 +91,6 @@
     fileSystems = [ "/" ];
     # scrubs the device backing /, which covers all
     # subvolumes on the same disk (home, nix, etc.)
+  };
   };
 }
