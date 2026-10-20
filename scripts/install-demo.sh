@@ -180,8 +180,16 @@ pick() {
     local -a LL=() LW=()
     for ((i = top; i < ${#labels[@]} && i < top + 12; i++)); do
       pad=""; [[ -n ${descs[i]} ]] && printf -v pad '%*s' $(( w - ${#names[i]} + 3 )) ''
-      if ((i == sel)); then LL+=("${B}${P}> ${names[i]}${pad}${descs[i]}${N}")
-      else LL+=("  ${names[i]}${pad}${D}${descs[i]}${N}"); fi
+      # long descriptions wrap onto lines aligned under the description column
+      local dw=$(( (TERM_COLS - 2 < 120 ? TERM_COLS - 2 : 120) - w - 5 )) dl ind="" first
+      local -a DLINES=("${descs[i]}")
+      if [[ -z ${PICK_PREVIEW:-} ]] && (( dw > 15 && ${#descs[i]} > dw )); then
+        mapfile -t DLINES < <(printf '%s\n' "${descs[i]}" | fold -s -w "$dw" | sed 's/ *$//')
+        printf -v ind '%*s' $(( w + 5 )) ''
+      fi
+      first="${DLINES[0]}"
+      if ((i == sel)); then dl="${B}${P}> ${names[i]}${pad}${first}"; for x in "${DLINES[@]:1}"; do dl+=$'\n'"${ind}${x}"; done; LL+=("${dl}${N}")
+      else dl="  ${names[i]}${pad}${D}${first}"; for x in "${DLINES[@]:1}"; do dl+=$'\n'"${ind}${x}"; done; LL+=("${dl}${N}"); fi
       LW+=($(( 2 + ${#names[i]} + ${#pad} + ${#descs[i]} )))
     done
     if [[ -n ${PICK_PREVIEW:-} ]]; then   # list on the left, preview card on the right
