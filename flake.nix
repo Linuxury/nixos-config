@@ -333,6 +333,22 @@
 
     in {
 
+      # =======================================================================
+      # apps — `nix run .#install-demo` (installer preview, writes nothing)
+      # Works straight from GitHub too: nix run github:Linuxury/nixos-config#install-demo
+      # =======================================================================
+      apps.${system}.install-demo = let pkgs = nixpkgs.legacyPackages.${system}; in {
+        type = "app";
+        program = "${pkgs.writeShellApplication {
+          name = "install-demo";
+          runtimeInputs = with pkgs; [ gum jq qrencode smartmontools openssh util-linux gawk iputils ];
+          runtimeEnv.INSTALLER_REPO = "${self}";   # hosts list + docs/06 come from this flake
+          # jq programs in single quotes, colours in printf formats, literal \n for Nix — all intended
+          excludeShellChecks = [ "SC2016" "SC2028" "SC2059" ];
+          text = builtins.readFile ./scripts/install-demo.sh;
+        }}/bin/install-demo";
+      };
+
       # VM tests — nix build -L .#checks.x86_64-linux.<name>
       checks.${system}.uid-migrate = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/uid-migrate.nix;
 
