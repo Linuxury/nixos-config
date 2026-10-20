@@ -22,6 +22,9 @@
 
 {
   imports = [
+    # Disks, swap, LUKS and boot loader (written by the installer)
+    ./disk.nix
+
     # ==============================================================
     # System
     #   core     — locale, fonts, nix daemon, base CLI, boot defaults
@@ -208,80 +211,9 @@
   services.displayManager.defaultSession = "plasma";
 
   # ==============================================================
-  # LUKS — Full disk encryption
-  # ==============================================================
-  boot.initrd.luks.devices."cryptroot" = {
-    device = "/dev/disk/by-label/nixos-luks";
-    allowDiscards = true;
-  };
-
-  # ==============================================================
   # Filesystem — BTRFS with subvolumes on top of LUKS
   # ==============================================================
   fileSystems = {
-    "/" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@" "compress=zstd:1" "noatime" ];
-    };
-
-    "/home" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@home" "compress=zstd:1" "noatime" ];
-    };
-
-    # Steam's own subvolume — kept out of @home so /home btrfs snapshots
-    # never pin the 100s of GB a game library churns through. Snapper has
-    # no per-path exclude; a sibling subvolume boundary is the only real
-    # mechanism.
-    "/home/babylinux/.local/share/Steam" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@steam" "compress=zstd:1" "noatime" ];
-    };
-
-    "/nix" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@nix" "compress=zstd:1" "noatime" ];
-    };
-
-    "/var/log" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@log" "compress=zstd:1" "noatime" ];
-    };
-
-    "/var/cache" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@cache" "compress=zstd:1" "noatime" ];
-    };
-
-    "/.snapshots" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@snapshots" "compress=zstd:1" "noatime" ];
-    };
-
-    "/home/.snapshots" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@home_snapshots" "compress=zstd:1" "noatime" ];
-    };
-
-    "/swap" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@swap" "noatime" ];
-    };
-
-    "/boot" = {
-      device = "/dev/disk/by-label/EFI";
-      fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
-    };
 
     # -----------------------------------------------------------------------
     # Media-Server Samba share
@@ -363,13 +295,6 @@
     mode  = "0400";
     owner = "root";
   };
-
-  # ==============================================================
-  # Swap
-  # ==============================================================
-  swapDevices = [{
-    device = "/swap/swapfile";
-  }];
 
   # ==============================================================
   # Kernel

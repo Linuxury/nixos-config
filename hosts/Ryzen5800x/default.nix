@@ -19,6 +19,9 @@
 
 {
   imports = [
+    # Disks, swap, LUKS and boot loader (written by the installer)
+    ./disk.nix
+
     # ==============================================================
     # System
     #   core     — locale, fonts, nix daemon, base CLI, boot defaults
@@ -180,69 +183,6 @@
   # Filesystem — BTRFS with subvolumes, no LUKS on desktop
   # ==============================================================
   fileSystems = {
-    "/" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@" "compress=zstd:1" "noatime" ];
-    };
-
-    "/home" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@home" "compress=zstd:1" "noatime" ];
-    };
-
-    "/nix" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@nix" "compress=zstd:1" "noatime" ];
-    };
-
-    "/var/log" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@log" "compress=zstd:1" "noatime" ];
-    };
-
-    "/var/cache" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@cache" "compress=zstd:1" "noatime" ];
-    };
-
-    "/.snapshots" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@snapshots" "compress=zstd:1" "noatime" ];
-    };
-
-    "/home/.snapshots" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@home_snapshots" "compress=zstd:1" "noatime" ];
-    };
-
-    # Steam's own subvolume — kept out of @home so /home btrfs snapshots
-    # never pin the 100s of GB a game library churns through. Snapper has
-    # no per-path exclude; a sibling subvolume boundary is the only real
-    # mechanism (same trick as @cache above).
-    "/home/babylinux/.local/share/Steam" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@steam" "compress=zstd:1" "noatime" ];
-    };
-
-    "/swap" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "btrfs";
-      options = [ "subvol=@swap" "noatime" ];
-    };
-
-    "/boot" = {
-      device = "/dev/disk/by-label/EFI";
-      fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
-    };
 
     # -----------------------------------------------------------------------
     # Media-Server Samba share
@@ -285,24 +225,6 @@
       ];
     };
 
-    # -----------------------------------------------------------------------
-    # Local NTFS HDD — former Windows drive, now used as storage
-    # Uses the ntfs3 in-kernel driver (faster than FUSE ntfs-3g).
-    # force: mounts even if Windows left the dirty/hibernation flag set.
-    # -----------------------------------------------------------------------
-    "/mnt/Warehouse" = {
-      device  = "/dev/disk/by-label/Warehouse";
-      fsType  = "ntfs3";
-      options = [
-        "uid=${toString config.users.users.babylinux.uid}" "gid=100"
-        "umask=007"
-        "nofail" "noauto"
-        "x-systemd.automount" "x-systemd.idle-timeout=60"
-        "x-systemd.mount-timeout=10s"
-        "force"
-      ];
-    };
-
   };
 
   # ==============================================================
@@ -323,13 +245,6 @@
     mode  = "0400";
     owner = "root";
   };
-
-  # ==============================================================
-  # Swap
-  # ==============================================================
-  swapDevices = [{
-    device = "/swap/swapfile";
-  }];
 
   # ==============================================================
   # Kernel
