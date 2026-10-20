@@ -62,22 +62,24 @@ TTY=/dev/tty; [[ -n ${INSTALL_TEST:-} ]] && TTY=/dev/null
 # Arguments may contain newlines; each becomes its own row.
 card() {
   local LC_ALL=C.UTF-8 fc=$1 title=$2 st=$3 a l plain fill bar wc cols; shift 3
+  local tl='╭' tr='╮' bl='╰' br='╯' hz='─' vt='│'
+  if [[ -n ${CARD_HEAVY:-} ]]; then tl='┏' tr='┓' bl='┗' br='┛' hz='━' vt='┃'; fc=$'\e[1;38;5;212m'; fi
   cols=$TERM_COLS; wc=${CARD_W:-$(( cols - 2 < 120 ? cols - 2 : 120 ))}
   local -a rows=(); for a; do mapfile -t -O "${#rows[@]}" rows <<<"$a"; done
-  if [[ -z $title && -z $st ]]; then printf -v bar '%*s' $(( wc - 2 )) ''; printf '%s╭%s╮%s\n' "$fc" "${bar// /─}" "$N"
+  if [[ -z $title && -z $st ]]; then printf -v bar '%*s' $(( wc - 2 )) ''; printf '%s%s%s%s%s\n' "$fc" "$tl" "${bar// /$hz}" "$tr" "$N"
   else
     fill=$(( wc - 3 - ${#title} - 2 - ${#st} - 3 )); [[ -z $st ]] && fill=$(( wc - 3 - ${#title} - 2 ))
     if (( fill < 1 )); then title="${title:0:$(( ${#title} + fill - 2 ))}…"; fill=1; fi
     printf -v bar '%*s' "$fill" ''
-    if [[ -n $st ]]; then printf '%s╭─ %s%s%s %s %s%s%s%s ─╮%s\n' "$fc" "$N$B" "$title" "$N$fc" "${bar// /─}" "$B" "$st" "$N" "$fc" "$N"
-    else printf '%s╭─ %s%s%s %s╮%s\n' "$fc" "$N$B" "$title" "$N$fc" "${bar// /─}" "$N"; fi
+    if [[ -n $st ]]; then printf '%s%s%s %s%s%s %s %s%s%s%s %s%s%s\n' "$fc" "$tl" "$hz" "$N$B" "$title" "$N$fc" "${bar// /$hz}" "$B" "$st" "$N" "$fc" "$hz" "$tr" "$N"
+    else printf '%s%s%s %s%s%s %s%s%s\n' "$fc" "$tl" "$hz" "$N$B" "$title" "$N$fc" "${bar// /$hz}" "$tr" "$N"; fi
   fi
   for l in "${rows[@]}"; do
     plain=$(strip_ansi <<<"$l")
     if (( ${#plain} > wc - 4 )) && [[ $plain == "$l" ]]; then l="${l:0:$(( wc - 5 ))}…"; plain=$l; fi
-    printf '%s│%s %s%*s %s│%s\n' "$fc" "$N" "$l" "$(( wc - 4 - ${#plain} > 0 ? wc - 4 - ${#plain} : 0 ))" "" "$fc" "$N"
+    printf '%s%s%s %s%*s %s%s%s\n' "$fc" "$vt" "$N" "$l" "$(( wc - 4 - ${#plain} > 0 ? wc - 4 - ${#plain} : 0 ))" "" "$fc" "$vt" "$N"
   done
-  printf -v bar '%*s' $(( wc - 2 )) ''; printf '%s╰%s╯%s' "$fc" "${bar// /─}" "$N"
+  printf -v bar '%*s' $(( wc - 2 )) ''; printf '%s%s%s%s%s' "$fc" "$bl" "${bar// /$hz}" "$br" "$N"
 }
 strip_ansi() { sed 's/\x1b\[[0-9;]*m//g'; }
 # box [-t TITLE] line… — neutral info card
@@ -837,48 +839,261 @@ step_disks() {
   if [[ $LAYOUT == rename ]]; then rename_tool || true; JUMP=$CUR; return 3; fi
   if [[ $LAYOUT == health ]]; then health_view || true; JUMP=$CUR; return 3; fi
 
-  local dopts=() n s
-  for n in "${NAMES[@]}"; do
-    s=$(disk "$n" .smart)
-    dopts+=("$(printf '%-9s %-7s %-28.28s %s' "$n" "$(hsize "$(disk "$n" .size)")" "$(disk "$n" .model)" "$(health "$s" | sed 's/\x1b\[[0-9;]*m//g')")$(is_foreign "$n" && echo '  ⚠ other OS' || true)|$n")
-  done
-  while :; do
-    pick SYS "System disk (root + boot) — WILL BE WIPED" "${dopts[@]}" || return 1
-    if is_foreign "$SYS" && ! confirm_wipe_foreign "$SYS"; then continue; fi
-    health_ok "$SYS" || continue
-    break
-  done
-  [[ $LAYOUT == multi ]] || return 0
+  roles_screen || { JUMP=$CUR; return 3; }   # esc → back to the layout menu
+}
 
-  local desc act role
+# --------------------------------------------------------------------------
+# Disk roles — the disk cards ARE the selection. ↑↓ highlights a card,
+# enter opens its role menu under the cards; the corner shows the role.
+# --------------------------------------------------------------------------
+declare -A ROLE=()
+role_status() {  # role → "colour|corner text"
+  case $1 in
+    system)   echo $'\e[38;5;203m'"|● System ★ (wiped)" ;;
+    mirror)   echo $'\e[38;5;203m'"|● Mirror of $SYS (wiped)" ;;
+    home)     echo $'\e[38;5;203m'"|● /home (wiped)" ;;
+    data)     echo $'\e[38;5;114m'"|● Data pool" ;;
+    untouched) echo $'\e[38;5;242m'"|○ untouched" ;;
+    boot|mount-ro|mount-rw|boot+mount-ro) echo $'\e[38;5;117m'"|◆ $(other_action "$1")" ;;
+    *)        echo $'\e[38;5;242m'"|○ choose a role" ;;
+  esac
+}
+role_card() {  # role_card DISK HIGHLIGHT(0|1)
+  local n=$1 fc st h o title i d l f z u tree; local -a LS rows=()
+  IFS='|' read -r fc st <<<"$(role_status "${ROLE[$n]:-}")"
+  h=$(disk "$n" .smart); o=$(disk "$n" .os)
+  local tr; tr=$(disk "$n" .tran)
+  title="$n · $(hsize "$(disk "$n" .size)") ${tr^^} · $(disk "$n" .model)"
+  case $o in windows|macos|linux) title+=" · other OS: $o" ;; nixos) title+=" · previous NixOS" ;; esac
+  case ${h%%|*} in warn) title+=" · ⚠ ${h#*|}" ;; fail) title+=" · ✗ ${h#*|}" ;; esac
+  mapfile -t LS < <(jq -r --arg n "$n" ".[] | select(.name==\$n) | $SEG_JQ" <<<"$DISKS")
+  (( ${#LS[@]} )) || rows+=("  ${D}(empty — no partitions)${N}")
+  for i in "${!LS[@]}"; do
+    IFS=$'\x1f' read -r d l f z u <<<"${LS[i]}"; tree="├"; ((i == ${#LS[@]} - 1)) && tree="└"
+    rows+=(" $tree $(fmt_seg "$d" "$l" "$f" "$z")")
+  done
+  if (( $2 )); then CARD_HEAVY=1 card "$fc" "$title" "$st" "${rows[@]}"; else card "$fc" "$title" "$st" "${rows[@]}"; fi
+}
+role_plan() {
+  local n parts=()
   for n in "${NAMES[@]}"; do
-    [[ $n == "$SYS" ]] && continue
-    desc="$n · $(hsize "$(disk "$n" .size)") $(disk "$n" .model) · $(disk "$n" .parts)"
-    if is_foreign "$n"; then
-      panel "Disks · other OS on $n" "$table"$'\n'"$(box -t "Another OS on $n" "$desc" "" "Another OS ($(disk "$n" .os)) lives here:" \
-        "• Untouched           NixOS ignores it. Boot it from the firmware menu (F8/F11/F12)." \
-        "• Boot menu entry     Add it to the NixOS boot menu (GRUB os-prober, Limine chainload," \
-        "                      rEFInd finds it on its own, systemd-boot via the EFI shell)." \
-        "• Mount read-only     See its files at /mnt/<name> with zero risk to it." \
-        "• Mount read-write    Edit its files (refused if Windows hibernated / Fast Startup)." \
-        "• Boot entry + mount  Both of the above (read-only)." \
-        "• Wipe & reuse        Erase it and give it a NixOS role — you must type the disk model.")"
-      pick act "What to do with $n?" "Untouched|untouched" "Boot menu entry|boot" "Mount read-only|mount-ro" \
-                 "Mount read-write|mount-rw" "Boot entry + mount read-only|boot+mount-ro" "Wipe & reuse|wipe" || return 1
-      if [[ $act != wipe ]] || ! confirm_wipe_foreign "$n"; then OTHER+=("$n|${act/wipe/untouched}"); continue; fi
+    case ${ROLE[$n]:-} in
+      system) parts+=("System $n") ;; mirror) parts+=("Mirror $n") ;; home) parts+=("/home $n") ;;
+      data) parts+=("Data $n") ;; untouched) parts+=("untouched $n") ;; "") parts+=("? $n") ;;
+      *) parts+=("$(other_action "${ROLE[$n]}") $n") ;;
+    esac
+  done
+  local out; printf -v out '%s · ' "${parts[@]}"; echo "Plan: ${out% · }"
+}
+
+# --------------------------------------------------------------------------
+# Role guide — speed, pros/cons and a recommendation for the disk being set
+# --------------------------------------------------------------------------
+disk_kind() {  # nvme | ssd | hdd | usb
+  local t; t=$(disk "$1" .tran)
+  if [[ $t == usb ]]; then echo usb; elif [[ $t == nvme ]]; then echo nvme
+  elif [[ $(disk "$1" .rota) == true ]]; then echo hdd; else echo ssd; fi
+}
+kind_speed() {
+  case $1 in
+    nvme) echo "NVMe SSD — very fast (≈3,000–7,000 MB/s, instant random access)" ;;
+    ssd)  echo "SATA SSD — fast (≈550 MB/s, instant random access)" ;;
+    hdd)  echo "Hard drive — slow (≈150–250 MB/s, slow random access)" ;;
+    *)    echo "USB — speed varies, and it can drop out" ;;
+  esac
+}
+kind_rank() { case $1 in nvme) echo 3 ;; ssd) echo 2 ;; hdd) echo 1 ;; *) echo 0 ;; esac; }
+# best_system — fastest healthy non-OS disk (biggest wins a tie)
+best_system() {
+  local n best="" br=-1 bs=0 r sz
+  for n in "${NAMES[@]}"; do
+    [[ $(disk "$n" .smart) == fail* ]] && continue; is_foreign "$n" && continue
+    r=$(kind_rank "$(disk_kind "$n")"); sz=$(disk "$n" .size)
+    if (( r > br || (r == br && sz > bs) )); then best=$n; br=$r; bs=$sz; fi
+  done
+  echo "$best"
+}
+# rec_role DISK → "role|reason"
+rec_role() {
+  local n=$1 k h ks sz ss; k=$(disk_kind "$n"); h=$(disk "$n" .smart)
+  [[ ${h%%|*} == fail ]] && { echo "untouched|it is failing — keep data off it and replace it"; return; }
+  [[ ${h%%|*} == warn ]] && { echo "untouched|it shows wear (${h#*|}) — don't trust it with anything you need"; return; }
+  if is_foreign "$n" && [[ -z ${WIPEOK[$n]:-} ]]; then echo "untouched|leaves your other OS exactly as it is"; return; fi
+  if [[ -z $SYS || $SYS == "$n" ]]; then
+    [[ $n == "$(best_system)" ]] && { echo "system|it's the fastest healthy disk here"; return; }
+  fi
+  if [[ -n $SYS && $SYS != "$n" && $LAYOUT == multi ]]; then
+    ks=$(disk_kind "$SYS"); sz=$(disk "$n" .size); ss=$(disk "$SYS" .size)
+    if [[ $k == "$ks" ]] && (( sz * 100 >= ss * 90 && sz * 100 <= ss * 110 )); then
+      echo "mirror|same kind and size as $SYS — a perfect mirror pair"; return
     fi
-    panel "Disks · role for $n" "$table"
-    pick role "Role for $desc" \
-      "Untouched       leave it exactly as it is|untouched" \
-      "Mirror system   copy of the system disk — machine survives either one dying|mirror" \
-      "/home           user files on their own disk|home" \
-      "Data pool       extra storage at a mount point (/data, /mnt/Games…), one or more disks|data" || return 1
-    if [[ $role != untouched ]] && ! health_ok "$n"; then role=untouched; fi
-    case $role in
-      mirror) MIRRORS+=("$n") ;;
-      home)   if [[ -n $HOME_DISK ]]; then warn "/home is already $HOME_DISK — $n joins the data pool"; DATA+=("$n"); else HOME_DISK=$n; fi ;;
-      data)   DATA+=("$n") ;;
-      *)      OTHER+=("$n|untouched") ;;
+  fi
+  [[ $LAYOUT == multi ]] || { echo "untouched|single-disk layout uses only the System disk"; return; }
+  case $k in
+    hdd) echo "data|big and cheap per TB — ideal for media, backups and archives" ;;
+    usb) echo "untouched|USB disks are unreliable as permanent storage" ;;
+    *)   echo "data|fast extra space — great for a game library or projects" ;;
+  esac
+}
+
+# role_info ROLE — the guide card shown beside the role list (ROLE_DISK = disk)
+role_info() {
+  local r=$1 n=$ROLE_DISK k rec why w l out=()
+  k=$(disk_kind "$n"); IFS='|' read -r rec why <<<"$(rec_role "$n")"
+  w=$(( ${CARD_W:-80} - 6 ))
+  local G2=$'\e[38;5;114m' R2=$'\e[38;5;203m'
+  add() { while IFS= read -r l; do out+=("$1$l${N}"); done < <(printf '%s\n' "$2" | fold -s -w "$w"); }
+  pro() { add "${G2}+ ${N}" "$1"; }
+  con() { add "${R2}− ${N}" "$1"; }
+  case $r in
+    system)
+      add "" "Holds NixOS itself: / , /nix (every package), the boot loader — and /home unless another disk takes it."
+      pro "Everything you run loads from here: a fast disk makes the whole system feel fast"
+      pro "btrfs snapshots let you roll back a bad update"
+      con "This disk is wiped"
+      con "Only one System disk — add a Mirror if you want it protected"
+      case $k in nvme) add "${B}Speed: ${N}" "excellent — NVMe is the best place for the system" ;;
+                 ssd)  add "${B}Speed: ${N}" "good — boots and updates quickly" ;;
+                 *)    add "${B}Speed: ${N}" "works, but boot, updates and app starts will feel slow — prefer an SSD" ;; esac ;;
+    mirror)
+      add "" "A live copy of the System disk (RAID1): every write goes to both disks."
+      pro "If either disk dies, the machine keeps running and still boots"
+      pro "Reads can come from both disks (btrfs/zfs) — slightly faster reads"
+      con "You only get the space of ONE disk ($(hsize "$(( $(disk "$n" .size) < $(disk "$SYS" .size) ? $(disk "$n" .size) : $(disk "$SYS" .size) ))"))"
+      con "Writes run at the speed of the slower disk — NVMe + HDD makes the system HDD-slow"
+      con "Not a backup: deleting a file deletes it on both disks"
+      add "${B}Fit: ${N}" "$n is $(disk_kind "$n") $(hsize "$(disk "$n" .size)"), $SYS is $(disk_kind "$SYS") $(hsize "$(disk "$SYS" .size)")$([[ $rec == mirror ]] && echo " — a good match" || echo " — not an ideal pair")" ;;
+    home)
+      add "" "Your personal files (/home) on their own disk; the system stays on $SYS."
+      pro "Reinstall or re-partition the system without touching personal files"
+      pro "Keeps big personal data off a small, fast system disk"
+      con "This disk is wiped now"
+      con "On NixOS the system is rebuilt from the config anyway — the gain is mostly for frequent reinstalls"
+      con "Space is split: a full /home can't borrow free space from the system disk" ;;
+    data)
+      add "" "Extra storage at a folder you choose (/data, /mnt/Games…). Next step: keep the existing files or format, and RAID if more disks join the pool."
+      pro "Can KEEP the files already on it (mounted as they are)"
+      pro "Several disks can be pooled (mirror / raidz) for safety or size"
+      pro "Great for media, backups and game libraries"
+      [[ $k == hdd ]] && con "Hard drive: fine for media and backups, slow for games and VMs"
+      con "Not part of the system's snapshots" ;;
+    untouched)
+      add "" "NixOS leaves this disk completely alone — not formatted, not mounted."
+      pro "Zero risk to what's on it"
+      con "Not usable from NixOS until you mount it later (or re-run the installer)" ;;
+    boot)
+      add "" "Adds the other OS to the NixOS boot menu so you pick it at startup."
+      pro "No need for the firmware's F8/F11/F12 boot menu"; con "Its disk stays unmounted in NixOS" ;;
+    mount-ro)
+      add "" "Mounts the other OS's files read-only at /mnt/<name>."
+      pro "Copy files over with zero risk to the other OS"; con "You can't change anything on it" ;;
+    mount-rw)
+      add "" "Mounts the other OS's files writable at /mnt/<name>."
+      pro "Edit files from NixOS"; con "Refused if Windows hibernated / used Fast Startup — writing then corrupts it" ;;
+    boot+mount-ro)
+      add "" "Boot menu entry plus a read-only mount — the comfortable dual-boot setup."
+      pro "Both conveniences, still zero risk"; con "Read-only from NixOS" ;;
+    wipe)
+      add "" "Erase the other OS and give this disk a NixOS role. You must type the disk model to confirm."
+      pro "The whole disk becomes usable by NixOS"; con "The other OS and its files are gone for good" ;;
+  esac
+  add "${B}This disk: ${N}" "$(kind_speed "$k")"
+  local hh; hh=$(disk "$n" .smart)
+  case ${hh%%|*} in
+    warn) add "${Y}⚠ Health: ${N}" "${hh#*|} — usable, but don't trust it with the system or a mirror" ;;
+    fail) add "${R2}✗ Health: ${N}" "${hh#*|} — this disk is dying; keep your data off it" ;;
+  esac
+  [[ $r == "$rec" ]] && add "${Y}★ Recommended: ${N}" "$why"
+  local title="System"; case $r in system) ;; mirror) title="Mirror of $SYS" ;; home) title="/home" ;; data) title="Data pool" ;;
+    untouched) title="Untouched" ;; *) title=$(other_action "$r") ;; esac
+  [[ $r == wipe ]] && title="Wipe & reuse"
+  card $'\e[38;5;110m' "$title" "$([[ $r == "$rec" ]] && echo "★ recommended" || true)" "${out[@]}"
+}
+
+# set_role DISK — role window: the disk's card on top, role list left, guide right
+set_role() {
+  local n=$1 r opts=() m rec why star
+  ROLE_DISK=$n; IFS='|' read -r rec why <<<"$(rec_role "$n")"
+  star() { [[ $1 == "$rec" ]] && echo " ★" || true; }
+  CTX="$(role_card "$n" 1)"
+  if is_foreign "$n" && [[ -z ${WIPEOK[$n]:-} ]]; then
+    PICK_PREVIEW=role_info
+    pick r "What to do with $n (other OS: $(disk "$n" .os))" \
+      "Untouched$(star untouched)|untouched" "Boot menu entry$(star boot)|boot" "Mount read-only|mount-ro" \
+      "Mount read-write|mount-rw" "Boot entry + mount|boot+mount-ro" "Wipe & reuse…|wipe" || { PICK_PREVIEW=""; return 0; }
+    PICK_PREVIEW=""
+    if [[ $r != wipe ]]; then ROLE[$n]=$r; return 0; fi
+    confirm_wipe_foreign "$n" || return 0
+    WIPEOK[$n]=1; IFS='|' read -r rec why <<<"$(rec_role "$n")"; CTX="$(role_card "$n" 1)"
+  fi
+  opts=("System$(star system)|system")
+  if [[ $LAYOUT == multi ]]; then
+    [[ -n $SYS && $SYS != "$n" ]] && opts+=("Mirror of $SYS$(star mirror)|mirror")
+    opts+=("/home$(star home)|home" "Data pool$(star data)|data")
+  fi
+  opts+=("Untouched$(star untouched)|untouched")
+  PICK_PREVIEW=role_info
+  pick r "Role for $n — ↑↓ to compare, the card explains each" "${opts[@]}" || { PICK_PREVIEW=""; return 0; }
+  PICK_PREVIEW=""
+  if [[ $r != untouched ]] && ! health_ok "$n"; then return 0; fi
+  case $r in
+    system) for m in "${!ROLE[@]}"; do [[ ${ROLE[$m]} == system || ${ROLE[$m]} == mirror && $m == "$n" ]] && ROLE[$m]=""; done; SYS=$n ;;
+    home)   for m in "${!ROLE[@]}"; do [[ ${ROLE[$m]} == home ]] && ROLE[$m]=""; done ;;
+  esac
+  [[ $n == "$SYS" && $r != system ]] && SYS=""
+  ROLE[$n]=$r
+  [[ -z $SYS ]] && for m in "${!ROLE[@]}"; do [[ ${ROLE[$m]} == mirror ]] && ROLE[$m]=""; done
+  return 0
+}
+
+roles_screen() {
+  local idx=0 n i cards start=() ends=() line=0 c prompt
+  declare -gA WIPEOK=(); ROLE=(); SYS=""
+  for n in "${NAMES[@]}"; do ROLE[$n]=""; done
+  [[ $LAYOUT == single ]] && for n in "${NAMES[@]}"; do ROLE[$n]=untouched; done
+  if [[ -n ${INSTALL_TEST:-} ]]; then   # tests: first disk System; multi → next non-OS disk Data
+    SYS=${NAMES[0]}; ROLE[$SYS]=system
+    if [[ $LAYOUT == multi ]]; then for n in "${NAMES[@]:1}"; do is_foreign "$n" || { ROLE[$n]=data; break; }; done; fi
+  else
+    while :; do
+      cards=""; line=0; start=(); ends=()
+      for i in "${!NAMES[@]}"; do
+        c=$(role_card "${NAMES[i]}" $(( i == idx ))); start[i]=$line
+        line=$(( line + $(wc -l <<<"$c") + 1 )); ends[i]=$line; cards+="$c"$'\n'
+      done
+      panel "Disks · assign roles" "${D}↑↓ highlight a disk · enter sets its role · ★ = the System disk (required)${N}"$'\n'"$cards"
+      compose
+      if (( idx < ${#NAMES[@]} )); then   # keep the highlighted card on screen
+        (( start[idx] < OFF )) && OFF=${start[idx]}
+        (( ends[idx] > OFF + AVAIL - 2 )) && OFF=$(( ends[idx] - AVAIL + 2 ))
+      else OFF=9999; fi
+      prompt="${B}$(role_plan)${N}"$'\n'
+      if (( idx == ${#NAMES[@]} )); then prompt+="${B}${P}> Continue →${N}"; else prompt+="  Continue →"; fi
+      [[ -z $SYS ]] && prompt+="   ${D}(needs a System disk)${N}"
+      render "$prompt" "↑↓ highlight · enter set role"
+      readkey
+      case $KEY in
+        up) ((idx > 0)) && idx=$((idx - 1)) ;;
+        down) ((idx < ${#NAMES[@]})) && idx=$((idx + 1)) ;;
+        pgup|pgdn) scroll "$KEY" ;;
+        back) return 1 ;;
+        enter)
+          if (( idx == ${#NAMES[@]} )); then
+            [[ -n $SYS ]] && break
+            warn "Pick a System disk first: highlight a disk, enter, System"
+          else
+            TITLE="Disks · role for ${NAMES[idx]}"; set_role "${NAMES[idx]}"
+            (( idx < ${#NAMES[@]} - 1 )) && [[ -n ${ROLE[${NAMES[idx]}]} ]] && idx=$((idx + 1))
+          fi ;;
+      esac
+    done
+  fi
+  # roles → the variables the later steps use
+  MIRRORS=(); HOME_DISK=""; DATA=(); OTHER=()
+  for n in "${NAMES[@]}"; do
+    case ${ROLE[$n]:-untouched} in
+      system) ;; mirror) MIRRORS+=("$n") ;; home) HOME_DISK=$n ;; data) DATA+=("$n") ;;
+      ""|untouched) OTHER+=("$n|untouched") ;; *) OTHER+=("$n|${ROLE[$n]}") ;;
     esac
   done
 }
