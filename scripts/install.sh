@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 # ===========================================================================
-# scripts/install-demo.sh — click-through preview of the installer
+# scripts/install.sh — NixOS installer for this flake (with a demo mode)
 #
-# Runs every installer menu, then prints the disk.nix it WOULD write, the
-# commands it WOULD run and the post-install checklist. Touches no disks,
-# writes nothing to the repo. Only writes: a throwaway SSH key (temp dir,
-# deleted on exit) and the saved answers in /tmp/install-demo-answers/, so
-# a second run of the same host can offer "reinstall with saved answers".
+# Real mode partitions, formats and installs. It runs as root, only on the
+# live ISO, never wipes a mounted disk, and asks you to type the hostname.
+# Every step is logged to /tmp/nixos-install.log; a failed phase continues
+# with --resume (no re-partitioning).
+#
+# Demo mode runs every menu and prints the disk.nix and the exact commands
+# the real mode would run — touching nothing.
 #
 # Usage:
-#   nix run .#install-demo                              # your real disks
-#   sudo nix run .#install-demo                         # + SMART health (needs root)
-#   nix run .#install-demo -- --fake-disks 2-equal      # 2× 2T NVMe (mirror)
-#   nix run .#install-demo -- --fake-disks 3-mixed      # uneven disks, one worn
-#   nix run .#install-demo -- --fake-disks 4-hdd        # NAS, one disk failing
-#   nix run .#install-demo -- --fake-disks windows      # Windows on its own NVMe
-#   (scripts/install-demo.sh … works too)
+#   sudo nix run github:Linuxury/nixos-config#install    # on the ISO: install
+#   sudo nix run github:Linuxury/nixos-config#install -- --resume
+#   nix run .#install-demo                               # demo, your real disks
+#   nix run .#install-demo -- --fake-disks 3-mixed       # demo, fake disks:
+#        2-equal · 3-mixed · 4-hdd · windows
+#
+# v1 real mode: btrfs/ext4/xfs · LUKS · systemd-boot/GRUB/Limine · single disk,
+# btrfs mirror · data disk keep/format · existing hosts. The rest shows
+# "coming soon" outside the demo.
 #
 # Keys: enter select · esc back one step · ctrl+c quit
 # ===========================================================================
@@ -25,11 +29,24 @@ if ! command -v gum >/dev/null || ! command -v qrencode >/dev/null || ! command 
   [[ -n "${_DEMO_SHELL:-}" ]] && { echo "gum/qrencode/smartctl unavailable" >&2; exit 1; }
   _DEMO_SHELL=1 exec nix shell nixpkgs#gum nixpkgs#qrencode nixpkgs#jq nixpkgs#smartmontools -c bash "$0" "$@"
 fi
-{ : </dev/tty; } 2>/dev/null || [[ -n ${INSTALL_TEST:-} ]] || { echo "install-demo needs an interactive terminal" >&2; exit 1; }
+{ : </dev/tty; } 2>/dev/null || [[ -n ${INSTALL_TEST:-} ]] || { echo "the installer needs an interactive terminal" >&2; exit 1; }
 
 REPO="${INSTALLER_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
 ARGS=("$@")
-FAKE=""; [[ "${1:-}" == --fake-disks ]] && FAKE="${2:?scenario: 2-equal|3-mixed|4-hdd|windows}"
+# Modes: --demo (or --fake-disks) writes nothing · default really installs · --resume continues
+FAKE=""; DEMO=""; RESUME=""
+while (($#)); do
+  case $1 in
+    --demo) DEMO=1 ;;
+    --fake-disks) FAKE="${2:?scenario: 2-equal|3-mixed|4-hdd|windows}"; DEMO=1; shift ;;
+    --resume) RESUME=1 ;;
+    *) echo "unknown option: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+[[ -n ${INSTALL_TEST:-} ]] && DEMO=1
+LOG=/tmp/nixos-install.log; STATE=/tmp/nixos-install-state.sh; PHASEF=/tmp/nixos-install-phase
+KEYDIR=/tmp/nixos-install-hostkey                     # survives --resume (TMP does not)
 # Saved answers — per user; a sudo run uses (and gives back) the invoking user's folder.
 # Real installer: $REPO/hosts/<host>/install.json
 OWNER_UID=${SUDO_UID:-$(id -u)}
@@ -467,7 +484,7 @@ relabel_cmd() {  # fs dev label
 mkfs_cmd() {  # fs dev label
   case $1 in
     vfat) echo "mkfs.fat -F32 -n $3 /dev/$2" ;; ntfs) echo "mkfs.ntfs -f -L $3 /dev/$2" ;;
-    xfs|btrfs) echo "mkfs.$1 -f -L $3 /dev/$2" ;; *) echo "mkfs.$1 -L $3 /dev/$2" ;;
+    xfs|btrfs) echo "mkfs.$1 -f -L $3 /dev/$2" ;; ext4) echo "mkfs.ext4 -F -L $3 /dev/$2" ;; *) echo "mkfs.$1 -L $3 /dev/$2" ;;
   esac
 }
 
@@ -506,13 +523,17 @@ format_tool() {
   if is_foreign "$n"; then confirm_wipe_foreign "$n" || return 1
   else yesno "Format $n as $fs \"$lbl\"? Everything on it is ERASED. (demo: simulated)" || return 1; fi
   local p; p=$(part "$n" 1); p=${p#/dev/}
-  FORMAT_CMDS+=("wipefs -a /dev/$n && parted -s /dev/$n -- mklabel gpt mkpart data 1MiB 100%" "$(mkfs_cmd "$fs" "$p" "$lbl")")
+  FORMAT_CMDS+=("wipefs -a /dev/$n && parted -s /dev/$n -- mklabel gpt mkpart data 1MiB 100%" "udevadm settle" "$(mkfs_cmd "$fs" "$p" "$lbl")")
+  if [[ -z $DEMO ]]; then
+    if disk_busy "$n"; then warn "$n has mounted partitions — not formatting it"; return 1; fi
+    run_now "wipefs -a /dev/$n && parted -s /dev/$n -- mklabel gpt mkpart data 1MiB 100%" "udevadm settle" "$(mkfs_cmd "$fs" "$p" "$lbl")" || return 1
+  fi
   local seg; seg=$(jq -nc --arg p "$p" --arg fs "$fs" --arg l "$lbl" --argjson s "$(disk "$n" .size)" --arg u "$(cat /proc/sys/kernel/random/uuid)" \
     '[{name:$p, fs:$fs, label:$l, size:($s - 1048576), uuid:$u}]')
   local j; for j in ALL VISIBLE DISKS; do
     printf -v "$j" '%s' "$(jq --arg n "$n" --argjson g "$seg" '(.[] | select(.name==$n)).segs = $g' <<<"${!j}" | norm)"
   done
-  NOTE+="${G}✓ $n formatted as $fs \"$lbl\"${N} ${D}(demo: simulated — the real installer formats it now)${N}"$'\n'
+  NOTE+="${G}✓ $n formatted as $fs \"$lbl\"${N} ${D}$([[ -n $DEMO ]] && echo "(demo: simulated)" || echo "(done)")${N}"$'\n'
 }
 
 # Disk tool: SMART health per disk, every value explained
@@ -574,10 +595,11 @@ rename_tool() {
   [[ $lbl == "$cur" ]] && return 1
   if is_foreign "$n"; then yesno "$n belongs to another OS ($(disk "$n" .os)). Rename \"${cur:-no label}\" → \"$lbl\"?" || return 1; fi
   FORMAT_CMDS+=("$(relabel_cmd "$fs" "$d" "$lbl")   # rename only — data untouched")
+  if [[ -z $DEMO ]]; then run_now "$(relabel_cmd "$fs" "$d" "$lbl")" || return 1; fi
   local j; for j in ALL VISIBLE DISKS; do
     printf -v "$j" '%s' "$(jq --arg d "$d" --arg l "$lbl" 'map(.segs |= map(if .dev == $d then .label = $l else . end))' <<<"${!j}" | norm)"
   done
-  NOTE+="${G}✓ $d renamed ${cur:-(no label)} → $lbl${N} ${D}(demo: simulated — the real installer renames it now)${N}"$'\n'
+  NOTE+="${G}✓ $d renamed ${cur:-(no label)} → $lbl${N} ${D}$([[ -n $DEMO ]] && echo "(demo: simulated)" || echo "(done)")${N}"$'\n'
 }
 
 # --------------------------------------------------------------------------
@@ -688,16 +710,17 @@ banner() {
   local cols=$TERM_COLS
   local logo="${tb}NixOS${N}${db}${B}-Config${N}"
   if (( cols < 72 )); then
-    printf ' %s  %sinstaller · DEMO%s' "$logo" "$D" "$N"; return
+    printf ' %s  %sinstaller · %s%s' "$logo" "$D" "$MODE_TAG" "$N"; return
   fi
   local w=$(( cols - 2 < 120 ? cols - 2 : 120 ))
-  local mid=" ── installer ── Linuxury/nixos-config " tail=" DEMO ─╮"
+  local mid=" ── installer ── Linuxury/nixos-config " tail=" $MODE_TAG ─╮"
   local fill=$(( w - 3 - 12 - ${#mid} - ${#tail} ))   # 3 = "╭─ ", 12 = "NixOS-Config"
   if (( fill < 2 )); then mid=" ── installer "; fill=$(( w - 3 - 12 - ${#mid} - ${#tail} )); fi
   local line; printf -v line '%*s' "$fill" ''; line=${line// /─}
   local bar; printf -v bar '%*s' "$(( w - 2 ))" ''; bar=${bar// /─}
   (( ${#facts} > w - 4 )) && facts="${facts:0:$(( w - 5 ))}…"
-  printf '%s╭─ %s%s%s%s%s%sDEMO%s%s ─╮%s\n' "$lb" "$logo" "$lb" "$mid" "$line" "" " $or" "$N" "$lb" "$N"
+  local tagc=$or; [[ -n $DEMO ]] || tagc=$'\e[1;38;5;203m'
+  printf '%s╭─ %s%s%s%s %s%s%s%s ─╮%s\n' "$lb" "$logo" "$lb" "$mid" "$line" "$tagc" "$MODE_TAG" "$N" "$lb" "$N"
   printf '%s│%s %s%s%*s %s│%s\n' "$lb" "$N" "$D$facts$N" "" "$(( w - 4 - ${#facts} ))" "" "$lb" "$N"
   printf '%s╰%s╯%s' "$lb" "$bar" "$N"
 }
@@ -771,6 +794,15 @@ host_card() {
     "$(printf '%-9s %s' Saved "$saved")"
 }
 
+# soon VALUE — true (and warns) when real mode doesn't support VALUE yet
+soon() {
+  [[ -n $DEMO ]] && return 1
+  case $1 in
+    zfs|zfs-*|bcachefs|refind|NEW) warn "\"$1\" is coming soon — the real installer v1 doesn't do it yet (try it with --demo)"; return 0 ;;
+  esac
+  return 1
+}
+
 # ==========================================================================
 # Steps — each returns 0 = next, 1 = back, 3 = jump to $JUMP
 # ==========================================================================
@@ -782,7 +814,8 @@ step_host() {
     opts+=("$h$([[ -f $ANSWERS_DIR/$h.json ]] && echo " ↻" || true)|$h")
   done
   PICK_PREVIEW=host_card
-  pick HOST "${#HOSTS[@]} hosts in flake.nix" "${opts[@]}" "+ New host|NEW" || { PICK_PREVIEW=""; return 1; }
+  pick HOST "${#HOSTS[@]} hosts in flake.nix" "${opts[@]}" "+ New host$([[ -z $DEMO ]] && echo "  (coming soon)" || true)|NEW" || { PICK_PREVIEW=""; return 1; }
+  if soon "$HOST"; then PICK_PREVIEW=""; JUMP=$CUR; return 3; fi
   PICK_PREVIEW=""
   NEWHOST=0; PROFILE=""
   if [[ $HOST == NEW ]]; then
@@ -1112,9 +1145,11 @@ step_fs() {
   if (( ${#MIRRORS[@]} )); then
     TITLE="Filesystem · system disk + mirror"
     choose_raid system "$SYS" "${MIRRORS[@]}" || return 1; SYS_RAID=$RAID_CHOICE; FS=${SYS_RAID%%-*}
+    if soon "$SYS_RAID"; then JUMP=$CUR; return 3; fi
   else
     panel "Filesystem for $SYS" "$(box -t "Filesystems" "${FS_INFO[@]}")"
     pick FS "" "btrfs ★|btrfs" "ext4|ext4" "xfs|xfs" "bcachefs|bcachefs" "zfs  (servers)|zfs" || return 1
+    if soon "$FS"; then JUMP=$CUR; return 3; fi
   fi
   if [[ -n $HOME_DISK ]]; then
     panel "Filesystem for /home on $HOME_DISK" "$(box -t "Filesystems" "${FS_INFO[@]:0:4}")"
@@ -1127,6 +1162,7 @@ step_fs() {
     if (( ${#DATA[@]} > 1 )); then
       TITLE="Data pool · $DATA_MNT"
       choose_raid data "${DATA[@]}" || return 1; DATA_RAID=$RAID_CHOICE; DATA_FS=${DATA_RAID%%-*}
+      if soon "$DATA_RAID"; then JUMP=$CUR; return 3; fi
       ask_label DATA_LABEL "$DATA_FS" "$([[ $DATA_FS == zfs ]] && echo tank || echo data)" || return 1
     else
       local d=${DATA[0]} k=format
@@ -1143,6 +1179,7 @@ step_fs() {
       else
         panel "Filesystem for $d → $DATA_MNT" "$(box -t "Filesystems" "${FS_INFO[@]}")"
         pick DATA_FS "" "btrfs|btrfs" "ext4|ext4" "xfs  good for big media files|xfs" "zfs|zfs" || return 1
+        if soon "$DATA_FS"; then JUMP=$CUR; return 3; fi
         ask_label DATA_LABEL "$DATA_FS" "$([[ $DATA_FS == zfs ]] && echo tank || echo data)" || return 1
       fi
     fi
@@ -1163,6 +1200,7 @@ step_boot() {
   [[ $FW == uefi ]] && o+=("rEFInd|refind")
   [[ $FW == bios ]] && warn "Legacy BIOS: systemd-boot and rEFInd need UEFI — hidden"
   pick BOOT "" "${o[@]}" || return 1
+  if soon "$BOOT"; then JUMP=$CUR; return 3; fi
 }
 
 step_enc() {
@@ -1192,8 +1230,9 @@ step_swap() {
 }
 
 step_secrets() {
-  [[ -f $TMP/ssh_host_ed25519_key ]] || ssh-keygen -q -t ed25519 -N "" -C "root@$HOST" -f "$TMP/ssh_host_ed25519_key"
-  local pub; pub=$(cut -d' ' -f1,2 "$TMP/ssh_host_ed25519_key.pub")
+  mkdir -p "$KEYDIR"; chmod 700 "$KEYDIR"
+  [[ -f $KEYDIR/ssh_host_ed25519_key ]] || ssh-keygen -q -t ed25519 -N "" -C "root@$HOST" -f "$KEYDIR/ssh_host_ed25519_key"
+  local pub; pub=$(cut -d' ' -f1,2 "$KEYDIR/ssh_host_ed25519_key.pub")
   local keybox qr
   keybox=$(box -t "Host key" "New host key for $HOST → /mnt/etc/ssh/ssh_host_ed25519_key" \
       "install-host (SSH) registers it by itself. At the console, run on your admin machine:" \
@@ -1369,7 +1408,7 @@ $(review_cards "$shown" "$plan")"
     local i o=(); for ((i = 0; i < ${#STEP_NAMES[@]} - 1; i++)); do o+=("${STEP_NAMES[i]}|$i"); done
     pick JUMP "Jump to" "${o[@]}" || return 1; return 3
   fi
-  local typed; ask typed --header "Type \"$HOST\" to install (DEMO: nothing happens)" --placeholder "$HOST" || return 1
+  local typed; ask typed --header "Type \"$HOST\" to install$([[ -n $DEMO ]] && echo " (DEMO: nothing happens)" || echo " — disks marked WIPE are erased")" --placeholder "$HOST" || return 1
   [[ $typed == "$HOST" ]] || { warn "Didn't match"; JUMP=$CUR; return 3; }
 }
 
@@ -1400,14 +1439,14 @@ EOF
              for i in "${!SYS_DISKS[@]}"; do
                n=$((i+1))
                if uefi; then echo "    { path = \"/boot$([[ $n == 1 ]] || echo $n)\"; devices = [ \"nodev\" ]; }"
-               else echo "    { path = \"/boot\"; devices = [ \"/dev/disk/by-id/<${SYS_DISKS[$i]}-id>\" ]; }"; fi
+               else echo "    { path = \"/boot\"; devices = [ \"$(disk_byid "${SYS_DISKS[$i]}")\" ]; }"; fi
              done; echo '  ];'
            elif uefi; then echo '  boot.loader.grub.device = "nodev";'
-           else echo "  boot.loader.grub.device = \"/dev/disk/by-id/<$SYS-id>\";"; fi
+           else echo "  boot.loader.grub.device = \"$(disk_byid "$SYS")\";"; fi
            if [[ " ${OTHER[*]} " == *"|boot"* ]]; then echo '  boot.loader.grub.useOSProber = true;   # adds the other-OS disk(s) to the menu'; fi ;;
     limine) echo '  boot.loader.systemd-boot.enable = lib.mkForce false;'
             echo '  boot.loader.limine.enable = true;'
-            if uefi; then echo '  boot.loader.limine.efiSupport = true;'; else echo "  boot.loader.limine.biosDevice = \"/dev/disk/by-id/<$SYS-id>\";"; fi
+            if uefi; then echo '  boot.loader.limine.efiSupport = true;'; else echo "  boot.loader.limine.biosDevice = \"$(disk_byid "$SYS")\";"; fi
             if [[ " ${OTHER[*]} " == *"|boot"* ]]; then echo '  # boot.loader.limine.extraEntries = "/Windows\n  protocol: efi\n  path: guid(<ESP-GUID>):/EFI/Microsoft/Boot/bootmgfw.efi";'; fi ;;
     refind) echo '  boot.loader.systemd-boot.enable = lib.mkForce false;'
             echo '  boot.loader.refind.enable = true;   # scans every disk for other OSes on its own'
@@ -1481,37 +1520,40 @@ EOF
   echo '}'
 }
 
+# gen_commands — the install, as runnable lines. The demo prints them; real mode
+# runs them (run_install). "# [n/7] …" lines are phase checkpoints for --resume;
+# phase 3 (unlock + mount) is idempotent and re-runs on every resume.
 gen_commands() {
   local i n d p2 root=()
-  echo "# Everything below is logged to /tmp/nixos-install.log; each phase saves a checkpoint."
-  if (( ${#FORMAT_CMDS[@]} )); then
-    echo "# [disk tools] already ran when you confirmed them on the Disks screen"
-    printf '%s\n' "${FORMAT_CMDS[@]}"
-  fi
   echo "# [1/7] partition"
-  for i in "${!SYS_DISKS[@]}"; do d=${SYS_DISKS[$i]}; n=$((i+1))
+  for i in "${!SYS_DISKS[@]}"; do d=${SYS_DISKS[$i]}
     echo "wipefs -a /dev/$d && parted -s /dev/$d -- mklabel gpt"
     if uefi; then echo "parted -s /dev/$d -- mkpart ESP fat32 1MiB 1GiB set 1 esp on mkpart root 1GiB 100%"
-                  echo "mkfs.fat -F32 -n EFI$([[ $n == 1 ]] || echo $n) $(part "$d" 1)"
     else echo "parted -s /dev/$d -- mkpart bios 1MiB 2MiB set 1 bios_grub on mkpart root 2MiB 100%"; fi
   done
+  echo "udevadm settle"
+  if uefi; then
+    for i in "${!SYS_DISKS[@]}"; do echo "mkfs.fat -F32 -n EFI$([[ $i == 0 ]] || echo $((i+1))) $(part "${SYS_DISKS[$i]}" 1)"; done
+  fi
   echo "# [2/7] encryption + filesystems"
   for i in "${!SYS_DISKS[@]}"; do d=${SYS_DISKS[$i]}; n=$((i+1)); p2=$(part "$d" 2)
     if [[ $ENC == luks ]]; then
       echo "cryptsetup luksFormat --type luks2 --label nixos-luks$n $p2"
-      echo "cryptsetup open $p2 cryptroot$n"; root+=("/dev/mapper/cryptroot$n")
+      echo "luks_open $p2 cryptroot$n"; root+=("/dev/mapper/cryptroot$n")
     else root+=("$p2"); fi
   done
   case $FS in
     btrfs) echo "mkfs.btrfs -f -L nixos ${SYS_RAID:+-d ${SYS_RAID#btrfs-} -m ${SYS_RAID#btrfs-} }${root[*]}"
+           echo "udevadm settle"
            echo "mount ${root[0]} /mnt && for s in @ @home @nix @log @cache @snapshots @home_snapshots @swap; do btrfs subvolume create /mnt/\$s; done && umount /mnt" ;;
     zfs)   echo "zpool create -f -o ashift=12 -O compression=zstd -O acltype=posixacl -O xattr=sa -O mountpoint=none \\"
            if [[ $ENC == zfs ]]; then echo "  -O encryption=on -O keyformat=passphrase \\"; fi
            echo "  rpool $([[ -n $SYS_RAID ]] && echo mirror || true) ${root[*]}"
            echo "for d in root home nix log; do zfs create -o mountpoint=legacy rpool/\$d; done" ;;
-    *)     echo "mkfs.$FS -L nixos ${root[0]}" ;;
+    ext4)  echo "mkfs.ext4 -F -L nixos ${root[0]}" ;;
+    *)     echo "mkfs.$FS -f -L nixos ${root[0]}" ;;
   esac
-  if [[ -n $HOME_DISK ]]; then echo "wipefs -a /dev/$HOME_DISK && mkfs.$HOME_FS -L $HOME_LABEL /dev/$HOME_DISK"; fi
+  if [[ -n $HOME_DISK ]]; then echo "wipefs -a /dev/$HOME_DISK && $(mkfs_cmd "$HOME_FS" "$HOME_DISK" "$HOME_LABEL")"; fi
   if (( ${#DATA[@]} )) && [[ $DATA_KEEP == 0 ]]; then
     local devs l; devs=$(printf '/dev/%s ' "${DATA[@]}")
     case ${DATA_RAID:-$DATA_FS} in
@@ -1519,30 +1561,165 @@ gen_commands() {
       zfs-*)   l=${DATA_RAID#zfs-}; echo "zpool create -f -o ashift=12 -O compression=zstd -O mountpoint=none $DATA_LABEL $l $devs"
                echo "zfs create -o mountpoint=legacy $DATA_LABEL/data" ;;
       zfs)     echo "zpool create -f -o ashift=12 -O mountpoint=none $DATA_LABEL $devs && zfs create -o mountpoint=legacy $DATA_LABEL/data" ;;
-      *)       echo "mkfs.$DATA_FS -L $DATA_LABEL $devs" ;;
+      *)       echo "wipefs -a ${devs% } && $(mkfs_cmd "$DATA_FS" "${DATA[0]}" "$DATA_LABEL")" ;;
     esac
   fi
   if [[ $DATA_KEEP == 1 && $DATA_LABEL != "$DATA_OLDLABEL" ]]; then
-    echo "$(relabel_cmd "$DATA_FS" "$(disk "${DATA[0]}" .datadev)" "$DATA_LABEL")   # rename only — data untouched"
+    relabel_cmd "$DATA_FS" "$(disk "${DATA[0]}" .datadev)" "$DATA_LABEL"
   fi
-  echo "# [3/7] mount + swap"
-  echo "mount <every fileSystems entry above> under /mnt"
-  if [[ $SWAP != 0 && $FS == btrfs ]]; then echo "btrfs filesystem mkswapfile --size ${SWAP}G /mnt/swap/swapfile"; fi
+  echo "udevadm settle"
+  echo "# [3/7] unlock + mount + swap"
+  if [[ $ENC == luks ]]; then
+    for i in "${!SYS_DISKS[@]}"; do echo "luks_open $(part "${SYS_DISKS[$i]}" 2) cryptroot$((i+1))"; done
+  fi
+  case $FS in
+    btrfs)
+      local sv mp o
+      for sv in "@:/" "@home:/home" "@nix:/nix" "@log:/var/log" "@cache:/var/cache" "@snapshots:/.snapshots" "@home_snapshots:/home/.snapshots" "@swap:/swap"; do
+        mp=${sv#*:}; [[ -n $HOME_DISK && $mp == /home* ]] && continue
+        [[ $mp == /swap && $SWAP == 0 ]] && continue
+        o="subvol=${sv%%:*},compress=zstd:1,noatime"; [[ $mp == /swap ]] && o="subvol=@swap,noatime"
+        echo "mnt $o /dev/disk/by-label/nixos /mnt${mp%/}"
+      done ;;
+    zfs) local ds; for ds in "root:/" "home:/home" "nix:/nix" "log:/var/log"; do echo "mnt zfsutil rpool/${ds%%:*} /mnt${ds#*:}"; done ;;
+    *)   echo "mnt noatime /dev/disk/by-label/nixos /mnt" ;;
+  esac
+  if uefi; then
+    echo "mnt umask=0077 /dev/disk/by-label/EFI /mnt/boot"
+    for i in "${!MIRRORS[@]}"; do echo "mnt umask=0077 /dev/disk/by-label/EFI$((i+2)) /mnt/boot$((i+2))"; done
+  fi
+  if [[ -n $HOME_DISK ]]; then echo "mnt noatime /dev/disk/by-label/$HOME_LABEL /mnt/home"; fi
+  if (( ${#DATA[@]} )); then
+    if [[ $DATA_KEEP == 1 ]]; then echo "mnt defaults /dev/disk/by-uuid/$(disk "${DATA[0]}" .uuid) /mnt$DATA_MNT"
+    elif [[ $DATA_FS != zfs ]]; then echo "mnt noatime /dev/disk/by-label/$DATA_LABEL /mnt$DATA_MNT"; fi
+  fi
+  if [[ $SWAP != 0 && $FS == btrfs ]]; then echo "[[ -e /mnt/swap/swapfile ]] || btrfs filesystem mkswapfile --size ${SWAP}G /mnt/swap/swapfile"; fi
   echo "# [4/7] config"
-  echo "git clone https://github.com/Linuxury/nixos-config /mnt/home/$NIXUSER/nixos-config"
-  if [[ $NEWHOST == 1 ]]; then echo "scaffold hosts/$HOST from hosts/_template ($PROFILE · CPU $HW_CPU · GPU $HW_GPU) + mkHost entry in flake.nix"; fi
-  echo "write hosts/$HOST/disk.nix + hosts/$HOST/install.json && git add -A && git commit -m \"$HOST: install\" && git push"
+  echo "fetch_config   # clone into /mnt/home/$NIXUSER/nixos-config"
+  echo "write_config   # hosts/$HOST/disk.nix + install.json, git commit (+ push if an SSH agent is forwarded)"
   echo "# [5/7] secrets"
-  echo "install -Dm600 ssh_host_ed25519_key /mnt/etc/ssh/ssh_host_ed25519_key"
-  if [[ $SECRETS == "done" ]]; then echo "git pull   # add-host's re-keyed secrets"; fi
+  echo "install -Dm600 $KEYDIR/ssh_host_ed25519_key /mnt/etc/ssh/ssh_host_ed25519_key"
+  echo "install -Dm644 $KEYDIR/ssh_host_ed25519_key.pub /mnt/etc/ssh/ssh_host_ed25519_key.pub"
+  if [[ $SECRETS == "done" ]]; then echo "git -C /mnt/home/$NIXUSER/nixos-config pull --rebase   # add-host's re-keyed secrets"; fi
   echo "# [6/7] install"
+  echo "grow_live_store   # the ISO's package store lives in RAM — let it spill to swap on the new disk"
   echo "nixos-install --flake /mnt/home/$NIXUSER/nixos-config#$HOST --no-root-passwd"
   echo "nixos-enter --root /mnt -- passwd $NIXUSER"
   echo "# [7/7] finish"
-  echo "cp /tmp/nixos-install.log /mnt/var/log/ && chown -R $(uid_of "$NIXUSER"):100 /mnt/home/$NIXUSER/nixos-config && umount -R /mnt"
-  echo "#"
-  echo "# A phase failed (network, typo in config…)? Fix it and run:  install.sh --resume"
-  echo "# → re-opens LUKS, re-mounts, and continues from the failed phase. No re-partitioning."
+  echo "cp $LOG /mnt/var/log/nixos-install.log"
+  echo "chown -R $(uid_of "$NIXUSER"):100 /mnt/home/$NIXUSER"
+  echo "swapoff -a; rm -f /mnt/.installer-swap; umount -R /mnt"
+}
+
+# ---- helpers the command list calls ---------------------------------------
+# mnt OPTS DEVICE DIR — idempotent mount (re-run safely by --resume)
+mnt() { mkdir -p "$3"; mountpoint -q "$3" || mount -o "$1" "$2" "$3"; }
+luks_open() { [[ -e /dev/mapper/$2 ]] || cryptsetup open "$1" "$2"; }
+CFG_URL=${INSTALLER_GIT:-https://github.com/Linuxury/nixos-config}
+fetch_config() {
+  local c=/mnt/home/$NIXUSER/nixos-config
+  [[ -d $c/.git ]] || git clone "$CFG_URL" "$c"
+  git config --global --add safe.directory "$c" 2>/dev/null || true
+}
+write_config() {
+  local c=/mnt/home/$NIXUSER/nixos-config
+  gen_disk_nix >"$c/hosts/$HOST/disk.nix"
+  answers_json >"$c/hosts/$HOST/install.json"
+  git -C "$c" add "hosts/$HOST/disk.nix" "hosts/$HOST/install.json"
+  git -C "$c" -c user.name="nixos installer" -c user.email="installer@$HOST" \
+    commit -q -m "$HOST: disk layout from installer" -- "hosts/$HOST/disk.nix" "hosts/$HOST/install.json" || true
+  if [[ -n ${SSH_AUTH_SOCK:-} ]]; then
+    git -C "$c" remote set-url origin git@github.com:Linuxury/nixos-config.git
+    git -C "$c" push || echo "push failed — push it after first boot"
+  else echo "no forwarded SSH agent — the commit stays local; push it after first boot"; fi
+}
+# grow_live_store — the live ISO keeps /nix/store in a RAM disk (half of RAM).
+# Evaluating the flake copies the whole repo (wallpapers included) into it, so
+# a small-RAM machine runs out. Swap on the target + a bigger RAM disk fixes it.
+grow_live_store() {
+  local sw=/mnt/swap/swapfile
+  if [[ ! -e $sw ]]; then
+    sw=/mnt/.installer-swap
+    if [[ ! -e $sw ]]; then
+      if [[ $(findmnt -no FSTYPE /mnt) == btrfs ]]; then btrfs filesystem mkswapfile --size 8G "$sw" >/dev/null
+      else fallocate -l 8G "$sw" && chmod 600 "$sw" && mkswap "$sw" >/dev/null; fi
+    fi
+  fi
+  swapon "$sw" 2>/dev/null || true
+  if [[ $(findmnt -no FSTYPE /) == tmpfs ]]; then
+    mount -o remount,size=$(( RAM_B / 1024 / 1024 / 1024 + 8 ))G / && echo "live store can now grow to $(findmnt -no SIZE /)"
+  fi
+}
+
+# disk_byid DISK — stable /dev/disk/by-id path (GRUB/Limine on BIOS need one)
+disk_byid() {
+  local l
+  for l in /dev/disk/by-id/*; do
+    [[ $l == *-part* || $l == */wwn-* || $l == */nvme-eui.* ]] && continue
+    [[ $(readlink -f "$l") == "/dev/$1" ]] && { echo "$l"; return; }
+  done
+  echo "/dev/$1"
+}
+# disk_busy DISK — true if anything on it is mounted (never wipe a live disk)
+disk_busy() { lsblk -nro MOUNTPOINTS "/dev/$1" 2>/dev/null | grep -q .; }
+# run_now CMD… — run immediately (disk tools), logged
+run_now() {
+  local c
+  for c; do echo "\$ $c" >>"$LOG"; eval "$c" >>"$LOG" 2>&1 || { warn "failed: $c (see $LOG)"; return 1; }; done
+}
+
+save_state() {
+  declare -p HOST NIXUSER NEWHOST PROFILE SYS MIRRORS HOME_DISK DATA OTHER FS SYS_RAID HOME_FS HOME_LABEL \
+    DATA_RAID DATA_FS DATA_KEEP DATA_MNT DATA_LABEL DATA_OLDLABEL BOOT ENC SWAP SECRETS FW DISKS NAMES LAYOUT >"$STATE"
+}
+
+# preflight — refuse anything that could hurt a running system
+preflight() {
+  local d bad=()
+  [[ $EUID == 0 ]] || { echo "${R}✗ the installer must run as root (sudo)${N}"; return 1; }
+  if [[ ! -d /iso && -z ${INSTALL_ALLOW_NON_ISO:-} ]]; then
+    echo "${R}✗ not on the NixOS live ISO — refusing to touch disks${N}"
+    echo "  (INSTALL_ALLOW_NON_ISO=1 overrides this, for VM testing only)"; return 1
+  fi
+  for d in "${SYS_DISKS[@]}" ${HOME_DISK:+"$HOME_DISK"}; do disk_busy "$d" && bad+=("$d"); done
+  if [[ $DATA_KEEP == 0 ]]; then for d in "${DATA[@]}"; do disk_busy "$d" && bad+=("$d"); done; fi
+  (( ${#bad[@]} == 0 )) || { echo "${R}✗ mounted, refusing to wipe: ${bad[*]}${N}"; return 1; }
+}
+
+# run_install — execute gen_commands phase by phase; checkpoint after each phase
+run_install() {
+  local line ph=0 done_ph=0 skip=0
+  [[ -n $RESUME && -f $PHASEF ]] && done_ph=$(<"$PHASEF")
+  echo "== install of $HOST started $(date -Is) (after phase $done_ph)" >>"$LOG"
+  # The list comes in on fd 3: commands must never read their stdin from it
+  # (cryptsetup would swallow the next line as its passphrase).
+  while IFS= read -r line <&3; do
+    if [[ $line =~ ^#\ \[([0-9]+)/7\]\ (.*)$ ]]; then
+      if (( ph > 0 && !skip )); then echo "$ph" >"$PHASEF"; fi
+      ph=${BASH_REMATCH[1]}; skip=0
+      if (( ph <= done_ph && ph != 3 )); then skip=1; fi
+      gum style --bold --foreground 212 "[$ph/7] ${BASH_REMATCH[2]}$( ((skip)) && echo "  (done — skipped)" || true)"
+      echo "== [$ph/7] ${BASH_REMATCH[2]}" >>"$LOG"; continue
+    fi
+    [[ -z $line || $line == \#* ]] && continue
+    ((skip)) && continue
+    printf '%s$ %s%s\n' "$D" "$line" "$N"; echo "\$ $line" >>"$LOG"
+    if [[ $line == cryptsetup* || $line == luks_open* || $line == *passwd* ]]; then   # needs the keyboard
+      eval "$line" </dev/tty || { install_failed "$line"; return 1; }
+    else
+      eval "$line" </dev/null > >(tee -a "$LOG") 2>&1 || { install_failed "$line"; return 1; }
+    fi
+  done 3< <(gen_commands)
+  echo 7 >"$PHASEF"
+}
+install_failed() {
+  echo; echo "${R}✗ failed:${N} $1"
+  echo "  Log: $LOG"
+  echo "  Fix the cause, then run the installer again with ${B}--resume${N}: it continues after the last"
+  echo "  finished phase. Disks are not re-partitioned; LUKS is re-opened and everything re-mounted."
+  if tail -20 "$LOG" | grep -q 'No space left on device'; then
+    echo "  ${Y}The live ISO's RAM disk is full.${N} Free it first:  ${B}nix-collect-garbage${N}  — then --resume."
+  fi
 }
 
 checklist() {  # post-install steps for this host, straight from docs/06
@@ -1575,12 +1752,13 @@ SECRETS=skip
 # Saved answers are per disk set — keep fake scenarios apart from real disks
 [[ -n $FAKE ]] && ANSWERS_DIR+="/$FAKE"
 
+MODE_TAG=$([[ -n $DEMO ]] && echo DEMO || echo INSTALL)
 HEADER=$(banner)
 # alternate screen + hidden cursor: menus don't litter scrollback
 if [[ -z ${INSTALL_TEST:-} ]] && tput smcup 2>/dev/null; then ALT=1; tput civis; clear; fi
 # Not root on real disks: offer to restart under sudo (SMART needs it; the real
 # installer always runs as root because it partitions disks)
-if [[ $EUID != 0 && -z $FAKE && -z ${INSTALL_TEST:-} ]]; then
+if [[ $EUID != 0 && -z $FAKE && -z ${INSTALL_TEST:-} && -n $DEMO ]]; then
   panel "Administrator access" "$(box -t "Why sudo?" \
     "Reading disk health (SMART) needs root. Without it the Disks step shows \"? needs sudo\"." \
     "The real installer always runs as root — it partitions and formats disks." \
@@ -1590,6 +1768,21 @@ if [[ $EUID != 0 && -z $FAKE && -z ${INSTALL_TEST:-} ]]; then
     ((ALT)) && { tput cnorm; tput rmcup; } 2>/dev/null; ALT=0
     exec sudo --preserve-env=TERM,COLORTERM,LANG "$0" "${ARGS[@]}"
   fi
+fi
+
+if [[ -z $DEMO && $EUID != 0 ]]; then   # the real installer partitions disks → root
+  ((ALT)) && { tput cnorm; tput rmcup; } 2>/dev/null; ALT=0
+  echo "The installer partitions disks, so it runs as root."
+  exec sudo --preserve-env=TERM,COLORTERM,LANG,SSH_AUTH_SOCK,INSTALL_ALLOW_NON_ISO,INSTALLER_GIT "$0" "${ARGS[@]}"
+fi
+if [[ -n $RESUME ]]; then   # skip the menus: same answers, continue the install
+  ((ALT)) && { tput cnorm; tput rmcup; } 2>/dev/null; ALT=0
+  [[ -f $STATE ]] || { echo "nothing to resume ($STATE missing)"; exit 1; }
+  # shellcheck disable=SC1090
+  source "$STATE"; SYS_DISKS=("$SYS" "${MIRRORS[@]}")
+  echo "Resuming the install of $HOST after phase $(cat "$PHASEF" 2>/dev/null || echo 0)…"
+  if run_install; then echo "${G}${B}✓ $HOST is installed.${N} Remove the USB stick and reboot."; exit 0; fi
+  exit 1
 fi
 
 STEPS=(step_host step_disks step_fs step_boot step_enc step_swap step_secrets step_review)
@@ -1604,15 +1797,23 @@ done
 if ((ALT)); then tput cnorm; tput rmcup; ALT=0; fi
 
 SYS_DISKS=("$SYS" "${MIRRORS[@]}")
+if [[ -z $DEMO ]]; then   # ---- the real install
+  preflight || exit 1
+  save_state; rm -f "$PHASEF"
+  if run_install; then echo; echo "${G}${B}✓ $HOST is installed.${N} Remove the USB stick and reboot."
+  else exit 1; fi
+fi
 if mkdir -p "$ANSWERS_DIR" && answers_json > "$ANSWERS_DIR/$HOST.json" 2>/dev/null; then
   [[ -n ${SUDO_UID:-} ]] && chown -R "$SUDO_UID" "/tmp/install-demo-answers-$OWNER_UID" 2>/dev/null
 else echo "${Y}⚠ could not save answers to $ANSWERS_DIR (continuing)${N}"; fi
+if [[ -n $DEMO ]]; then
 gum style --bold --foreground 212 "hosts/$HOST/disk.nix  (would be written)"
 gen_disk_nix
 echo; gum style --bold --foreground 212 "hosts/$HOST/install.json  (saved answers — would be committed)"
 cat "$ANSWERS_DIR/$HOST.json"
-echo; gum style --bold --foreground 212 "Commands  (would be run)"
+echo; gum style --bold --foreground 212 "Commands  (would be run — the real installer runs exactly these)"
 gen_commands | gum style --foreground 245
+fi
 echo; gum style --bold --foreground 212 "After install"
 printf '  %-8s %s\n' \
   "Wrote" "hosts/$HOST/disk.nix + hosts/$HOST/install.json$([[ $NEWHOST == 1 ]] && echo " + hosts/$HOST/default.nix + flake.nix entry" || true) (git commit)" \

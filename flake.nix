@@ -334,19 +334,24 @@
     in {
 
       # =======================================================================
-      # apps — `nix run .#install-demo` (installer preview, writes nothing)
-      # Works straight from GitHub too: nix run github:Linuxury/nixos-config#install-demo
+      # apps — the installer (scripts/install.sh)
+      #   On the ISO:  sudo nix run github:Linuxury/nixos-config#install
+      #   Demo:        nix run .#install-demo   (writes nothing)
       # =======================================================================
-      apps.${system}.install-demo = let pkgs = nixpkgs.legacyPackages.${system}; in {
-        type = "app";
-        program = "${pkgs.writeShellApplication {
-          name = "install-demo";
-          runtimeInputs = with pkgs; [ gum jq qrencode smartmontools openssh util-linux gawk iputils ];
+      apps.${system} = let
+        pkgs = nixpkgs.legacyPackages.${system};
+        installer = pkgs.writeShellApplication {
+          name = "nixos-config-install";
+          runtimeInputs = with pkgs; [ gum jq qrencode smartmontools openssh util-linux gawk iputils git parted dosfstools btrfs-progs e2fsprogs xfsprogs cryptsetup ];
           runtimeEnv.INSTALLER_REPO = "${self}";   # hosts list + docs/06 come from this flake
           # jq programs in single quotes, colours in printf formats, literal \n for Nix — all intended
           excludeShellChecks = [ "SC2016" "SC2028" "SC2059" ];
-          text = builtins.readFile ./scripts/install-demo.sh;
-        }}/bin/install-demo";
+          text = builtins.readFile ./scripts/install.sh;
+        };
+        demo = pkgs.writeShellScriptBin "install-demo" ''exec ${installer}/bin/nixos-config-install --demo "$@"'';
+      in {
+        install      = { type = "app"; program = "${installer}/bin/nixos-config-install"; };
+        install-demo = { type = "app"; program = "${demo}/bin/install-demo"; };
       };
 
       # VM tests — nix build -L .#checks.x86_64-linux.<name>
