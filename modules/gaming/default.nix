@@ -382,6 +382,11 @@ in
     # Set up each user's Mojang account in Prism after first boot
     jdk17 # Java 17 runtime — required for Minecraft 1.17 and newer
     # Prism manages older Java versions internally for legacy versions
+    inputs.bedrock-on-linux.packages.${pkgs.stdenv.hostPlatform.system}.default
+    # BedrockOnLinux — Minecraft Bedrock (Windows/GDK) through Wine. Flake input
+    # follows our nixpkgs so its steam-run/Mesa match the GPU driver (with its
+    # own nixpkgs it fell back to software rendering). Game + worlds live in
+    # ~/.local/share/bedrock-on-linux; `bedrock-on-linux doctor` if it misbehaves.
 
     # Bedrock Edition — managed via Flatpak (io.mrarm.mcpelauncher)
     # The nix package is incompatible with Bedrock 1.26.x on NixOS due to

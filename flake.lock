@@ -48,6 +48,26 @@
         "type": "github"
       }
     },
+    "bedrock-on-linux": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791912290,
+        "narHash": "sha256-HykEnilG30y++SLyHAfMgUTgx6+1tRMtBDAvLZyXgMQ=",
+        "owner": "Wyze3306",
+        "repo": "BedrockOnLinux",
+        "rev": "f976cd557c49cd20aae4245761c43d08d2efe54e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Wyze3306",
+        "repo": "BedrockOnLinux",
+        "type": "github"
+      }
+    },
     "corefonts": {
       "flake": false,
       "locked": {
@@ -511,6 +531,7 @@
       "inputs": {
         "affinity-nix": "affinity-nix",
         "agenix": "agenix",
+        "bedrock-on-linux": "bedrock-on-linux",
         "helium-browser": "helium-browser",
         "home-manager": "home-manager",
         "horizon-files": "horizon-files",

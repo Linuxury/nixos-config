@@ -179,6 +179,14 @@
       flake = false;
     };
 
+    # bedrock-on-linux — Minecraft Bedrock (Windows/GDK) launcher. Follows our
+    # nixpkgs so its steam-run/Mesa match the system's GPU driver (with its own
+    # nixpkgs the GPU wasn't used). Installed by modules/gaming.
+    bedrock-on-linux = {
+      url = "github:Wyze3306/BedrockOnLinux";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   # ===========================================================================
