@@ -230,11 +230,11 @@
     "horizon-files": {
       "flake": false,
       "locked": {
-        "lastModified": 1791898895,
-        "narHash": "sha256-oohMKuugPxME8aJ+6BzupjeBPE7aYymY8YkZfDjEhss=",
+        "lastModified": 1792553022,
+        "narHash": "sha256-dImVBs1dVeaX0hVJDdQYTPDF5ML6OWJ6/1d/JfOBjnw=",
         "ref": "refs/heads/main",
-        "rev": "c445cfff1dd7c8d5562cb16ce3329c2682d085a4",
-        "revCount": 57,
+        "rev": "e531fdc084c4d614d9f9122c1fb7acbd1a360298",
+        "revCount": 58,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/Event-Horizon-desktop-environment/Horizon-File-Manager"
