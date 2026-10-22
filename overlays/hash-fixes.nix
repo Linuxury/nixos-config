@@ -3,5 +3,4 @@
 # removes it once nixpkgs catches up (the build then fails with the reverse
 # mismatch). One entry per line — nru edits this file line by line.
 {
-  typescript-language-server = { attr = "pnpmDeps"; hash = "sha256-xR/EF60lVBsITKgH7wCM2wHM46PFQevD51KfCENSUH4="; added = "2026-10-13"; };
 }

@@ -277,35 +277,6 @@
                   ant-dark-kde                  = prev.callPackage ./pkgs/ant-dark-kde/package.nix {};
                   breeze-chameleon-dark-icons   = prev.callPackage ./pkgs/breeze-chameleon-dark-icons/package.nix {};
                   breezex-cursors               = prev.callPackage ./pkgs/breezex-cursors/package.nix {};
-                  # openldap 2.6.13 test017-syncreplication-refresh is flaky
-                  # (timing-sensitive); skip tests to unblock the build.
-                  openldap    = prev.openldap.overrideAttrs (_: { doCheck = false; });
-                  # poetry 2.4.1 install-check tests fail on python 3.14 — upstream
-                  # string-formatting assertions don't account for py3.14 output changes.
-                  # pkgs.poetry/package.nix uses a self-contained private python3 scope;
-                  # all overlay approaches that target doInstallCheck/python3.pkgs are
-                  # swallowed by newPackageOverrides re-calling callPackage ./unwrapped.nix.
-                  # Removing nativeCheckInputs from the final drv changes the build inputs
-                  # directly, producing a new drv that skips pytestCheckHook entirely.
-                  poetry = prev.poetry.overridePythonAttrs (_: {
-                    nativeCheckInputs = [ ];
-                  });
-                  # Hyprland 0.56.1's CMakeLists pins find_package(glaze 7...<8),
-                  # but nixpkgs bumped glaze to 8.0.0. The version mismatch makes
-                  # CMake fall back to FetchContent (git clone), which fails in the
-                  # sandboxed build. Pin glaze back to 7.2.0 for Hyprland only.
-                  # Remove once nixpkgs/Hyprland realign on a compatible glaze.
-                  hyprland = prev.hyprland.override {
-                    glaze = prev.glaze.overrideAttrs (_: {
-                      version = "7.2.0";
-                      src = prev.fetchFromGitHub {
-                        owner = "stephenberry";
-                        repo = "glaze";
-                        tag = "v7.2.0";
-                        hash = "sha256-f3NVRi3SXKo42hn0WCw7JsOK3EkdOVJIcuzhPorKjFY=";
-                      };
-                    });
-                  };
                 })
 
                 # Stale upstream dependency hashes (pnpmDeps/npmDeps/cargoDeps/…).
