@@ -14,6 +14,9 @@
   imports = [
     # Automatic BTRFS snapshots + monthly scrub — runs on every host
     ../../services/snapper/default.nix
+
+    # Per-host nix max-jobs/cores, derived from hosts/<host>/specs.nix
+    ../build-capacity.nix
   ];
   # =========================================================================
   # BOOT — systemd-boot + Plymouth
@@ -225,14 +228,16 @@
       # Allow your user to manage the Nix store without sudo for some operations
       trusted-users = [ "root" "@wheel" ];
 
-      # Limit parallel build jobs — each heavy package (LLVM, chromium, Qt, etc.)
-      # can consume 4–8 GB RAM per job. Without a cap, machines with 16–32 GB RAM
-      # OOM-kill the Nix daemon during auto-updates.
-      # max-jobs = 2: only 2 derivations build in parallel (memory safety).
-      # cores = 0: each job uses all available CPU cores (max throughput per job).
-      max-jobs = 2;
-      cores = 0;
+      # max-jobs and cores are set per host in ../build-capacity.nix, derived
+      # from that host's measured specs. A flat pair fleet-wide cannot be right
+      # for both a 24c/31G desktop and a 4c/7G mini PC — see that file's header.
     };
+
+    # Keep the build daemon out of the way of whatever else the machine is
+    # doing. idle scheduling only yields when something actively wants the CPU,
+    # so a 3am rebuild on an idle box still runs at full speed.
+    daemonCPUSchedPolicy = "idle";
+    daemonIOSchedClass   = "idle";
 
     # Automatically clean up old generations and unused packages.
     # Keeps your disk from filling up with old builds over time.
@@ -246,6 +251,28 @@
     # Saves disk space with no downside.
     optimise.automatic = true;
   };
+
+  # =========================================================================
+  # MEMORY SAFETY NET FOR BUILDS
+  #
+  # zram is a compressed swap device in RAM. Build data compresses around
+  # 3:1, so a device sized at 50% of RAM buys roughly 30% more effective
+  # memory for the cost of some CPU. The point is not capacity, it is that a
+  # memory spike during a rebuild degrades into slowness instead of the
+  # kernel OOM-killer picking a victim. priority 100 puts it ahead of the
+  # disk swapfile (-1), which is far too slow to absorb compiler pressure.
+  #
+  # MemoryHigh is a SOFT limit: crossing it throttles the daemon's cgroup
+  # into reclaim. Deliberately not MemoryMax, which is a hard kill — that
+  # would just move the OOM from the kernel into systemd.
+  # =========================================================================
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50;
+    priority = 100;
+  };
+
+  systemd.services.nix-daemon.serviceConfig.MemoryHigh = "70%";
 
   # =========================================================================
   # FONTS

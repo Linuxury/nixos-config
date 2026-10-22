@@ -238,8 +238,10 @@
         extraModules     ? []
       }:
         nixpkgs.lib.nixosSystem {
-          # Pass inputs down so any module can access them if needed
-          specialArgs = { inherit inputs; };
+          # Pass inputs down so any module can access them if needed.
+          # hostname lets shared modules look up per-host data files without
+          # reading config (see modules/system/build-capacity.nix).
+          specialArgs = { inherit inputs hostname; };
           modules = [
             # Set the host platform — replaces the deprecated `system` argument
             { nixpkgs.hostPlatform.system = system; }

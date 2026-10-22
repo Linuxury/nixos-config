@@ -95,6 +95,9 @@
   # ==============================================================
   networking.hostName = "Radxa-X4";
 
+  # Staggered off the 03:00 default — see MinisForum for the reasoning.
+  services.nixos-auto-update.schedule = "*-*-* 04:00";
+
   # ==============================================================
   # Network interface configuration
   #

@@ -169,6 +169,9 @@
   # ==============================================================
   networking.hostName = "ThinkPad";
 
+  # Staggered off the 03:00 default (Ryzen5800x keeps it) — see MinisForum.
+  services.nixos-auto-update.schedule = "*-*-* 03:30";
+
   # ==============================================================
   # GPU driver selection — tells drivers.nix which profile to use
   # ==============================================================

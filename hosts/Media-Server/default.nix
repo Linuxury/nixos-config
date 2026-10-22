@@ -102,6 +102,9 @@
   # ==============================================================
   networking.hostName = "Media-Server";
 
+  # Staggered off the 03:00 default — see MinisForum for the reasoning.
+  services.nixos-auto-update.schedule = "*-*-* 02:30";
+
   # ==============================================================
   # GPU driver selection
   # AMD RX 480 — used for VAAPI hardware transcoding via Plex

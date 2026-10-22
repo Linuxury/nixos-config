@@ -153,6 +153,9 @@
 
   services.nixos-auto-update.primaryUser = "alex";
 
+  # Staggered off the 03:00 default — see MinisForum for the reasoning.
+  services.nixos-auto-update.schedule = "*-*-* 04:30";
+
   # ==============================================================
   # GPU driver selection
   # M5A78L-M LX has Radeon HD 3000 (760G chipset) — pre-GCN, needs radeon

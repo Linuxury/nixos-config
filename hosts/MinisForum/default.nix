@@ -106,6 +106,10 @@
   # ==============================================================
   networking.hostName = "MinisForum";
 
+  # Staggered off the 03:00 default so the fleet does not hit GitHub (60
+  # calls/hour, shared home IP) and cache.nixos.org on the same second.
+  services.nixos-auto-update.schedule = "*-*-* 02:00";
+
   # ==============================================================
   # GPU driver selection
   # Intel Iris Xe integrated graphics
