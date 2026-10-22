@@ -40,6 +40,15 @@
 
 { config, inputs, pkgs, ... }:
 
+let
+  # Pushes the palette's primary color to OpenRGB devices + the Lemokey
+  # keyboard. Only wired up on hosts with hardware.openrgb.enable.
+  ledSync = pkgs.writeShellApplication {
+    name = "led-sync";
+    runtimeInputs = [ config.services.hardware.openrgb.package ] ++ (with pkgs; [ gawk gnugrep coreutils ]);
+    text = builtins.readFile ./color-sync/led-sync.sh;
+  };
+in
 {
   imports = [ ../../greeters/noctalia/default.nix ];
 
@@ -80,6 +89,14 @@
           theme = {
             mode   = "dark";
             source = "wallpaper";
+          } // lib.optionalAttrs config.hardware.openrgb.enable {
+            # LED sync: render the bare primary hex, then push it to the
+            # RGB hardware (see color-sync/led-sync.sh).
+            templates.user.led-sync = {
+              input_path  = "${pkgs.writeText "led-color" "{{colors.primary.default.hex_stripped}}"}";
+              output_path = "$XDG_CACHE_HOME/noctalia/led-color";
+              post_hook   = "${ledSync}/bin/led-sync";
+            };
           };
 
           # ── Notification daemon ────────────────────────────────────────────
