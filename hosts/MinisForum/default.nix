@@ -280,11 +280,13 @@
   #
   # Ports mapped to host:
   #   8443        — Crafty web UI (HTTPS)
-  #   25565       — Minecraft Java default (add more in Crafty UI as needed)
+  #   25565       — Minecraft Java: Dark Fortress [26.2]
+  #   25566       — Minecraft Java: Homestead [1.3.7]
+  #   24454/udp   — Simple Voice Chat (Homestead ships voicechat)
   #   5521/udp    — Crafty-managed Hytale test server (container port 5520)
   #
-  # To add more Minecraft ports (e.g. a second server on 25566):
-  #   Add "25566:25566" to ports below and 25566 to allowedTCPPorts.
+  # To add more Minecraft ports (e.g. a third server on 25567):
+  #   Add "25567:25567" to ports below and 25567 to allowedTCPPorts.
   # ==============================================================
   virtualisation.docker.enable = true;
 
@@ -298,9 +300,11 @@
       pull      = "always";
       autoStart = true;
       ports = [
-        "8443:8443"       # Web UI
-        "25565:25565"     # Minecraft Java (default server)
-        "5521:5520/udp"   # Crafty-managed Hytale test server
+        "8443:8443"         # Web UI
+        "25565:25565"       # Minecraft Java — Dark Fortress [26.2]
+        "25566:25566"       # Minecraft Java — Homestead [1.3.7]
+        "24454:24454/udp"   # Simple Voice Chat — Homestead
+        "5521:5520/udp"     # Crafty-managed Hytale test server
       ];
       volumes = [
         "/data/gameservers/crafty/backups:/crafty/backups"
@@ -443,8 +447,8 @@
     };
   };
 
-  networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 ];
-  networking.firewall.allowedUDPPorts = [ 137 138 5520 5521 ]; # 5520 — systemd Hytale; 5521 — Crafty-managed Hytale (QUIC/UDP only)
+  networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 25566 ];
+  networking.firewall.allowedUDPPorts = [ 137 138 24454 5520 5521 ]; # 24454 — Simple Voice Chat; 5520 — systemd Hytale; 5521 — Crafty-managed Hytale (QUIC/UDP only)
 
   # ==============================================================
   # Sudo — NOPASSWD for Hytale service control
@@ -499,5 +503,43 @@
       extraGroups   = [];
       shell         = pkgs.zsh;
     };
+
+    # ------------------------------------------------------------
+    # nixbuilder — remote build account for the fleet
+    #
+    # Weak hosts (Radxa-X4, Media-Server, ThinkPad) offload their
+    # derivations here instead of grinding at 1-2 jobs. They connect as
+    # THIS user, not root — core/default.nix sets PermitRootLogin = "no"
+    # fleet-wide, and Nix does not need root on a builder anyway.
+    #
+    # The private half lives in secrets/nix-builder-key.age and is
+    # deployed only to the three clients. Public keys are safe in git.
+    #
+    # ⚠ This account is a trusted-user below, which means it can insert
+    # arbitrary paths into this host's Nix store — root-equivalent HERE.
+    # Only add clients you control; see secrets/secrets.nix.
+    # ------------------------------------------------------------
+    nixbuilder = {
+      isNormalUser = true;
+      description  = "Remote Nix build account";
+      shell        = pkgs.bash;   # needs a real shell for nix-store --serve
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOCxGxusdbuSGqgAD8qTkTJ3sZpvrFvVJyx8uI4QP3cU fleet-builder"
+      ];
+    };
   };
+
+  # ==============================================================
+  # Remote builder — builder side
+  #
+  # nixbuilder must be trusted to import the store paths it builds for
+  # clients. This list CONCATENATES with core/default.nix's
+  # [ "root" "@wheel" ] rather than replacing it.
+  #
+  # Dispatch is capped client-side (maxJobs = 4 in
+  # modules/system/remote-builder.nix), below this host's own 5 x 3, so
+  # Crafty keeps headroom. The idle CPU/IO scheduling from f002d7ec
+  # means remote builds yield to the game server.
+  # ==============================================================
+  nix.settings.trusted-users = [ "nixbuilder" ];
 }

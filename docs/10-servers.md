@@ -244,16 +244,26 @@ nru Radxa-X4   # rebuild Radxa-X4 to apply the new config
 
 ### Minecraft Java
 
-- Port: **25565** (TCP)
-- Data: `/data/gameservers/minecraft/`
+Servers run under **Crafty Controller** (`https://MinisForum:8443`) — not systemd.
+
+| Server | Port | Pack |
+| --- | --- | --- |
+| Dark Fortress [26.2] | 25565 | Fabric 26.2 |
+| Homestead [1.3.7] | 25566 | Fabric 1.20.1 (voice chat on 24454/udp) |
+
+Players connect to `MinisForum:<port>` (or the Tailscale IP if hostname resolution fails).
 
 ```bash
-sudo systemctl status minecraft-server    # check status
-journalctl -u minecraft-server -f         # follow the live server console
-sudo systemctl restart minecraft-server   # restart
+sudo systemctl status docker-crafty   # the Crafty container itself
+docker port crafty                    # ports actually published to the host
 ```
 
-Connect from Minecraft: `MinisForum:25565` (or the Tailscale IP if hostname resolution fails)
+Start/stop/console/backups all live in the web UI. Per-server logs: `servers/<uuid>/logs/latest.log`.
+
+A new server needs its port in **both** `virtualisation.oci-containers.containers.crafty.ports`
+and `networking.firewall` — Crafty alone won't make it reachable.
+MC 1.20.1 packs need **Java 17** (Config tab → "Override current Java Version"); the
+container's default JDK 25 crashes spark's async-profiler.
 
 ### Hytale Server
 
