@@ -4,11 +4,8 @@
 # Provides the runtime plumbing that claude, opencode, and odysseus depend on.
 # Import this alongside any AI tool module.
 #
-#   nix-ld   — compatibility shim so prebuilt Linux binaries (claude-code,
-#               opencode) can run on NixOS without ELF patching.
-#               Bun standalone binaries (opencode) break under patchelf because
-#               Bun uses /proc/self/exe to locate its embedded JS — nix-ld is
-#               the correct solution.
+#   nix-ld   — compatibility shim so prebuilt Linux binaries (claude-code)
+#               can run on NixOS without ELF patching.
 #   uv       — runs Python-based MCP servers via `uvx` without a global venv.
 #   ffmpeg   — required by the faster-whisper MCP server for audio processing.
 # ===========================================================================

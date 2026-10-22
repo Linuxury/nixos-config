@@ -271,7 +271,6 @@
               nixpkgs.overlays = [
                 (final: prev: {
                   claude-code  = prev.callPackage ./pkgs/claude-code/package.nix {};
-                  opencode     = prev.callPackage ./pkgs/opencode/package.nix {};
                   ponytrail    = prev.callPackage ./pkgs/ponytrail/package.nix {};
                   # proton-ge-custom and goverlay overlays live in modules/gaming/default.nix
                   # so they are only fetched on hosts that import the gaming module.
