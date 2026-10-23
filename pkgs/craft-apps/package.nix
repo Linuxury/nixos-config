@@ -64,6 +64,12 @@ let
       runHook postInstall
     '';
 
+    # Nothing is compiled here — untar a prebuilt tree, then autoPatchelf it.
+    # Without this, a remote builder gets picked and the transfer dwarfs the
+    # work: ~60-106 MB tarball up, ~127-195 MB output back, per app, times 13.
+    # On a wifi host (ThinkPad) that turned a seconds-long unpack into minutes.
+    preferLocalBuild = true;
+
     meta = {
       description = "${app.description} (storytold Craft app)";
       homepage = "https://github.com/storytold/${pname}";
