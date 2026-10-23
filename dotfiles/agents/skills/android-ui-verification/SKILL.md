@@ -1,5 +1,5 @@
 ---
-name: android_ui_verification
+name: android-ui-verification
 description: Automated end-to-end UI testing and verification on an Android Emulator using ADB.
 risk: safe
 source: community
