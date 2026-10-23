@@ -201,6 +201,13 @@ in
     ]
   );
 
+  # IteraCompute API key (free Qwen tier). Encrypted to every host so any host
+  # that imports the Zed or ai-tools module gets it without a re-key.
+  # Zed: injected into settings.json. Shells: exported as ITERACOMPUTE_API_KEY.
+  "iteracompute-api-key.age".publicKeys = uniq (
+    linuxury-admins ++ linuxury-machines ++ babylinux-machines ++ alex-machines
+  );
+
   # --------------------------------------------------------------------------
   # SMTP app password for update failure emails
   #

@@ -28,4 +28,16 @@
     uv      # uvx runner for Python MCP servers — no venv management needed
     ffmpeg  # audio processing for the faster-whisper MCP server
   ];
+
+  # =========================================================================
+  # IteraCompute API key (free Qwen tier) — shells export it as
+  # ITERACOMPUTE_API_KEY (dotfiles/zsh/zshrc) for any AI tool to use.
+  # Also declared identically in editors/zed; identical definitions merge.
+  # =========================================================================
+  age.secrets.iteracompute-api-key = {
+    file  = ../../../secrets/iteracompute-api-key.age;
+    mode  = "0440";
+    owner = "root";
+    group = "users";
+  };
 }

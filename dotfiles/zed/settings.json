@@ -60,6 +60,18 @@
     "default_model": {
       "provider": "openai",
       "model": "anthropic/claude-sonnet-4-5"
+    },
+    "inline_assistant_model": {
+      "provider": "IteraCompute",
+      "model": "qwen/qwen3.8-27b"
+    },
+    "commit_message_model": {
+      "provider": "IteraCompute",
+      "model": "qwen/qwen3.8-27b"
+    },
+    "thread_summary_model": {
+      "provider": "IteraCompute",
+      "model": "qwen/qwen3.8-27b"
     }
   },
   "project_panel": {
@@ -95,6 +107,25 @@
           "max_tokens": 200000
         }
       ]
+    },
+    "openai_compatible": {
+      "IteraCompute": {
+        "api_url": "https://api.iteracompute.com/v1",
+        "available_models": [
+          {
+            "name": "qwen/qwen3.8-27b",
+            "display_name": "Qwen 3.8 27B (free)",
+            "max_tokens": 128000,
+            "max_output_tokens": 8192,
+            "capabilities": {
+              "tools": true,
+              "images": true,
+              "parallel_tool_calls": false,
+              "prompt_cache_key": false
+            }
+          }
+        ]
+      }
     }
   },
   "agent_servers": {

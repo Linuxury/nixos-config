@@ -16,7 +16,8 @@
 # injection below edits it in place), so per-host drift afterward is fine —
 # it just won't be clobbered back to the template on every rebuild.
 #
-# AI: Claude via OpenRouter (language_model_providers.openai → openrouter.ai).
+# AI: Claude via OpenRouter (language_model_providers.openai → openrouter.ai),
+# plus free Qwen via IteraCompute (language_model_providers.openai_compatible.IteraCompute).
 # The OpenRouter key is injected from /run/agenix/openrouter-api-key at
 # activation time — never stored in the Nix store. dotfiles/zed/settings.json
 # ships with api_key = "" — the secret only ever lives in the live file.
@@ -27,6 +28,15 @@
 {
   # Force OpenGL backend — avoids wgpu Vulkan surface panic on Hyprland workspace switch
   environment.sessionVariables.WGPU_BACKEND = "gl";
+
+  # IteraCompute key — readable by every normal user (group users). Also
+  # declared identically in ai-tools/default.nix; identical definitions merge.
+  age.secrets.iteracompute-api-key = {
+    file  = ../../../../secrets/iteracompute-api-key.age;
+    mode  = "0440";
+    owner = "root";
+    group = "users";
+  };
 
   # =========================================================================
   # Zed — system package (available to all users on this host)
@@ -87,6 +97,35 @@
               | ${lib.getExe pkgs.jq} \
                   --arg key "$_key" \
                   '.language_model_providers.openai.api_key = $key')
+            printf '%s\n' "$_tmp" > "$_cfg"
+            unset _key _tmp
+          fi
+          unset _key_file _cfg
+        '';
+
+      # IteraCompute provider (free Qwen tier). Writes the whole provider block,
+      # not just the key, so users whose settings.json predates it get it too.
+      # Model role assignments (commit messages etc.) stay per-user choices.
+      home.activation.zedInjectIteraComputeKey =
+        lib.hm.dag.entryAfter [ "zedInjectOpenRouterKey" ] ''
+          _key_file="/run/agenix/iteracompute-api-key"
+          _cfg="$HOME/.config/zed/settings.json"
+          if [ -r "$_key_file" ] && [ -f "$_cfg" ]; then
+            _key=$(cat "$_key_file")
+            _tmp=$(${pkgs.gnused}/bin/sed '/^[[:space:]]*\/\//d' "$_cfg" \
+              | ${lib.getExe pkgs.jq} \
+                  --arg key "$_key" \
+                  '.language_model_providers.openai_compatible.IteraCompute = {
+                     api_url: "https://api.iteracompute.com/v1",
+                     api_key: $key,
+                     available_models: [{
+                       name: "qwen/qwen3.8-27b",
+                       display_name: "Qwen 3.8 27B (free)",
+                       max_tokens: 128000,
+                       max_output_tokens: 8192,
+                       capabilities: { tools: true, images: true, parallel_tool_calls: false, prompt_cache_key: false }
+                     }]
+                   }')
             printf '%s\n' "$_tmp" > "$_cfg"
             unset _key _tmp
           fi
