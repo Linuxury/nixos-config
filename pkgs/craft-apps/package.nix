@@ -27,7 +27,7 @@
 # Drop an app from here once it lands in nixpkgs.
 let
   apps = {
-    photocraft  = { version = "0.14.0"; hash = "sha256-PR9gp2wlqvv1PyPP7dNoe9metvUwmSDhQNWIvTISyTY="; description = "Image editor"; };
+    photocraft  = { version = "0.15.1"; hash = "sha256-tiK+QDVVEwVvgVKv6JXQoFwbw8NEoCf3cqmhL6PRwiM="; description = "Image editor"; };
     pdfcraft    = { version = "0.13.0"; hash = "sha256-WYUZ6ivHfGbKmpBiQeH+Psz3RfUGJ84829W15nWkVtM="; description = "PDF workbench"; };
     lightcraft  = { version = "0.13.0"; hash = "sha256-hzx5XmQeqMNF4C5IlfbCZZAV5TFCD2g1LKNCGqm47c0="; description = "Photo library and raw developer"; };
     vectorcraft = { version = "0.16.0"; hash = "sha256-ZR+sFyVSca0dvIuh6Ch9ufKOUpupoU3QOD7Kk6LMWqY="; description = "Vector illustration"; };
