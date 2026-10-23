@@ -306,7 +306,7 @@ _nru_ticker() {
       printf "\r  %s  Evaluating…\033[K" "$_NRU_SPIN[i]" >/dev/tty
     elif [[ -n $st ]]; then
       IFS='|' read -r kind cnt tot lbl <<< "$st"
-      [[ $lbl != "$last" ]] && { last=$lbl; since=$EPOCHSECONDS }
+      [[ ${lbl%% \[*} != "$last" ]] && { last=${lbl%% \[*}; since=$EPOCHSECONDS }   # per package, not per [n/m] step
       el=$(( EPOCHSECONDS - since )); sfx=""
       (( el >= 10 )) && sfx=$(printf '  %dm%02ds' $(( el / 60 )) $(( el % 60 )))
       (( tot > 0 )) || tot=1
@@ -428,6 +428,15 @@ _nix_fetch_filter() {
   # nix prints the singular form ("This derivation will be built:") for one item
   l ~ /^(these [0-9]+ derivations|this derivation) will be built/ {
     bt += count(l); kind = "build"; label = "starting…"; active = 1; state(); next
+  }
+  # -L build-log lines ("noctalia> [312/840] Compiling …"): never shown, but
+  # they name the package that is ACTUALLY busy — "building" lines only say
+  # what started last, and nix never prints when a build finishes.
+  bt && /^[A-Za-z0-9][A-Za-z0-9._+-]*> / {
+    pkg = substr($0, 1, index($0, ">") - 1); step = ""
+    if (match($0, /\[[0-9]+\/[0-9]+\]/)) step = " " substr($0, RSTART, RLENGTH)
+    if (pkg step != label) { label = substr(pkg, 1, 30 - length(step)) step; kind = "build"; state() }
+    next
   }
   /^building .*\/nix\/store\// {
     if (!bt) next
@@ -706,12 +715,12 @@ _nixos_run() {
 
 # Rebuild and switch to the current flake config.
 nr() {
-  _nixos_run sudo nixos-rebuild switch --no-link --flake "$NIXOS_CONFIG#$(hostname)"
+  _nixos_run sudo nixos-rebuild switch -L --no-link --flake "$NIXOS_CONFIG#$(hostname)"
 }
 
 # Test rebuild — activates now without touching the boot entry (safe for risky changes).
 nrt() {
-  _nixos_run sudo nixos-rebuild test --no-link --flake "$NIXOS_CONFIG#$(hostname)"
+  _nixos_run sudo nixos-rebuild test -L --no-link --flake "$NIXOS_CONFIG#$(hostname)"
 }
 
 # ---------------------------------------------------------------------------
@@ -726,7 +735,7 @@ _nru_rebuild() {
   _NRU_ON_PREV=""
 
   while true; do
-    _nixos_run sudo nixos-rebuild switch --no-link --flake "$cfg#$(hostname)"
+    _nixos_run sudo nixos-rebuild switch -L --no-link --flake "$cfg#$(hostname)"
     code=$?
     (( code == 0 || code == 4 )) && break
     (( code == 130 )) && _NRU_FAIL_KIND=interrupted

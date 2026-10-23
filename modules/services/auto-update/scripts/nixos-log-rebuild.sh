@@ -82,7 +82,7 @@ get_diff() {
 # otherwise false-positive on; nix.settings.fallback already handles those.
 WARNINGS=$(grep -E "warning:" "$LOG_FILE" 2>/dev/null | \
   grep -ivE \
-    '/nix/store/[a-z0-9]{32}|\.c:[0-9]|\.cpp:[0-9]|\.h:[0-9]|gcc|g\+\+|clang\+\+|cmake|fortify|implicit declaration|unused (variable|parameter|function|result)|-W[a-z]|ld: warning|linker warning|does not exist in binary cache' | \
+    '^[a-z0-9][a-z0-9._+-]*> |/nix/store/[a-z0-9]{32}|\.c:[0-9]|\.cpp:[0-9]|\.h:[0-9]|gcc|g\+\+|clang\+\+|cmake|fortify|implicit declaration|unused (variable|parameter|function|result)|-W[a-z]|ld: warning|linker warning|does not exist in binary cache' | \
   grep -iE \
     'renamed|deprecated|removed|does not exist|unknown option|no longer supported|has been|will be removed|type error|infinite recursion|undefined variable|is not defined' | \
   sed 's/^[[:space:]]*//' | \
