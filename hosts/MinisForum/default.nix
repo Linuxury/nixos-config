@@ -536,8 +536,8 @@
   # clients. This list CONCATENATES with core/default.nix's
   # [ "root" "@wheel" ] rather than replacing it.
   #
-  # Dispatch is capped client-side (maxJobs = 4 in
-  # modules/system/remote-builder.nix), below this host's own 5 x 3, so
+  # Dispatch is capped client-side (maxJobs = 2 in
+  # modules/system/remote-builder.nix), matching this host's own 2 x 16, so
   # Crafty keeps headroom. The idle CPU/IO scheduling from f002d7ec
   # means remote builds yield to the game server.
   # ==============================================================

@@ -45,16 +45,21 @@ let
   floor = { jobs = 1; cores = 2; };
 
   # ~0.75 GB of RAM per build thread. This cap is what keeps core-rich,
-  # RAM-poor hosts safe: without it, cores = nproc / jobs fills every core
-  # regardless of RAM (ThinkPad would land at 16 threads on 14 GB).
+  # RAM-poor hosts safe (ThinkPad: 10 threads on 14 GB, not 16).
   threads = lib.min spec.cores ((spec.ramGB * 3) / 4);
-  # ramGB / 6 leaves ~6 GB of headroom per concurrent heavy job;
-  # cores / 2 keeps the machine usable while it builds.
-  jobs = lib.max 1 (lib.min (spec.cores / 2) (spec.ramGB / 6));
+  # At most 2 slots, and each gets ALL the RAM-safe threads — not a share.
+  # A rebuild is one or two big compiles plus many sub-second derivations;
+  # splitting threads across 5 slots (the first version of this file) left
+  # noctalia compiling on 4 of 24 threads while the other slots sat idle.
+  # Measured 2026-10-23 on Ryzen5900x (noctalia + umbriel at once, 2 × 23):
+  # 294 s vs 727 s at the old 5 × 4, peaking at 24 GB of 32 — ~0.5 GB per
+  # thread. Two full-width jobs therefore only fit from 24 GB up; below
+  # that, one slot (the sub-second derivations barely notice serializing).
+  jobs = if spec.ramGB >= 24 then 2 else 1;
 
   cap = if spec == null then floor else {
     inherit jobs;
-    cores = lib.max 1 (threads / jobs);
+    cores = lib.max 1 threads;
   };
 in
 {

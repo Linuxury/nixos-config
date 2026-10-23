@@ -2,13 +2,14 @@
 # modules/system/remote-builder.nix — offload Nix builds to MinisForum
 #
 # Importing this file IS the opt-in; there is no enable flag. Currently
-# imported by Radxa-X4, Media-Server and ThinkPad.
+# imported by Radxa-X4 only: a 2026-10-23 stress test (noctalia + umbriel)
+# showed ThinkPad (584 s) and Media-Server (562 s) build locally as fast as
+# MinisForum does remotely (~627 s); Radxa-X4 takes 2283 s on its own.
 #
 # Why: modules/system/build-capacity.nix caps each host's parallelism to what
 # its RAM survives, which fixed the rebuild OOMs but left the weak hosts
-# deliberately slow (Radxa-X4 at 1 x 4, ThinkPad RAM-capped to 2 x 5 despite
-# 16 cores). MinisForum is online 24/7 with 16c/31G, so it absorbs the heavy
-# derivations instead.
+# deliberately slow (Radxa-X4 at 1 x 4 on 7 GB). MinisForum is online 24/7
+# with 16c/31G, so it absorbs the heavy derivations instead.
 #
 # Trust: the key below logs into `nixbuilder` on MinisForum, which is a
 # trusted-user there — it can insert arbitrary paths into that host's store.
@@ -54,8 +55,9 @@
       protocol   = "ssh-ng";
       systems    = [ "x86_64-linux" ];
 
-      # Below MinisForum's own 5 x 3 so Crafty (Minecraft) keeps headroom.
-      maxJobs = 4;
+      # Matches MinisForum's own 2 x 16; each remote build gets 16 threads,
+      # and the idle CPU/IO scheduling keeps Crafty (Minecraft) responsive.
+      maxJobs = 2;
       # speedFactor left at its default — it only orders builders relative to
       # each other, and MinisForum is the only one.
 
