@@ -17,10 +17,10 @@
 # it just won't be clobbered back to the template on every rebuild.
 #
 # AI: Claude via OpenRouter (language_model_providers.openai → openrouter.ai),
-# plus free Qwen via IteraCompute (language_model_providers.openai_compatible.IteraCompute).
+# plus free Qwen via IteraCompute (language_models.openai_compatible.iteracompute).
 # The OpenRouter key is injected from /run/agenix/openrouter-api-key at
-# activation time — never stored in the Nix store. dotfiles/zed/settings.json
-# ships with api_key = "" — the secret only ever lives in the live file.
+# activation time; the IteraCompute key comes from ITERACOMPUTE_API_KEY, set
+# by the zeditor wrapper. Neither key is ever in the Nix store or the repo.
 # ===========================================================================
 
 { lib, pkgs, ... }:
@@ -41,8 +41,19 @@
   # =========================================================================
   # Zed — system package (available to all users on this host)
   # =========================================================================
+  # Zed reads provider keys from <PROVIDER_ID>_API_KEY env vars or the keychain,
+  # never from settings.json. The wrapper loads the IteraCompute key at launch,
+  # so it works for every user and from the desktop file (Exec=zeditor via PATH).
   environment.systemPackages = with pkgs; [
-    zed-editor
+    (symlinkJoin {
+      name = "zed-editor-${zed-editor.version}";
+      paths = [ zed-editor ];
+      nativeBuildInputs = [ makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/zeditor --run \
+          '[ -r /run/agenix/iteracompute-api-key ] && export ITERACOMPUTE_API_KEY="$(cat /run/agenix/iteracompute-api-key)"'
+      '';
+    })
     nixd        # Nix language server — required by Zed's Nix extension
   ];
 
@@ -103,21 +114,19 @@
           unset _key_file _cfg
         '';
 
-      # IteraCompute provider (free Qwen tier). Writes the whole provider block,
-      # not just the key, so users whose settings.json predates it get it too.
-      # Model role assignments (commit messages etc.) stay per-user choices.
-      home.activation.zedInjectIteraComputeKey =
+      # IteraCompute provider (free Qwen tier). Writes the whole provider block
+      # so users whose settings.json predates it get it too. Provider id
+      # "iteracompute" → Zed reads the key from ITERACOMPUTE_API_KEY (set by
+      # the zeditor wrapper above). Model role assignments stay per-user.
+      home.activation.zedIteraComputeProvider =
         lib.hm.dag.entryAfter [ "zedInjectOpenRouterKey" ] ''
-          _key_file="/run/agenix/iteracompute-api-key"
           _cfg="$HOME/.config/zed/settings.json"
-          if [ -r "$_key_file" ] && [ -f "$_cfg" ]; then
-            _key=$(cat "$_key_file")
+          if [ -r /run/agenix/iteracompute-api-key ] && [ -f "$_cfg" ]; then
             _tmp=$(${pkgs.gnused}/bin/sed '/^[[:space:]]*\/\//d' "$_cfg" \
               | ${lib.getExe pkgs.jq} \
-                  --arg key "$_key" \
-                  '.language_model_providers.openai_compatible.IteraCompute = {
+                  'del(.language_model_providers.openai_compatible)
+                   | .language_models.openai_compatible.iteracompute = {
                      api_url: "https://api.iteracompute.com/v1",
-                     api_key: $key,
                      available_models: [{
                        name: "qwen/qwen3.8-27b",
                        display_name: "Qwen 3.8 27B (free)",
@@ -127,9 +136,9 @@
                      }]
                    }')
             printf '%s\n' "$_tmp" > "$_cfg"
-            unset _key _tmp
+            unset _tmp
           fi
-          unset _key_file _cfg
+          unset _cfg
         '';
     })
   ];
