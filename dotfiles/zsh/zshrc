@@ -855,7 +855,11 @@ _nru_rebuild() {
       "http://media-server:2586/nixos-updates" 2>/dev/null || true
     [[ $(_nru_menu "⚠" "Reboot needed · ${(j:, :)why}" "R:reboot now" "l:later") == r ]] && sudo reboot
   else
-    [[ $(_nru_menu "✓" "Rebuild Clean · close terminal?" "Y:yes" "n:no") == y ]] && exit 0
+    if (( code == 4 )); then
+      [[ $(_nru_menu "⚠" "Rebuild done · close terminal?" "Y:yes" "n:no") == y ]] && exit 0
+    else
+      [[ $(_nru_menu "✓" "Rebuild Clean · close terminal?" "Y:yes" "n:no") == y ]] && exit 0
+    fi
   fi
   return 0
 }
