@@ -21,9 +21,16 @@
 # dry-build can check it.
 #
 # No specs.nix (unprobed, or deliberately old hardware like the Alex hosts)
-# selects the floor tier. That is a decision, not a fallback: those machines
-# almost never compile (substitutes + nix.settings.fallback), so surviving an
-# unexpected 3am build matters more than its speed.
+# selects the floor tier. That is a decision, not an accident: those machines
+# almost never compile anything, because nearly every path arrives as a
+# substitute from cache.nixos.org — so surviving an unexpected 3am build
+# matters more than its speed.
+#
+# Note these hosts deliberately do NOT set nix.settings.fallback. On a floor
+# tier host that would force a local source build whenever substitution
+# fails, which is the exact scenario this module exists to prevent. fallback
+# is set only where a remote builder makes it safe — see
+# modules/system/remote-builder.nix.
 #
 # Both values are mkDefault — any host can override in its own file.
 # ===========================================================================

@@ -32,10 +32,12 @@
     #   nixos-hardware — ThinkPad T14s AMD Gen4: thermal, power, fingerprint
     #   core           — locale, fonts, nix daemon, base CLI, boot defaults
     #   graphical      — Wayland stack, PipeWire audio, XDG portals, base pkgs
+    #   remote-builder — offload builds to MinisForum (14 GB caps this to 2 x 5)
     # ==============================================================
     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t14s-amd-gen4
     ../../modules/system/core/default.nix
     ../../modules/system/graphical/default.nix
+    ../../modules/system/remote-builder.nix
 
     # ==============================================================
     # Hardware

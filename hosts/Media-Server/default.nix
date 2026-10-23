@@ -27,11 +27,13 @@
 
     # ==============================================================
     # System
-    #   core         — locale, fonts, nix daemon, base CLI, boot defaults
-    #   server-shell — headless zsh, aliases, zoxide/fzf/direnv
+    #   core           — locale, fonts, nix daemon, base CLI, boot defaults
+    #   server-shell   — headless zsh, aliases, zoxide/fzf/direnv
+    #   remote-builder — offload builds to MinisForum (this host is 2 x 5)
     # ==============================================================
     ../../modules/system/core/default.nix
     ../../modules/system/server-shell/default.nix
+    ../../modules/system/remote-builder.nix
 
     # ==============================================================
     # Hardware

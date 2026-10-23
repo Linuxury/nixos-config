@@ -252,4 +252,27 @@ in
     ]
   );
 
+  # --------------------------------------------------------------------------
+  # SSH private key for distributed Nix builds
+  #
+  # Lets a client's nix-daemon (running as root) log into the `nixbuilder`
+  # account on MinisForum and build there. The matching PUBLIC key sits in
+  # plaintext in hosts/MinisForum/default.nix.
+  #
+  # Deployed only to the build CLIENTS — not to MinisForum itself, which
+  # builds locally. `nixbuilder` is a trusted-user on the builder, so this
+  # key is effectively root-equivalent THERE: only add hosts you control.
+  # Deliberately excluded: the Alex machines (family-controlled) and
+  # Asus-A15 (not migrated to this config).
+  # After updating: nix run nixpkgs#agenix -- -r
+  # --------------------------------------------------------------------------
+  "nix-builder-key.age".publicKeys = uniq (
+    linuxury-admins
+    ++ [
+      Radxa-X4
+      Media-Server
+      ThinkPad
+    ]
+  );
+
 }
