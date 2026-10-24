@@ -850,6 +850,12 @@ _nru_rebuild() {
       && sudo nix-collect-garbage --delete-older-than 30d
   fi
 
+  # ── Firmware check ─────────────────────────────────────────────────────────
+  # Uses the metadata fwupd-refresh.timer already fetched; exit 0 = updates
+  # available, 2 = none. Notice only — installing is left to the user.
+  fwupdmgr get-updates --no-unreported-check --no-metadata-check </dev/null &>/dev/null \
+    && printf "  ⚠  Firmware update available · please run: fwupdmgr update\n"
+
   # ── Reboot check ───────────────────────────────────────────────────────────
   # Booted vs current system: a new kernel, initrd or systemd only fully takes
   # effect after a reboot.
