@@ -61,7 +61,6 @@
     # Make the boot process silent — hides kernel messages behind Plymouth.
     # These kernel parameters tell the system to stay quiet during boot.
     consoleLogLevel = 0;
-    initrd.verbose = false;
     kernelParams = [
       "quiet"
       "splash"
