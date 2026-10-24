@@ -96,6 +96,10 @@
 
         # Intel CPU microcode updates
         cpu.intel.updateMicrocode = true;
+
+        # linux-firmware: i915 GuC/HuC/DMC blobs plus whatever WiFi/BT chip the
+        # board carries (MinisForum's MediaTek MT7902 BT reset-looped without it).
+        enableRedistributableFirmware = true;
       };
     })
 

@@ -126,7 +126,7 @@
     settings = {
       shared_preload_libraries = "vector";
     };
-    extraPlugins = ps: [ ps.pgvector ];
+    extensions = ps: [ ps.pgvector ];
   };
 
   # ==============================================================

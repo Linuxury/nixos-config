@@ -127,10 +127,10 @@
   services.avahi = {
     enable   = true;
     nssmdns4 = true;  # Enables .local hostname resolution
-    publish = {
-      enable      = true;
-      addresses   = true;  # Publish IP address
-      workstation = true;  # Show up as a workstation in network browsers
+    settings.publish = {
+      disable-publishing  = false; # module default is true (publishing off)
+      publish-addresses   = true;  # Publish IP address
+      publish-workstation = true;  # Show up as a workstation in network browsers
     };
 
     # "workstation" above only announces "this host exists" (_workstation._tcp,

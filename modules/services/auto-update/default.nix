@@ -445,19 +445,20 @@ in
 
       # ── Post-rebuild cleanup ───────────────────────────────────────────
       log "Cleaning up old generations (keep 30 days)..."
-      sudo nix-collect-garbage --delete-older-than 30d >> "$LOG_FILE" 2>&1 || true
+      sudo ${pkgs.nix}/bin/nix-collect-garbage --delete-older-than 30d >> "$LOG_FILE" 2>&1 || true
 
       log "Pruning old snapshots..."
-      sudo snapper -c root cleanup timeline >> "$LOG_FILE" 2>&1 || true
-      sudo snapper -c home cleanup timeline >> "$LOG_FILE" 2>&1 || true
+      sudo ${pkgs.snapper}/bin/snapper -c root cleanup timeline >> "$LOG_FILE" 2>&1 || true
+      sudo ${pkgs.snapper}/bin/snapper -c home cleanup timeline >> "$LOG_FILE" 2>&1 || true
 
       log "Checking for firmware updates..."
-      if sudo fwupdmgr refresh >> "$LOG_FILE" 2>&1; then
-        sudo fwupdmgr update --no-reboot-check >> "$LOG_FILE" 2>&1 || \
-          log "No firmware updates available or update skipped"
-      else
-        log "fwupdmgr refresh failed — skipping firmware update"
-      fi
+      # Full store paths: the sudo rules below match exact paths, and plain
+      # names resolve to /run/current-system/sw/bin, so they'd prompt and fail.
+      # refresh exits 2 when metadata is already current (fwupd-refresh.timer),
+      # which isn't a reason to skip the update.
+      sudo ${pkgs.fwupd}/bin/fwupdmgr refresh >> "$LOG_FILE" 2>&1 || true
+      sudo ${pkgs.fwupd}/bin/fwupdmgr update -y --no-reboot-check >> "$LOG_FILE" 2>&1 || \
+        log "No firmware updates available or update skipped"
 
       # ── Reboot notification ────────────────────────────────────────────
       if reboot_required; then
