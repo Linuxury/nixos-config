@@ -6,12 +6,9 @@
 # Type: Headless server — no DE, no display manager
 # Role: Game server host
 #   - Crafty Controller (Docker, web UI on port 8443)
-#       Manages Minecraft servers (Java + Bedrock) only
+#       Manages Minecraft servers (Java) and the Hytale server (QUIC/UDP 5520)
 #       Access: https://MinisForum:8443  (or via Tailscale)
 #       First login: admin / crafty  (change immediately)
-#   - Hytale server (systemd service, QUIC/UDP port 5520)
-#       Official binary via hytale-downloader — see FIRST-TIME SETUP comment
-#       Files: /data/gameservers/hytale/Server/
 #
 # Storage layout:
 #   /data/gameservers/crafty/servers/  — Crafty-managed server files
@@ -19,7 +16,6 @@
 #   /data/gameservers/crafty/config/   — Crafty config + SSL cert
 #   /data/gameservers/crafty/logs/     — Crafty logs
 #   /data/gameservers/crafty/import/   — Drop server ZIPs here to import
-#   /data/gameservers/hytale/          — Hytale server files
 #
 # Samba share: \\MinisForum\GameServers → /data/gameservers
 #   Access via /mnt/MinisForum on client machines (add CIFS mount per host)
@@ -202,11 +198,6 @@
                   # If your SSH connection drops, tmux keeps things running
     lsof          # List open files — useful for debugging
     strace        # Trace system calls — useful for debugging services
-
-    # Hytale server runtime
-    jdk25_headless # Required by HytaleServer.jar
-    wget           # Download hytale-downloader
-    unzip          # Extract server zip
   ];
 
   # ==============================================================
@@ -241,7 +232,6 @@
   # Game server directories
   #
   # Crafty owns everything under crafty/ — Docker mounts these as volumes.
-  # Hytale runs directly under hytale/Server/ (downloaded via hytale-downloader).
   # ==============================================================
   systemd.tmpfiles.rules = [
     "d /mnt/Media-Server                    0755 linuxury users -"
@@ -256,23 +246,14 @@
     # Z = recursively fix ownership on existing files (crafty container runs as UID 1000)
     # GID 100 (users) so linuxury (also UID 1000) is owner + group access is consistent
     "Z /data/gameservers/crafty              -     1000  100   - -"
-    "d /data/gameservers/hytale               0775 linuxury users -"
-    "d /data/gameservers/hytale/Server        0775 linuxury users -"
   ];
 
   # ==============================================================
   # Crafty Controller — web-based Minecraft server manager
   #
-  # Runs in Docker. Primarily manages Minecraft servers (Java + Bedrock).
-  # The main Hytale instance is managed directly via systemd (see below).
-  #
-  # A second, test/experimental Hytale server also lives inside Crafty
-  # itself (custom/generic server type — Crafty has no native Hytale
-  # support, so it does NOT auto-publish its UDP port the way it does for
-  # Minecraft). That container-internal server binds 5520/udp inside the
-  # container's network namespace; it's published to the HOST on 5521/udp
-  # below to avoid clashing with the systemd instance's host port 5520.
-  # Point that Hytale client at MinisForum:5521.
+  # Runs in Docker. Manages the Minecraft servers and the Hytale server.
+  # Crafty doesn't auto-publish Hytale's UDP port, so it's mapped by hand
+  # below (and opened in the firewall).
   #
   # Web UI:  https://MinisForum:8443  (self-signed cert, click through)
   #          or https://<tailscale-ip>:8443
@@ -283,7 +264,7 @@
   #   25565       — Minecraft Java: Dark Fortress [26.2]
   #   25566       — Minecraft Java: Homestead [1.3.7]
   #   24454/udp   — Simple Voice Chat (Homestead ships voicechat)
-  #   5521/udp    — Crafty-managed Hytale test server (container port 5520)
+  #   5520/udp    — Hytale: Dark Fortress (QUIC)
   #
   # To add more Minecraft ports (e.g. a third server on 25567):
   #   Add "25567:25567" to ports below and 25567 to allowedTCPPorts.
@@ -304,7 +285,7 @@
         "25565:25565"       # Minecraft Java — Dark Fortress [26.2]
         "25566:25566"       # Minecraft Java — Homestead [1.3.7]
         "24454:24454/udp"   # Simple Voice Chat — Homestead
-        "5521:5520/udp"     # Crafty-managed Hytale test server
+        "5520:5520/udp"     # Hytale — Dark Fortress
       ];
       volumes = [
         "/data/gameservers/crafty/backups:/crafty/backups"
@@ -329,106 +310,6 @@
   };
 
   # ==============================================================
-  # Hytale server — official binary, direct systemd service
-  #
-  # Uses Java 25 + QUIC/UDP on port 5520.
-  # Server files live in /data/gameservers/hytale/Server/
-  # Current version: 0.5.2 (as of 2026-05-27)
-  #
-  # FIRST-TIME SETUP (run once as linuxury on MinisForum):
-  #   cd /data/gameservers/hytale
-  #   wget https://downloader.hytale.com/hytale-downloader.zip
-  #   unzip hytale-downloader.zip
-  #   chmod +x hytale-downloader-linux-amd64
-  #   ./hytale-downloader-linux-amd64 -download-path server.zip
-  #   # → first run triggers OAuth2 device flow: visit URL shown + enter code
-  #   unzip server.zip -d .
-  #   mv Assets.zip Server/
-  #
-  #   # Run manually once to authenticate the SERVER (separate from downloader auth):
-  #   cd Server
-  #   java -jar HytaleServer.jar --assets Assets.zip --bind 0.0.0.0:5520
-  #   # In the Hytale console:
-  #   /auth login device       ← visit https://accounts.hytale.com/device + enter code
-  #   /auth persistence Encrypted  ← persists credentials across reboots
-  #   # Then Ctrl+C and start via systemd:
-  #   sudo systemctl start hytale-server
-  #
-  # Service is gated on both files existing — safe to rebuild before setup.
-  #
-  # START / STOP / LOGS:
-  #   sudo systemctl start hytale-server
-  #   sudo systemctl stop hytale-server
-  #   sudo systemctl status hytale-server
-  #   journalctl -u hytale-server -f        ← watch logs live
-  #   (auto-starts on boot once files are present)
-  #
-  # UPDATE (preferred — from desktop/laptop):
-  #   hytale-update        ← zsh function in linuxury's home.nix; handles everything
-  #
-  # UPDATE (manual — SSH to MinisForum):
-  #   sudo systemctl stop hytale-server
-  #   cd /data/gameservers/hytale
-  #   wget -O hytale-downloader.zip https://downloader.hytale.com/hytale-downloader.zip
-  #   unzip -o hytale-downloader.zip && chmod +x hytale-downloader-linux-amd64 && rm hytale-downloader.zip
-  #   ./hytale-downloader-linux-amd64 -download-path server.zip
-  #   unzip -o server.zip -d . && mv -f Assets.zip Server/ && rm -f server.zip
-  #   rm -rf Server/update-staging 2>/dev/null || true
-  #   sudo systemctl start hytale-server
-  #   (auth credentials, server config, and mods survive updates)
-  #
-  # NOTE: The downloader is versioned — always re-download it before updating.
-  # NOTE: Exit code 8 = auto-update staged internally (new in Update 2).
-  #       The hytale-update function clears staging so manual updates win cleanly.
-  #
-  # OAUTH RE-AUTH (downloader credentials expire ~every 90 days):
-  #   If hytale-update fails with "oauth2: invalid_grant":
-  #   ssh -t MinisForum
-  #   cd /data/gameservers/hytale
-  #   rm .hytale-downloader-credentials.json   ← delete the stale token
-  #   ./hytale-downloader-linux-amd64 -download-path server.zip
-  #   → follow device auth flow → credentials auto-saved → continue update manually
-  #   Note: server's auth.enc and downloader's .hytale-downloader-credentials.json
-  #         are SEPARATE — one expiring does not affect the other.
-  #
-  # MOD MANAGEMENT:
-  #   Mods live in Server/mods/. Incompatible mods (wrong server version) crash
-  #   the server at startup with "Asset validation FAILED" or "Failed to start <mod>".
-  #   Move broken mods to Server/mods/disabled/ until an update is available:
-  #     mv Server/mods/SomeMod-1.0.0.jar Server/mods/disabled/
-  #     sudo systemctl restart hytale-server
-  #   To re-enable after an update: move back from disabled/ to mods/ and restart.
-  #   Currently disabled (incompatible with 0.5.2, awaiting mod updates):
-  #     - Miners-Helmet-1.0.3.zip      (item JSON format changed)
-  #     - ReviveMe.jar + ReviveMe/     (plugin API changed)
-  #     - HyCitizens-1.6.0.jar + data  (CitizenInteraction builder broken)
-  # ==============================================================
-  systemd.services.hytale-server = {
-    description = "Hytale Game Server";
-    after       = [ "network-online.target" ];
-    wants       = [ "network-online.target" ];
-    wantedBy    = [ "multi-user.target" ];
-
-    # Guard: only start if both server files are present.
-    # ConditionPathExists must be in [Unit] (unitConfig), not [Service].
-    # When either file is missing, systemd skips cleanly — no failure.
-    # After first-time setup run: sudo systemctl start hytale-server
-    unitConfig.ConditionPathExists = [
-      "/data/gameservers/hytale/Server/HytaleServer.jar"
-      "/data/gameservers/hytale/Server/Assets.zip"
-    ];
-
-    serviceConfig = {
-      Type             = "simple";
-      User             = "linuxury";
-      WorkingDirectory = "/data/gameservers/hytale/Server";
-      ExecStart        = "${pkgs.jdk25_headless}/bin/java -jar HytaleServer.jar --assets Assets.zip --bind 0.0.0.0:5520";
-      Restart          = "on-failure";
-      RestartSec       = "10s";
-    };
-  };
-
-  # ==============================================================
   # Samba — GameServers share for managing server files
   #
   # Access: \\MinisForum\GameServers
@@ -448,25 +329,7 @@
   };
 
   networking.firewall.allowedTCPPorts = [ 445 139 8443 25565 25566 ];
-  networking.firewall.allowedUDPPorts = [ 137 138 24454 5520 5521 ]; # 24454 — Simple Voice Chat; 5520 — systemd Hytale; 5521 — Crafty-managed Hytale (QUIC/UDP only)
-
-  # ==============================================================
-  # Sudo — NOPASSWD for Hytale service control
-  #
-  # Required by the `hytale-update` zsh function on linuxury's desktop/laptop.
-  # That function runs over SSH without a TTY, so sudo can't prompt interactively.
-  # Scoped tightly: only start/stop/restart for hytale-server, nothing else.
-  # ==============================================================
-  security.sudo.extraRules = [
-    {
-      users   = [ "linuxury" ];
-      commands = [
-        { command = "/run/current-system/sw/bin/systemctl start hytale-server";   options = [ "NOPASSWD" ]; }
-        { command = "/run/current-system/sw/bin/systemctl stop hytale-server";    options = [ "NOPASSWD" ]; }
-        { command = "/run/current-system/sw/bin/systemctl restart hytale-server"; options = [ "NOPASSWD" ]; }
-      ];
-    }
-  ];
+  networking.firewall.allowedUDPPorts = [ 137 138 24454 5520 ]; # 24454 — Simple Voice Chat; 5520 — Hytale (QUIC/UDP only)
 
   # ==============================================================
   # Tailscale — remote management
