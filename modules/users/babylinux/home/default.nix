@@ -16,7 +16,7 @@
 # ===========================================================================
 
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
-{ config, pkgs, inputs, lib, wallpaperDir, ... }:
+{ config, pkgs, lib, wallpaperDir, ... }:
 
 {
   imports = [

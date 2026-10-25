@@ -14,7 +14,6 @@
 {
   config,
   pkgs,
-  inputs,
   lib,
   wallpaperDir,
   hypridleProfile,
