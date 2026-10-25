@@ -393,9 +393,11 @@
     shell = pkgs.zsh;
   };
 
-  # linuxury user — emergency SSH access only, no home on this host
+  # linuxury user — remote admin: SSH + sudo (wheel), no home on this host.
+  # Password set by hand per host (mutableUsers), like every other machine.
   users.users.linuxury = {
     isNormalUser = true;
+    extraGroups  = [ "wheel" ];
     home         = "/var/empty";
     createHome   = false;
     group        = "users";

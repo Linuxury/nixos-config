@@ -147,8 +147,13 @@
       "type": "disk",
       "key": "󰋊 →",
       "keyColor": "#ffe1a3",
-      "format": "Warehouse {1} / {2} ({3}) - {9}",
+      // Automount: /mnt/Warehouse always has an autofs placeholder, plus the real
+      // ntfs3 mount on top while in use, so fastfetch would list it twice. Keep
+      // the always-present autofs entry (reading it wakes the drive, so sizes are
+      // real) and name the filesystem by hand, since {9} would say "autofs".
+      "format": "Warehouse {1} / {2} ({3}) - ntfs3",
       "folders": "/mnt/Warehouse",
+      "hideFS": "ntfs3",
     },
     {
       "type": "disk",

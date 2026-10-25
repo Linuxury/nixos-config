@@ -146,6 +146,14 @@ in
     deps = [ "specialfs" ];
   };
 
+  # zsh-abbr's job queue defaults to one shared /tmp/zsh-job-queue, owned by
+  # whichever user started zsh first — every other user then gets "permission
+  # denied" on each prompt (babylinux on Ryzen5800x, 2026-10). Per-user dir
+  # instead. /etc/zshenv runs before Home Manager's .zshrc loads the plugin.
+  programs.zsh.shellInit = ''
+    export JOB_QUEUE_TMPDIR="''${XDG_RUNTIME_DIR:-/tmp/$USER}/zsh-job-queue"
+  '';
+
   # Weekly unattended Flatpak updates — the "nobody ran nru in a while"
   # backstop. Same script nru uses; skips gracefully where Flathub is absent
   # (e.g. Alex's machines).

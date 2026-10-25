@@ -288,14 +288,16 @@
         User         linuxury
         IdentityFile ~/.ssh/id_ed25519
 
+      # babylinux's machines: log in as her (nru, her repo, her shell); my key
+      # is in babylinux-authorized-key.age. `ssh linuxury@<host>` for my sudo.
       Host ryzen5800x
         HostName     Ryzen5800x
-        User         linuxury
+        User         babylinux
         IdentityFile ~/.ssh/id_ed25519
 
       Host asus-a15
         HostName     Asus-A15
-        User         linuxury
+        User         babylinux
         IdentityFile ~/.ssh/id_ed25519
 
       Host thinkpad
