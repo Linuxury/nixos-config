@@ -62,6 +62,11 @@ min_workspaces = 4                            # Dynamic floor; rejected with a s
 back_and_forth = false                          # Re-select active workspace to switch back
 empty_above = false                             # Keep one empty workspace above active range
 
+# Workspace 3 (Steam's home, see window-rules.toml) floats by default.
+[[workspace]]
+index = 3
+layout.mode = "floating"
+
 # Workspace rules customize layout without creating workspaces. Select exactly
 # one `index` or `name`; `output` is optional. This recipe works with dynamic
 # inventories and static inventories that contain workspace 2. Uncomment the
