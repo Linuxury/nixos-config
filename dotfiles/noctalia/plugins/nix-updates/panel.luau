@@ -33,7 +33,11 @@ local function updateNow()
       .. ` && sudo nixos-rebuild switch --flake {q("." .. target)}`
   end
 
+  -- Same arguments as the service, so the re-check doesn't reset Flatpak rows
+  -- or fall back to upstream (GitHub API) for a remote-compare machine.
+  local flatpak = cfg("include_flatpak") ~= false and "1" or "0"
   local recheck = `sh {q(noctalia.pluginDir() .. "/check.sh")} {q(dir)} {q(host)} {q(noctalia.pluginDataDir() .. "/result")}`
+    .. ` {q(cfg("compare") or "upstream")} {flatpak}`
   local full = `{cmd}; printf '\n%s\n' 'Re-checking for updates...'; {recheck}; printf '%s' 'Done. Press Enter to close.'; read _`
 
   local term = cfg("terminal")

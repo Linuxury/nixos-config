@@ -20,6 +20,10 @@
       "label": "Include Flatpak updates",
       "description": "Also list pending Flatpak updates, user and system installations."
     },
+    "always_show": {
+      "label": "Always show bar icon",
+      "description": "Keep the bar widget visible when there is nothing to update, so the panel is always one click away."
+    },
     "update_method": {
       "label": "Update method",
       "description": "What \"Update now\" runs. The default updates the flake inputs and switches with plain nixos-rebuild.",
@@ -52,7 +56,6 @@
     }
   },
   "title": "Nix Updates",
-  "count": "{count} updates available",
   "count_split": "{nix} NixOS · {flatpak} Flatpak updates available",
   "from_upstream": "latest upstream",
   "from_remote": "lock from git remote",
