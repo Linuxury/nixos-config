@@ -1,5 +1,5 @@
 # ===========================================================================
-# tests/uid-migrate.nix — VM test for modules/users/uid-pin
+# modules/users/uid-pin/test.nix — VM test for modules/users/uid-pin
 #
 # Recreates the server situation (UIDs handed out alphabetically: alex 1000,
 # babylinux 1001, linuxury 1002 — plus container files written as raw 1000),
@@ -11,7 +11,7 @@
   name = "uid-migrate";
 
   nodes.machine = { ... }: {
-    imports = [ ../modules/users/uid-pin/default.nix ];
+    imports = [ ./default.nix ];
     users.users = {
       alex.isNormalUser = true;
       babylinux.isNormalUser = true;

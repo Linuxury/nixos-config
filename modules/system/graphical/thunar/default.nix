@@ -3,7 +3,7 @@
 #
 # Linuxury-specific: overrides the shared inode/directory default (Nautilus,
 # set in modules/system/graphical/default.nix's home-manager.sharedModules)
-# for this user only. Import only from users/linuxury/home.nix, not from
+# for this user only. Import only from modules/users/linuxury/home/default.nix, not from
 # home-manager.sharedModules — other hosts don't have Thunar installed.
 #
 # Bookmarks aren't duplicated here — Thunar reads the same

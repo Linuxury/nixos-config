@@ -77,11 +77,7 @@ nixos-config/
 │   ├── greeters/                # SDDM + Catppuccin theme
 │   ├── themes/                  # GTK theming
 │   ├── components/              # Shared UI components (Home Manager modules)
-│   └── users/                   # Per-user system-level setup (description, groups)
-├── users/                       # Home Manager configs
-│   ├── linuxury/home.nix
-│   ├── babylinux/home.nix
-│   └── alex/home.nix
+│   └── users/                   # Per-user setup: home/ (Home Manager), description, ssh, …
 ├── dotfiles/                    # Config files symlinked by Home Manager
 │   ├── hypr/                    # Hyprland, hyprlock, hypridle (Lua)
 │   ├── waybar/                  # Status bar config + matugen color templates

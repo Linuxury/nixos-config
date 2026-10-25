@@ -1,5 +1,5 @@
 # ===========================================================================
-# users/alex/home.nix — Home Manager config for alex
+# modules/users/alex/home/default.nix — Home Manager config for alex
 #
 # Machines: Alex-Desktop, Alex-Laptop
 # Age: 6 years old
@@ -26,7 +26,7 @@
 
 {
   imports = [
-    ../../modules/system/graphical/hytale/default.nix
+    ../../../../modules/system/graphical/hytale/default.nix
   ];
 
   # =========================================================================
@@ -98,7 +98,7 @@
   # handles migrating off the old home.file symlink this replaces.
   home.activation.starshipSeed = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     _cfg="$HOME/.config/starship.toml"
-    _template="${../../dotfiles/starship/starship.toml}"
+    _template="${../../../../dotfiles/starship/starship.toml}"
     [ -L "$_cfg" ] && rm -f "$_cfg"
     if [ ! -f "$_cfg" ]; then
       cp "$_template" "$_cfg"
@@ -115,15 +115,15 @@
   home.file = {
     # Starship prompt — deployed via home.activation.starshipSeed below
     # (copy-once, not a symlink) so matugen can overwrite the live file
-    # after each wallpaper change. See users/linuxury/home.nix for the
+    # after each wallpaper change. See modules/users/linuxury/home/default.nix for the
     # same pattern (this one uses a store path instead, since alex has no
     # personal ~/nixos-config checkout to seed from).
 
     # Kitty terminal — shared config
-    ".config/kitty/kitty.conf".source = ../../dotfiles/kitty/kitty.conf;
+    ".config/kitty/kitty.conf".source = ../../../../dotfiles/kitty/kitty.conf;
 
     # Fastfetch — shared config
-    ".config/fastfetch".source = ../../dotfiles/fastfetch;
+    ".config/fastfetch".source = ../../../../dotfiles/fastfetch;
 
     # -----------------------------------------------------------------------
     # Wallpaper symlink
@@ -174,7 +174,7 @@
       ll = "eza -la --color=always --icons --group-directories-first --git";
     };
 
-    initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
+    initContent = lib.fileContents ../../../../dotfiles/zsh/zshrc;
   };
 
   # =========================================================================

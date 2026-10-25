@@ -74,7 +74,7 @@ black     = '#2E3440'
 white     = '#D8DEE9'
 
 # This file is only a bootstrap seed (home.activation.starshipSeed in
-# users/linuxury/home.nix copies it to ~/.config/starship.toml once, on
+# modules/users/linuxury/home/default.nix copies it to ~/.config/starship.toml once, on
 # first run before any wallpaper has ever been processed). From the first
 # wallpaper-color-sync onward, matugen's own [templates.starship] post_hook
 # overwrites ~/.config/starship.toml entirely with its own generated

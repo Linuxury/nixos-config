@@ -42,10 +42,6 @@ nixos-config/
 │   ├── Media-Server/
 │   ├── MinisForum/
 │   └── Radxa-X4/
-├── users/
-│   ├── linuxury/home.nix      ← Home Manager config for linuxury
-│   ├── babylinux/home.nix     ← Home Manager config for babylinux
-│   └── alex/home.nix          ← Home Manager config for alex
 ├── modules/
 │   ├── base/
 │   │   ├── graphical-base.nix ← Packages shared by all graphical machines
@@ -55,9 +51,11 @@ nixos-config/
 │   │   └── cosmic.nix         ← COSMIC DE + Flatpak setup
 │   ├── hardware/
 │   │   └── drivers.nix        ← GPU driver config
-│   └── services/
-│       ├── wallpaper-slideshow.nix  ← Wallpaper + matugen theming
-│       └── *.nix              ← Other service modules
+│   ├── services/
+│   │   ├── wallpaper-slideshow.nix  ← Wallpaper + matugen theming
+│   │   └── *.nix              ← Other service modules
+│   └── users/
+│       └── <user>/home/       ← Home Manager config for each user
 ├── dotfiles/
 │   ├── zsh/zshrc              ← Shared zsh init file
 │   └── nvim/                  ← Neovim config (symlinked to ~/.config/nvim)
@@ -82,7 +80,7 @@ Nix does this in order:
 
 1. Reads `flake.nix` and finds the `ThinkPad` entry
 2. Loads `hosts/ThinkPad/default.nix` (system-level config)
-3. Loads `users/linuxury/home.nix` (Home Manager config)
+3. Loads `modules/users/linuxury/home/default.nix` (Home Manager config)
 4. Evaluates all imported modules recursively
 5. Builds any packages or configs that changed since the last build
 6. Activates the new config: services restart, symlinks update, dotfiles regenerate
@@ -126,7 +124,7 @@ ThinkPad = mkHost {
   hostname     = "ThinkPad";
   hostConfig   = ./hosts/ThinkPad/default.nix;
   user         = "linuxury";
-  userConfig   = ./users/linuxury/home.nix;
+  userConfig   = ./modules/users/linuxury/home;
   wallpaperDir = "4k";
   extraModules = [ nixos-hardware.nixosModules.lenovo-thinkpad ];
 };
@@ -171,7 +169,7 @@ Every host has a `hosts/<HostName>/default.nix` file with system-level configura
 
 ## Home Manager Config Structure
 
-Home Manager manages everything inside the user's home directory: packages, dotfiles, services, and app configuration. Each user's config lives at `users/<user>/home.nix`:
+Home Manager manages everything inside the user's home directory: packages, dotfiles, services, and app configuration. Each user's config lives at `modules/users/<user>/home/default.nix`:
 
 ```nix
 { pkgs, lib, wallpaperDir, ... }:
@@ -219,7 +217,7 @@ Follow these steps in order. See [08-secrets.md](08-secrets.md) for the secrets 
      hostname   = "NewHost";
      hostConfig = ./hosts/NewHost/default.nix;
      user       = "linuxury";
-     userConfig = ./users/linuxury/home.nix;
+     userConfig = ./modules/users/linuxury/home;
      wallpaperDir = "4k";
    };
    ```
@@ -241,9 +239,9 @@ Where you add a package determines who gets it:
 |-------|----------------|
 | All graphical machines | `modules/base/graphical-base.nix` → `environment.systemPackages` |
 | One specific host only | `hosts/<HostName>/default.nix` → `environment.systemPackages` |
-| One specific user only | `users/<user>/home.nix` → `home.packages` |
+| One specific user only | `modules/users/<user>/home/default.nix` → `home.packages` |
 
-Example for a user-level package in `users/linuxury/home.nix`:
+Example for a user-level package in `modules/users/linuxury/home/default.nix`:
 
 ```nix
 home.packages = with pkgs; [

@@ -1,5 +1,5 @@
 # ===========================================================================
-# users/babylinux/home.nix — Home Manager config for babylinux
+# modules/users/babylinux/home/default.nix — Home Manager config for babylinux
 #
 # Machines: Ryzen5800x (desktop), Asus-A15 (laptop)
 # Role: Daily driver — light gaming, media, office
@@ -20,7 +20,7 @@
 
 {
   imports = [
-    ../../modules/system/graphical/hytale/default.nix
+    ../../../../modules/system/graphical/hytale/default.nix
   ];
 
   programs.hytale.enable = true;
@@ -106,17 +106,17 @@
   # =========================================================================
   home.file = {
     # Starship prompt — shared config
-    ".config/starship.toml".source = ../../dotfiles/starship/starship.toml;
+    ".config/starship.toml".source = ../../../../dotfiles/starship/starship.toml;
 
     # Fastfetch — shared config
-    ".config/fastfetch".source = ../../dotfiles/fastfetch;
+    ".config/fastfetch".source = ../../../../dotfiles/fastfetch;
 
     # Kitty terminal — base config; colors written by matugen at runtime
-    ".config/kitty/kitty.conf".source = ../../dotfiles/kitty/kitty.conf;
+    ".config/kitty/kitty.conf".source = ../../../../dotfiles/kitty/kitty.conf;
 
 
     # Nano — for quick root edits
-    ".nanorc".source = ../../dotfiles/nano/.nanorc;
+    ".nanorc".source = ../../../../dotfiles/nano/.nanorc;
 
     # -----------------------------------------------------------------------
     # Wallpaper symlink
@@ -193,7 +193,7 @@
       ll = "eza -la --color=always --icons --group-directories-first --git";
     };
 
-    initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
+    initContent = lib.fileContents ../../../../dotfiles/zsh/zshrc;
   };
 
   # =========================================================================

@@ -2,7 +2,7 @@
 # modules/system/graphical/nautilus/default.nix — Bookmarks and scripts for Nautilus
 #
 # Linuxury-specific: hardcodes /home/linuxury/ paths — import only from
-# users/linuxury/home.nix, not from home-manager.sharedModules.
+# modules/users/linuxury/home/default.nix, not from home-manager.sharedModules.
 #
 # Nautilus reads sidebar bookmarks from ~/.config/gtk-3.0/bookmarks.
 # Samba shares appear as smb:// URIs — browsed via gvfs (enabled in

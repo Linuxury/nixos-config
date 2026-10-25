@@ -219,7 +219,7 @@
       #   hostname     — The machine's network name (e.g. "ThinkPad")
       #   hostConfig   — Path to the host's config file in hosts/
       #   user         — The primary user on this machine
-      #   userConfig   — Path to the user's Home Manager config in users/
+      #   userConfig   — Path to the user's Home Manager config (modules/users/<user>/home)
       #   wallpaperDir     — Wallpaper subfolder from ~/assets/Wallpapers/
       #                      Gets symlinked to ~/Pictures/Wallpapers
       #                      Options: "4k", "3440x1440", "PikaOS"
@@ -284,7 +284,7 @@
                 (final: prev: prev.lib.mapAttrs (name: fix:
                   prev.${name}.overrideAttrs (old: {
                     ${fix.attr} = old.${fix.attr}.overrideAttrs (_: { outputHash = fix.hash; });
-                  })) (import ./overlays/hash-fixes.nix))
+                  })) (import ./pkgs/hash-fixes/default.nix))
               ];
             }
 
@@ -335,7 +335,7 @@
       };
 
       # VM tests — nix build -L .#checks.x86_64-linux.<name>
-      checks.${system}.uid-migrate = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/uid-migrate.nix;
+      checks.${system}.uid-migrate = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./modules/users/uid-pin/test.nix;
 
       # =======================================================================
       # nixosConfigurations — Your actual host definitions
@@ -356,7 +356,7 @@
           hostname        = "ThinkPad";
           hostConfig      = ./hosts/ThinkPad/default.nix;
           user            = "linuxury";
-          userConfig      = ./users/linuxury/home.nix;
+          userConfig      = ./modules/users/linuxury/home;
           wallpaperDir    = "4k";
           hypridleProfile = "laptop";
           # The host config imports lenovo-thinkpad-t14s-amd-gen4 which already
@@ -368,7 +368,7 @@
           hostname        = "Ryzen5900x";
           hostConfig      = ./hosts/Ryzen5900x/default.nix;
           user            = "linuxury";
-          userConfig      = ./users/linuxury/home.nix;
+          userConfig      = ./modules/users/linuxury/home;
           wallpaperDir    = "3440x1440";  # Ultrawide monitor
           hypridleProfile = "desktop";
         };
@@ -383,7 +383,7 @@
           hostname     = "Ryzen5800x";
           hostConfig   = ./hosts/Ryzen5800x/default.nix;
           user         = "babylinux";
-          userConfig   = ./users/babylinux/home.nix;
+          userConfig   = ./modules/users/babylinux/home;
           wallpaperDir = "4k";
         };
 
@@ -391,7 +391,7 @@
           hostname     = "Asus-A15";
           hostConfig   = ./hosts/Asus-A15/default.nix;
           user         = "babylinux";
-          userConfig   = ./users/babylinux/home.nix;
+          userConfig   = ./modules/users/babylinux/home;
           wallpaperDir = "4k";
           extraModules = [
             # Asus A15 has hybrid AMD + Nvidia graphics
@@ -410,7 +410,7 @@
           hostname     = "Alex-Desktop";
           hostConfig   = ./hosts/Alex-Desktop/default.nix;
           user         = "alex";
-          userConfig   = ./users/alex/home.nix;
+          userConfig   = ./modules/users/alex/home;
           wallpaperDir = "PikaOS";
         };
 
@@ -418,7 +418,7 @@
           hostname     = "Alex-Laptop";
           hostConfig   = ./hosts/Alex-Laptop/default.nix;
           user         = "alex";
-          userConfig   = ./users/alex/home.nix;
+          userConfig   = ./modules/users/alex/home;
           wallpaperDir = "PikaOS";
         };
 

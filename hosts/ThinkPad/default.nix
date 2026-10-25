@@ -476,7 +476,7 @@
 
   # ==============================================================
   # Zsh — enable system-wide so it's available as a login shell
-  # Actual configuration lives in users/linuxury/home.nix
+  # Actual configuration lives in modules/users/linuxury/home/default.nix
   # ==============================================================
   programs.zsh.enable = true;
 }

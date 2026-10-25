@@ -1,5 +1,5 @@
 # ===========================================================================
-# users/linuxury/home.nix — Home Manager config for linuxury
+# modules/users/linuxury/home/default.nix — Home Manager config for linuxury
 #
 # Machines: ThinkPad (laptop), Ryzen5900x (desktop)
 # Role: Admin, developer, power user
@@ -23,9 +23,9 @@
 
 {
   imports = [
-    ../../modules/system/graphical/hytale/default.nix
-    ../../modules/system/graphical/nautilus/default.nix
-    ../../modules/system/graphical/thunar/default.nix
+    ../../../../modules/system/graphical/hytale/default.nix
+    ../../../../modules/system/graphical/nautilus/default.nix
+    ../../../../modules/system/graphical/thunar/default.nix
   ];
 
   # =========================================================================
@@ -140,13 +140,13 @@
     # the live file. See modules/shells/noctalia/default.nix for why.
 
     # Fastfetch
-    ".config/fastfetch".source = ../../dotfiles/fastfetch;
+    ".config/fastfetch".source = ../../../../dotfiles/fastfetch;
 
     # Topgrade — NixOS flake version
-    ".config/topgrade.toml".source = ../../dotfiles/topgrade/topgrade-nixos.toml;
+    ".config/topgrade.toml".source = ../../../../dotfiles/topgrade/topgrade-nixos.toml;
 
     # MangoHud — performance overlay for gaming
-    ".config/MangoHud".source = ../../dotfiles/MangoHud;
+    ".config/MangoHud".source = ../../../../dotfiles/MangoHud;
 
     # Kitty terminal — deployed via home.activation.kittyConfSeed below
     # (copy-once, not a symlink) so Noctalia's native app-theming can patch
@@ -193,7 +193,7 @@
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/dotfiles/wayle/config.toml";
 
     # Nano — for quick root edits
-    ".nanorc".source = ../../dotfiles/nano/.nanorc;
+    ".nanorc".source = ../../../../dotfiles/nano/.nanorc;
 
     # -----------------------------------------------------------------------
     # Wallpaper symlink
@@ -429,7 +429,7 @@
     };
 
     # Shared shell initialization — env vars, PATH, fastfetch, nru function
-    initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
+    initContent = lib.fileContents ../../../../dotfiles/zsh/zshrc;
   };
 
   # =========================================================================
