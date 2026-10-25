@@ -5,7 +5,7 @@
 # dotfiles/umbriel/upstream-default.toml).
 
 [layout]
-mode = "scrolling"                              # scrolling, dwindle, or master
+mode = "scrolling"                              # scrolling, dwindle, master, or floating
 gap = 8                                         # Logical pixels between tiles, 0-500
 extent_presets = [0.25, 0.5, 0.75, 1.0]       # Width and height cycling fractions
 
