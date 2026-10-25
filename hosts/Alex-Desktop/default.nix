@@ -16,7 +16,7 @@
 #   - Declarative app control (only what we define is available)
 #   - DNS filtering via Cloudflare 1.1.1.3
 #   - Flatpak disabled
-#   - Login time restrictions via systemd
+#   - Login time restrictions (modules/users/alex/screen-time)
 #   - Firefox locked down via policies
 # ===========================================================================
 
@@ -139,10 +139,12 @@
     # ==============================================================
     # Users
     #   alex: description — GECOS display name (agenix secret)
+    #   alex: screen-time — login hours (pam_time) + cutoff logout
     #   alex: packages    — per-user package set
     #   linuxury: ssh     — emergency admin access + Syncthing
     # ==============================================================
     ../../modules/users/alex/description/default.nix
+    ../../modules/users/alex/screen-time/default.nix
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
@@ -310,40 +312,6 @@
       ${pkgs.flatpak}/bin/flatpak remote-delete --system --force \
         "$remote" 2>/dev/null || true
     done
-  '';
-
-  # ==============================================================
-  # Login time restrictions — TEMPORARILY DISABLED 2026-09-13
-  #
-  # security.pam.services.login apparently isn't a fully self-contained
-  # PAM service (no auth/session content of its own) — it only ever
-  # existed to carry this pam_time hook. greetd's own PAM file chains
-  # through "login" for account/auth/session (via include/substack),
-  # including for its own internal "cosmic-greeter" service account, not
-  # just for alex's real logins. Something in the cosmic-greeter 1.0.13
-  # -> 1.6.0 bump (2026-09-13) newly exposed this: greetd now fails
-  # entirely (pam_setcred: PERM_DENIED, unrelated to alex or time-of-day)
-  # even with pam_time itself correctly scoped to alex only via a
-  # pam_succeed_if guard. Disabled whole-cloth to restore the login
-  # screen; needs a proper redesign hooking into cosmic-greeter's own
-  # session PAM service instead of the shared "login" stub, not a
-  # 3am live-patch job. See session history 2026-09-13.
-  #
-  # Current schedule (paused, not adjusted):
-  #   Weekdays: 8:00 - 21:00 (9pm cutoff)
-  #   Weekends: 8:00 - 22:00 (10pm cutoff)
-  # ==============================================================
-  # security.pam.services.login.text = lib.mkAfter ''
-  #   account [success=1 default=ignore] pam_succeed_if.so user != alex
-  #   account required pam_time.so
-  #   account required pam_permit.so
-  # '';
-
-  environment.etc."security/time.conf".text = ''
-    # Format: services;ttys;users;times
-    # Mo-Fr = Monday to Friday, Sa-Su = Saturday to Sunday
-    # Times use 24h format: 0800 = 8am, 2100 = 9pm
-    login;*;alex;Mo-Fr0800-2100|Sa-Su0800-2200
   '';
 
   # ==============================================================

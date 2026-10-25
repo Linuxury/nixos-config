@@ -140,10 +140,12 @@
     # ==============================================================
     # Users
     #   alex: description — GECOS display name (agenix secret)
+    #   alex: screen-time — login hours (pam_time) + cutoff logout
     #   alex: packages    — per-user package set
     #   linuxury: ssh     — emergency admin access + Syncthing
     # ==============================================================
     ../../modules/users/alex/description/default.nix
+    ../../modules/users/alex/screen-time/default.nix
     ../../modules/users/linuxury/ssh/default.nix
   ];
 
@@ -349,25 +351,6 @@
       ${pkgs.flatpak}/bin/flatpak remote-delete --system --force \
         "$remote" 2>/dev/null || true
     done
-  '';
-
-  # ==============================================================
-  # Login time restrictions — TEMPORARILY DISABLED 2026-09-13
-  #
-  # See the matching disabled block + full explanation in
-  # hosts/Alex-Desktop/default.nix — same underlying pam_setcred
-  # failure against greetd's cosmic-greeter account, unrelated to
-  # alex or time-of-day. Disabled here too for consistency, even
-  # though this host wasn't switched at the time.
-  # ==============================================================
-  # security.pam.services.login.text = lib.mkAfter ''
-  #   account [success=1 default=ignore] pam_succeed_if.so user != alex
-  #   account required pam_time.so
-  #   account required pam_permit.so
-  # '';
-
-  environment.etc."security/time.conf".text = ''
-    login;*;alex;Mo-Fr0800-2100|Sa-Su0800-2200
   '';
 
   # ==============================================================
