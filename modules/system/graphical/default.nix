@@ -146,11 +146,13 @@ in
     deps = [ "specialfs" ];
   };
 
-  # zsh-abbr's job queue defaults to one shared /tmp/zsh-job-queue, owned by
-  # whichever user started zsh first — every other user then gets "permission
-  # denied" on each prompt (babylinux on Ryzen5800x, 2026-10). Per-user dir
-  # instead. /etc/zshenv runs before Home Manager's .zshrc loads the plugin.
+  # zsh-abbr's scratch dir and its job queue default to shared /tmp/zsh-abbr and
+  # /tmp/zsh-job-queue, owned by whichever user started zsh first — every other
+  # user then gets "permission denied" on each prompt (babylinux on Ryzen5800x,
+  # 2026-10). Per-user dirs instead. /etc/zshenv runs before Home Manager's
+  # .zshrc loads the plugin.
   programs.zsh.shellInit = ''
+    export ABBR_TMPDIR="''${XDG_RUNTIME_DIR:-/tmp/$USER}/zsh-abbr"
     export JOB_QUEUE_TMPDIR="''${XDG_RUNTIME_DIR:-/tmp/$USER}/zsh-job-queue"
   '';
 
