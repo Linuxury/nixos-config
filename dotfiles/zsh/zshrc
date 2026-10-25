@@ -1031,18 +1031,19 @@ _nru_inputs_bar() {
 
   while read -r k r t; do
     [[ ${old_rev[$k]} == "$r" ]] && continue
-    moved+=("$k|${old_ts[$k]}|$t")
+    moved+=("$k|${old_ts[$k]}|$t|$r")
     (( ${#k} > w )) && w=${#k}
   done < <(_nru_lock_inputs)
 
   if (( ! $#moved )); then _nru_ok "$_NRU_NIX" "$name" "up to date"; return 0; fi
   for m in $moved; do
-    IFS='|' read -r k od t <<< "$m"
+    IFS='|' read -r k od t r <<< "$m"
+    [[ $r == sha256-* ]] && r= || r=${r:0:7}   # narHash (no rev): no hash shown
     # Same day on both sides says nothing — show the times instead.
     if [[ -z $od ]]; then od=new; t=$(date -d @$t +%m-%d)
     elif [[ $(date -d @$od +%F) == $(date -d @$t +%F) ]]; then od=$(date -d @$od +%H:%M); t=$(date -d @$t +%H:%M)
     else od=$(date -d @$od +%m-%d); t=$(date -d @$t +%m-%d); fi
-    rows+=("$(printf "%-${w}s  %s → %s" "$k" "$od" "$t")")
+    rows+=("$(printf "%-${w}s  %s → %s  %s" "$k" "$od" "$t" "$r")")
   done
   _nru_ok "$_NRU_NIX" "$name" "$#moved of ${#old_rev} updated"
   _nru_tree "${rows[@]}"

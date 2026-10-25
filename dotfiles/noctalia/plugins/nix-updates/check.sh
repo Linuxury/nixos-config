@@ -49,6 +49,26 @@ new_lock() {
   fi
 }
 
+# Moved flake inputs between two locks: "input<TAB>name<TAB>old date<TAB>new date  rev7".
+# Same query and date rule as nru's Flake Inputs step (MM-DD; same day → HH:MM).
+lock_inputs() {
+  jq -r '.nodes as $n | $n.root.inputs | to_entries[]
+         | ($n[.value].locked) as $l | "\(.key) \($l.rev // $l.narHash) \($l.lastModified)"' "$1" | sort -k1,1
+}
+inputs() {
+  lock_inputs "$1" > "$tmp/in-old" && lock_inputs "$2" > "$tmp/in-new" || return 0
+  join -a 2 "$tmp/in-old" "$tmp/in-new" | while read -r name r1 t1 r2 t2; do
+    if [ -z "$r2" ]; then r2=$r1 t2=$t1 r1= t1=; fi   # input new in this lock
+    [ "$r1" = "$r2" ] && continue
+    if [ -z "$t1" ]; then old=new new=$(date -d "@$t2" +%m-%d)
+    elif [ "$(date -d "@$t1" +%F)" = "$(date -d "@$t2" +%F)" ]; then
+      old=$(date -d "@$t1" +%H:%M) new=$(date -d "@$t2" +%H:%M)
+    else old=$(date -d "@$t1" +%m-%d) new=$(date -d "@$t2" +%m-%d); fi
+    case $r2 in sha256-*) ;; *) new="$new  $(printf %.7s "$r2")" ;; esac
+    printf 'input\t%s\t%s\t%s\n' "$name" "$old" "$new"
+  done
+}
+
 # Pending Flatpak updates for one scope: "flatpak<TAB>Name (scope)<TAB>old<TAB>new".
 # Runtimes often carry no version; "update" stands in for the new one. A
 # rebuild under the same version (Flathub refreshed a runtime/library) shows
@@ -71,6 +91,7 @@ if new_lock && pkgs "$dir/flake.lock" > "$tmp/old" && [ -s "$tmp/old" ]; then
     : > "$tmp/nix"   # same lock — nothing to compare
   elif pkgs "$tmp/new.lock" > "$tmp/new" && [ -s "$tmp/new" ]; then
     join "$tmp/old" "$tmp/new" | awk -v OFS="$tab" '$2 != $3 { print "nix", $1, $2, $3 }' > "$tmp/nix"
+    inputs "$dir/flake.lock" "$tmp/new.lock" >> "$tmp/nix"
   fi
 fi
 

@@ -60,26 +60,70 @@ local function statusText(s)
   return text
 end
 
--- One section per kind: header with icon, count and (for NixOS) what the
--- comparison is against, then its rows or a muted "up to date".
-local function section(items, rows, kind, icon, label, note)
-  local mine = {}
+-- Flatpak scope tag: small dimmed icon + word ("󰀄 user" / "󰒋 system").
+local SCOPE_ICON = { user = "󰀄", system = "󰒋" }
+local function scopeTag(scope)
+  return ui.row({ gap = 4, align = "center" }, {
+    ui.label({ text = SCOPE_ICON[scope] or "", color = "on_surface_variant" }),
+    ui.label({ text = scope, color = "on_surface_variant" }),
+  })
+end
+
+local function updateRow(name, r)
+  return ui.row({ gap = 8, align = "center" }, {
+    ui.label({ text = "   " .. name, color = "on_surface", flexGrow = 1 }),
+    ui.label({ text = r.old, color = "on_surface_variant" }),
+    ui.glyph({ name = "arrow-right", size = 14, color = "on_surface_variant" }),
+    ui.label({ text = r.new, color = "primary", fontWeight = "medium" }),
+  })
+end
+
+-- One section per kind: header with icon, count and a dimmed note on the right
+-- (NixOS: what it compares against), then its rows or a muted "up to date".
+-- Each section is its own column so the scroll's gap spaces sections apart.
+-- byScope (Flatpak): rows are named "App (user|system)". One scope → the tag
+-- goes in the header note; both → a dimmed sub-header per scope.
+local function section(out, rows, kind, icon, label, note, byScope)
+  local mine, items = {}, {}
   for _, r in rows do if r.kind == kind then table.insert(mine, r) end end
+
+  local groups, order = {}, {}
+  for _, r in mine do
+    local name, scope = r.name, ""
+    if byScope then name, scope = string.match(r.name, "^(.-) %((%a+)%)$") end
+    if not name then name, scope = r.name, "" end
+    if not groups[scope] then groups[scope] = {}; table.insert(order, scope) end
+    table.insert(groups[scope], { name = name, r = r })
+  end
+  table.sort(order, function(a, b) return a > b end) -- user before system
+
+  local right = ui.label({ text = note or "", color = "on_surface_variant" })
+  if byScope and #order == 1 and order[1] ~= "" then right = scopeTag(order[1]) end
+
   table.insert(items, ui.row({ gap = 8, align = "center" }, {
-    ui.label({ text = `{icon}  {label} · {#mine}`, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
-    ui.label({ text = note or "", color = "on_surface_variant" }),
+    -- Fixed slot: Nerd Font glyphs differ in width, so text would start unevenly.
+    ui.row({ minWidth = 24, justify = "center", align = "center" }, {
+      ui.label({ text = icon, fontSize = 18, color = "primary" }),
+    }),
+    ui.label({ text = `{label} · {#mine}`, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
+    right,
   }))
   if #mine == 0 then
     table.insert(items, ui.label({ text = "   " .. tr("up_to_date"), color = "on_surface_variant" }))
   end
-  for _, r in mine do
-    table.insert(items, ui.row({ gap = 8, align = "center" }, {
-      ui.label({ text = "   " .. r.name, color = "on_surface", flexGrow = 1 }),
-      ui.label({ text = r.old, color = "on_surface_variant" }),
-      ui.glyph({ name = "arrow-right", size = 14, color = "on_surface_variant" }),
-      ui.label({ text = r.new, color = "primary", fontWeight = "medium" }),
-    }))
+
+  local blocks = {}
+  for _, scope in order do
+    local block = {}
+    if #order > 1 then
+      table.insert(block, ui.row({ gap = 0, align = "center" }, { ui.label({ text = "   " }), scopeTag(scope) }))
+    end
+    for _, e in groups[scope] do table.insert(block, updateRow(e.name, e.r)) end
+    table.insert(blocks, ui.column({ gap = 6, align = "stretch" }, block))
   end
+  if #blocks > 0 then table.insert(items, ui.column({ gap = 14, align = "stretch" }, blocks)) end
+
+  table.insert(out, ui.column({ gap = 6, align = "stretch" }, items))
 end
 
 local function body(s)
@@ -89,9 +133,10 @@ local function body(s)
     table.insert(items, ui.label({ text = s.error or "", color = "on_surface_variant", maxLines = 6 }))
   end
   local rows = s and s.rows or {}
-  section(items, rows, "nix", "❄", "NixOS", tr(cfg("compare") == "remote" and "from_remote" or "from_upstream"))
+  section(items, rows, "nix", "", "NixOS", tr(cfg("compare") == "remote" and "from_remote" or "from_upstream"))
+  section(items, rows, "input", "󰘬", tr("inputs"))
   if cfg("include_flatpak") ~= false then
-    section(items, rows, "flatpak", "󰏖", "Flatpak")
+    section(items, rows, "flatpak", "󰏖", "Flatpak", nil, true)
   end
   return items
 end
@@ -107,7 +152,7 @@ local function render()
       ui.button({ glyph = "settings", variant = "ghost", tooltip = tr("open_settings"), onClick = function() noctalia.openSettings() end }),
       ui.button({ glyph = "close", variant = "ghost", tooltip = tr("close"), onClick = function() panel.close() end }),
     }),
-    ui.scroll({ flexGrow = 1, gap = 8, align = "stretch" }, body(s)),
+    ui.scroll({ flexGrow = 1, gap = 18, align = "stretch" }, body(s)),
     ui.separator({}),
     ui.label({ text = statusText(s), color = "on_surface_variant" }),
     ui.row({ gap = 8, justify = "end" }, {

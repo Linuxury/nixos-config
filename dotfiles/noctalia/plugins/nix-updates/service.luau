@@ -1,7 +1,7 @@
 --!nonstrict
 -- nix-updates service: the only entry that runs checks. Publishes
 -- { phase, rows, checkedAt, error } as "nix_updates" for the widget and panel
--- (each row: { kind = "nix" | "flatpak", name, old, new }),
+-- (each row: { kind = "nix" | "input" | "flatpak", name, old, new }),
 -- and listens for "nix_updates_request" (a nonce) to check on demand.
 --
 -- check.sh runs detached because runAsync with a callback is capped at 60s and
@@ -85,7 +85,8 @@ local function load(notify)
         table.insert(body, `{rows[i].name}  {rows[i].old} → {rows[i].new}`)
       end
       if #rows > 8 then table.insert(body, noctalia.tr("more", { count = #rows - 8 })) end
-      noctalia.notify(noctalia.tr("count_split", { nix = countKind(rows, "nix"), flatpak = countKind(rows, "flatpak") }),
+      noctalia.notify(noctalia.tr("count_split", { nix = countKind(rows, "nix"), inputs = countKind(rows, "input"),
+        flatpak = countKind(rows, "flatpak") }),
         table.concat(body, "\n"))
     end
   else

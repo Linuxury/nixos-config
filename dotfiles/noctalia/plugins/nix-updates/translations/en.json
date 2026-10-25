@@ -56,7 +56,8 @@
     }
   },
   "title": "Nix Updates",
-  "count_split": "{nix} NixOS · {flatpak} Flatpak updates available",
+  "count_split": "{nix} NixOS · {inputs} inputs · {flatpak} Flatpak updates available",
+  "inputs": "Flake inputs",
   "from_upstream": "latest upstream",
   "from_remote": "lock from git remote",
   "up_to_date": "Everything is up to date",

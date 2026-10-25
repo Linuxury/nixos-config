@@ -16,6 +16,11 @@ pending Flatpak updates.
 
 - A NixOS system configured from a flake, with `nix` (flakes enabled) and
   `nixos-rebuild`.
+- `jq` to read the flake inputs from `flake.lock`.
+- A [Nerd Font](https://www.nerdfonts.com) (v3+) as the shell's font, or as a fallback
+  for it. The bar box (`󰏖`/`󰏗`) and the panel's section icons (``, `󰘬`) are
+  Nerd Font glyphs. On NixOS: `fonts.packages = [ pkgs.nerd-fonts.symbols-only ];`
+  (any `pkgs.nerd-fonts.*` works). Without one, they show as empty boxes.
 - `git`, but only for **Compare against → flake.lock on the git remote**.
 - `flatpak`, but only when **Include Flatpak updates** is on. Without it the
   Flatpak section stays empty.
@@ -30,9 +35,9 @@ pending Flatpak updates.
 1. Enable the plugin and set **Flake directory** to the folder that holds your
    `flake.nix` (default `/etc/nixos`, symlinks are fine).
 2. Add the `widget` bar widget. It only shows up when updates are pending, as
-   `❄ <nix count>  󰏖 <flatpak count>`. A count of zero is left out. Turn on
-   **Always show bar icon** to keep the icon in the bar when everything is up
-   to date.
+   an open box with the total (`󰏖 3`: packages + flake inputs + Flatpaks). Hover
+   it for the split. Turn on **Always show bar icon** to keep a closed box
+   (`󰏗`) in the bar when everything is up to date.
 3. Click the widget, or run the command below, to open the panel:
 
 ```sh
@@ -40,7 +45,11 @@ noctalia msg panel-toggle linuxury/nix-updates:panel
 ```
 
 The panel lists every pending change as `name  old → new`, grouped into
-**NixOS** and **Flatpak**, and shows when the last check ran. A Flatpak that
+**NixOS** (package version bumps), **Flake inputs** and **Flatpak**, and shows
+when the last check ran. A flake input that moved to a new commit shows its
+dates and the new commit, e.g. `noctalia  10-20 → 10-25  f4e5d6c` (times
+instead of dates when both are on the same day). This is how you see updates
+to inputs built from git, which often keep the same version string. A Flatpak that
 Flathub rebuilt without changing its version shows as `old → rebuild <commit>`
 (the first 7 characters of the new commit), so you can tell it's a real update.
 

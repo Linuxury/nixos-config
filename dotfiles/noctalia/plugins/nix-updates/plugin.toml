@@ -7,7 +7,7 @@ license = "MIT"
 icon = "package"
 description = "Shows which NixOS/Home Manager packages and Flatpaks would change on the next update, and runs the rebuild on demand."
 tags = ["bar", "panel", "service", "nixos", "system"]
-dependencies = ["nix", "nixos-rebuild", "sudo", "git", "flatpak", "systemd-run", "flock", "join", "awk", "sort", "mktemp", "realpath", "hostname", "cmp"]
+dependencies = ["nix", "nixos-rebuild", "sudo", "git", "jq", "nerd-fonts", "flatpak", "systemd-run", "flock", "join", "awk", "sort", "mktemp", "realpath", "hostname", "cmp"]
 
 [[setting]]
 key = "flake_dir"
