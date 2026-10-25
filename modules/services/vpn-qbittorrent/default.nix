@@ -278,10 +278,14 @@ let
       exit 0
     fi
 
-    # Fast path: VPN is healthy, nothing to do
-    if ${ip} netns exec "$NS" ${curl} -sf --max-time 5 -o /dev/null https://1.1.1.1 2>/dev/null; then
-      exit 0
-    fi
+    # Fast path: VPN is healthy, nothing to do. Three tries, because WireGuard
+    # only handshakes on first traffic and a just-restarted tunnel can miss one.
+    for i in 1 2 3; do
+      if ${ip} netns exec "$NS" ${curl} -sf --max-time 5 -o /dev/null https://1.1.1.1 2>/dev/null; then
+        exit 0
+      fi
+      sleep 2
+    done
 
     log "VPN connectivity lost — starting failover"
 
@@ -613,8 +617,10 @@ in {
     systemd.services.vpn-qbt-failover = lib.mkIf (cfg.failoverServers != []) {
       description = "VPN connectivity check and automatic server failover";
 
-      after    = [ "qbittorrent-vpn.service" ];
-      requires = [ "vpn-qbt-netns.service" ];
+      # Ordering only, no Requires on vpn-qbt-netns: this script restarts that
+      # unit, and Requires= would make systemd stop this service along with it
+      # (SIGTERM mid-failover, looped every cycle from 2026-08-25 to 10-25).
+      after = [ "qbittorrent-vpn.service" ];
 
       serviceConfig = {
         Type            = "oneshot";
