@@ -40,7 +40,9 @@ noctalia msg panel-toggle linuxury/nix-updates:panel
 ```
 
 The panel lists every pending change as `name  old → new`, grouped into
-**NixOS** and **Flatpak**, and shows when the last check ran.
+**NixOS** and **Flatpak**, and shows when the last check ran. A Flatpak that
+Flathub rebuilt without changing its version shows as `old → rebuild <commit>`
+(the first 7 characters of the new commit), so you can tell it's a real update.
 
 - **Check now** runs a check right away.
 - **Update now** opens a terminal that runs the update method (see Settings),

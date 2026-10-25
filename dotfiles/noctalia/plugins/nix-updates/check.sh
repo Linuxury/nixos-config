@@ -50,13 +50,19 @@ new_lock() {
 }
 
 # Pending Flatpak updates for one scope: "flatpak<TAB>Name (scope)<TAB>old<TAB>new".
-# Runtimes often carry no version; "update" stands in for the new one.
+# Runtimes often carry no version; "update" stands in for the new one. A
+# rebuild under the same version (Flathub refreshed a runtime/library) shows
+# as "rebuild <short commit>" so it doesn't read as "x → x".
 flatpaks() {
   flatpak list --"$1" --columns=application,branch,version 2>/dev/null > "$tmp/fp-installed"
-  flatpak remote-ls --updates --"$1" --columns=application,branch,name,version 2>/dev/null |
+  flatpak remote-ls --updates --"$1" --columns=application,branch,name,version,commit 2>/dev/null |
     awk -F'\t' -v scope="$1" '
       NR == FNR { have[$1 FS $2] = $3; next }
-      { printf "flatpak\t%s (%s)\t%s\t%s\n", $3, scope, have[$1 FS $2], ($4 == "" ? "update" : $4) }
+      {
+        old = have[$1 FS $2]
+        new = $4 == "" ? "update" : $4 == old ? "rebuild " substr($5, 1, 7) : $4
+        printf "flatpak\t%s (%s)\t%s\t%s\n", $3, scope, old, new
+      }
     ' "$tmp/fp-installed" -
 }
 
