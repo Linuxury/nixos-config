@@ -53,9 +53,11 @@ let
   # noctalia compiling on 4 of 24 threads while the other slots sat idle.
   # Measured 2026-10-23 on Ryzen5900x (noctalia + umbriel at once, 2 × 23):
   # 294 s vs 727 s at the old 5 × 4, peaking at 24 GB of 32 — ~0.5 GB per
-  # thread. Two full-width jobs therefore only fit from 24 GB up; below
-  # that, one slot (the sub-second derivations barely notice serializing).
-  jobs = if spec.ramGB >= 24 then 2 else 1;
+  # thread — but that left ~7 GB for the desktop, and on 2026-10-26 the same
+  # pair OOM-killed cc1plus. So a second slot only when the RAM budget covers
+  # BOTH full-width slots; otherwise one (the sub-second derivations barely
+  # notice serializing).
+  jobs = if (spec.ramGB * 3) / 4 >= 2 * threads then 2 else 1;
 
   cap = if spec == null then floor else {
     inherit jobs;
