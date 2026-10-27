@@ -21,8 +21,11 @@
 #     look natively; unlike wayle it does NOT need greeters/sddm.
 #
 # Theming split: Noctalia's own templates own app theming (kitty, gtk, qt,
-# starship, umbriel, pywalfox, thunderbird, papirus-icons, ...). Which ones
-# are on is app state: Settings → Theme → Templates, saved to
+# starship, umbriel, pywalfox, papirus-icons, ...). Thunderbird is themed
+# live through pywalfox (the add-on is force-installed by
+# system/graphical/thunderbird), not the `thunderbird` template: that one
+# is userChrome.css, only read at startup. Which templates are on is app
+# state: Settings → Theme → Templates, saved to
 # ~/.local/state/noctalia/settings.toml — not Nix. matugen
 # (themes/matugen) only covers Kvantum, which has no Noctalia template.
 # Templates need genuinely writable target files, so don't hand them
@@ -33,7 +36,7 @@
 # (+ greeters/sddm).
 # ===========================================================================
 
-{ config, inputs, lib, pkgs, ... }:
+{ config, inputs, pkgs, ... }:
 
 let
   # Pushes the palette's primary color to OpenRGB devices + the Lemokey
@@ -46,13 +49,6 @@ let
 in
 {
   imports = [ ../../greeters/noctalia/default.nix ];
-
-  # Thunderbird is themed by Noctalia's `thunderbird` template here. The
-  # pywalfox add-on (force-installed by system/graphical/thunderbird for
-  # matugen hosts) fought it over the toolbar colors; "blocked" uninstalls it.
-  # No-op on hosts without Thunderbird.
-  programs.thunderbird.policies.ExtensionSettings."pywalfox@frewacom.org".installation_mode =
-    lib.mkForce "blocked";
 
   home-manager.sharedModules = [
 
