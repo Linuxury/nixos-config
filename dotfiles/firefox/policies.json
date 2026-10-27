@@ -67,7 +67,6 @@
     "DisableAppUpdate": true,
     "CaptivePortal": false,
     "DisableFeedbackCommands": true,
-    "DisableFirefoxAccounts": true,
     "DisableFirefoxStudies": true,
     "DisableTelemetry": true,
     "DontCheckDefaultBrowser": true,
