@@ -56,6 +56,7 @@
     ../../modules/system/graphical/zennotes/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/system/graphical/craft-apps/default.nix
+    ../../modules/system/graphical/claude-desktop/default.nix
     ../../modules/system/graphical/horizon-files/default.nix
     ../../modules/services/kdeconnect/default.nix
     ../../modules/system/graphical/firefox/default.nix
