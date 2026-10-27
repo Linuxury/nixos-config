@@ -73,7 +73,8 @@ stdenv.mkDerivation rec {
     cp -a usr/share/applications usr/share/icons $out/share/
     makeWrapper $out/lib/claude-desktop/claude-desktop $out/bin/claude-desktop \
       --prefix PATH : ${lib.makeBinPath [ xdg-utils ]} \
-      --set-default ELECTRON_OZONE_PLATFORM_HINT auto
+      --set-default ELECTRON_OZONE_PLATFORM_HINT auto \
+      --add-flags --password-store=gnome-libsecret  # Electron guesses the keyring from XDG_CURRENT_DESKTOP; "umbriel" → no keyring
     runHook postInstall
   '';
 
