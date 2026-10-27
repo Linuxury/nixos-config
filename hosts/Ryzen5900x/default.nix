@@ -46,7 +46,6 @@
     # Graphical Apps — all optional, comment out to remove
     #   zen-browser  — primary browser (privacy-focused Firefox fork)
     #   thunderbird  — email client
-    #   libreoffice  — office suite
     #   fluxer       — Discord client
     #   kdeconnect   — phone integration
     #   zennotes     — keyboard-first Markdown notes (connects to Media-Server:7879)
@@ -55,7 +54,6 @@
     #../../modules/system/graphical/zen-browser/default.nix
     ../../modules/system/graphical/thunderbird/default.nix
     ../../modules/system/graphical/zennotes/default.nix
-    #../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/system/graphical/craft-apps/default.nix
     ../../modules/system/graphical/horizon-files/default.nix

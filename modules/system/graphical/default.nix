@@ -12,7 +12,7 @@
 # Wayland tools, terminal emulators, or media players they can't use.
 #
 # The following are intentionally NOT imported here — they are per-host:
-#   firefox, helium, libreoffice, fluxer, openrgb, kdeconnect,
+#   firefox, helium, fluxer, openrgb, kdeconnect,
 #   lemokey-keychron, zen-browser, zed, lm-studio.
 #
 # Import placement: hosts/<name>/default.nix
@@ -358,7 +358,7 @@ in
   # its MIME entries simply don't exist — no dangling declarations.
   #
   # Per-user choices (browser) stay in each user's home.nix.
-  # Optional app defaults (LibreOffice, etc.) live in their own modules.
+  # Optional app defaults live in their own modules.
   # =========================================================================
   home-manager.sharedModules = [
     ./keybinds/default.nix

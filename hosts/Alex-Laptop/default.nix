@@ -41,14 +41,12 @@
     # ==============================================================
     # Graphical Apps — all optional, comment out to remove
     #   firefox     — primary browser (locked down via policies)
-    #   libreoffice — office suite
     #   fluxer      — Discord client
     #   kdeconnect  — phone integration
     #   horizon-files — Wayland file manager (alternate to Nautilus/Thunar)
     # ==============================================================
     ../../modules/system/graphical/firefox/default.nix
     #../../modules/system/graphical/helium/default.nix
-    #../../modules/system/graphical/libreoffice/default.nix
     ../../modules/system/graphical/fluxer/default.nix
     ../../modules/system/graphical/craft-apps/default.nix
     #../../modules/system/graphical/horizon-files/default.nix
