@@ -77,7 +77,7 @@ in
             directory = "~/Pictures/Wallpapers";
             automation = {
               enabled          = true;
-              interval_minutes = 30;
+              interval_seconds = 1800;
               order            = "random";
               recursive        = true;
             };
@@ -109,6 +109,31 @@ in
           # other field (save_to_file, copy_to_clipboard, freeze_screen, ...)
           # already defaults to what that script did by hand.
           shell.screenshot.directory = "~/Pictures/Screenshots";
+          # Lossless WebP (quality 100): smaller than PNG, same pixels.
+          # Clipboard/pipe output stays PNG regardless.
+          shell.screenshot.format  = "webp";
+          shell.screenshot.quality = 100;
+
+          # ── Umbriel ────────────────────────────────────────────────────────
+          # Both no-ops on any other compositor (noctalia checks isUmbriel()).
+          # Close the overview when an app is launched from it, and feed
+          # Umbriel's audio-reactive effects from noctalia's PipeWire spectrum.
+          shell.umbriel_overview_close_on_launch_enabled = true;
+          shell.umbriel_audio_provider_enabled           = true;
+
+          # ── Session panel ──────────────────────────────────────────────────
+          # Noctalia's default five actions + reboot to UEFI firmware setup.
+          # Declaring the list replaces the defaults, so all of them are
+          # spelled out (shortcuts match upstream's 1–5). reboot_uefi refuses
+          # to run (logs an error) on non-UEFI boots.
+          shell.session.actions = [
+            { action = "lock";             shortcut = "1"; }
+            { action = "logout";           shortcut = "2"; }
+            { action = "lock_and_suspend"; shortcut = "3"; }
+            { action = "reboot";           shortcut = "4"; }
+            { action = "shutdown";         shortcut = "5"; variant = "destructive"; }
+            { action = "reboot_uefi";      shortcut = "6"; }
+          ];
 
           # ── App launching ──────────────────────────────────────────────────
           # Run launcher/dock apps as their own app-*.service units instead of

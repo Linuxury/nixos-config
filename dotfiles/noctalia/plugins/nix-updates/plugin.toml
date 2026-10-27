@@ -1,7 +1,7 @@
 id = "linuxury/nix-updates"
 name = "Nix Updates"
 version = "0.1.0"
-plugin_api = 24
+plugin_api = 42
 author = "linuxury"
 license = "MIT"
 icon = "package"
@@ -103,6 +103,7 @@ entry = "widget.luau"
 id = "panel"
 entry = "panel.luau"
 width = 440
-height = 480
+height = "content"
+max_height = 480
 placement = "floating"
 position = "center"

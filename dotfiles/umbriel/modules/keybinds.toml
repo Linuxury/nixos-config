@@ -167,6 +167,8 @@
 "Shift+Print"     = "spawn:noctalia msg screenshot-region"
 "Mod+Shift+Print" = "spawn:noctalia msg screenshot-fullscreen"
 "Mod+Shift+Z"     = "spawn:noctalia msg screenshot-annotate"
+"Alt+Print"       = "spawn:noctalia msg screenshot-window"
+"Mod+Ctrl+Z"      = "spawn:noctalia msg screenshot-window"
 
 # Media keys — noctalia msg instead of the upstream doc's raw wpctl recipe
 XF86AudioRaiseVolume = "spawn:noctalia msg volume-up"
