@@ -44,6 +44,12 @@
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.login.enableGnomeKeyring = true;
 
+  # Thunderbird: opaque window. Under Umbriel, Gecko's ARGB window left the
+  # header transparent after a live pywalfox recolor, so the wallpaper
+  # showed through as a pink bar until a forced repaint. Only matters on
+  # hosts that also import system/graphical/thunderbird.
+  programs.thunderbird.preferences."widget.transparent-windows" = false;
+
   # =========================================================================
   # Shared Home Manager modules — injected into every user on this host.
   # These are compositor-level concerns, not shell-specific.
