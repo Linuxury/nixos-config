@@ -19,9 +19,12 @@
 #
 # Claude Desktop: on hosts that also import claude-desktop, each installed
 # app's `<app>-cli mcp` (headless stdio MCP server) is merged into
-# ~/.config/Claude/claude_desktop_config.json. Reads anywhere in ~, writes
-# only to ~/Documents/Craft. FilmCraft/GridCraft/CADCraft have no root flags
-# (unconfined); LightCraft only touches files it's given.
+# ~/.config/Claude/claude_desktop_config.json. Each app reads only its type
+# folder (~/Pictures, ~/Documents, ~/Videos, ~/Music) and writes only to that
+# folder's Craft/ subfolder: new files land there and originals can't be
+# overwritten. The CLIs take one read and one write root each (repeats are
+# refused). LightCraft/FilmCraft/GridCraft/CADCraft have no root flags
+# (unconfined); their dir only decides which Craft/ folder gets created.
 # ===========================================================================
 
 { config, lib, pkgs, ... }:
@@ -36,21 +39,22 @@ let
   };
   installed = lib.concatMap (s: suites.${s}) config.craftApps.suites;
 
-  # Args after `<app>-cli`. "roots" = confined to the automation roots below.
-  mcpArgs = {
-    photocraft  = [ "mcp" "roots" ];
-    pdfcraft    = [ "mcp" "--compact" "roots" ];   # 179 tools → 17
-    lightcraft  = [ "mcp" "--compact" ];           # 393 tools → 17
-    vectorcraft = [ "mcp" "--headless" "roots" ];  # default tries the GUI on :7979 first
-    filmcraft   = [ "mcp" ];
-    effectcraft = [ "mcp" "roots" ];
-    designcraft = [ "mcp" "roots" ];
-    wordcraft   = [ "mcp" "roots" ];
-    gridcraft   = [ "mcp" ];
-    deckcraft   = [ "mcp" "roots" ];
-    soundcraft  = [ "mcp" "roots" ];
-    cadcraft    = [ "mcp" ];
-    figcraft    = [ "mcp" "roots" ];
+  # Type folder under ~ + args after `<app>-cli`. "roots" = read <dir>,
+  # write <dir>/Craft.
+  mcp = {
+    photocraft  = { dir = "Pictures";  args = [ "mcp" "roots" ]; };
+    lightcraft  = { dir = "Pictures";  args = [ "mcp" "--compact" ]; };           # 393 tools → 17
+    vectorcraft = { dir = "Pictures";  args = [ "mcp" "--headless" "roots" ]; };  # default tries the GUI on :7979 first
+    figcraft    = { dir = "Pictures";  args = [ "mcp" "roots" ]; };
+    wordcraft   = { dir = "Documents"; args = [ "mcp" "roots" ]; };
+    pdfcraft    = { dir = "Documents"; args = [ "mcp" "--compact" "roots" ]; };   # 179 tools → 17
+    deckcraft   = { dir = "Documents"; args = [ "mcp" "roots" ]; };
+    designcraft = { dir = "Documents"; args = [ "mcp" "roots" ]; };
+    gridcraft   = { dir = "Documents"; args = [ "mcp" ]; };
+    cadcraft    = { dir = "Documents"; args = [ "mcp" ]; };
+    effectcraft = { dir = "Videos";    args = [ "mcp" "roots" ]; };
+    filmcraft   = { dir = "Videos";    args = [ "mcp" ]; };
+    soundcraft  = { dir = "Music";     args = [ "mcp" "roots" ]; };
   };
 in
 {
@@ -74,23 +78,38 @@ in
     home-manager.sharedModules = lib.mkIf (pkgs ? claude-desktop) [
       ({ config, lib, pkgs, ... }: let
         home = config.home.homeDirectory;
-        roots = [ "--automation-read-root" home "--automation-write-root" "${home}/Documents/Craft" ];
-        servers = lib.listToAttrs (map (app: lib.nameValuePair app.pname {
+        craftDir = app: "${home}/${mcp.${app.pname}.dir}/Craft";
+        servers = lib.listToAttrs (map (app: let m = mcp.${app.pname}; in lib.nameValuePair app.pname {
           command = "${app}/bin/${app.pname}-cli";
-          args = lib.concatMap (a: if a == "roots" then roots else [ a ]) mcpArgs.${app.pname};
+          args = lib.concatMap (a: if a == "roots"
+            then [ "--automation-read-root" "${home}/${m.dir}" "--automation-write-root" (craftDir app) ]
+            else [ a ]) m.args;
         }) installed);
+        craftDirs = lib.escapeShellArgs (lib.unique (map craftDir installed));
         serversJson = pkgs.writeText "craft-mcp-servers.json" (builtins.toJSON servers);
+        # Every Craft server name, installed or not, so the merge removes
+        # exactly these keys and never a hand-added server like "minecraft".
+        craftNames = lib.escapeShellArg (builtins.toJSON (lib.attrNames mcp));
       in {
         # The app rewrites this file itself, so merge instead of symlinking.
         # Craft keys are replaced wholesale: a dropped suite drops its servers.
+        # Writes go through `run` (no-op under --dry-run) and land via
+        # tmp + mv, so a failed or interrupted switch never truncates it.
         home.activation.registerCraftMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          mkdir -p "${home}/Documents/Craft" "${home}/.config/Claude"
+          run mkdir -p ${craftDirs} "${home}/.config/Claude"
           _cfg="${home}/.config/Claude/claude_desktop_config.json"
-          [ -f "$_cfg" ] || printf '{}' > "$_cfg"
-          _tmp=$(${lib.getExe pkgs.jq} --slurpfile s ${serversJson} \
-            '.mcpServers = ((.mcpServers // {} | with_entries(select(.key | endswith("craft") | not))) + $s[0])' \
-            "$_cfg") && printf '%s\n' "$_tmp" > "$_cfg"
-          unset _cfg _tmp
+          _cur=$(cat "$_cfg" 2>/dev/null || printf '{}')
+          if _new=$(printf '%s' "$_cur" | ${lib.getExe pkgs.jq} \
+              --slurpfile s ${serversJson} --argjson names ${craftNames} \
+              '.mcpServers = ((.mcpServers // {} | with_entries(select(.key as $k | $names | index($k) | not))) + $s[0])'); then
+            if [ "$_new" != "$_cur" ]; then
+              printf '%s\n' "$_new" | run tee "$_cfg.hm-tmp" > /dev/null
+              run mv "$_cfg.hm-tmp" "$_cfg"
+            fi
+          else
+            warnEcho "registerCraftMcp: $_cfg is not valid JSON; left untouched"
+          fi
+          unset _cfg _cur _new
         '';
       })
     ];
