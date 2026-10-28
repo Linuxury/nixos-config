@@ -13,9 +13,11 @@
 #                           family); installed via activation to avoid ~/.claude
 #                           symlink conflicts on linuxury's setup.
 #
-#   ~/.claude/settings.json enabledPlugins — ponytail@DietrichGebert merged in
-#                           via activation so all users have it without wiping
-#                           their existing settings.
+#   ~/.claude/settings.json enabledPlugins — mods merged in via activation so
+#                           all users have them without wiping their existing
+#                           settings:
+#                             ponytail@DietrichGebert
+#                             ribbon@robonuggets  (usage + prompt-cache band)
 #
 # The VSCodium extension config (claudeCode.claudeProcessWrapper) in
 # dotfiles/vscodium/settings.json points at the bash wrapper so the
@@ -115,9 +117,12 @@ in
           if [ ! -f "$_cfg" ]; then
             printf '{}' > "$_cfg"
           fi
-          _tmp=$(${lib.getExe pkgs.jq} \
-            '.enabledPlugins["ponytail@DietrichGebert"] = true' \
-            "$_cfg")
+          _tmp=$(${lib.getExe pkgs.jq} '
+              .enabledPlugins["ponytail@DietrichGebert"] = true
+            | .extraKnownMarketplaces["robonuggets"] =
+                { source: { source: "github", repo: "robonuggets/ribbon" } }
+            | .enabledPlugins["ribbon@robonuggets"] = true
+            ' "$_cfg")
           printf '%s\n' "$_tmp" > "$_cfg"
           unset _cfg _tmp
         '';
