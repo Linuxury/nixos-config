@@ -187,6 +187,10 @@
     pulse.enable = true;      # PulseAudio compatibility
     jack.enable = true;       # JACK compatibility (for audio production tools)
     wireplumber.enable = true;
+    # x11-bell (plays the X11 beep) crashes the whole daemon with SIGSEGV when
+    # the X server goes away, e.g. Umbriel's lazy Xwayland restarting — that
+    # dropped every audio stream. Nothing here needs the X11 bell.
+    extraConfig.pipewire."99-no-x11-bell"."context.properties"."module.x11.bell" = false;
   };
 
   # =========================================================================
