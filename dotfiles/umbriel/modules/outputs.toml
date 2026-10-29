@@ -65,7 +65,7 @@ empty_above = false                             # Keep one empty workspace above
 # Workspace 3 (Steam's home, see window-rules.toml) floats by default.
 [[workspace]]
 index = 3
-layout.mode = "floating"
+layout.mode = "stacking"
 
 # Workspace rules customize layout without creating workspaces. Select exactly
 # one `index` or `name`; `output` is optional. This recipe works with dynamic

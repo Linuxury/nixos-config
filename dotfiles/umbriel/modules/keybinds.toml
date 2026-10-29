@@ -11,8 +11,8 @@
 # ─────────────────────── Upstream defaults (unmodified) ────────────────────
 
 # Applications and session
-"Mod+Return" = { action = "spawn:kitty", repeat = false }
-"Mod" = "spawn:noctalia msg panel-toggle launcher"
+"Mod+Return" = { action = "spawn kitty", repeat = false }
+"Mod" = "spawn noctalia msg panel-toggle launcher"
 "Mod+Q" = { action = "window-close", repeat = false }
 
 # Overview
@@ -54,10 +54,10 @@
 # "Mod+Shift+R" = "window-cycle-width-back"
 "Mod+Comma" = "window-cycle-primary-extent-back"
 "Mod+Period" = "window-cycle-primary-extent"
-"Mod+Minus" = "window-modify-primary-extent:-0.1"
-"Mod+Equal" = "window-modify-primary-extent:0.1"
-# "Mod+Alt+Minus" = "window-modify-height:-0.1"
-# "Mod+Alt+Equal" = "window-modify-height:0.1"
+"Mod+Minus" = "window-modify-primary-extent -0.1"
+"Mod+Equal" = "window-modify-primary-extent 0.1"
+# "Mod+Alt+Minus" = "window-modify-height -0.1"
+# "Mod+Alt+Equal" = "window-modify-height 0.1"
 # "Mod+Alt+R" = "window-cycle-height"
 # "Mod+Alt+Shift+R" = "window-cycle-height-back"
 
@@ -74,7 +74,7 @@
 # "Mod+BackSpace" = "window-consume-or-expel-left"
 # "Mod+C" = "column-center"
 # "Mod+Shift+C" = "window-center"
-"Mod+Ctrl+T" = { action = "workspace-set-layout:toggle", repeat = false }
+"Mod+Ctrl+T" = { action = "workspace-set-layout toggle", repeat = false }
 
 # Tabs — Mod+W tabs the windows stacked in the focused column (or stacks
 # them back). Mod+Shift+Up/Down above moves a window into/out of a group;
@@ -92,24 +92,24 @@
 # Workspaces — Mod+1 through Mod+9 switch, Shift moves the focused window.
 # Upstream's example only describes these in prose, no TOML lines to
 # reference.
-"Mod+1" = "workspace-switch:1"
-"Mod+2" = "workspace-switch:2"
-"Mod+3" = "workspace-switch:3"
-"Mod+4" = "workspace-switch:4"
-"Mod+5" = "workspace-switch:5"
-"Mod+6" = "workspace-switch:6"
-"Mod+7" = "workspace-switch:7"
-"Mod+8" = "workspace-switch:8"
-"Mod+9" = "workspace-switch:9"
-"Mod+Shift+1" = "window-move-to-workspace:1"
-"Mod+Shift+2" = "window-move-to-workspace:2"
-"Mod+Shift+3" = "window-move-to-workspace:3"
-"Mod+Shift+4" = "window-move-to-workspace:4"
-"Mod+Shift+5" = "window-move-to-workspace:5"
-"Mod+Shift+6" = "window-move-to-workspace:6"
-"Mod+Shift+7" = "window-move-to-workspace:7"
-"Mod+Shift+8" = "window-move-to-workspace:8"
-"Mod+Shift+9" = "window-move-to-workspace:9"
+"Mod+1" = "workspace-switch 1"
+"Mod+2" = "workspace-switch 2"
+"Mod+3" = "workspace-switch 3"
+"Mod+4" = "workspace-switch 4"
+"Mod+5" = "workspace-switch 5"
+"Mod+6" = "workspace-switch 6"
+"Mod+7" = "workspace-switch 7"
+"Mod+8" = "workspace-switch 8"
+"Mod+9" = "workspace-switch 9"
+"Mod+Shift+1" = "window-move-to-workspace 1"
+"Mod+Shift+2" = "window-move-to-workspace 2"
+"Mod+Shift+3" = "window-move-to-workspace 3"
+"Mod+Shift+4" = "window-move-to-workspace 4"
+"Mod+Shift+5" = "window-move-to-workspace 5"
+"Mod+Shift+6" = "window-move-to-workspace 6"
+"Mod+Shift+7" = "window-move-to-workspace 7"
+"Mod+Shift+8" = "window-move-to-workspace 8"
+"Mod+Shift+9" = "window-move-to-workspace 9"
 "Mod+Page_Up" = "workspace-previous"
 "Mod+Page_Down" = "workspace-next"
 "Mod+Shift+Page_Up" = "window-move-to-workspace-previous"
@@ -127,11 +127,11 @@
 # binds must not repeat. A table-form bind can run an action and then reset one
 # level, while a global reset provides an emergency exit from any layer.
 # "Mod+S" = { action = "submap:resize", repeat = false }
-# "submap[resize],1" = { action = "window-set-width:0.5", submap = "reset" }
+# "submap[resize],1" = { action = "window-set-width 0.5", submap = "reset" }
 # "submap[resize],N" = { action = "submap:nudge", repeat = false }
 # "submap[resize],Escape" = "submap:reset"
-# "submap[nudge],Left" = "window-modify-width:-0.1"
-# "submap[nudge],Right" = "window-modify-width:0.1"
+# "submap[nudge],Left" = "window-modify-width -0.1"
+# "submap[nudge],Right" = "window-modify-width 0.1"
 # "submap[nudge],Escape" = "submap:reset"
 # "Escape" = "submap:reset"
 
@@ -140,45 +140,45 @@
 # overrides a built-in or an upstream-active chord above.
 
 # Core apps
-"Mod+Shift+Return" = { action = "spawn:kitty --class floating-term", repeat = false }
-"Mod+E"            = "spawn:thunar"
+"Mod+Shift+Return" = { action = "spawn kitty --class floating-term", repeat = false }
+"Mod+E"            = "spawn thunar"
 
 # Session control
-"Mod+L" = "spawn:noctalia msg session lock"
-"Mod+Escape" = "spawn:noctalia msg panel-open session"
-"Mod+Shift+E" = "spawn:noctalia msg panel-open session"
-"Mod+Ctrl+Escape" = "spawn:systemctl suspend -i"
+"Mod+L" = "spawn noctalia msg session lock"
+"Mod+Escape" = "spawn noctalia msg panel-open session"
+"Mod+Shift+E" = "spawn noctalia msg panel-open session"
+"Mod+Ctrl+Escape" = "spawn systemctl suspend -i"
 
 # Night light
-"Mod+Shift+N" = "spawn:noctalia msg nightlight-toggle"
+"Mod+Shift+N" = "spawn noctalia msg nightlight-toggle"
 
 # Audio device switching — opens Noctalia's audio panel (output+input pickers
 # together, so both binds open the same panel)
-"Mod+A"       = "spawn:noctalia msg panel-open control-center audio"
-"Mod+Shift+A" = "spawn:noctalia msg panel-open control-center audio"
+"Mod+A"       = "spawn noctalia msg panel-open control-center audio"
+"Mod+Shift+A" = "spawn noctalia msg panel-open control-center audio"
 
 # Screenshots — Noctalia's native capture (save+clipboard, per
 # shell.screenshot settings). Print and Mod+Z/X bound the same: no Print
 # key on a 65% board, so Mod+Z/X are the daily-driver equivalents.
-"Print"           = "spawn:noctalia msg screenshot-region"
-"Mod+Print"       = "spawn:noctalia msg screenshot-fullscreen"
-"Mod+Z"           = "spawn:noctalia msg screenshot-region"
-"Mod+X"           = "spawn:noctalia msg screenshot-fullscreen"
-"Shift+Print"     = "spawn:noctalia msg screenshot-region"
-"Mod+Shift+Print" = "spawn:noctalia msg screenshot-fullscreen"
-"Mod+Shift+Z"     = "spawn:noctalia msg screenshot-annotate"
-"Alt+Print"       = "spawn:noctalia msg screenshot-window"
-"Mod+Ctrl+Z"      = "spawn:noctalia msg screenshot-window"
+"Print"           = "spawn noctalia msg screenshot-region"
+"Mod+Print"       = "spawn noctalia msg screenshot-fullscreen"
+"Mod+Z"           = "spawn noctalia msg screenshot-region"
+"Mod+X"           = "spawn noctalia msg screenshot-fullscreen"
+"Shift+Print"     = "spawn noctalia msg screenshot-region"
+"Mod+Shift+Print" = "spawn noctalia msg screenshot-fullscreen"
+"Mod+Shift+Z"     = "spawn noctalia msg screenshot-annotate"
+"Alt+Print"       = "spawn noctalia msg screenshot-window"
+"Mod+Ctrl+Z"      = "spawn noctalia msg screenshot-window"
 
 # Media keys — noctalia msg instead of the upstream doc's raw wpctl recipe
-XF86AudioRaiseVolume = "spawn:noctalia msg volume-up"
-XF86AudioLowerVolume = "spawn:noctalia msg volume-down"
-XF86AudioMute        = "spawn:noctalia msg volume-mute"
-XF86AudioMicMute     = "spawn:noctalia msg mic-mute"
-XF86AudioPlay        = "spawn:playerctl play-pause"
-XF86AudioNext        = "spawn:playerctl next"
-XF86AudioPrev        = "spawn:playerctl previous"
+XF86AudioRaiseVolume = "spawn noctalia msg volume-up"
+XF86AudioLowerVolume = "spawn noctalia msg volume-down"
+XF86AudioMute        = "spawn noctalia msg volume-mute"
+XF86AudioMicMute     = "spawn noctalia msg mic-mute"
+XF86AudioPlay        = "spawn playerctl play-pause"
+XF86AudioNext        = "spawn playerctl next"
+XF86AudioPrev        = "spawn playerctl previous"
 
 # Brightness (allow_when_locked = works on the lock screen)
-XF86MonBrightnessUp   = { action = "spawn:brightnessctl set +5%", allow_when_locked = true }
-XF86MonBrightnessDown = { action = "spawn:brightnessctl set 5%-", allow_when_locked = true }
+XF86MonBrightnessUp   = { action = "spawn brightnessctl set +5%", allow_when_locked = true }
+XF86MonBrightnessDown = { action = "spawn brightnessctl set 5%-", allow_when_locked = true }
