@@ -53,13 +53,11 @@
     #   claude    — Claude Code CLI
     #   opencode  — OpenCode CLI
     #   local-llm — Ollama + GPU acceleration
-    #   odysseus  — self-hosted AI workspace
     # ==============================================================
     ../../modules/development/ai-tools/default.nix
     ../../modules/development/ai-tools/claude/default.nix
     #../../modules/development/ai-tools/opencode/default.nix
     #../../modules/development/ai-tools/local-llm/default.nix
-    #../../modules/development/ai-tools/odysseus/default.nix
 
     # ==============================================================
     # Development — Editors (headless — no GUI editors)

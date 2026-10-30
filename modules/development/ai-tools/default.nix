@@ -1,7 +1,7 @@
 # ===========================================================================
 # modules/development/ai-tools/default.nix — AI tools base infrastructure
 #
-# Provides the runtime plumbing that claude, opencode, and odysseus depend on.
+# Provides the runtime plumbing that claude and opencode depend on.
 # Import this alongside any AI tool module.
 #
 #   nix-ld   — compatibility shim so prebuilt Linux binaries (claude-code)
