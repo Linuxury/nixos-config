@@ -186,7 +186,7 @@
     # published yet ("has not been published yet" in the launcher). To update,
     # change the tag to the newest stable release on GitHub.
     bedrock-on-linux = {
-      url = "github:Wyze3306/BedrockOnLinux/v2.2.9";
+      url = "github:Wyze3306/BedrockOnLinux/v2.2.10";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
