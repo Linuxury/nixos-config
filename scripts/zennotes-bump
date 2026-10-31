@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Bump the pinned ZenNotes image tag to the newest x.y.z on Docker Hub (no token needed).
+# Rewrites modules/services/zennotes/zennotes.json only; commit and nru yourself.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+out=modules/services/zennotes/zennotes.json
+
+version=$(curl -fsS "https://hub.docker.com/v2/repositories/adibhanna/zennotes/tags?page_size=100&ordering=last_updated" \
+  | jq -r '.results[].name' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+[ -n "$version" ] || { echo "no version tags from Docker Hub" >&2; exit 1; }
+if [ "$version" = "$(jq -r .version "$out")" ]; then echo "already on $version"; exit 0; fi
+
+jq -n --arg v "$version" '{version:$v}' > "$out"
+echo "pinned $version"

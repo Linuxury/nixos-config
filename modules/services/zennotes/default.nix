@@ -22,6 +22,10 @@
 
 { config, lib, ... }:
 
+let
+  # Pinned tag; update with scripts/zennotes-bump (run by nru on the lock writer).
+  pin = builtins.fromJSON (builtins.readFile ./zennotes.json);
+in
 {
   # ===========================================================================
   # Podman backend
@@ -70,7 +74,7 @@
   # ===========================================================================
   virtualisation.oci-containers.containers = {
     zennotes = {
-      image            = "docker.io/adibhanna/zennotes:latest";
+      image            = "docker.io/adibhanna/zennotes:${pin.version}";
       ports            = [ "7879:7878" ];
       volumes          = [
         "/home/linuxury/Jarvis:/workspace:z"
