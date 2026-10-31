@@ -2,9 +2,9 @@
   "claude-code": {
     "publisher": "anthropic",
     "target": "linux-x64",
-    "version": "2.1.314",
-    "sha256": "0haxqmxbmxxp38dnajvxbq2radi1q72qk9z26vj1m6zawlhg75xx",
-    "url": "https://open-vsx.org/api/Anthropic/claude-code/linux-x64/2.1.314/file/Anthropic.claude-code-2.1.314@linux-x64.vsix"
+    "version": "2.1.316",
+    "sha256": "1hhv30icyxmmcn7yg9g2xzrx64jkc4q5qvlj466s7xf4c2b44pdx",
+    "url": "https://open-vsx.org/api/Anthropic/claude-code/linux-x64/2.1.316/file/Anthropic.claude-code-2.1.316@linux-x64.vsix"
   },
   "flow-icons": {
     "publisher": "thang-nm",

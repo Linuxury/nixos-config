@@ -27,19 +27,19 @@
 # Drop an app from here once it lands in nixpkgs.
 let
   apps = {
-    photocraft  = { version = "0.17.0"; hash = "sha256-Uln5xCjI7jR4w1UA7OmHE1Ycr8BQ5MnrNUpQUPNusrg="; description = "Image editor"; };
-    pdfcraft    = { version = "0.15.0"; hash = "sha256-sWehjGCnsynwWlu/l+Mtxniq0/jVhm2OQ3j/JCc/gxM="; description = "PDF workbench"; };
-    lightcraft  = { version = "0.15.0"; hash = "sha256-CxrN78CFurszS5rdKQ3RpptQ6W772tLsFdRL1tZL/T0="; description = "Photo library and raw developer"; };
-    vectorcraft = { version = "0.18.0"; hash = "sha256-dpSLUO943Ugqbs4G8QtwR5N7vAwF9c9rxD2IsH902CY="; description = "Vector illustration"; };
-    filmcraft   = { version = "0.14.0"; hash = "sha256-0qohPMCKvSHgWrURp4zDjxV8ryImmS8/yKXgSWo/fn0="; description = "Video editor"; };
-    effectcraft = { version = "0.18.0"; hash = "sha256-lNHYVpHVS6V/qG4Ehy+8xCbDPRvTZPH8l2sfYHNEiAs="; description = "Motion graphics and VFX"; };
-    designcraft = { version = "0.14.0"; hash = "sha256-Jch751nTWoHKROH2Je1DBLFuWqtqA6EFG8pJioG/xUc="; description = "Page layout and publishing"; };
-    wordcraft   = { version = "0.12.0"; hash = "sha256-zZq9DuehG5ha8cFXFlMzLJYHfl3MSLXhh7VcgvR1oz4="; description = "Word processor"; };
-    gridcraft   = { version = "0.13.0"; hash = "sha256-IMbFbsH/1rvP/ubN7ljPa1yt0vSgSkNg3XzGTVOtl+U="; description = "Spreadsheet"; };
-    deckcraft   = { version = "0.12.0"; hash = "sha256-SkENPKpCPoc9Dcq1HJjgZYj1W9/PA+nB6RQJqGwI3j4="; description = "Presentations"; };
-    soundcraft  = { version = "0.14.0"; hash = "sha256-L4NQP+2mqiyNS8EsRPVxQixDifxmSpK77QktK/HVAK0="; description = "Digital audio workstation"; };
-    cadcraft    = { version = "0.14.0"; hash = "sha256-lQZ8hJ+CMFZIJJKZu4bmRbcwJ1qoxfGZZdgZkPg66ps="; description = "CAD and drafting"; };
-    figcraft    = { version = "0.12.1"; hash = "sha256-AKKfTMOCgH2ED10+m1n0yIKTVnia+7lWoJZJGCleSd0="; description = "Interface design and prototyping"; };
+    photocraft  = { version = "0.18.0"; hash = "sha256-S4rI4RRqyal+e/3vFrJn1Tlqd4Cf1OIym4Pa14CGV08="; description = "Image editor"; };
+    pdfcraft    = { version = "0.16.1"; hash = "sha256-uzbgcdEKFK9RISmaDu2NfF245cdYC2y+vsCFxB0b/go="; description = "PDF workbench"; };
+    lightcraft  = { version = "0.16.0"; hash = "sha256-0i7fWsQBACkdjD2N3ovxyRyuIaC1bUypzAAm2zE5qSY="; description = "Photo library and raw developer"; };
+    vectorcraft = { version = "0.19.0"; hash = "sha256-rlN4iPSWkZqosxk+om8F/SWEvgDv+G2AoH4mRPEGHpI="; description = "Vector illustration"; };
+    filmcraft   = { version = "0.15.0"; hash = "sha256-IrEGtMpilNmz6aSvQLQKZToYl0NzZIBQRqAd26pLIsE="; description = "Video editor"; };
+    effectcraft = { version = "0.19.0"; hash = "sha256-fsk5Ha53X3zn5ykSaPexIzIowbreg87YhAMDU1yVGXA="; description = "Motion graphics and VFX"; };
+    designcraft = { version = "0.15.2"; hash = "sha256-57eC90ZJd+/pNa1o48kIsJOfO2ZgcMiN8gRhmNxuiUQ="; description = "Page layout and publishing"; };
+    wordcraft   = { version = "0.13.2"; hash = "sha256-bPT8wDCi1PuvM0+dbGDXPCof3uKmlRwGfl+hFf4Qc48="; description = "Word processor"; };
+    gridcraft   = { version = "0.14.2"; hash = "sha256-nIFTt2MK373vgCGqm5guHvGHts8nzSIzKAz68LpqGEI="; description = "Spreadsheet"; };
+    deckcraft   = { version = "0.13.1"; hash = "sha256-cR7AlbWQ+8uqq8jFklqDUN6pjukxq3tE1Ir2iy5h9RQ="; description = "Presentations"; };
+    soundcraft  = { version = "0.15.0"; hash = "sha256-Fu8j72LsIPX8xT4Eq6r/UnCV5QX1YItHqxtyscjp7SA="; description = "Digital audio workstation"; };
+    cadcraft    = { version = "0.15.1"; hash = "sha256-0ETw+KdVxrab3GtFNh2rzDQsFOOxkZw59UBp/80cT4A="; description = "CAD and drafting"; };
+    figcraft    = { version = "0.13.1"; hash = "sha256-hlzynHWnN82FnZP6SOnUqo3GAj8liqEn6IuX2If5DSc="; description = "Interface design and prototyping"; };
   };
 
   mk = pname: app: stdenv.mkDerivation {
