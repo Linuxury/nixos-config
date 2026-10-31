@@ -209,7 +209,10 @@ _NRU_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/nru"   # last-failure.log, last-unit
 _NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
 _NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
 _NRU_FP="󰏖"    # U+F03D6 nf-md-package_variant — same glyph fastfetch uses for flatpak count
-_NRU_DONE="[■■■■■■■■■■■■■■■■■■■■]"
+# Palette slots (color8 / bold color4 / color1), so the terminal theme decides the actual colours.
+_NRU_C_DIM=$'\e[90m' _NRU_C_HDR=$'\e[1;34m' _NRU_C_ERR=$'\e[31m' _NRU_C_OFF=$'\e[0m'
+# Group state; bare typeset keeps values across the silent re-source mid-run.
+typeset -g _NRU_GRP _NRU_GRP_SHOWN _NRU_GRP_NOTE _NRU_GRP_HIDE _NRU_GRP_PREV _NRU_IND
 _NRU_SPIN=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
 
 # Only linuxury@Ryzen5900x writes shared state (flake.lock, proton bump, hash
@@ -218,16 +221,53 @@ _NRU_SPIN=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
 # on 2026-10-10).
 _nru_is_lock_writer() { [[ "$(whoami)" == linuxury && "$(hostname)" == Ryzen5900x ]] }
 
-# Final row for a step:              _nru_row ICON NAME TEXT
-_nru_row() { printf "\r  %s  %-12s  %s\033[K\n" "$1" "$2" "$3" >/dev/tty }
-# Completed row with a full bar:     _nru_ok ICON NAME INFO [SUFFIX]
-_nru_ok()  { printf "\r  %s  %-12s  %s  %s  ✓%s\033[K\n" "$1" "$2" "$_NRU_DONE" "$3" "${4:+  $4}" >/dev/tty }
+# Groups: _nru_group NAME DEFAULT-NOTE … _nru_group_end. A group prints its bold
+# header only once a row has something to say; if none did, it collapses to one
+# muted line. Blank lines go around expanded groups only (_NRU_GRP_PREV = last
+# kind printed: exp/dim). With no group open the helpers print plain rows.
+_nru_group() { _NRU_GRP=$1 _NRU_GRP_NOTE=$2 _NRU_GRP_SHOWN= _NRU_GRP_HIDE= _NRU_IND="  " }
+_nru_group_end() {
+  [[ -n $_NRU_GRP ]] || return 0
+  if [[ -z $_NRU_GRP_SHOWN && -z $_NRU_GRP_HIDE ]]; then
+    [[ $_NRU_GRP_PREV == exp ]] && printf "\n" >/dev/tty
+    printf "  %s%-8s %s  ✓%s\n" "$_NRU_C_DIM" "$_NRU_GRP" "$_NRU_GRP_NOTE" "$_NRU_C_OFF" >/dev/tty
+    _NRU_GRP_PREV=dim
+  fi
+  _NRU_GRP= _NRU_IND=   # _nru_group resets the rest
+}
+_nru_hdr() {   # clears the spinner line, then prints the group header once
+  [[ -n $_NRU_GRP && -z $_NRU_GRP_SHOWN ]] || return 0
+  printf "\r\033[K" >/dev/tty
+  [[ -n $_NRU_GRP_PREV ]] && printf "\n" >/dev/tty
+  printf "  %s%s%s\n" "$_NRU_C_HDR" "$_NRU_GRP" "$_NRU_C_OFF" >/dev/tty
+  _NRU_GRP_SHOWN=1 _NRU_GRP_PREV=exp
+}
+_nru_hide() { _NRU_GRP_HIDE=1; printf "\r\033[K" >/dev/tty; }   # step is deliberately silent here
+
+# Final row for a step:              _nru_row ICON NAME TEXT   (✗ rows in the error colour)
+_nru_row() {
+  local t=$3; _nru_hdr
+  [[ $t == ✗* ]] && t="$_NRU_C_ERR$t$_NRU_C_OFF"
+  printf "\r  %s%s  %-12s  %s\033[K\n" "$_NRU_IND" "$1" "$2" "$t" >/dev/tty
+}
+# Completed row with something to say: _nru_ok ICON NAME INFO [SUFFIX]
+_nru_ok() { _nru_hdr; printf "\r  %s%s  %-12s  %s  ✓%s\033[K\n" "$_NRU_IND" "$1" "$2" "$3" "${4:+  $4}" >/dev/tty }
+# Nothing to report: clears the spinner and leaves it to the group's muted line
+# (NOTE replaces the group's default text). Outside a group it is a plain _nru_ok row.
+#   _nru_quiet ICON NAME INFO [NOTE]
+_nru_quiet() {
+  [[ -n $_NRU_GRP ]] || { _nru_ok "$1" "$2" "$3"; return 0 }
+  printf "\r\033[K" >/dev/tty
+  [[ -n $4 ]] && _NRU_GRP_NOTE=$4
+  return 0
+}
+_nru_offline() { _nru_quiet "$1" "$2" "⏭ skipped (offline)" "skipped (offline)" }   # _nru_offline ICON NAME
 # Tree under a row, one arg per item
 _nru_tree() {
   local i b
   for (( i = 1; i <= $#; i++ )); do
     b="├─"; (( i == $# )) && b="└─"
-    printf "       %s %s\n" "$b" "${@[i]}"
+    printf "       %s%s %s\n" "$_NRU_IND" "$b" "${@[i]}"
   done
 }
 
@@ -262,7 +302,7 @@ _nru_spin() {
 
   while kill -0 "$pid" 2>/dev/null; do
     el=$(( EPOCHSECONDS - t0 ))
-    printf "\r  %s  %-12s  %s %s…%s\033[K" "$icon" "$name" "$_NRU_SPIN[i]" "$text" \
+    printf "\r  %s%s  %-12s  %s %s…%s\033[K" "$_NRU_IND" "$icon" "$name" "$_NRU_SPIN[i]" "$text" \
       "${${el:#[012]}:+  ${el}s}" >/dev/tty
     sleep 0.1
     i=$(( i % 10 + 1 ))
@@ -906,7 +946,7 @@ _nru_git_bar() {
   # nru regenerates flake.lock every run; a leftover local bump (or one staged
   # by a failed push) would block the pull. Say so when something is discarded.
   if ! git -C "$cfg" diff --quiet HEAD -- flake.lock 2>/dev/null; then
-    printf "  \e[2m↺  discarded local flake.lock changes (nru regenerates it)\e[0m\n" >/dev/tty
+    printf "  %s↺  discarded local flake.lock changes (nru regenerates it)%s\n" "$_NRU_C_DIM" "$_NRU_C_OFF" >/dev/tty
     git -C "$cfg" restore --staged --worktree flake.lock 2>/dev/null
   fi
 
@@ -914,7 +954,7 @@ _nru_git_bar() {
   if _nru_spin "$_NRU_GH" "Nixos-Config" "pulling" "$log" git -C "$cfg" pull --ff-only; then
     after=$(git -C "$cfg" rev-parse --short HEAD)
     if [[ $before == "$after" ]]; then
-      _nru_ok "$_NRU_GH" "Nixos-Config" "up to date"
+      _nru_quiet "$_NRU_GH" "Nixos-Config" "up to date"
     else
       n=$(git -C "$cfg" rev-list --count "$before..$after")
       _nru_ok "$_NRU_GH" "Nixos-Config" "$n commit${${n:#1}:+s}  $before → $after"
@@ -1018,10 +1058,10 @@ _nru_inputs_bar() {
   # from them (60/hour per IP, shared by every machine behind the home IP —
   # Media-Server hit it on 2026-10-13 once nru updated all 11 inputs).
   if ! _nru_is_lock_writer; then
-    _nru_ok "$_NRU_NIX" "$name" "nixpkgs $(date -d @${old_ts[nixpkgs]} +%m-%d) · lock from Ryzen5900x"
+    _nru_quiet "$_NRU_NIX" "$name" "nixpkgs $(date -d @${old_ts[nixpkgs]} +%m-%d) · lock from Ryzen5900x" "lock from Ryzen5900x"
     return 0
   fi
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$_NRU_NIX" "$name" "⏭ skipped (offline)"; return 0; fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_offline "$_NRU_NIX" "$name"; return 0; fi
 
   if ! _nru_spin "$_NRU_NIX" "$name" "updating ${#old_rev} inputs" "$log" nix flake update --flake "$NIXOS_CONFIG"; then
     git -C "$NIXOS_CONFIG" restore flake.lock 2>/dev/null
@@ -1030,7 +1070,7 @@ _nru_inputs_bar() {
     else
       # nix's first "error:" line is often bare; the real message is the last one
       _nru_row "$_NRU_NIX" "$name" "⚠ update failed · keeping current lock (nixpkgs $(date -d @${old_ts[nixpkgs]} +%F))"
-      grep -E '^\s*error: \S' "$log" | tail -1 | sed -E 's/^\s*/       /'
+      grep -E '^\s*error: \S' "$log" | tail -1 | sed -E "s/^\s*/       $_NRU_IND/"
     fi
     return 0
   fi
@@ -1041,7 +1081,7 @@ _nru_inputs_bar() {
     (( ${#k} > w )) && w=${#k}
   done < <(_nru_lock_inputs)
 
-  if (( ! $#moved )); then _nru_ok "$_NRU_NIX" "$name" "up to date"; return 0; fi
+  if (( ! $#moved )); then _nru_quiet "$_NRU_NIX" "$name" "up to date"; return 0; fi
   for m in $moved; do
     IFS='|' read -r k od t r <<< "$m"
     [[ $r == sha256-* ]] && r= || r=${r:0:7}   # narHash (no rev): no hash shown
@@ -1086,7 +1126,7 @@ _nru_update_craft_apps() {
 
   for a v in $(sed -nE 's/^\s+([a-z]+craft)\s+= \{ version = "([^"]+)".*/\1 \2/p' "$pkg"); do cur[$a]=$v; done
   (( $#cur )) || return 0
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_offline "$icon" "$name"; return 0; fi
 
   _nru_spin "$icon" "$name" "checking $#cur apps" "$log" _nru_craft_latest ${(k)cur}
   for a v in $(<"$log"); do new[$a]=$v; done
@@ -1099,7 +1139,7 @@ _nru_update_craft_apps() {
     moved+=($a); (( ${#a} > w )) && w=${#a}
   done
 
-  if (( ! $#moved )); then _nru_ok "$icon" "$name" "all $#cur current"; return 0; fi
+  if (( ! $#moved )); then _nru_quiet "$icon" "$name" "all $#cur current"; return 0; fi
   if ! _nru_is_lock_writer; then
     _nru_ok "$icon" "$name" "$(( $#cur - $#moved )) of $#cur current" "· $#moved available (Ryzen5900x will bump them)"
     return 0
@@ -1150,11 +1190,12 @@ _nru_claude_latest() {   # "<version> <sha256 hex>" of the newest amd64 build
 # Bump the VSCodium Open VSX extensions (lock writer only; scripts/vscodium-ext-bump does the work).
 _nru_update_vscodium_ext() {
   local name="VSCodium ext" icon=$_NRU_NIX log="$_NRU_CACHE/vscodium-ext.log"
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_offline "$icon" "$name"; return 0; fi
   if ! _nru_spin "$icon" "$name" "checking" "$log" "$NIXOS_CONFIG/scripts/vscodium-ext-bump"; then
-    _nru_row "$icon" "$name" "⚠ bump failed · keeping pins"; sed -E 's/^/       /' "$log" | tail -2; return 0
+    _nru_row "$icon" "$name" "⚠ bump failed · keeping pins"; sed -E "s/^/       $_NRU_IND/" "$log" | tail -2; return 0
   fi
-  _nru_ok "$icon" "$name" "$(tail -1 "$log")"
+  local res=$(tail -1 "$log")
+  if [[ $res == "all current" ]]; then _nru_quiet "$icon" "$name" "$res"; else _nru_ok "$icon" "$name" "$res"; fi
 }
 
 # Bump the pinned ZenNotes image tag (lock writer only; scripts/zennotes-bump does the work).
@@ -1162,12 +1203,12 @@ _nru_update_zennotes() {
   local pin="$NIXOS_CONFIG/modules/services/zennotes/zennotes.json" name="ZenNotes" icon=$_NRU_NIX
   local log="$_NRU_CACHE/zennotes.log" cur new
   cur=$(jq -r .version "$pin")
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_offline "$icon" "$name"; return 0; fi
   if ! _nru_spin "$icon" "$name" "checking" "$log" "$NIXOS_CONFIG/scripts/zennotes-bump"; then
-    _nru_row "$icon" "$name" "⚠ bump failed · keeping $cur"; sed -E 's/^/       /' "$log" | tail -2; return 0
+    _nru_row "$icon" "$name" "⚠ bump failed · keeping $cur"; sed -E "s/^/       $_NRU_IND/" "$log" | tail -2; return 0
   fi
   new=$(jq -r .version "$pin")
-  if [[ $new == $cur ]]; then _nru_ok "$icon" "$name" "$cur current"; else _nru_ok "$icon" "$name" "$cur → $new"; fi
+  if [[ $new == $cur ]]; then _nru_quiet "$icon" "$name" "$cur current"; else _nru_ok "$icon" "$name" "$cur → $new"; fi
 }
 
 # Bump Media-Server's pinned Plex (lock writer only; scripts/plex-bump does the work).
@@ -1175,26 +1216,26 @@ _nru_update_plex() {
   local pin="$NIXOS_CONFIG/hosts/Media-Server/plex.json" name="Plex" icon=$_NRU_NIX
   local log="$_NRU_CACHE/plex.log" cur new
   cur=$(jq -r .version "$pin")
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_offline "$icon" "$name"; return 0; fi
   if ! _nru_spin "$icon" "$name" "checking beta" "$log" "$NIXOS_CONFIG/scripts/plex-bump"; then
-    _nru_row "$icon" "$name" "⚠ bump failed · keeping ${cur%-*}"; sed -E 's/^/       /' "$log" | tail -2; return 0
+    _nru_row "$icon" "$name" "⚠ bump failed · keeping ${cur%-*}"; sed -E "s/^/       $_NRU_IND/" "$log" | tail -2; return 0
   fi
   new=$(jq -r .version "$pin")
-  if [[ $new == $cur ]]; then _nru_ok "$icon" "$name" "${cur%-*} current"; else _nru_ok "$icon" "$name" "${cur%-*} → ${new%-*}"; fi
+  if [[ $new == $cur ]]; then _nru_quiet "$icon" "$name" "${cur%-*} current"; else _nru_ok "$icon" "$name" "${cur%-*} → ${new%-*}"; fi
 }
 
 _nru_update_claude_desktop() {
   local pkg="$NIXOS_CONFIG/pkgs/claude-desktop/package.nix" name="Claude" icon=$_NRU_FP
   local log="$_NRU_CACHE/claude.log" cur new h sri
   cur=$(grep -oP '^\s+version = "\K[^"]+' "$pkg")
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_offline "$icon" "$name"; return 0; fi
 
   _nru_spin "$icon" "$name" "checking" "$log" _nru_claude_latest
   read -r new h < "$log"
   if [[ -z $new || -z $h ]]; then _nru_row "$icon" "$name" "⚠ apt index unreachable · keeping $cur"; return 0; fi
   # never downgrade
   if [[ $new == $cur || $(print -l $cur $new | sort -V | tail -1) != $new ]]; then
-    _nru_ok "$icon" "$name" "$cur current"; return 0
+    _nru_quiet "$icon" "$name" "$cur current"; return 0
   fi
   if ! _nru_is_lock_writer; then
     _nru_ok "$icon" "$name" "$cur" "· $new available (Ryzen5900x will bump it)"; return 0
@@ -1218,7 +1259,7 @@ _nru_update_proton_cachyos() {
 
   current=$(grep -oP 'protonCachyosTag = "\K[^"]+' "$gm")
   cur_s=${${current#cachyos-*-}%-slr}   # cachyos-11.0-20261005-slr → 20261005
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_offline "$icon" "$name"; return 0; fi
 
   # Pipe status is jq's, not curl's — offline or rate-limited curl hands jq
   # empty input and jq still exits 0, so test the result, not the exit code.
@@ -1227,7 +1268,7 @@ _nru_update_proton_cachyos() {
   if [[ -z $latest ]]; then _nru_row "$icon" "$name" "⚠ GitHub unreachable · keeping $cur_s"; return 0; fi
   new_s=${${latest#cachyos-*-}%-slr}
 
-  if [[ $latest == "$current" ]]; then _nru_ok "$icon" "$name" "$cur_s"; return 0; fi
+  if [[ $latest == "$current" ]]; then _nru_quiet "$icon" "$name" "$cur_s"; return 0; fi
   if ! _nru_is_lock_writer; then
     _nru_ok "$icon" "$name" "$cur_s" "· $new_s available (Ryzen5900x will bump it)"; return 0
   fi
@@ -1242,8 +1283,8 @@ _nru_update_proton_cachyos() {
   pid=$!
   while kill -0 "$pid" 2>/dev/null; do
     got=$(( $(stat -c %s "$tmp" 2>/dev/null || echo 0) / 1048576 ))
-    printf "\r  %s  %-12s  ⬇ downloading %s · %d/%s MiB  %s\033[K" \
-      "$icon" "$name" "$new_s" "$got" "${total:-?}" "$_NRU_SPIN[i]" >/dev/tty
+    printf "\r  %s%s  %-12s  ⬇ downloading %s · %d/%s MiB  %s\033[K" \
+      "$_NRU_IND" "$icon" "$name" "$new_s" "$got" "${total:-?}" "$_NRU_SPIN[i]" >/dev/tty
     sleep 0.2
     i=$(( i % 10 + 1 ))
   done
@@ -1277,9 +1318,9 @@ _nru_flatpak_bar() {
   local -a updated failed
 
   if ! command -v nixos-flatpak-update &>/dev/null; then
-    _nru_row "$icon" "$name" "⏭ skipped (updater installs with this rebuild)"; return 0
+    _nru_quiet "$icon" "$name" "⏭ skipped (updater installs with this rebuild)" "updater installs with this rebuild"; return 0
   fi
-  if [[ -n $_NRU_OFFLINE ]]; then _nru_row "$icon" "$name" "⏭ skipped (offline)"; return 0; fi
+  if [[ -n $_NRU_OFFLINE ]]; then _nru_offline "$icon" "$name"; return 0; fi
 
   _nru_spin "$icon" "$name" "updating" "$log" zsh -c \
     'nixos-flatpak-update --user; /run/wrappers/bin/sudo -n /run/current-system/sw/bin/nixos-flatpak-update --system'
@@ -1288,7 +1329,7 @@ _nru_flatpak_bar() {
     if [[ $line == sudo:* ]]; then failed+=("system scope|$line"); continue; fi
     read -r scope kind app rest <<< "$line"
     case $kind in
-      skipped) [[ $app == no-flathub ]] && { printf "\r\033[K" >/dev/tty; return 0 } ;;
+      skipped) [[ $app == no-flathub ]] && { _nru_hide; return 0 } ;;
       updated) updated+=("$rest  ($scope)") ;;
       failed)  [[ $app == - ]] && app="$scope scope"   # listing failed, no app
                failed+=("${app##*.}|$rest") ;;
@@ -1297,13 +1338,13 @@ _nru_flatpak_bar() {
 
   if (( $#failed )); then
     _nru_row "$icon" "$name" "✗ ${(j:, :)${failed%%|*}} failed${updated:+ · others updated}"
-    for f in ${failed[1,3]}; do printf "       %s\n" "${f#*|}"; done
+    for f in ${failed[1,3]}; do printf "       %s%s\n" "$_NRU_IND" "${f#*|}"; done
     (( $#updated )) && _nru_tree "${updated[@]}"
   elif (( $#updated )); then
     _nru_ok "$icon" "$name" "$#updated updated"
     _nru_tree "${updated[@]}"
   else
-    _nru_ok "$icon" "$name" "up to date"
+    _nru_quiet "$icon" "$name" "up to date"
   fi
   return 0
 }
@@ -1337,17 +1378,24 @@ nru() {
   echo "══════════════════════════════════════════════════════════"
   echo ""
 
-  _nru_git_bar || { unfunction TRAPINT 2>/dev/null; return 1 }
+  _NRU_GRP_PREV=
+  _nru_group Flake "up to date"
+  _nru_git_bar || { _nru_group_end; unfunction TRAPINT 2>/dev/null; return 1 }
   # New shells load HM's copy of this file (last rebuild), not the repo. Re-source
   # the repo copy silently so the remaining steps run the latest nru code
   # (functions resolve at call time; only this function's step list stays old).
   _NRU_QUIET=1 source "$NIXOS_CONFIG/dotfiles/zsh/zshrc"
   _nru_inputs_bar
+  _nru_group_end
+
+  _nru_group Pinned "all current"
   command -v steam   &>/dev/null && _nru_update_proton_cachyos
   command -v photocraft &>/dev/null && { _nru_update_craft_apps; _nru_craft_unpackaged }
   { _nru_is_lock_writer || command -v claude-desktop &>/dev/null } && _nru_update_claude_desktop
   _nru_is_lock_writer && { _nru_update_plex; _nru_update_zennotes; _nru_update_vscodium_ext }
-  command -v flatpak &>/dev/null && _nru_flatpak_bar
+  _nru_group_end
+
+  command -v flatpak &>/dev/null && { _nru_group Flatpak "up to date"; _nru_flatpak_bar; _nru_group_end }
 
   echo ""
   _NRU_NO_HEADER=1 _nru_rebuild
