@@ -59,7 +59,8 @@ match.app_id = "^dev.noctalia.UmbrielSharePicker$"
 default_floating = true
 default_floating_size_px = { width = 800, height = 600 }
 
-# Terminal opened by the nix-updates Noctalia plugin's "Update now"
+# Update terminal of the nixos-updates Noctalia plugin (its update_command
+# spawns `kitty --class nix-updates`)
 [[window_rule]]
 match.app_id = "^nix-updates$"
 default_floating = true

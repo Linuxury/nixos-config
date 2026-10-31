@@ -5,8 +5,8 @@
 #
 #   ┌─────────────────────────────────────────────────────────────────────┐
 #   │ PRIMARY HOST (isPrimary = true — Ryzen5900x)                        │
-#   │   On demand only — nru, or "Update now" in the nix-updates Noctalia │
-#   │   plugin (which checks for new package versions in the background). │
+#   │   On demand only — nru, or the Update button of the nixos-updates   │
+#   │   Noctalia plugin (checks for new package versions in background).  │
 #   │   nixos-auto-update [--force] does the same unattended:             │
 #   │     1. git pull --autostash (sync any remote config changes)        │
 #   │     2. nix flake update → advances nixpkgs pin in flake.lock        │
@@ -143,8 +143,8 @@ in
   #
   # Rebuilds from GitHub every Saturday 3am, picking up whatever flake.lock
   # the primary pushed that week. Non-primary hosts only — the primary never
-  # updates unattended; its user decides when, via the nix-updates Noctalia
-  # plugin (dotfiles/noctalia/plugins/nix-updates) or nru.
+  # updates unattended; its user decides when, via the nixos-updates Noctalia
+  # plugin or nru.
   #
   # Persistent = true: a missed 3am slot (machine off) fires on next boot.
   # =========================================================================

@@ -140,27 +140,25 @@ in
           shell.launch_apps_as_systemd_services = true;
 
           # ── Plugins ────────────────────────────────────────────────────────
-          # Our own plugins, loaded straight from the repo (live path, so edits
-          # hot-reload without a rebuild). nix-updates: bar badge + panel for
-          # pending package updates. Its settings (flake dir, update command,
-          # interval) are set once via Settings → Plugins → ⚙.
+          # nixos-updates: bar badge + panel for pending package/Flatpak updates.
+          # Its update_command stays in app state (Settings → Plugins → ⚙): it
+          # opens a floating terminal via `umbriel msg spawn kitty --class
+          # nix-updates` (rule in umbriel's window-rules.toml) until
+          # noctalia-dev/community-plugins#1237 adds a terminal setting.
           # Declaring any source replaces Noctalia's built-in list, so official
           # and community must be listed here too. Don't add/remove sources via
           # IPC or the GUI: that saves a full source list to the app-owned
           # settings.toml, which then overrides this one.
-          # nix-updates "Compare against": only Ryzen5900x updates flake inputs
-          # (nru's lock-writer rule); every other host builds the lock it pulls,
-          # so the plugin there compares against the remote lock — what the
-          # next nru will really bring, with no GitHub API calls.
-          plugin_settings."linuxury/nix-updates".compare =
-            if config.networking.hostName == "Ryzen5900x" then "upstream" else "remote";
+          plugin_settings."dmopp/nixos-updates" = {
+            flake_dir            = "${config.users.users.linuxury.home}/nixos-config";
+            check_interval_hours = 1;
+          };
 
           plugins = {
-            enabled = [ "linuxury/nix-updates" ];
+            enabled = [ "dmopp/nixos-updates" ];
             source  = [
               { name = "official";  kind = "git"; location = "https://github.com/noctalia-dev/official-plugins";  enabled = true; }
               { name = "community"; kind = "git"; location = "https://github.com/noctalia-dev/community-plugins"; enabled = true; }
-              { name = "nixos-config"; kind = "path"; location = "~/nixos-config/dotfiles/noctalia/plugins"; enabled = true; }
             ];
           };
 
