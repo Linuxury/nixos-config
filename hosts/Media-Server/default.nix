@@ -309,6 +309,17 @@
     user         = "plex";
     group        = "media";
     dataDir      = "/data/config/plex";
+    # Pinned via plex.json (nixpkgs only packages the public release and lags).
+    # Update with scripts/plex-bump; drop this override to follow nixpkgs again.
+    package = pkgs.plex.override {
+      plexRaw = pkgs.plexRaw.overrideAttrs (_: let pin = builtins.fromJSON (builtins.readFile ./plex.json); in {
+        inherit (pin) version;
+        src = pkgs.fetchurl {
+          url    = "https://downloads.plex.tv/plex-media-server-new/${pin.version}/debian/plexmediaserver_${pin.version}_amd64.deb";
+          sha256 = pin.sha256;
+        };
+      });
+    };
   };
 
   # Allow media group members to write into Plex's data dir (e.g. Plug-ins).
