@@ -108,7 +108,7 @@ let
     pname   = "hypr-sddm";
     version = "unstable-2026-05-17";
     src = pkgs.fetchFromGitHub {
-      owner  = "ADIOR-enigma";
+      owner  = "adior-enigmac";
       repo   = "hypr-sddm";
       rev    = "52fd4a538fabea2331d9b9f956c2497ff5f9102c";
       sha256 = "0mi517w339hrdq79n2p7arb2kf6l85bv57kp542q9cykcagw6p4a";
