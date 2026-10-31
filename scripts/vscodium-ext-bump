@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Bump the Open VSX extensions pinned in modules/development/editors/vscodium/extensions.json.
+# Entries with a "hold" reason are skipped (bump those by hand). No token needed.
+# Rewrites that JSON only; commit and nru yourself.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+f=modules/development/editors/vscodium/extensions.json
+changed=()
+
+for name in $(jq -r 'to_entries[] | select(.value.hold == null) | .key' "$f"); do
+  pub=$(jq -r --arg n "$name" '.[$n].publisher' "$f")
+  tgt=$(jq -r --arg n "$name" '.[$n].target // empty' "$f")
+  cur=$(jq -r --arg n "$name" '.[$n].version' "$f")
+  # Open VSX paths use the publisher as registered; its API is case-insensitive.
+  api="https://open-vsx.org/api/$pub/$name${tgt:+/$tgt}/latest"
+  new=$(curl -fsS "$api" | jq -r '.version // empty') || new=
+  [ -n "$new" ] || { echo "skip $name: no version from Open VSX" >&2; continue; }
+  [ "$new" = "$cur" ] && continue
+  # Never downgrade.
+  [ "$(printf '%s\n%s\n' "$cur" "$new" | sort -V | tail -1)" = "$new" ] || continue
+
+  url=$(curl -fsS "$api" | jq -r '.files.download')
+  sha=$(nix-prefetch-url --name "$name-$new.vsix" "$url")
+  jq --arg n "$name" --arg v "$new" --arg s "$sha" --arg u "$url" '.[$n] += {version:$v, sha256:$s, url:$u}' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+  changed+=("$name $cur -> $new")
+done
+
+if [ ${#changed[@]} -eq 0 ]; then echo "all current"; else printf 'pinned: %s\n' "$(IFS=,; echo "${changed[*]}")"; fi

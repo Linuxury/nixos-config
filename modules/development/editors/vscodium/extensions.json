@@ -1,0 +1,29 @@
+{
+  "claude-code": {
+    "publisher": "anthropic",
+    "target": "linux-x64",
+    "version": "2.1.314",
+    "sha256": "0haxqmxbmxxp38dnajvxbq2radi1q72qk9z26vj1m6zawlhg75xx",
+    "url": "https://open-vsx.org/api/Anthropic/claude-code/linux-x64/2.1.314/file/Anthropic.claude-code-2.1.314@linux-x64.vsix"
+  },
+  "flow-icons": {
+    "publisher": "thang-nm",
+    "hold": "free v1.x only; v2 is licensed (agenix key injected in hm.nix)",
+    "version": "1.3.2",
+    "sha256": "1lwsjawvhy3yzw7dl93ac4vyvfmcwbrs58s3wd2az1ld3d6m3drv",
+    "url": "https://open-vsx.org/api/thang-nm/flow-icons/1.3.2/file/thang-nm.flow-icons-1.3.2.vsix"
+  },
+  "opencode": {
+    "publisher": "sst-dev",
+    "hold": "0.x to 1.0 major jump, test by hand first",
+    "version": "0.0.13",
+    "sha256": "1m301j2qbym3j2qnck76jyxakca3h1qiybc2r7wy7z11m98mg9z9",
+    "url": "https://open-vsx.org/api/sst-dev/opencode/0.0.13/file/sst-dev.opencode-0.0.13.vsix"
+  },
+  "jetbrains-file-icon-theme": {
+    "publisher": "fogio",
+    "version": "1.8.0",
+    "sha256": "0yi9habmlp7a2ylgl3zvixc8acj5zsgi60nkw4p7sqmgximhz78r",
+    "url": "https://open-vsx.org/api/fogio/jetbrains-file-icon-theme/1.8.0/file/fogio.jetbrains-file-icon-theme-1.8.0.vsix"
+  }
+}

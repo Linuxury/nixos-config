@@ -35,59 +35,14 @@
         catppuccin.catppuccin-vsc  # Catppuccin Mocha color theme
         golang.go                  # Go language support
       ])
-      ++ [
-        # Claude Code — Open VSX linux-x64 variant (nixpkgs version has stale hash)
-        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-          mktplcRef = {
-            publisher = "anthropic";
-            name      = "claude-code";
-            version   = "2.1.120";
-          };
-          vsix = pkgs.fetchurl {
-            url    = "https://open-vsx.org/api/Anthropic/claude-code/linux-x64/2.1.120/file/Anthropic.claude-code-2.1.120@linux-x64.vsix";
-            sha256 = "1n4gl8f4csq4ngmw7dksiaxhlglsswgypynnjpzyzskn4c94c1c5";
-          };
-        })
-
-        # Flow Icons — flow-deep / flow-dim / flow-dawn themes (free v1.x)
-        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-          mktplcRef = {
-            publisher = "thang-nm";
-            name      = "flow-icons";
-            version   = "1.3.2";
-          };
-          vsix = pkgs.fetchurl {
-            url    = "https://open-vsx.org/api/thang-nm/flow-icons/1.3.2/file/thang-nm.flow-icons-1.3.2.vsix";
-            sha256 = "1lwsjawvhy3yzw7dl93ac4vyvfmcwbrs58s3wd2az1ld3d6m3drv";
-          };
-        })
-
-        # OpenCode AI assistant
-        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-          mktplcRef = {
-            publisher = "sst-dev";
-            name      = "opencode";
-            version   = "0.0.13";
-          };
-          vsix = pkgs.fetchurl {
-            url    = "https://open-vsx.org/api/sst-dev/opencode/0.0.13/file/sst-dev.opencode-0.0.13.vsix";
-            sha256 = "1m301j2qbym3j2qnck76jyxakca3h1qiybc2r7wy7z11m98mg9z9";
-          };
-        })
-
-        # JetBrains-style file icons
-        (pkgs.vscode-utils.buildVscodeMarketplaceExtension {
-          mktplcRef = {
-            publisher = "fogio";
-            name      = "jetbrains-file-icon-theme";
-            version   = "1.5.0";
-          };
-          vsix = pkgs.fetchurl {
-            url    = "https://open-vsx.org/api/fogio/jetbrains-file-icon-theme/1.5.0/file/fogio.jetbrains-file-icon-theme-1.5.0.vsix";
-            sha256 = "1jdha38c61hlz5hj59xzq89zprcwa6qhfg9pkqlpn017b2ccc4x3";
-          };
-        })
-      ];
+      # Open VSX extensions pinned in extensions.json; update with
+      # scripts/vscodium-ext-bump (run by nru on the lock writer). Entries with a
+      # "hold" reason are bumped by hand. Claude Code uses the linux-x64 variant
+      # because nixpkgs' version has a stale hash.
+      ++ lib.mapAttrsToList (name: e: pkgs.vscode-utils.buildVscodeMarketplaceExtension {
+        mktplcRef = { inherit name; inherit (e) publisher version; };
+        vsix = pkgs.fetchurl { inherit (e) url sha256; };
+      }) (builtins.fromJSON (builtins.readFile ./extensions.json));
   };
 
   # =========================================================================
