@@ -210,7 +210,7 @@ _NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
 _NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
 _NRU_FP="󰏖"    # U+F03D6 nf-md-package_variant — same glyph fastfetch uses for flatpak count
 # Colour roles. muted/head/err are palette slots (color8 / bold color4 / color1), so the
-# terminal theme decides them; warn is a fixed amber because Noctalia's palette has no
+# terminal theme decides them; warn is a fixed gold because Noctalia's palette has no
 # real yellow (its color3 is pale grey-cyan, indistinguishable from plain text).
 _C_MUTED=$'\e[90m' _C_HEAD=$'\e[1;34m' _C_ERR=$'\e[31m' _C_WARN=$'\e[38;2;229;192;123m' _C_OFF=$'\e[0m'
 # Group state; bare typeset keeps values across the silent re-source mid-run.
@@ -246,7 +246,7 @@ _nru_hdr() {   # clears the spinner line, then prints the group header once
 }
 _nru_hide() { _NRU_GRP_HIDE=1; printf "\r\033[K" >/dev/tty; }   # step is deliberately silent here
 
-# Final row for a step:              _nru_row ICON NAME TEXT   (✗ red, ⚠ amber)
+# Final row for a step:              _nru_row ICON NAME TEXT   (✗ red, ⚠ gold)
 _nru_row() {
   local t=$3; _nru_hdr
   case $t in ✗*) t="$_C_ERR$t$_C_OFF" ;; ⚠*) t="$_C_WARN$t$_C_OFF" ;; esac
