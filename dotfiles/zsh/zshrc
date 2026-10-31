@@ -209,8 +209,10 @@ _NRU_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/nru"   # last-failure.log, last-unit
 _NRU_GH="󰊤"     # U+F02A4 nf-md-github (Nerd Fonts) — 2-cell wide
 _NRU_NIX="󱄅"   # U+F1105 nf-linux-nixos (Nerd Fonts) — 2-cell wide (same as _NRU_GH)
 _NRU_FP="󰏖"    # U+F03D6 nf-md-package_variant — same glyph fastfetch uses for flatpak count
-# Palette slots (color8 / bold color4 / color1), so the terminal theme decides the actual colours.
-_NRU_C_DIM=$'\e[90m' _NRU_C_HDR=$'\e[1;34m' _NRU_C_ERR=$'\e[31m' _NRU_C_OFF=$'\e[0m'
+# Colour roles. muted/head/err are palette slots (color8 / bold color4 / color1), so the
+# terminal theme decides them; warn is a fixed amber because Noctalia's palette has no
+# real yellow (its color3 is pale grey-cyan, indistinguishable from plain text).
+_C_MUTED=$'\e[90m' _C_HEAD=$'\e[1;34m' _C_ERR=$'\e[31m' _C_WARN=$'\e[38;2;229;192;123m' _C_OFF=$'\e[0m'
 # Group state; bare typeset keeps values across the silent re-source mid-run.
 typeset -g _NRU_GRP _NRU_GRP_SHOWN _NRU_GRP_NOTE _NRU_GRP_HIDE _NRU_GRP_PREV _NRU_IND
 _NRU_SPIN=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
@@ -230,7 +232,7 @@ _nru_group_end() {
   [[ -n $_NRU_GRP ]] || return 0
   if [[ -z $_NRU_GRP_SHOWN && -z $_NRU_GRP_HIDE ]]; then
     [[ $_NRU_GRP_PREV == exp ]] && printf "\n" >/dev/tty
-    printf "  %s%-8s %s  ✓%s\n" "$_NRU_C_DIM" "$_NRU_GRP" "$_NRU_GRP_NOTE" "$_NRU_C_OFF" >/dev/tty
+    printf "  %s%-8s %s  ✓%s\n" "$_C_MUTED" "$_NRU_GRP" "$_NRU_GRP_NOTE" "$_C_OFF" >/dev/tty
     _NRU_GRP_PREV=dim
   fi
   _NRU_GRP= _NRU_IND=   # _nru_group resets the rest
@@ -239,15 +241,15 @@ _nru_hdr() {   # clears the spinner line, then prints the group header once
   [[ -n $_NRU_GRP && -z $_NRU_GRP_SHOWN ]] || return 0
   printf "\r\033[K" >/dev/tty
   [[ -n $_NRU_GRP_PREV ]] && printf "\n" >/dev/tty
-  printf "  %s%s%s\n" "$_NRU_C_HDR" "$_NRU_GRP" "$_NRU_C_OFF" >/dev/tty
+  printf "  %s%s%s\n" "$_C_HEAD" "$_NRU_GRP" "$_C_OFF" >/dev/tty
   _NRU_GRP_SHOWN=1 _NRU_GRP_PREV=exp
 }
 _nru_hide() { _NRU_GRP_HIDE=1; printf "\r\033[K" >/dev/tty; }   # step is deliberately silent here
 
-# Final row for a step:              _nru_row ICON NAME TEXT   (✗ rows in the error colour)
+# Final row for a step:              _nru_row ICON NAME TEXT   (✗ red, ⚠ amber)
 _nru_row() {
   local t=$3; _nru_hdr
-  [[ $t == ✗* ]] && t="$_NRU_C_ERR$t$_NRU_C_OFF"
+  case $t in ✗*) t="$_C_ERR$t$_C_OFF" ;; ⚠*) t="$_C_WARN$t$_C_OFF" ;; esac
   printf "\r  %s%s  %-12s  %s\033[K\n" "$_NRU_IND" "$1" "$2" "$t" >/dev/tty
 }
 # Completed row with something to say: _nru_ok ICON NAME INFO [SUFFIX]
@@ -946,7 +948,7 @@ _nru_git_bar() {
   # nru regenerates flake.lock every run; a leftover local bump (or one staged
   # by a failed push) would block the pull. Say so when something is discarded.
   if ! git -C "$cfg" diff --quiet HEAD -- flake.lock 2>/dev/null; then
-    printf "  %s↺  discarded local flake.lock changes (nru regenerates it)%s\n" "$_NRU_C_DIM" "$_NRU_C_OFF" >/dev/tty
+    printf "  %s↺  discarded local flake.lock changes (nru regenerates it)%s\n" "$_C_MUTED" "$_C_OFF" >/dev/tty
     git -C "$cfg" restore --staged --worktree flake.lock 2>/dev/null
   fi
 
