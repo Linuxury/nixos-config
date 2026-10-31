@@ -14,10 +14,9 @@
   },
   "opencode": {
     "publisher": "sst-dev",
-    "hold": "0.x to 1.0 major jump, test by hand first",
-    "version": "0.0.13",
-    "sha256": "1m301j2qbym3j2qnck76jyxakca3h1qiybc2r7wy7z11m98mg9z9",
-    "url": "https://open-vsx.org/api/sst-dev/opencode/0.0.13/file/sst-dev.opencode-0.0.13.vsix"
+    "version": "1.0.0",
+    "sha256": "1i702pikqhlvgldv4b60k8yl92k8jrwjksp1a6rq3954p5d83v6x",
+    "url": "https://open-vsx.org/api/sst-dev/opencode/1.0.0/file/sst-dev.opencode-1.0.0.vsix"
   },
   "jetbrains-file-icon-theme": {
     "publisher": "fogio",
