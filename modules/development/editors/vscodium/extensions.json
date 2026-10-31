@@ -8,10 +8,9 @@
   },
   "flow-icons": {
     "publisher": "thang-nm",
-    "hold": "free v1.x only; v2 is licensed (agenix key injected in hm.nix)",
-    "version": "1.3.2",
-    "sha256": "1lwsjawvhy3yzw7dl93ac4vyvfmcwbrs58s3wd2az1ld3d6m3drv",
-    "url": "https://open-vsx.org/api/thang-nm/flow-icons/1.3.2/file/thang-nm.flow-icons-1.3.2.vsix"
+    "version": "2.0.10",
+    "sha256": "0xj04qxny9wd61fk0z16ghdb3nz2rac2y4ga54c868r17vcmqgxx",
+    "url": "https://open-vsx.org/api/thang-nm/flow-icons/2.0.10/file/thang-nm.flow-icons-2.0.10.vsix"
   },
   "opencode": {
     "publisher": "sst-dev",
