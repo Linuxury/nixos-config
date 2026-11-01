@@ -105,6 +105,9 @@
 
     # Idle management — locking now goes through `noctalia msg session lock`
     hypridle
+    # Real Wayland idle inhibitor while audio plays (browsers do not inhibit
+    # under Umbriel); hypridle then skips its lock/suspend listeners
+    sway-audio-idle-inhibit
 
     # Screen recording
     wl-screenrec
