@@ -10,9 +10,10 @@
 # rules (device access for non-root users), and the `openrgb --server`
 # systemd service on boot.
 #
-# To persist RGB colors across reboots, save a profile in the OpenRGB GUI
-# (Profile → Save Profile) named after `hardware.openrgb.profile`.
-# The file must end up in /var/lib/OpenRGB/<name>.orp
+# Optional: set `hardware.openrgb.profile` to load a saved profile
+# (/var/lib/OpenRGB/profiles/<name>.json) on boot. Leave it null when something
+# else (Noctalia led-sync) owns the colours — a startup profile is applied after
+# device detection and overrides whatever that pushed first.
 # ===========================================================================
 
 { config, lib, ... }:
@@ -34,9 +35,9 @@ in
     };
 
     profile = lib.mkOption {
-      type = lib.types.str;
-      default = "main";
-      description = "Profile (/var/lib/OpenRGB/<name>.orp) loaded by the server on boot.";
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Profile loaded by the server on boot; null loads none.";
     };
   };
 

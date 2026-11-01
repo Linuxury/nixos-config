@@ -96,15 +96,11 @@
 
   # =========================================================================
   # Umbriel companion tools — compositor-agnostic subset of the Hyprland
-  # toolset. hypridle confirmed protocol-based (ext-idle-notify-v1), not
-  # Hyprland-exclusive, same as hyprpicker.
+  # toolset.
   # =========================================================================
   environment.systemPackages = with pkgs; [
     # Cursor theme — installed system-wide so the greeter picks it up
     breezex-cursors
-
-    # Idle management — locking now goes through `noctalia msg session lock`
-    hypridle
 
     # Screen recording
     wl-screenrec

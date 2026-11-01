@@ -97,6 +97,15 @@ in
             };
           };
 
+          # ── Idle ───────────────────────────────────────────────────────────
+          # Noctalia is the only idle manager (hypridle is not started, so
+          # Noctalia owns org.freedesktop.ScreenSaver and honours app
+          # inhibits). Desktop: lock only — no suspend, and no screen-off
+          # (DPMS off crashed the AMD GPU).
+          idle.behavior.lock = { action = "lock"; enabled = true; timeout = 900.0; };
+          idle.behavior.screen-off.enabled        = false;
+          idle.behavior.lock-and-suspend.enabled  = false;
+
           # ── Notification daemon ────────────────────────────────────────────
           # swaync handles notifications on this config — disable noctalia's
           # built-in daemon to avoid duplicate toasts.

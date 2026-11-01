@@ -9,7 +9,9 @@
 # launches it via graphical-session.target. Autostarting it here too races
 # both launches for the same Wayland lock; the loser exits with "noctalia is
 # already running" and systemd crash-loops it into start-limit-hit.
-autostart = ["hypridle"]
+# hypridle is not started either: Noctalia runs the idle timers and owns
+# org.freedesktop.ScreenSaver, so app inhibits (video, games) reach it.
+autostart = []
 # mod_key = "Super"                    # Force Super instead of nested-session Alt
 xwayland = true                        # Native wlroots Xwayland (no satellite since 2026-09-29); restart to change
 show_cheatsheet = false                 # Show the keybind overlay on startup
