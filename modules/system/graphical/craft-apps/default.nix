@@ -9,7 +9,7 @@
 #   craftApps.suites = [ "office" ];   # default: all suites
 #
 #   office — WordCraft, GridCraft, DeckCraft, PdfCraft   (Word/Excel/PowerPoint/Acrobat)
-#   design — PhotoCraft, LightCraft, VectorCraft, DesignCraft, FigCraft
+#   design — PhotoCraft, LightCraft, VectorCraft, DesignCraft, FigCraft, TextureCraft
 #            (Photoshop/Lightroom/Illustrator/InDesign/Figma)
 #   video  — FilmCraft, EffectCraft                      (Premiere/After Effects)
 #   audio  — SoundCraft                                  (Audition)
@@ -23,7 +23,7 @@
 # folder (~/Pictures, ~/Documents, ~/Videos, ~/Music) and writes only to that
 # folder's Craft/ subfolder: new files land there and originals can't be
 # overwritten. The CLIs take one read and one write root each (repeats are
-# refused). LightCraft/FilmCraft/GridCraft/CADCraft have no root flags
+# refused). LightCraft/FilmCraft/GridCraft/CADCraft/TextureCraft have no root flags
 # (unconfined); their dir only decides which Craft/ folder gets created.
 # ===========================================================================
 
@@ -32,7 +32,7 @@
 let
   suites = with pkgs.craft-apps; {
     office = [ wordcraft gridcraft deckcraft pdfcraft ];
-    design = [ photocraft lightcraft vectorcraft designcraft figcraft ];
+    design = [ photocraft lightcraft vectorcraft designcraft figcraft texturecraft ];
     video  = [ filmcraft effectcraft ];
     audio  = [ soundcraft ];
     cad    = [ cadcraft ];
@@ -46,6 +46,7 @@ let
     lightcraft  = { dir = "Pictures";  args = [ "mcp" "--compact" ]; };           # 393 tools → 17
     vectorcraft = { dir = "Pictures";  args = [ "mcp" "--headless" "roots" ]; };  # default tries the GUI on :7979 first
     figcraft    = { dir = "Pictures";  args = [ "mcp" "roots" ]; };
+    texturecraft = { dir = "Pictures"; args = [ "mcp" ]; };                        # own --read-root/--write-root flags, not wired: unconfined
     wordcraft   = { dir = "Documents"; args = [ "mcp" "roots" ]; };
     pdfcraft    = { dir = "Documents"; args = [ "mcp" "--compact" "roots" ]; };   # 179 tools → 17
     deckcraft   = { dir = "Documents"; args = [ "mcp" "roots" ]; };

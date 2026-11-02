@@ -40,6 +40,7 @@ let
     soundcraft  = { version = "0.16.0"; hash = "sha256-Jcawy4kkGY8i46bydx19zJ4EGjJEpL5EXL3p0A59wZ4="; description = "Digital audio workstation"; };
     cadcraft    = { version = "0.16.0"; hash = "sha256-FJggs9Dh5ymiJW40RSO5gFhx057jnJ4IX1B3B/c8y9Q="; description = "CAD and drafting"; };
     figcraft    = { version = "0.14.0"; hash = "sha256-DqSJzimSOK+WEGlAzdtCCRw+uhCcBf34Q7Tn+OuXCCk="; description = "Interface design and prototyping"; };
+    texturecraft = { version = "0.2.0"; hash = "sha256-mRkGixPYgNUS1qmVQzRGyfzLPgtEf9zix3FuE5PXz7I="; description = "Procedural texture designer"; };
   };
 
   mk = pname: app: stdenv.mkDerivation {
