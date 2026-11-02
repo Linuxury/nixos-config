@@ -312,7 +312,7 @@ in
     # -----------------------------------------------------------------------
     # Launchers — for games outside of Steam
     # -----------------------------------------------------------------------
-    lutris # Universal game launcher, supports many sources
+    # lutris # Universal game launcher, supports many sources (off: unused; FHS env pulls broken gtk2)
     # and has community install scripts for tricky games
     faugus-launcher # Lightweight launcher for Windows games via UMU/Proton
 

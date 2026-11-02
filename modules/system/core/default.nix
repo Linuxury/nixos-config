@@ -202,9 +202,6 @@
   # The flake.nix pkgs import also sets this, but that doesn't propagate
   # into NixOS module evaluation — this option is the correct way to do it.
   nixpkgs.config.allowUnfree = true;
-  # lutris's FHS env bundles gtk2 (marked broken, removal before 27.05).
-  # Warn instead of failing eval; drop once lutris stops using it.
-  nixpkgs.config.problems.handlers."gtk+".broken = "warn";
 
   nix = {
     settings = {
