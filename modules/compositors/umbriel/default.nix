@@ -99,6 +99,21 @@
   # toolset. hypridle confirmed protocol-based (ext-idle-notify-v1), not
   # Hyprland-exclusive, same as hyprpicker.
   # =========================================================================
+  # sway-audio-idle-inhibit aborts (SIGABRT in Idle::block) intermittently when
+  # audio starts; as an umbriel autostart nothing restarted it, so idle locked
+  # mid-video. A user unit gives it Restart=.
+  systemd.user.services.sway-audio-idle-inhibit = {
+    description = "Inhibit idle while audio plays";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.sway-audio-idle-inhibit}/bin/sway-audio-idle-inhibit";
+      Restart = "always";
+      RestartSec = 1;
+    };
+  };
+
   environment.systemPackages = with pkgs; [
     # Cursor theme — installed system-wide so the greeter picks it up
     breezex-cursors
