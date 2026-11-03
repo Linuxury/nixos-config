@@ -41,6 +41,7 @@ let
     cadcraft    = { version = "0.17.0"; hash = "sha256-iZlrF2T/FWloV+CJTWC4RWkFEFGBj2SA6bf4I8dqRuQ="; description = "CAD and drafting"; };
     figcraft    = { version = "0.15.0"; hash = "sha256-Hl6OC5tKGBHzHOggSpvFPIUfIItv5F4ChzAvcLxqCNY="; description = "Interface design and prototyping"; };
     texturecraft = { version = "0.3.0"; hash = "sha256-xVN9KRCvjdeUEMf2r82cKGX3KjJSFUwuEqYTrMYLxj0="; description = "Procedural texture designer"; };
+    materialcraft = { version = "0.1.0"; hash = "sha256-Z9BR7rJHcCGzpO18Zrj8tjErytvK9EydZDqzeeZ0AJE="; description = "Material and shader authoring"; };
   };
 
   mk = pname: app: stdenv.mkDerivation {
