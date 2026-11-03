@@ -32,7 +32,7 @@
 let
   suites = with pkgs.craft-apps; {
     office = [ wordcraft gridcraft deckcraft pdfcraft ];
-    design = [ photocraft lightcraft vectorcraft designcraft figcraft texturecraft ];
+    design = [ photocraft lightcraft vectorcraft designcraft figcraft texturecraft materialcraft ];
     video  = [ filmcraft effectcraft ];
     audio  = [ soundcraft ];
     cad    = [ cadcraft ];
@@ -47,6 +47,7 @@ let
     vectorcraft = { dir = "Pictures";  args = [ "mcp" "--headless" "roots" ]; };  # default tries the GUI on :7979 first
     figcraft    = { dir = "Pictures";  args = [ "mcp" "roots" ]; };
     texturecraft = { dir = "Pictures"; args = [ "mcp" ]; };                        # own --read-root/--write-root flags, not wired: unconfined
+    materialcraft = { dir = "Pictures"; args = [ "mcp" ]; };                      # root flags unverified, unconfined like texturecraft
     wordcraft   = { dir = "Documents"; args = [ "mcp" "roots" ]; };
     pdfcraft    = { dir = "Documents"; args = [ "mcp" "--compact" "roots" ]; };   # 179 tools → 17
     deckcraft   = { dir = "Documents"; args = [ "mcp" "roots" ]; };
