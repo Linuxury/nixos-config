@@ -30,7 +30,7 @@ let
     photocraft  = { version = "0.19.0"; hash = "sha256-EjOFsXMKzhjxK8D0lGBuakzT9KuJH5MDbNTnG4rqcPc="; description = "Image editor"; };
     pdfcraft    = { version = "0.18.0"; hash = "sha256-yzZlzEXMeqa6AchouffGncTYAL71LUHP/qi/UDfE620="; description = "PDF workbench"; };
     lightcraft  = { version = "0.18.0"; hash = "sha256-8tyqKH1RD5ElJz2dFgiecTlDrvAFvQPZhI2VrFXYdQ8="; description = "Photo library and raw developer"; };
-    vectorcraft = { version = "0.20.0"; hash = "sha256-042D2eWf3PehAEFOIrMJQJT+T+LdQ6EF8EKXgBJhDoY="; description = "Vector illustration"; };
+    vectorcraft = { version = "0.21.0"; hash = "sha256-L/0A+zSTGOfpLpevN3z/2BjxcmRRt/IYnpLyJn6zTCE="; description = "Vector illustration"; };
     filmcraft   = { version = "0.17.0"; hash = "sha256-3z+KsjSBoo7vt8n9jTiZ+9lLsUPhlwaLRhP+BQKXv78="; description = "Video editor"; };
     effectcraft = { version = "0.21.0"; hash = "sha256-A/vJmKl5D6lJuQMzWXQM5mENt9GUJvDzgC9T6nDLgk0="; description = "Motion graphics and VFX"; };
     designcraft = { version = "0.17.0"; hash = "sha256-u2+c7EBGVTUCZumO4Q2bWhVFB+2ZitevR7JTNa+tGHI="; description = "Page layout and publishing"; };
