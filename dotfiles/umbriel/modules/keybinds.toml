@@ -157,6 +157,9 @@
 "Mod+A"       = "spawn noctalia msg panel-open control-center audio"
 "Mod+Shift+A" = "spawn noctalia msg panel-open control-center audio"
 
+# Wallpaper carousel (ashur-d/wallpaper-widget)
+"Mod+Shift+W" = "spawn noctalia msg panel-toggle ashur-d/wallpaper-widget:hub"
+
 # Screenshots — Noctalia's native capture (save+clipboard, per
 # shell.screenshot settings). Print and Mod+Z/X bound the same: no Print
 # key on a 65% board, so Mod+Z/X are the daily-driver equivalents.
