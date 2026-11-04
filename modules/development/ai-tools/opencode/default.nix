@@ -18,8 +18,16 @@
   # =========================================================================
   # OpenCode — system-wide binaries (available to all users on this host)
   # =========================================================================
-  environment.systemPackages = with pkgs; [
-    opencode              # AI terminal agent — TUI + tool use + multi-model
+  environment.systemPackages = [
+    # AI terminal agent — TUI + tool use + multi-model
+    # Hash override: nixpkgs' node_modules outputHash is stale for 2.2.5
+    # (mismatch seen 2026-11-04). Version-guarded so it drops out on the next
+    # nixpkgs bump — delete this block once nixpkgs fixes it.
+    (pkgs.opencode.overrideAttrs (old: pkgs.lib.optionalAttrs (old.version == "2.2.5") {
+      node_modules = old.node_modules.overrideAttrs {
+        outputHash = "sha256-prx9dX7kUvs/E3zopkaPk5LXh3xJAy5sZeum/W8L7cA=";
+      };
+    }))
   ];
 
   # =========================================================================
