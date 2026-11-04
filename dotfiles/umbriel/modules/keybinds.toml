@@ -76,10 +76,10 @@
 # "Mod+Shift+C" = "window-center"
 "Mod+Ctrl+T" = { action = "workspace-set-layout toggle", repeat = false }
 
-# Tabs — Mod+W tabs the windows stacked in the focused column (or stacks
+# Tabs — Mod+Shift+W tabs the windows stacked in the focused column (or stacks
 # them back). Mod+Shift+Up/Down above moves a window into/out of a group;
 # click, scroll, or drag a title on the tab bar to switch or reorder.
-"Mod+W" = { action = "column-toggle-tabbed", repeat = false }
+"Mod+Shift+W" = { action = "column-toggle-tabbed", repeat = false }
 "Mod+Alt+Right" = "column-focus-tab-next"
 "Mod+Alt+Left" = "column-focus-tab-previous"
 
@@ -158,7 +158,7 @@
 "Mod+Shift+A" = "spawn noctalia msg panel-open control-center audio"
 
 # Wallpaper carousel (ashur-d/wallpaper-widget)
-"Mod+Shift+W" = "spawn noctalia msg panel-toggle ashur-d/wallpaper-widget:hub"
+"Mod+W" = "spawn noctalia msg panel-toggle ashur-d/wallpaper-widget:hub"
 
 # Screenshots — Noctalia's native capture (save+clipboard, per
 # shell.screenshot settings). Print and Mod+Z/X bound the same: no Print
