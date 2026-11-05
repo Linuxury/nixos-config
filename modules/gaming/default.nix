@@ -188,7 +188,21 @@ in
   # runner names Faugus already stores). force = true lets HM replace the old
   # real-files "Proton-GE Latest" copy; other entries in the dir are untouched.
   home-manager.sharedModules = [
-    {
+    # HM-side `lib` (has lib.hm), not the NixOS-module lib captured above.
+    ({ lib, ... }: {
+      # HM can swap a file/symlink but not a real directory ("cannot overwrite
+      # directory"). Remove only those exact names, and only when they are real
+      # dirs (e.g. the old copied "Proton-GE Latest") so the links can land.
+      home.activation.protonCompatMigrate = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+        for n in "Proton-GE Latest" "Proton-CachyOS Latest" "Proton-Wineland Latest"; do
+          d="$HOME/.local/share/Steam/compatibilitytools.d/$n"
+          if [ -d "$d" ] && [ ! -L "$d" ]; then
+            chmod -R u+w "$d" 2>/dev/null || true
+            rm -rf "$d"
+          fi
+        done
+      '';
+
       home.file = lib.mapAttrs' (name: pkg:
         lib.nameValuePair ".local/share/Steam/compatibilitytools.d/${name}" {
           source = pkg;
@@ -198,7 +212,7 @@ in
         "Proton-CachyOS Latest" = pkgs.proton-cachyos;
         "Proton-Wineland Latest" = pkgs.proton-wineland;
       };
-    }
+    })
   ];
 
   services.dmemcg-booster.enable = true;
