@@ -151,12 +151,24 @@ in
     let
       protonCachyosTag = "cachyos-11.0-20261015-slr"; # proton-cachyos-nru
       protonGeTag = "GE-Proton11-12"; # proton-ge-nru
+      protonWinelandTag = "wineland-11.0-20261103"; # proton-wineland-nru
     in
     {
       proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
         proton-ge-src = pkgs.fetchzip {
           url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${protonGeTag}/${protonGeTag}-x86_64.tar.gz"; # proton-ge-url
           hash = "sha256-i20g9lDz7bR0SXWmvHZHztN4m8AHkcD0/OVGSC4ZzI8="; # proton-ge-hash
+        };
+      };
+
+      # Proton Wineland: prebuilt x86_64 releases are published only by the
+      # author's own repo (nanomatters/proton-salkim, verified 2026-11-04:
+      # hotline1337/proton-wineland is a release-less fork of it).
+      proton-wineland = prev.callPackage ../../pkgs/proton-wineland/package.nix {
+        tag = protonWinelandTag;
+        proton-wineland-src = pkgs.fetchzip {
+          url  = "https://github.com/nanomatters/proton-salkim/releases/download/${protonWinelandTag}/proton-${protonWinelandTag}-x86_64.tar.xz"; # proton-wineland-url
+          hash = "sha256-QjsLedM62437Tgnx03k5m5grcaRA+ZwNQH2isN2THzg="; # proton-wineland-hash
         };
       };
 
@@ -184,7 +196,7 @@ in
         }) {
         "Proton-GE Latest" = pkgs.proton-ge-custom;
         "Proton-CachyOS Latest" = pkgs.proton-cachyos;
-        # Proton-Wineland Latest: pending a prebuilt tarball URL
+        "Proton-Wineland Latest" = pkgs.proton-wineland;
       };
     }
   ];
