@@ -150,14 +150,15 @@ in
     (final: prev:
     let
       protonCachyosTag = "cachyos-11.0-20261015-slr"; # proton-cachyos-nru
+      protonGeTag = "GE-Proton11-12"; # proton-ge-nru
     in
     {
-      # proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
-      #   proton-ge-src = pkgs.fetchzip {
-      #     url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-7/GE-Proton11-7-x86_64.tar.gz"; # proton-ge-nru
-      #     hash = "sha256-ftW0vE45v2JsbaYqo/So0ZFfvdtakHX0XEXEE4TdxLk="; # proton-ge-hash
-      #   };
-      # };
+      proton-ge-custom = prev.callPackage ../../pkgs/proton-ge-custom/package.nix {
+        proton-ge-src = pkgs.fetchzip {
+          url  = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${protonGeTag}/${protonGeTag}-x86_64.tar.gz"; # proton-ge-url
+          hash = "sha256-i20g9lDz7bR0SXWmvHZHztN4m8AHkcD0/OVGSC4ZzI8="; # proton-ge-hash
+        };
+      };
 
       proton-cachyos = prev.callPackage ../../pkgs/proton-cachyos/package.nix {
         tag = protonCachyosTag;
@@ -167,6 +168,25 @@ in
         };
       };
     })
+  ];
+
+  # Single registry for every launcher: Steam, Faugus, Heroic, ProtonPlus all
+  # scan ~/.local/share/Steam/compatibilitytools.d. Dir names are fixed
+  # "<Name> Latest" so per-game choices survive version bumps (and match the
+  # runner names Faugus already stores). force = true lets HM replace the old
+  # real-files "Proton-GE Latest" copy; other entries in the dir are untouched.
+  home-manager.sharedModules = [
+    {
+      home.file = lib.mapAttrs' (name: pkg:
+        lib.nameValuePair ".local/share/Steam/compatibilitytools.d/${name}" {
+          source = pkg;
+          force = true;
+        }) {
+        "Proton-GE Latest" = pkgs.proton-ge-custom;
+        "Proton-CachyOS Latest" = pkgs.proton-cachyos;
+        # Proton-Wineland Latest: pending a prebuilt tarball URL
+      };
+    }
   ];
 
   services.dmemcg-booster.enable = true;
@@ -186,10 +206,10 @@ in
     # Opens firewall ports for Steam's game server browser
     dedicatedServer.openFirewall = true;
 
-    # Proton-GE and Proton-CachyOS, both straight from nixpkgs (see the
-    # commented-out custom overlay above for why) — updated whenever
-    # nixpkgs itself bumps them, no separate tracking needed.
-    extraCompatPackages = [ pkgs.proton-ge-bin pkgs.proton-cachyos ];
+    # No extraCompatPackages: it only reaches Steam. Proton tools are linked
+    # into ~/.local/share/Steam/compatibilitytools.d instead (protonTools,
+    # home-manager.sharedModules below) so Faugus and other launchers see the
+    # same copy and don't download their own.
 
     # Adds a compatibility layer so Steam's own runtime libraries
     # work correctly on NixOS's non-standard filesystem layout

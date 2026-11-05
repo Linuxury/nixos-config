@@ -27,8 +27,8 @@ stdenvNoCC.mkDerivation rec {
     # per-game assignments survive nru updates automatically.
     chmod +w "$out/compatibilitytool.vdf"
     sed -i \
-      -e 's|"${version}" // Internal|"proton_ge_latest" // Internal|' \
-      -e 's|"display_name" "${version}"|"display_name" "GE-Proton (Latest)"|' \
+      -e 's|"[^"]*" // Internal|"proton_ge_latest" // Internal|' \
+      -e 's|"display_name" "[^"]*"|"display_name" "GE-Proton (Latest)"|' \
       "$out/compatibilitytool.vdf"
 
     # GE-Proton11-1 ships with require_tool_appid "4185400" (arm64 SteamRT4).
