@@ -330,6 +330,7 @@ in
     # Shell tools
     # -----------------------------------------------------------------------
     eza   # Modern ls replacement — colors, icons, git status, dir grouping
+    tuios # TUI window manager / multiplexer (trial — remove if unused)
 
     # -----------------------------------------------------------------------
     # Network share client
