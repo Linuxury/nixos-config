@@ -168,7 +168,7 @@ ram
 
 ## SteamGridDB Artwork
 
-Custom box art and banners for your Steam library are stored in `assets/SteamGridDB/` and symlinked to `~/Pictures/SteamGridDB/` by Home Manager.
+Custom box art and banners for your Steam library are stored in the Assets repo (`SteamGridDB/`) and symlinked to `~/Pictures/SteamGridDB/` by Home Manager.
 
 To apply in Steam:
 
@@ -217,7 +217,7 @@ Alex uses **Prism Launcher** for Minecraft Java Edition. Prism manages multiple 
 2. Log in with Alex's Mojang account (he has his own — separate from yours)
 3. Create an instance with the desired Minecraft version
 
-**Mods and assets:** `~/assets/Minecraft/` is available for mod packs or resource packs — it's cloned from the assets repo.
+**Mods and assets:** `~/Pictures/Minecraft/` (from the Assets repo) holds launcher art.
 
 Alex's machines don't have Steam. Flatpak remotes are reset declaratively after every rebuild so COSMIC Store is intentionally empty — only the Hytale flatpak is allowed.
 
@@ -231,7 +231,7 @@ The Hytale launcher installs automatically on first login via a one-shot systemd
 ~/Documents/assets/flatpaks/hytale-launcher-latest.flatpak
 ```
 
-The assets repo must be cloned first — see [06-first-boot.md](06-first-boot.md).
+It comes from the Assets repo with the rebuild — see [06-first-boot.md](06-first-boot.md).
 
 The service only runs if the app is not already installed:
 

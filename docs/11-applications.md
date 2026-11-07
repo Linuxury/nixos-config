@@ -335,7 +335,7 @@ Servers use `modules/base/server-shell.nix` instead of Home Manager. This module
 
 **Config location:** `fastfetch/` in the [ZSH repo](https://github.com/Linuxury/ZSH) — linked via Home Manager.
 
-A custom Naruto chibi image (`assets/Fastfetch/naruto-chibi-3b.png`) is displayed alongside system info. The image file is sourced from the nixos-config repo.
+A random image from `~/Pictures/Fastfetch/` is displayed alongside system info. Each user has their own pool of images, kept in the [Assets repo](https://github.com/Linuxury/Assets) under `Fastfetch/<user>/`.
 
 ---
 

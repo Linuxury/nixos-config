@@ -28,7 +28,7 @@
 #   3. Remove this module
 # ===========================================================================
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 let
   cfg = config.programs.hytale;
@@ -53,14 +53,13 @@ in
     # =========================================================================
     # Bundle path — ~/Documents/assets/flatpaks/hytale-launcher-latest.flatpak
     #
-    # Non-CDN users (babylinux, alex): symlink to nixos-config assets repo.
+    # Non-CDN users (babylinux, alex): symlink to the Assets input (read-only store path).
     # CDN users (linuxury): plain dir created by the activation below so the
-    # downloaded file has a writable home (can't symlink into the git repo).
+    # downloaded file has a writable home (can't symlink into the read-only store).
     # =========================================================================
     home.file = lib.mkIf (!cfg.cdnFallback) {
       "Documents/assets/flatpaks".source =
-        config.lib.file.mkOutOfStoreSymlink
-          "${config.home.homeDirectory}/nixos-config/assets/flatpaks";
+        "${inputs.assets}/flatpaks";
     };
 
     home.activation.hytale-flatpak-dir = lib.mkIf cfg.cdnFallback
@@ -122,7 +121,7 @@ in
           + lib.optionalString (!cfg.cdnFallback) ''
             if [ ! -f "$FLATPAK_FILE" ]; then
               echo "ERROR: Hytale flatpak not found at $FLATPAK_FILE"
-              echo "  Place hytale-launcher-latest.flatpak in ~/nixos-config/assets/flatpaks/ and rebuild."
+              echo "  Place hytale-launcher-latest.flatpak in the Assets repo (flatpaks/), then run nru."
               exit 1
             fi
 

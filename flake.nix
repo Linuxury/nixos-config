@@ -198,6 +198,15 @@
       flake = false;
     };
 
+    # Assets — wallpapers, avatars, fastfetch art, SteamGridDB, the Hytale
+    # bundle. Not a flake: files only. Read at build time, so hosts without git
+    # (babylinux, alex) get them through the build. Moves only when the Assets
+    # repo changes ("nix flake update assets", which nru does for every input).
+    assets = {
+      url = "github:Linuxury/Assets";
+      flake = false;
+    };
+
   };
 
   # ===========================================================================
@@ -228,7 +237,7 @@
       #   hostConfig   — Path to the host's config file in hosts/
       #   user         — The primary user on this machine
       #   userConfig   — Path to the user's Home Manager config (modules/users/<user>/home)
-      #   wallpaperDir     — Wallpaper subfolder from ~/assets/Wallpapers/
+      #   wallpaperDir     — Wallpaper subfolder from Wallpapers/ in the Assets input
       #                      Gets symlinked to ~/Pictures/Wallpapers
       #                      Options: "4k", "3440x1440", "PikaOS"
       #   hypridleProfile  — Which hypridle config to activate on this host.

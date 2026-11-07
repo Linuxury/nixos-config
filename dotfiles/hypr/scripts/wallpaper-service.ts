@@ -115,7 +115,7 @@ function inode(path: string): string {
 }
 
 // Compare by inode so symlink vs. real-path differences don't matter.
-// ~/Pictures/Wallpapers is mkOutOfStoreSymlink → nixos-config/assets/Wallpapers/<dir>
+// ~/Pictures/Wallpapers is mkOutOfStoreSymlink → the Assets input, Wallpapers/<dir>
 function sameFile(a: string, b: string): boolean {
     if (!a || !b) return false
     const ia = inode(a), ib = inode(b)

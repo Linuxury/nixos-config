@@ -36,13 +36,17 @@ Each host runs a specific DE or compositor. Use this table to find the right the
 
 ### Source locations
 
-All users symlink wallpapers from the nixos-config repo:
+Every user has a normal, writable `~/Pictures/Wallpapers/` folder. At each rebuild,
+`modules/users/wallpapers` copies the wallpapers for that machine from the
+[Assets repo](https://github.com/Linuxury/Assets) into it, skipping files that already
+exist. So users can add, replace or delete wallpapers freely: files they added or changed
+are never touched, and a repo wallpaper they deleted comes back at the next rebuild.
 
-| User | Wallpaper source | Symlinked to |
-|------|-----------------|--------------|
-| linuxury | `~/nixos-config/assets/Wallpapers/<dir>/` | `~/Pictures/Wallpapers/` |
-| babylinux | `~/nixos-config/assets/Wallpapers/<dir>/` | `~/Pictures/Wallpapers/` |
-| alex | `~/nixos-config/assets/Wallpapers/<dir>/` | `~/Pictures/Wallpapers/` |
+| User | Wallpaper source | Copied to |
+|------|-----------------|-----------|
+| linuxury | Assets repo, `Wallpapers/<dir>/` | `~/Pictures/Wallpapers/` |
+| babylinux | Assets repo, `Wallpapers/<dir>/` | `~/Pictures/Wallpapers/` |
+| alex | Assets repo, `Wallpapers/<dir>/` | `~/Pictures/Wallpapers/` |
 
 The `<dir>` is the `wallpaperDir` from `flake.nix`:
 

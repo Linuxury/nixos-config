@@ -10,7 +10,7 @@
 #   Asus-A15   → "4k"
 #
 # Notable:
-#   - Hytale installed from bundled flatpak in assets repo
+#   - Hytale installed from bundled flatpak from the Assets input
 #   - Prism Launcher for Minecraft (Java Edition)
 #   - Shares terminal dotfiles with linuxury (kitty)
 # ===========================================================================
@@ -21,6 +21,7 @@
 {
   imports = [
     ../../../../modules/system/graphical/hytale/default.nix
+    ../../../../modules/users/wallpapers/default.nix
   ];
 
   programs.hytale.enable = true;
@@ -118,29 +119,20 @@
     # Nano — for quick root edits
     ".nanorc".source = ../../../../dotfiles/nano/.nanorc;
 
-    # -----------------------------------------------------------------------
-    # Wallpaper symlink
-    #
-    # ~/Pictures/Wallpapers → ~/assets/Wallpapers/<wallpaperDir>
-    # Both her machines use "4k" — set in flake.nix
-    # -----------------------------------------------------------------------
-    "Pictures/Wallpapers".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
+    # ~/Pictures/Wallpapers is a writable folder, filled from the Assets input
+    # by modules/users/wallpapers. Both her machines use "4k" — set in flake.nix
 
-    # ~/Pictures/Avatar → nixos-config/assets/Avatar (family profile photos)
+    # ~/Pictures/Avatar → <assets>/Avatar (family profile photos)
     "Pictures/Avatar".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Avatar";
+      "${inputs.assets}/Avatar";
 
     # ~/.face.icon — SDDM reads this as the primary user avatar.
     ".face.icon".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar/babylinux.jpeg";
+      "${inputs.assets}/Avatar/babylinux.jpeg";
 
-    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch/babylinux (per-user image pool)
+    # ~/Pictures/Fastfetch → <assets>/Fastfetch/babylinux (per-user image pool)
     "Pictures/Fastfetch".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch/babylinux";
+      "${inputs.assets}/Fastfetch/babylinux";
 
     # SSH config
     ".ssh/config".text = ''

@@ -24,6 +24,7 @@
 {
   imports = [
     ../../../../modules/system/graphical/hytale/default.nix
+    ../../../../modules/users/wallpapers/default.nix
     ../../../../modules/system/graphical/nautilus/default.nix
     ../../../../modules/system/graphical/thunar/default.nix
   ];
@@ -196,51 +197,37 @@
     ".nanorc".source = ../../../../dotfiles/nano/.nanorc;
 
     # -----------------------------------------------------------------------
-    # Wallpaper symlink
+    # ~/Pictures/Wallpapers is a writable folder, filled from the Assets input
+    # by modules/users/wallpapers (wallpaperDir is passed per-host from
+    # flake.nix: ThinkPad "4k", Ryzen5900x "3440x1440"). The slideshow reads it.
     #
-    # ~/Pictures/Wallpapers → ~/nixos-config/assets/Wallpapers/<wallpaperDir>
-    #
-    # wallpaperDir is passed per-host from flake.nix:
-    #   ThinkPad   → "4k"
-    #   Ryzen5900x → "3440x1440"
-    #
-    # The wallpaper slideshow script always reads from ~/Pictures/Wallpapers
-    # so it works identically on both machines without any changes.
-    #
-    # mkOutOfStoreSymlink creates a symlink to a path outside the Nix store.
-    # Wallpapers live inside the repo so no separate clone is needed.
-    # -----------------------------------------------------------------------
-    "Pictures/Wallpapers".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
-
-    # -----------------------------------------------------------------------
-    # Picture assets — symlinked from nixos-config/assets/ into ~/Pictures/
+    # Picture assets — symlinked from the Assets input into ~/Pictures/
     #
     # This puts all family photos and game art where the DE and image
-    # viewer can discover them naturally, without a detour through ~/assets/.
+    # viewer can discover them naturally, without a detour through the store.
     # -----------------------------------------------------------------------
 
-    # ~/Pictures/Avatar → nixos-config/assets/Avatar (family profile photos)
+    # ~/Pictures/Avatar → <assets>/Avatar (family profile photos)
     "Pictures/Avatar".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar";
+      "${inputs.assets}/Avatar";
 
     # ~/.face.icon — SDDM reads this as the primary user avatar.  Points
     # directly to the repo asset (not through ~/Pictures/Avatar) so it exists
     # even before ~/Pictures/Avatar is symlinked on first HM activation.
     ".face.icon".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar/linuxury.jpg";
+      "${inputs.assets}/Avatar/linuxury.jpg";
 
-    # ~/Pictures/Minecraft → nixos-config/assets/Minecraft (skins, packs art)
+    # ~/Pictures/Minecraft → <assets>/Minecraft (skins, packs art)
     "Pictures/Minecraft".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Minecraft";
+      "${inputs.assets}/Minecraft";
 
-    # ~/Pictures/SteamGridDB → nixos-config/assets/SteamGridDB (Steam cover art)
+    # ~/Pictures/SteamGridDB → <assets>/SteamGridDB (Steam cover art)
     "Pictures/SteamGridDB".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/SteamGridDB";
+      "${inputs.assets}/SteamGridDB";
 
-    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch/linuxury (per-user image pool)
+    # ~/Pictures/Fastfetch → <assets>/Fastfetch/linuxury (per-user image pool)
     "Pictures/Fastfetch".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Fastfetch/linuxury";
+      "${inputs.assets}/Fastfetch/linuxury";
 
     # SSH config — structure only, no keys
     ".ssh/config".text = ''
@@ -313,9 +300,6 @@
     '';
   };
 
-  # Remove old plain directories so home-manager can create symlinks.
-  # Previous layout had ~/assets/Avatar as a tmpfiles dir; now it's a symlink
-  # at ~/Pictures/Avatar. Same for Minecraft and SteamGridDB.
   # Remove manually-created AI symlinks/files so home-manager can take ownership.
   # Safe to run repeatedly — only acts on symlinks or plain files, never dirs.
   # Remove the old mimeapps.list location so it never diverges from the
@@ -368,25 +352,6 @@
         rm -f "$f"
       fi
     done
-  '';
-
-  home.activation.migrateAssetDirs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-    # Old ~/assets/Avatar plain dir → now symlinked at ~/Pictures/Avatar
-    if [ -d "$HOME/assets/Avatar" ] && [ ! -L "$HOME/assets/Avatar" ]; then
-      rmdir "$HOME/assets/Avatar" 2>/dev/null || true
-    fi
-    # Old ~/assets/Minecraft plain dir → now symlinked at ~/Pictures/Minecraft
-    if [ -d "$HOME/assets/Minecraft" ] && [ ! -L "$HOME/assets/Minecraft" ]; then
-      rmdir "$HOME/assets/Minecraft" 2>/dev/null || true
-    fi
-    # Old ~/assets/SteamGridDB plain dir → now symlinked at ~/Pictures/SteamGridDB
-    if [ -d "$HOME/assets/SteamGridDB" ] && [ ! -L "$HOME/assets/SteamGridDB" ]; then
-      rmdir "$HOME/assets/SteamGridDB" 2>/dev/null || true
-    fi
-    # Old ~/assets/flatpaks plain dir → moved to ~/Documents/assets/flatpaks
-    if [ -d "$HOME/assets/flatpaks" ] && [ ! -L "$HOME/assets/flatpaks" ]; then
-      rmdir "$HOME/assets/flatpaks" 2>/dev/null || true
-    fi
   '';
 
   # =========================================================================

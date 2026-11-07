@@ -48,6 +48,22 @@
         "type": "github"
       }
     },
+    "assets": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794077244,
+        "narHash": "sha256-j1Hxgn9r3744vaj+wDeL/xipCPj7vOaZ3MafQjqfoMI=",
+        "owner": "Linuxury",
+        "repo": "Assets",
+        "rev": "fa43d3355c5ba4eb67336903047a5bb7c20fbfce",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Linuxury",
+        "repo": "Assets",
+        "type": "github"
+      }
+    },
     "bedrock-on-linux": {
       "inputs": {
         "nixpkgs": [
@@ -532,6 +548,7 @@
       "inputs": {
         "affinity-nix": "affinity-nix",
         "agenix": "agenix",
+        "assets": "assets",
         "bedrock-on-linux": "bedrock-on-linux",
         "helium-browser": "helium-browser",
         "home-manager": "home-manager",

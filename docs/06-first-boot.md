@@ -18,7 +18,7 @@ ssh linuxury@<hostname-or-ip>
   - [3 — Generate an SSH key (admin machines only)](#3--generate-an-ssh-key-admin-machines-only)
   - [4 — Register the machine in secrets.nix and re-key](#4--register-the-machine-in-secretsnix-and-re-key)
   - [5 — Rebuild to apply secrets](#5--rebuild-to-apply-secrets)
-  - [6 — Clone assets](#6--clone-assets)
+  - [6 — Assets](#6--assets)
 - [ThinkPad (linuxury)](#thinkpad-linuxury)
 - [Ryzen5900x (linuxury)](#ryzen5900x-linuxury)
 - [Ryzen5800x and Asus-A15 (babylinux)](#ryzen5800x-and-asus-a15-babylinux)
@@ -161,28 +161,26 @@ nr   # expands to: sudo nixos-rebuild switch --flake ~/nixos-config#$(hostname)
 
 ---
 
-### 6 — Clone assets
+### 6 — Assets
 
-Wallpapers and game assets live in a separate private repo because of file size. Clone it to the correct location for each user:
+Wallpapers, avatars and game art live in their own repo, [Linuxury/Assets](https://github.com/Linuxury/Assets), because of file size. **There is nothing to clone:** the flake pulls it in as the input `assets`, and Home Manager links `~/Pictures/*` into it, so it arrives with the first rebuild (about 850 MB to download once, which includes babylinux's and alex's machines, where git is not installed).
+
+`~/Pictures/Wallpapers` is a normal writable folder in each user's home, filled from the repo at each rebuild: files a user added or changed are never touched, and a repo wallpaper they deleted comes back. The other folders (avatars, Fastfetch art, SteamGridDB, Minecraft) are read-only links.
+
+New files reach a machine when it updates its inputs (`nru` does this for every input). To add or change files for everyone, work in a normal clone, push, then run `nru`:
 
 ```bash
-# On linuxury's machines — Home Manager symlinks from ~/nixos-config/assets
-# (already present — nixos-config contains the assets subdirectory)
-
-# On babylinux's machines
-sudo -u babylinux git clone <assets-repo-url> /home/babylinux/assets
-
-# On alex's machines
-sudo -u alex git clone <assets-repo-url> /home/alex/assets
+git clone https://github.com/Linuxury/Assets.git ~/assets   # only where you edit
 ```
 
-Required wallpaper directories per user:
+Folders each user gets:
 
 | Path | Who needs it |
 |------|-------------|
 | `assets/Wallpapers/4k/` | linuxury (ThinkPad), babylinux, alex |
 | `assets/Wallpapers/3440x1440/` | linuxury (Ryzen5900x only) |
 | `assets/Wallpapers/PikaOS/` | alex's machines |
+| `assets/Avatar/`, `assets/Fastfetch/<user>/` | every user |
 | `assets/flatpaks/hytale-launcher-latest.flatpak` | babylinux, alex |
 
 > The matugen template repo is auto-cloned by Home Manager activation (`home.activation.matugenTemplates`) if it's missing — you do not need to clone it manually.
@@ -254,7 +252,7 @@ After Prism Launcher opens for the first time, log in with Alex's Mojang account
 
 ### Hytale
 
-The Hytale flatpak installs automatically on first login from the local bundle at `~/Documents/assets/flatpaks/hytale-launcher-latest.flatpak`. Requires the assets repo to be cloned first — see [Step 6](#6--clone-assets) above.
+The Hytale flatpak installs automatically on first login from the local bundle at `~/Documents/assets/flatpaks/hytale-launcher-latest.flatpak`. Comes from the Assets repo, so no extra setup is needed — see [Step 6](#6--assets) above.
 
 ---
 
@@ -339,5 +337,5 @@ Use this to confirm nothing was missed before considering the setup complete.
 - [ ] Machine registered in `secrets/secrets.nix`
 - [ ] Secrets re-keyed (`age-rekey` from the `secrets/` directory)
 - [ ] Config pulled and rebuilt (`git pull && nr`)
-- [ ] Assets cloned to the correct location
+- [ ] Wallpapers, avatars and Fastfetch images are linked (they arrive with the rebuild from the Assets repo)
 - [ ] Host-specific steps done (see sections above)

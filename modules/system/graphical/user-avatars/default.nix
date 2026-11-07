@@ -14,32 +14,32 @@
 #      AccountsService — used by cosmic-greeter, gdm, and any D-Bus client
 #      querying org.freedesktop.Accounts.User.IconFile.
 #
-# Avatar source layout (nixos-config/assets/Avatar/ per user):
+# Avatar source layout (Avatar/ in the Assets input, flake input "assets"):
 #   linuxury.jpg     → linuxury
 #   babylinux.jpeg   → babylinux
 #   alexander.jpg    → alex
 #
-# Paths point directly to nixos-config/assets/Avatar/ rather than through
-# the HM-managed ~/Pictures/Avatar symlink.  NixOS system activationScripts
-# run BEFORE HM user activations — on the first rebuild the ~/Pictures/Avatar
+# Paths point directly into the Assets input rather than through the
+# HM-managed ~/Pictures/Avatar symlink.  NixOS system activationScripts run
+# BEFORE HM user activations — on the first rebuild the ~/Pictures/Avatar
 # symlink does not exist yet, so [ -f ] tests against that path fail silently
-# and no icons are ever written.  The direct repo path is always present as
-# long as the nixos-config repo is cloned (a prerequisite for rebuilding).
-# The [ -f ] guard below handles hosts where a given user has no repo clone.
+# and no icons are ever written.  The input is a store path, so it is always
+# there and nothing needs cloning first.
+# The [ -f ] guard below skips users that have no avatar file.
 #
 # Imported by: modules/system/graphical/default.nix
 # ===========================================================================
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 let
-  # Map each username to their avatar in the nixos-config assets directory.
-  # Using the direct repo path avoids the HM-symlink timing race described
+  # Map each username to their avatar in the Assets flake input.
+  # Reading the input directly avoids the HM-symlink timing race described
   # in the header comment above.
   avatarMap = {
-    linuxury  = "/home/linuxury/nixos-config/assets/Avatar/linuxury.jpg";
-    babylinux = "/home/babylinux/nixos-config/assets/Avatar/babylinux.jpeg";
-    alex      = "/home/alex/nixos-config/assets/Avatar/alexander.jpg";
+    linuxury  = "${inputs.assets}/Avatar/linuxury.jpg";
+    babylinux = "${inputs.assets}/Avatar/babylinux.jpeg";
+    alex      = "${inputs.assets}/Avatar/alexander.jpg";
   };
 
   # Only act on users that are defined as normal users on this host

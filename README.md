@@ -91,7 +91,6 @@ nixos-config/
 ├── secrets/                     # age-encrypted secrets (safe to commit)
 │   ├── secrets.nix              # Access control — who can read what
 │   └── *.age                    # Encrypted secret files
-├── assets/                      # Wallpapers, avatars, SteamGridDB art, flatpak bundles
 └── docs/                        # Documentation (see below)
 ```
 

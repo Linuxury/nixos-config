@@ -17,7 +17,7 @@
 #   - Flatpak disabled system-wide except for Hytale (host level)
 #   - Terminal included — he'll grow into it
 #   - Own Mojang account for Minecraft
-#   - Hytale from bundled flatpak in assets repo
+#   - Hytale from bundled flatpak from the Assets input
 #   - PikaOS wallpapers generate kid-friendly color schemes via matugen
 # ===========================================================================
 
@@ -27,6 +27,7 @@
 {
   imports = [
     ../../../../modules/system/graphical/hytale/default.nix
+    ../../../../modules/users/wallpapers/default.nix
   ];
 
   # =========================================================================
@@ -124,30 +125,21 @@
     # Fastfetch — shared config
     ".config/fastfetch".source = "${inputs.zsh}/fastfetch";
 
-    # -----------------------------------------------------------------------
-    # Wallpaper symlink
-    #
-    # ~/Pictures/Wallpapers → ~/assets/Wallpapers/PikaOS
-    # Both his machines use "PikaOS" — set in flake.nix
-    # matugen generates colorful kid-friendly themes from these wallpapers
-    # -----------------------------------------------------------------------
-    "Pictures/Wallpapers".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Wallpapers/${wallpaperDir}";
+    # ~/Pictures/Wallpapers is a writable folder, filled from the Assets input
+    # by modules/users/wallpapers. Both his machines use "PikaOS" — set in
+    # flake.nix. matugen generates colorful kid-friendly themes from them.
 
-    # ~/Pictures/Avatar → nixos-config/assets/Avatar (family profile photos)
+    # ~/Pictures/Avatar → <assets>/Avatar (family profile photos)
     "Pictures/Avatar".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Avatar";
+      "${inputs.assets}/Avatar";
 
     # ~/.face.icon — SDDM reads this as the primary user avatar.
     ".face.icon".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-config/assets/Avatar/alexander.jpg";
+      "${inputs.assets}/Avatar/alexander.jpg";
 
-    # ~/Pictures/Fastfetch → nixos-config/assets/Fastfetch/alex (per-user image pool)
+    # ~/Pictures/Fastfetch → <assets>/Fastfetch/alex (per-user image pool)
     "Pictures/Fastfetch".source =
-      config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/nixos-config/assets/Fastfetch/alex";
+      "${inputs.assets}/Fastfetch/alex";
 
   };
 

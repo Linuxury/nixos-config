@@ -58,10 +58,6 @@ nixos-config/
 │       └── <user>/home/       ← Home Manager config for each user
 ├── dotfiles/
 │   └── nvim/                  ← Neovim config (symlinked to ~/.config/nvim)
-├── assets/
-│   ├── Wallpapers/            ← linuxury's wallpapers (from this repo)
-│   ├── Avatar/                ← linuxury's profile picture
-│   └── Minecraft/             ← Minecraft artwork
 └── docs/                      ← This documentation
 ```
 

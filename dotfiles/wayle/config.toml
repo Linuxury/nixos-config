@@ -54,7 +54,7 @@ units = "imperial"
 # Wallpaper — Wayle's built-in awww engine
 # engine-enabled = true   → Wayle renders wallpapers (replaces standalone awww)
 # cycling-directory       → ~/Pictures/Wallpapers is a symlink to
-#                           ~/nixos-config/assets/Wallpapers/<wallpaperDir>
+#                           the Assets repo, Wallpapers/<wallpaperDir>
 # ---------------------------------------------------------------------------
 [wallpaper]
 engine-enabled = true

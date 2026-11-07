@@ -382,7 +382,7 @@ The system is installed and running your flake config. Continue with **[06-first
 - Connect to Tailscale
 - Generate the machine's SSH key and register it on GitHub
 - Register the machine in `secrets/secrets.nix` and re-key agenix
-- Clone wallpapers and other assets
+- Wallpapers and other assets arrive with the first rebuild (flake input `assets`) — nothing to clone
 - Any host-specific manual steps
 
 ---
