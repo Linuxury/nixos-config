@@ -31,9 +31,10 @@
 #   services.nixos-auto-update.isPrimary      = true;         # Ryzen5900x only
 #   services.nixos-auto-update.nixosConfigPath = "/home/linuxury/nixos-config";
 #
-# To disable on a specific host:
-#   Import this module and override: services.nixos-auto-update.enable = lib.mkForce false;
-#   (No-op — to truly disable, don't import the module)
+# Unattended triggers (weekly timer + session-start service) run only when
+#   services.nixos-auto-update.enable = true. Default is false while the repos
+#   are being migrated; the nixos-auto-update command itself stays available
+#   for manual use (nru, Noctalia plugin).
 # ===========================================================================
 
 { config, pkgs, lib, ... }:
@@ -50,6 +51,16 @@ in
   # Options
   # =========================================================================
   options.services.nixos-auto-update = {
+
+    enable = lib.mkOption {
+      type        = lib.types.bool;
+      default     = false;
+      description = ''
+        Run unattended updates (system.autoUpgrade timer + session-start user
+        service) on non-primary hosts. Off during the repo migration — flip the
+        default to true once the new repos are live. Manual runs are unaffected.
+      '';
+    };
 
     primaryUser = lib.mkOption {
       type        = lib.types.str;
@@ -148,7 +159,7 @@ in
   #
   # Persistent = true: a missed 3am slot (machine off) fires on next boot.
   # =========================================================================
-  system.autoUpgrade = lib.mkIf (!cfg.isPrimary) {
+  system.autoUpgrade = lib.mkIf (cfg.enable && !cfg.isPrimary) {
     enable             = true;
     flake              = "github:linuxury/nixos-config";
     dates              = cfg.schedule;
@@ -496,7 +507,7 @@ in
     after    = [ "graphical-session.target" ];
     # Primary host uses a system timer instead — no session-start trigger
     # so manual nru runs aren't shadowed by a background update on login.
-    wantedBy = lib.optionals (!cfg.isPrimary) [ "graphical-session.target" ];
+    wantedBy = lib.optionals (cfg.enable && !cfg.isPrimary) [ "graphical-session.target" ];
     serviceConfig = {
       Type         = "oneshot";
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 120";
