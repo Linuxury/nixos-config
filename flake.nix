@@ -288,7 +288,7 @@
 
                 # Stale upstream dependency hashes (pnpmDeps/npmDeps/cargoDeps/…).
                 # Entries are added and removed by nru's [F]ix option — see
-                # _nru_hash_fix in the ZSH repo (conf.d/33-nru-fail.zsh).
+                # _nru_hash_fix in the ZSH repo (conf.d/nru/fail.zsh).
                 (final: prev: prev.lib.mapAttrs (name: fix:
                   prev.${name}.overrideAttrs (old: {
                     ${fix.attr} = old.${fix.attr}.overrideAttrs (_: { outputHash = fix.hash; });

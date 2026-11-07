@@ -35,7 +35,7 @@ These abbreviations are defined in each user's `home.nix` via `programs.zsh.zsh-
 | `age-edit` | `cd ~/nixos-config/secrets && nix run nixpkgs#ragenix -- -e` | Open a secret for editing |
 | `age-rekey` | `cd ~/nixos-config/secrets && nix run nixpkgs#ragenix -- -r` | Re-key all secrets with the current recipient list |
 
-The `nru` function (defined in ZSH repo, `conf.d/42-nru.zsh`) rebuilds a remote host over SSH:
+The `nru` function (defined in ZSH repo, `conf.d/nru/nru.zsh`) rebuilds a remote host over SSH:
 
 ```bash
 nru Media-Server    # SSHes to Media-Server, pulls the latest config, and runs nixos-rebuild there
