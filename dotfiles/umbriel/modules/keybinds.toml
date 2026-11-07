@@ -6,6 +6,25 @@
 # mentioned here remain active. Syntax: docs.noctalia.dev/umbriel/keybinds
 # Actions: docs.noctalia.dev/umbriel/actions
 
+# Named scratchpads (tables must precede/outside [keybinds]). Defining any
+# removes the implicit `default`, so every scratchpad action carries a name.
+# `misc` backs the generic Space/Tab binds; the others launch their app when
+# toggled empty.
+[[scratchpad]]
+name = "misc"
+
+[[scratchpad]]
+name = "browser"
+spawn_when_empty = "firefox --new-window"
+
+[[scratchpad]]
+name = "term"
+spawn_when_empty = "kitty"
+
+[[scratchpad]]
+name = "files"
+spawn_when_empty = "thunar"
+
 [keybinds]
 
 # ─────────────────────── Upstream defaults (unmodified) ────────────────────
@@ -115,13 +134,14 @@
 "Mod+Shift+Page_Up" = "window-move-to-workspace-previous"
 "Mod+Shift+Page_Down" = "window-move-to-workspace-next"
 
-# Scratchpads — each output owns a separate scratchpad. Bare actions target
-# the output under the pointer; append `:DP-1` or a monitor Config name to
-# target one explicitly.
-"Mod+Shift+Space" = { action = "window-move-to-scratchpad", repeat = false }
-"Mod+Space" = "scratchpad-toggle"
-"Mod+Ctrl+Space" = { action = "window-restore-from-scratchpad", repeat = false }
-"Mod+Tab" = "scratchpad-focus-next"
+# Scratchpads — pads defined above [keybinds]. Rule: Mod+Ctrl = scratchpad.
+"Mod+Shift+Space" = { action = "window-move-to-scratchpad misc", repeat = false }
+"Mod+Space" = "scratchpad-toggle misc"
+"Mod+Ctrl+Space" = { action = "window-restore-from-scratchpad misc", repeat = false }
+"Mod+Tab" = "scratchpad-focus-next misc"
+# Scratchpad windows one at a time — mirrors Mod+Alt+Left/Right for tabs.
+"Mod+Ctrl+Right" = "scratchpad-window-show-next misc"
+"Mod+Ctrl+Left" = "scratchpad-window-show-previous misc"
 
 # Submaps temporarily replace the active keybind layer and can nest. Entry
 # binds must not repeat. A table-form bind can run an action and then reset one
@@ -185,3 +205,10 @@ XF86AudioPrev        = "spawn playerctl previous"
 # Brightness (allow_when_locked = works on the lock screen)
 XF86MonBrightnessUp   = { action = "spawn brightnessctl set +5%", allow_when_locked = true }
 XF86MonBrightnessDown = { action = "spawn brightnessctl set 5%-", allow_when_locked = true }
+
+# App launchers — plain = normal tiled window, Mod+Ctrl = scratchpad toggle.
+# (Mod+Return kitty and Mod+E thunar are bound above.)
+"Mod+B"           = "spawn firefox"
+"Mod+Ctrl+B"      = "scratchpad-toggle browser"
+"Mod+Ctrl+Return" = "scratchpad-toggle term"
+"Mod+Ctrl+E"      = "scratchpad-toggle files"
