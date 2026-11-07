@@ -55,6 +55,9 @@ in
     inputs.noctalia.homeModules.default
 
     ({ lib, ... }: {
+      # Target dir of the flea theme template below (Noctalia doesn't create it).
+      systemd.user.tmpfiles.rules = [ "d %h/.local/state/omarchy/current/theme 0755 - - -" ];
+
       programs.noctalia = {
         enable = true;
 
@@ -87,13 +90,21 @@ in
           theme = {
             mode   = "dark";
             source = "wallpaper";
-          } // lib.optionalAttrs config.hardware.openrgb.enable {
-            # LED sync: render the bare primary hex, then push it to the
-            # RGB hardware (see color-sync/led-sync.sh).
-            templates.user.led-sync = {
-              input_path  = "${pkgs.writeText "led-color" "{{colors.primary.default.hex_stripped}}"}";
-              output_path = "$XDG_CACHE_HOME/noctalia/led-color";
-              post_hook   = "${ledSync}/bin/led-sync";
+            templates.user = {
+              # Flea (pkgs/flea) reads Omarchy's colors.toml and reloads it live;
+              # render the palette there so it follows the wallpaper.
+              flea = {
+                input_path  = "${./color-sync/flea-colors.toml}";
+                output_path = "$HOME/.local/state/omarchy/current/theme/colors.toml";
+              };
+            } // lib.optionalAttrs config.hardware.openrgb.enable {
+              # LED sync: render the bare primary hex, then push it to the
+              # RGB hardware (see color-sync/led-sync.sh).
+              led-sync = {
+                input_path  = "${pkgs.writeText "led-color" "{{colors.primary.default.hex_stripped}}"}";
+                output_path = "$XDG_CACHE_HOME/noctalia/led-color";
+                post_hook   = "${ledSync}/bin/led-sync";
+              };
             };
           };
 
