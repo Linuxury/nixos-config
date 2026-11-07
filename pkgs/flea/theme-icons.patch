@@ -1,0 +1,285 @@
+diff --git a/crates/flea-gui/src/columns/cache.rs b/crates/flea-gui/src/columns/cache.rs
+index bdb5535..4215c5f 100644
+--- a/crates/flea-gui/src/columns/cache.rs
++++ b/crates/flea-gui/src/columns/cache.rs
+@@ -28,6 +28,13 @@ impl Row<'_> {
+         }
+     }
+ 
++    fn icon(&self) -> &str {
++        match self {
++            Self::Peek(row) => &row.icon,
++            Self::Listing(row) => &row.icon,
++        }
++    }
++
+     fn mark(&self, languages: bool) -> Mark {
+         match self {
+             Self::Peek(row) => Mark::for_file(&row.name, row.dir, 0, &row.icon, languages),
+@@ -68,6 +75,8 @@ pub struct Prepared {
+     pub label: String,
+     pub location_label: String,
+     pub mark: Mark,
++    /// Icon-theme names for this row, most specific first; see app_icons::theme_names.
++    pub theme: Vec<String>,
+     pub dir: bool,
+     matches: [Option<MatchedName>; 2],
+ }
+@@ -278,6 +287,7 @@ fn prepare(
+         size,
+         size_label: size_label.unwrap_or_default(),
+         mark: row.mark(shaping.languages),
++        theme: crate::g2::mn1::app_icons::theme_names(row.name(), row.dir(), row.icon()),
+         dir: row.dir(),
+         matches: [plain_match, chevron_match],
+     }
+diff --git a/crates/flea-gui/src/columns/element/paint.rs b/crates/flea-gui/src/columns/element/paint.rs
+index e8f346a..0030339 100644
+--- a/crates/flea-gui/src/columns/element/paint.rs
++++ b/crates/flea-gui/src/columns/element/paint.rs
+@@ -121,18 +121,34 @@ impl TrackElement {
+                                 pictures_painted += 1;
+                             } else {
+                                 let (mark_x, mark_y, mark) = mark_box();
+-                                let (key, data) = prepared.mark.svg();
+-                                let _ = window.paint_svg(
+-                                    Bounds::new(
+-                                        point(left + px(mark_x), top + px(mark_y)),
+-                                        size(px(mark), px(mark)),
+-                                    ),
+-                                    key,
+-                                    Some(data),
+-                                    TransformationMatrix::unit(),
+-                                    inks.mark,
++                                let slot = Bounds::new(
++                                    point(left + px(mark_x), top + px(mark_y)),
++                                    size(px(mark), px(mark)),
++                                );
++                                crate::g2::mn1::app_icons::request_theme(&prepared.theme, mark, window, cx);
++                                // The icon theme's icon, once rasterized; symlink arrows and language logos stay Flea's own.
++                                let themed = !matches!(
++                                    prepared.mark,
++                                    crate::row::marks::Mark::Symlink
++                                        | crate::row::marks::Mark::Language(_)
++                                ) && crate::g2::mn1::app_icons::paint_theme(
++                                    &prepared.theme,
++                                    mark,
++                                    slot,
++                                    window,
+                                     cx,
+                                 );
++                                if !themed {
++                                    let (key, data) = prepared.mark.svg();
++                                    let _ = window.paint_svg(
++                                        slot,
++                                        key,
++                                        Some(data),
++                                        TransformationMatrix::unit(),
++                                        inks.mark,
++                                        cx,
++                                    );
++                                }
+                             }
+                             let name = prepared.name_for(chevron, cursor);
+                             let name_x = left + px(geometry.name_x);
+diff --git a/crates/flea-gui/src/g2/mn1/app_icons.rs b/crates/flea-gui/src/g2/mn1/app_icons.rs
+index e614210..bcf5d7c 100644
+--- a/crates/flea-gui/src/g2/mn1/app_icons.rs
++++ b/crates/flea-gui/src/g2/mn1/app_icons.rs
+@@ -136,6 +136,82 @@ pub(crate) fn mark(path: String, logical: f32, ink: gpui::Hsla) -> gpui::AnyElem
+     .into_any_element()
+ }
+ 
++/// Theme icon names for a file row, most specific first: the MIME type's own icon (text-x-python), then the generic one the backend picked. A folder is just `folder`.
++pub(crate) fn theme_names(name: &str, dir: bool, generic: &str) -> Vec<String> {
++    if dir {
++        return vec!["folder".to_owned()];
++    }
++    static DB: std::sync::OnceLock<flea::backend::mime::Db> = std::sync::OnceLock::new();
++    let mut names = Vec::new();
++    if let Some(mime) = DB.get_or_init(flea::backend::mime::Db::load).lookup(name) {
++        names.push(mime.replace('/', "-"));
++    }
++    if !generic.is_empty() {
++        names.push(generic.to_owned());
++    }
++    names
++}
++
++/// Starts any raster work a row's theme icons still need; call it with the App before painting.
++pub(crate) fn request_theme(names: &[String], logical: f32, window: &Window, cx: &mut App) {
++    load_names(names, logical, window, cx);
++}
++
++/// Paints a row's first ready theme icon in `at`; false leaves the caller to paint its built-in mark.
++pub(crate) fn paint_theme(
++    names: &[String],
++    logical: f32,
++    at: Bounds<Pixels>,
++    window: &mut Window,
++    cx: &App,
++) -> bool {
++    names.iter().any(|name| {
++        held_at(name, logical, window, cx)
++            .is_some_and(|image| window.paint_image(at, at, Default::default(), image, 0, false).is_ok())
++    })
++}
++
++/// `load` for a caller that only holds the App, as a paint pass does; each name is requested once per size.
++fn load_names(names: &[String], logical: f32, window: &Window, cx: &mut App) {
++    let side = pixels(logical, window);
++    let (size, scale) = (
++        logical.round().max(1.) as u32,
++        window.scale_factor().ceil().max(1.) as u32,
++    );
++    for name in names {
++        match cx.default_global::<AppIcons>().held.entry((name.clone(), side)) {
++            Entry::Vacant(pending) => pending.insert(None),
++            Entry::Occupied(_) => continue,
++        };
++        let (name, renderer) = (name.clone(), cx.svg_renderer());
++        let work = cx.background_executor().spawn({
++            let name = name.clone();
++            async move {
++                let path = Icons::session().resolve(&name, size, scale)?;
++                Some(pv1::raster_run(&pv1::RasterJob {
++                    raster: pv1::raster_for_path(&path, renderer),
++                    path,
++                    size: (side, side),
++                    epoch: 0,
++                    latest: Arc::new(AtomicU64::new(0)),
++                }))
++            }
++        });
++        cx.spawn(async move |cx| {
++            let Some(pv1::RasterOutcome::Raster(image)) = work.await else {
++                return;
++            };
++            cx.update(|cx| {
++                cx.default_global::<AppIcons>()
++                    .held
++                    .insert((name, side), Some(image));
++                cx.refresh_windows();
++            });
++        })
++        .detach();
++    }
++}
++
+ impl Shell {
+     /// Only the open flyout's visible rows start icon work.
+     pub(crate) fn load_app_icons(&mut self, window: &Window, cx: &mut Context<Self>) {
+diff --git a/crates/flea-gui/src/grid/element/paint.rs b/crates/flea-gui/src/grid/element/paint.rs
+index e9712a5..60b7611 100644
+--- a/crates/flea-gui/src/grid/element/paint.rs
++++ b/crates/flea-gui/src/grid/element/paint.rs
+@@ -227,26 +227,41 @@ impl GridElement {
+                 pictures.record_paint(drawn.listing, at, window, painted);
+             }
+         } else {
+-            let (key, data) = drawn.language.clone().unwrap_or_else(|| {
+-                drawn
+-                    .tile
+-                    .as_ref()
+-                    .map_or(crate::row::marks::Mark::File, |tile| tile.mark)
+-                    .svg()
+-            });
+-            let mark_ink = if drawn.cursor || drawn.selected {
+-                ink.foreground
+-            } else {
+-                ink.muted_frame
+-            };
+-            let _ = window.paint_svg(
+-                bounds_of(origin, layout.mark(drawn.slot)),
+-                key,
+-                Some(data),
+-                TransformationMatrix::unit(),
+-                mark_ink.opacity(dim),
+-                cx,
+-            );
++            let slot = bounds_of(origin, layout.mark(drawn.slot));
++            // The icon theme's icon, once rasterized; symlink arrows and language logos stay Flea's own.
++            let themed = drawn.language.is_none()
++                && drawn.tile.as_ref().is_some_and(|tile| {
++                    tile.mark != crate::row::marks::Mark::Symlink
++                        && crate::g2::mn1::app_icons::paint_theme(
++                            &tile.theme,
++                            layout.mark(drawn.slot).width,
++                            slot,
++                            window,
++                            cx,
++                        )
++                });
++            if !themed {
++                let (key, data) = drawn.language.clone().unwrap_or_else(|| {
++                    drawn
++                        .tile
++                        .as_ref()
++                        .map_or(crate::row::marks::Mark::File, |tile| tile.mark)
++                        .svg()
++                });
++                let mark_ink = if drawn.cursor || drawn.selected {
++                    ink.foreground
++                } else {
++                    ink.muted_frame
++                };
++                let _ = window.paint_svg(
++                    slot,
++                    key,
++                    Some(data),
++                    TransformationMatrix::unit(),
++                    mark_ink.opacity(dim),
++                    cx,
++                );
++            }
+         }
+         let Some(tile) = drawn.tile.as_ref().filter(|_| !drawn.editing) else {
+             return;
+@@ -361,6 +376,14 @@ impl Element for GridElement {
+             window,
+             cx,
+         );
++        if let Some(layout) = state.layout.as_ref() {
++            for drawn in &state.drawn {
++                if let Some(tile) = &drawn.tile {
++                    let side = layout.mark(drawn.slot).width;
++                    crate::g2::mn1::app_icons::request_theme(&tile.theme, side, window, cx);
++                }
++            }
++        }
+         window.with_content_mask(Some(ContentMask { bounds }), |window| {
+             for drawn in &state.drawn {
+                 let frame = bounds_of(
+diff --git a/crates/flea-gui/src/grid/tile.rs b/crates/flea-gui/src/grid/tile.rs
+index 27711a4..72d778d 100644
+--- a/crates/flea-gui/src/grid/tile.rs
++++ b/crates/flea-gui/src/grid/tile.rs
+@@ -25,6 +25,8 @@ pub struct Tile {
+     pub caption: String,
+     pub lines: Vec<Line>,
+     pub mark: Mark,
++    /// Icon-theme names, most specific first; see app_icons::theme_names.
++    pub theme: Vec<String>,
+     pub elided: bool,
+     pub widest: f32,
+ }
+@@ -149,6 +151,7 @@ pub fn prepare(
+         caption,
+         lines,
+         mark: Mark::for_row(&row.icon, row.mode),
++        theme: crate::g2::mn1::app_icons::theme_names(&row.name, row.dir, &row.icon),
+         elided,
+     }
+ }
+diff --git a/src/lib.rs b/src/lib.rs
+index 25255a2..11371cc 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -55,6 +55,7 @@ pub mod ui_logic_st2;
+ 
+ // The catalog and locale API shares the backend's regular-file and wall-clock primitives.
+ pub mod backend {
++    pub mod mime;
+     pub mod netfs;
+     pub mod networkaddress;
+     #[cfg(test)]

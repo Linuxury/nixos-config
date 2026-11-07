@@ -57,6 +57,23 @@ rustPlatform.buildRustPackage rec {
     vulkan-loader libheif mpv-unwrapped poppler
   ];
 
+  # Row icons come from the GTK icon theme (Papirus etc.) instead of Flea's built-in
+  # Lucide glyphs (Columns and Grid views; List view not patched). Rebase when bumping the version.
+  patches = [ ./theme-icons.patch ];
+
+  # Flea hardcodes Arch's /usr/share. On NixOS those don't exist, so every file
+  # got the generic text icon and no MIME type. Point at the merged system
+  # profile instead (includes types/icons that installed apps add).
+  postPatch = ''
+    substituteInPlace src/backend/aliases.rs src/backend/kind.rs src/backend/icons.rs src/backend/mime.rs \
+      --replace-fail /usr/share/mime /run/current-system/sw/share/mime
+    substituteInPlace src/backend/menu_registry.rs src/ui_logic_op3/openwith_icons.rs \
+      --replace-fail /usr/share/pixmaps /run/current-system/sw/share/pixmaps
+    substituteInPlace src/backend/menu_registry.rs src/backend/thumbspec.rs src/userfile.rs \
+      src/ui_logic_op3/openwith_icons.rs crates/flea-gui/src/window/settings/claim.rs \
+      --replace-quiet /usr/local/share:/usr/share /run/current-system/sw/share
+  '';
+
   # Upstream's test suite needs bwrap namespaces / O_TMPFILE; skip in the sandbox.
   doCheck = false;
 
