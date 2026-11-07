@@ -23,8 +23,9 @@
 # folder (~/Pictures, ~/Documents, ~/Videos, ~/Music) and writes only to that
 # folder's Craft/ subfolder: new files land there and originals can't be
 # overwritten. The CLIs take one read and one write root each (repeats are
-# refused). LightCraft/FilmCraft/GridCraft/CADCraft/TextureCraft have no root flags
+# refused). LightCraft/FilmCraft/GridCraft/CADCraft have no root flags
 # (unconfined); their dir only decides which Craft/ folder gets created.
+# TextureCraft/MaterialCraft take the roots but refuse all writes without them.
 # ===========================================================================
 
 { config, lib, pkgs, ... }:
@@ -46,8 +47,8 @@ let
     lightcraft  = { dir = "Pictures";  args = [ "mcp" "--compact" ]; };           # 393 tools → 17
     vectorcraft = { dir = "Pictures";  args = [ "mcp" "--headless" "roots" ]; };  # default tries the GUI on :7979 first
     figcraft    = { dir = "Pictures";  args = [ "mcp" "roots" ]; };
-    texturecraft = { dir = "Pictures"; args = [ "mcp" ]; };                        # own --read-root/--write-root flags, not wired: unconfined
-    materialcraft = { dir = "Pictures"; args = [ "mcp" ]; };                      # root flags unverified, unconfined like texturecraft
+    texturecraft = { dir = "Pictures"; args = [ "mcp" "roots" ]; };               # unconfined = no writes at all, so it needs roots
+    materialcraft = { dir = "Pictures"; args = [ "mcp" "roots" ]; };              # same --automation-*-root flags as texturecraft
     wordcraft   = { dir = "Documents"; args = [ "mcp" "roots" ]; };
     pdfcraft    = { dir = "Documents"; args = [ "mcp" "--compact" "roots" ]; };   # 179 tools → 17
     deckcraft   = { dir = "Documents"; args = [ "mcp" "roots" ]; };
