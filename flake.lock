@@ -542,7 +542,8 @@
         "noctalia": "noctalia",
         "noctalia-greeter": "noctalia-greeter",
         "umbriel": "umbriel",
-        "zen-browser": "zen-browser"
+        "zen-browser": "zen-browser",
+        "zsh": "zsh"
       }
     },
     "systems": {
@@ -689,6 +690,22 @@
       "original": {
         "owner": "0xc000022070",
         "repo": "zen-browser-flake",
+        "type": "github"
+      }
+    },
+    "zsh": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794073963,
+        "narHash": "sha256-ayZncaRJiuuZ3J7Q6cbDGc206KC2WLEnfN8cHir9LwU=",
+        "owner": "Linuxury",
+        "repo": "ZSH",
+        "rev": "291d57f8e45f4a4c18047e6cc544b431b0a7090d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Linuxury",
+        "repo": "ZSH",
         "type": "github"
       }
     }

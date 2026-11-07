@@ -17,7 +17,7 @@
 #
 # Called by:
 #   - notify-update-result.sh  (auto-update: session-start + weekly timer)
-#   - dotfiles/zsh/zshrc       (manual: nr, nru, nrb, nrt)
+#   - ZSH repo (conf.d/)      (manual: nr, nru, nrb, nrt)
 # ===========================================================================
 set -euo pipefail
 

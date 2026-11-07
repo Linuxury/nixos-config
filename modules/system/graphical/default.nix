@@ -27,7 +27,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  # Shared Flatpak updater — used by nru (_nru_flatpak_bar in dotfiles/zsh/zshrc)
+  # Shared Flatpak updater — used by nru (_nru_flatpak_bar in the ZSH repo)
   # and by the weekly timers below, so the update + failure logic lives in one place.
   # Prints one machine-readable line per result, prefixed with the scope:
   #   <scope> skipped <reason> | <scope> uptodate

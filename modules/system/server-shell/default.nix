@@ -1,9 +1,9 @@
 # ===========================================================================
 # modules/system/server-shell/default.nix — Zsh config for headless servers
 #
-# Provides the same shell environment as desktop hosts by sourcing the shared
-# dotfiles/zsh/zshrc directly. All nru/nr/nrt functions, aliases, and
-# management tooling stay in one place — changes propagate everywhere.
+# Provides the same shell environment as desktop hosts by embedding the shared
+# ZSH repo (flake input "zsh", see its init.nix). All nru/nr/nrt functions,
+# aliases, and management tooling stay in one place — changes propagate everywhere.
 #
 # Server-specific additions (not in zshrc):
 #   - TERM fallback (silences "can't find terminal definition" on SSH login)
@@ -14,7 +14,7 @@
 # Import in: Radxa-X4, MinisForum, Media-Server, any headless host.
 # ===========================================================================
 
-{ pkgs, lib, ... }:
+{ pkgs, lib, inputs, ... }:
 
 {
   # SSH agent — system-level, sets SSH_AUTH_SOCK via PAM for all login shells
@@ -38,7 +38,7 @@
 
   # Fastfetch — system info on shell start (same as desktop)
   environment.systemPackages = [ pkgs.fastfetch ];
-  environment.etc."fastfetch/config.jsonc".source = ../../../dotfiles/fastfetch/config.jsonc;
+  environment.etc."fastfetch/config.jsonc".source = "${inputs.zsh}/fastfetch/config.jsonc";
 
   # TERM fallback — runs in /etc/zsh/zshenv before NixOS's set-environment
   # script, silencing "can't find terminal definition" errors on SSH login.
@@ -60,9 +60,9 @@
       age-rekey = "nix run github:ryantm/agenix -- -r";
     };
 
-    # Shared init — same zshrc as desktop hosts.
-    # lib.fileContents embeds the file content at eval time; shell ${...}
+    # Shared init — same shell config as desktop hosts.
+    # init.nix embeds the file contents at eval time; shell ${...}
     # references are not interpreted by Nix, only by zsh at runtime.
-    interactiveShellInit = lib.fileContents ../../../dotfiles/zsh/zshrc;
+    interactiveShellInit = import "${inputs.zsh}/init.nix" { inherit lib; };
   };
 }

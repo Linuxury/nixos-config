@@ -57,7 +57,6 @@ nixos-config/
 │   └── users/
 │       └── <user>/home/       ← Home Manager config for each user
 ├── dotfiles/
-│   ├── zsh/zshrc              ← Shared zsh init file
 │   └── nvim/                  ← Neovim config (symlinked to ~/.config/nvim)
 ├── assets/
 │   ├── Wallpapers/            ← linuxury's wallpapers (from this repo)

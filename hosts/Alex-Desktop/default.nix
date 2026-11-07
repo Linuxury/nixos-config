@@ -363,11 +363,11 @@
   programs.zsh.enable = true;
 
   # Minimal HM config for linuxury — just the shared zshrc so nru/nr/ngc work
-  home-manager.users.linuxury = { lib, ... }: {
+  home-manager.users.linuxury = { lib, inputs, ... }: {
     home.stateVersion = "24.11";
     programs.zsh = {
       enable     = true;
-      initContent = lib.fileContents ../../dotfiles/zsh/zshrc;
+      initContent = import "${inputs.zsh}/init.nix" { inherit lib; };
     };
   };
 }

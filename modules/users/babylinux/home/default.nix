@@ -16,7 +16,7 @@
 # ===========================================================================
 
 # Single function — wallpaperDir comes from extraSpecialArgs in flake.nix
-{ config, pkgs, lib, wallpaperDir, ... }:
+{ config, pkgs, lib, inputs, wallpaperDir, ... }:
 
 {
   imports = [
@@ -106,10 +106,10 @@
   # =========================================================================
   home.file = {
     # Starship prompt — shared config
-    ".config/starship.toml".source = ../../../../dotfiles/starship/starship.toml;
+    ".config/starship.toml".source = "${inputs.zsh}/starship/starship.toml";
 
     # Fastfetch — shared config
-    ".config/fastfetch".source = ../../../../dotfiles/fastfetch;
+    ".config/fastfetch".source = "${inputs.zsh}/fastfetch";
 
     # Kitty terminal — base config; colors written by matugen at runtime
     ".config/kitty/kitty.conf".source = ../../../../dotfiles/kitty/kitty.conf;
@@ -193,7 +193,7 @@
       ll = "eza -la --color=always --icons --group-directories-first --git";
     };
 
-    initContent = lib.fileContents ../../../../dotfiles/zsh/zshrc;
+    initContent = import "${inputs.zsh}/init.nix" { inherit lib; };
   };
 
   # =========================================================================

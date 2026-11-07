@@ -13,7 +13,7 @@
 # that was active when you last closed the session.
 # ===========================================================================
 
-{ pkgs, lib, ... }:
+{ pkgs, lib, inputs, ... }:
 
 {
   # =========================================================================
@@ -76,7 +76,7 @@
       # cmd_duration), just with matugen's dynamic colors slotted into the
       # palette instead of static Nord hexes. Same pattern as pywalfox below.
       [templates.starship]
-      input_path  = "${../../../dotfiles/starship/starship-colors.toml.template}"
+      input_path  = "${inputs.zsh}/starship/starship-colors.toml.template"
       output_path = "~/.config/starship-colors.toml"
       post_hook   = "cp ~/.config/starship-colors.toml ~/.config/starship.toml"
 

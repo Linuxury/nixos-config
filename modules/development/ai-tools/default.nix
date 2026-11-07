@@ -31,7 +31,7 @@
 
   # =========================================================================
   # IteraCompute API key (free Qwen tier) — shells export it as
-  # ITERACOMPUTE_API_KEY (dotfiles/zsh/zshrc) for any AI tool to use.
+  # ITERACOMPUTE_API_KEY (ZSH repo, conf.d/00-env.zsh) for any AI tool to use.
   # Also declared identically in editors/zed; identical definitions merge.
   # =========================================================================
   age.secrets.iteracompute-api-key = {

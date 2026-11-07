@@ -310,7 +310,7 @@ The zsh config is layered across three sources, applied in order:
 
 1. `programs.zsh` in `home.nix` — Home Manager options: autosuggestions, completion, fast-syntax-highlighting plugin
 2. `programs.zsh.zsh-abbr.abbreviations` — declarative abbreviations (see [09-maintenance.md](09-maintenance.md) for the full list)
-3. `dotfiles/zsh/zshrc` — shared env vars, PATH, fastfetch on open, `nru` function, completion styling; symlinked to `~/.zshrc`
+3. The [ZSH repo](https://github.com/Linuxury/ZSH) (flake input `zsh`) — shared env vars, PATH, fastfetch on open, `nru` function, completion styling; built into `~/.zshrc` at rebuild
 
 ### Integrations
 
@@ -333,7 +333,7 @@ Servers use `modules/base/server-shell.nix` instead of Home Manager. This module
 
 **Role:** System info display shown when a terminal opens.
 
-**Config location:** `dotfiles/fastfetch/` — symlinked via Home Manager.
+**Config location:** `fastfetch/` in the [ZSH repo](https://github.com/Linuxury/ZSH) — linked via Home Manager.
 
 A custom Naruto chibi image (`assets/Fastfetch/naruto-chibi-3b.png`) is displayed alongside system info. The image file is sourced from the nixos-config repo.
 

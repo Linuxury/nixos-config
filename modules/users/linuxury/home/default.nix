@@ -15,6 +15,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   wallpaperDir,
   hypridleProfile,
   ...
@@ -139,7 +140,7 @@
     # the live file. See modules/shells/noctalia/default.nix for why.
 
     # Fastfetch
-    ".config/fastfetch".source = ../../../../dotfiles/fastfetch;
+    ".config/fastfetch".source = "${inputs.zsh}/fastfetch";
 
     # Topgrade — NixOS flake version
     ".config/topgrade.toml".source = ../../../../dotfiles/topgrade/topgrade-nixos.toml;
@@ -430,7 +431,7 @@
     };
 
     # Shared shell initialization — env vars, PATH, fastfetch, nru function
-    initContent = lib.fileContents ../../../../dotfiles/zsh/zshrc;
+    initContent = import "${inputs.zsh}/init.nix" { inherit lib; };
   };
 
   # =========================================================================
@@ -539,10 +540,12 @@
 
   home.activation.starshipSeed = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     _cfg="$HOME/.config/starship.toml"
-    _template="$HOME/nixos-config/dotfiles/starship/starship.toml"
+    _template="${inputs.zsh}/starship/starship.toml"
     [ -L "$_cfg" ] && rm -f "$_cfg"
     if [ ! -f "$_cfg" ] && [ -f "$_template" ]; then
       cp "$_template" "$_cfg"
+      # The template is a read-only store path; matugen must be able to overwrite the copy.
+      chmod u+w "$_cfg"
     fi
   '';
 

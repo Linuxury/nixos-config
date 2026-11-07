@@ -190,6 +190,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # ZSH — shell config (conf.d/*.zsh incl. nru), starship and fastfetch
+    # configs. Not a flake: read at build time through its init.nix. Only
+    # moves when its repo changes ("nix flake update zsh").
+    zsh = {
+      url = "github:Linuxury/ZSH";
+      flake = false;
+    };
+
   };
 
   # ===========================================================================
@@ -280,7 +288,7 @@
 
                 # Stale upstream dependency hashes (pnpmDeps/npmDeps/cargoDeps/…).
                 # Entries are added and removed by nru's [F]ix option — see
-                # _nru_hash_fix in dotfiles/zsh/zshrc.
+                # _nru_hash_fix in the ZSH repo (conf.d/33-nru-fail.zsh).
                 (final: prev: prev.lib.mapAttrs (name: fix:
                   prev.${name}.overrideAttrs (old: {
                     ${fix.attr} = old.${fix.attr}.overrideAttrs (_: { outputHash = fix.hash; });
